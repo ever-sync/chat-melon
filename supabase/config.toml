@@ -1,0 +1,115 @@
+project_id = "heipukzowidsktcepxwr"
+
+[functions.update-member-metrics]
+verify_jwt = false
+
+[functions.evolution-webhook]
+verify_jwt = false
+
+[functions.evolution-mark-as-read]
+verify_jwt = true
+
+[functions.evolution-instance-manager]
+verify_jwt = true
+
+[functions.evolution-send-message]
+verify_jwt = true
+
+[functions.evolution-send-media]
+verify_jwt = true
+
+[functions.evolution-send-poll]
+verify_jwt = true
+
+[functions.evolution-send-list]
+verify_jwt = true
+
+[functions.evolution-send-location]
+verify_jwt = true
+
+[functions.evolution-send-contact]
+verify_jwt = true
+
+[functions.evolution-send-reaction]
+verify_jwt = true
+
+[functions.evolution-edit-message]
+verify_jwt = true
+
+[functions.evolution-delete-message]
+verify_jwt = true
+
+[functions.evolution-validate-number]
+verify_jwt = true
+
+[functions.evolution-initiate-call]
+verify_jwt = true
+
+[functions.evolution-fetch-contact-profile]
+verify_jwt = true
+
+[functions.evolution-group-manager]
+verify_jwt = true
+
+[functions.evolution-send-audio]
+verify_jwt = true
+
+[functions.evolution-send-presence]
+verify_jwt = true
+
+[functions.evolution-settings]
+verify_jwt = true
+
+[functions.ai-webhook]
+verify_jwt = false
+
+[functions.check-notifications]
+verify_jwt = false
+
+[functions.generate-insights]
+verify_jwt = false
+
+[functions.google-calendar-oauth]
+verify_jwt = false
+
+[functions.google-calendar-sync]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = true
+
+[functions.track-email-open]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.analyze-conversation]
+verify_jwt = true
+
+[functions.approve-proposal]
+verify_jwt = false
+
+[functions.calculate-lead-score]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = true
+
+[functions.detect-duplicates]
+verify_jwt = false
+
+[functions.enrich-contact]
+verify_jwt = true
+
+[functions.execute-playbook]
+verify_jwt = false
+
+[functions.send-campaign]
+verify_jwt = false
+
+[functions.send-satisfaction-survey]
+verify_jwt = false
+
+[functions.send-welcome-email]
+verify_jwt = false

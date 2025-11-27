@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+bun.lockb
+package-lock.json
+
+# Build output
+dist
+build
+.next
+out
+
+# Cache
+.turbo
+.cache
+.parcel-cache
+
+# Env files
+.env
+.env.*
+
+# Generated files
+*.min.js
+*.min.css
+
+# Other
+coverage
+.vscode
+.idea
+*.log

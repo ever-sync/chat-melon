@@ -1,0 +1,5 @@
+-- Add timestamp columns for message status tracking
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS played_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS external_id TEXT;
