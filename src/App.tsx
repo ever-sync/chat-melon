@@ -13,6 +13,7 @@ import { PageLoadingSkeleton } from "@/components/LoadingFallback";
 const Landing = lazy(() => import("./pages/Landing"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const CRM = lazy(() => import("./pages/CRM"));
@@ -71,6 +72,7 @@ const App = () => {
                   <Route path="/" element={<Landing />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/set-password" element={<SetPassword />} />
                   <Route path="/dashboard" element={<ErrorBoundary context="dashboard"><Dashboard /></ErrorBoundary>} />
                   <Route path="/chat" element={<ErrorBoundary context="chat"><Chat /></ErrorBoundary>} />

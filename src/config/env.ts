@@ -14,9 +14,6 @@ const envSchema = z.object({
   MODE: z.enum(['development', 'production', 'test']).default('development'),
   DEV: z.boolean().default(false),
   PROD: z.boolean().default(false),
-
-  // URLs opcionais
-  BASE_URL: z.string().url().optional(),
 });
 
 /**
@@ -36,7 +33,6 @@ function validateEnv(): Env {
       MODE: import.meta.env.MODE,
       DEV: import.meta.env.DEV,
       PROD: import.meta.env.PROD,
-      BASE_URL: import.meta.env.BASE_URL,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
