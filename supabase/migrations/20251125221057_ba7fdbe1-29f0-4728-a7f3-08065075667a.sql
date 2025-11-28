@@ -93,7 +93,7 @@ SELECT
       "fontFamily": "Inter"
     }
   }'::jsonb,
-  c.created_by
+  CASE WHEN EXISTS (SELECT 1 FROM profiles WHERE id = c.created_by) THEN c.created_by ELSE NULL END
 FROM companies c
 WHERE NOT EXISTS (
   SELECT 1 FROM proposal_templates pt WHERE pt.company_id = c.id
