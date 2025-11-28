@@ -14,7 +14,12 @@ export function TrialBanner() {
     } | null>(null);
 
     useEffect(() => {
+        console.log('🔍 TrialBanner - currentCompany:', currentCompany);
+
         if (!currentCompany) return;
+
+        console.log('📊 subscription_status:', currentCompany.subscription_status);
+        console.log('📅 trial_ends_at:', currentCompany.trial_ends_at);
 
         // Calculate days remaining
         if (currentCompany.subscription_status === 'trial' && currentCompany.trial_ends_at) {
@@ -23,10 +28,14 @@ export function TrialBanner() {
             const diffTime = endsAt.getTime() - now.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+            console.log('⏰ Days remaining:', diffDays);
+
             setTrialInfo({
                 daysRemaining: Math.max(0, diffDays),
                 isTrialActive: diffDays > 0,
             });
+        } else {
+            console.log('❌ Not in trial or missing trial_ends_at');
         }
     }, [currentCompany]);
 

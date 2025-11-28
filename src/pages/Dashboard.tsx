@@ -1,6 +1,6 @@
 import { MainLayout } from "@/components/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, DollarSign, TrendingUp, CheckSquare } from "lucide-react";
+import { MessageSquare, DollarSign, TrendingUp, CheckSquare, ArrowUpRight, ArrowDownRight, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompanyQuery } from "@/hooks/useCompanyQuery";
@@ -9,12 +9,13 @@ import { ptBR } from "date-fns/locale";
 import { RevenueChart } from "@/components/analytics/RevenueChart";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const { companyId } = useCompanyQuery();
   const navigate = useNavigate();
   const { revenueData, metrics } = useAnalytics(6);
-  
+
   const [stats, setStats] = useState({
     totalConversations: 0,
     openDeals: 0,
@@ -124,29 +125,41 @@ export default function Dashboard() {
       title: "Total de Conversas",
       value: stats.totalConversations,
       icon: MessageSquare,
-      color: "text-blue-500",
+      color: "text-emerald-500",
+      bgColor: "bg-emerald-500/10",
       path: "/chat",
+      trend: "+12%",
+      trendUp: true
     },
     {
       title: "Receita Total",
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
-      color: "text-green-500",
+      color: "text-rose-500",
+      bgColor: "bg-rose-500/10",
       path: "/crm",
+      trend: "+8%",
+      trendUp: true
     },
     {
       title: "Negócios Abertos",
       value: stats.openDeals,
       icon: TrendingUp,
-      color: "text-purple-500",
+      color: "text-violet-500",
+      bgColor: "bg-violet-500/10",
       path: "/crm",
+      trend: "-2%",
+      trendUp: false
     },
     {
       title: "Tarefas Pendentes",
       value: stats.pendingTasks,
       icon: CheckSquare,
       color: "text-orange-500",
+      bgColor: "bg-orange-500/10",
       path: "/tasks",
+      trend: "+5%",
+      trendUp: true
     },
   ];
 
@@ -155,33 +168,45 @@ export default function Dashboard() {
       <div className="space-y-8 p-2">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+            <p className="text-gray-500 mt-2 text-lg">
               Visão geral das suas métricas e atividades
             </p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" className="rounded-xl h-11 px-6 border-gray-200 text-gray-600 hover:bg-gray-50">
+              Últimos 7 dias
+            </Button>
+            <Button className="rounded-xl h-11 px-6 bg-black hover:bg-gray-800 text-white shadow-lg shadow-black/20">
+              Exportar Relatório
+            </Button>
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => (
-            <Card 
-              key={card.title} 
-              className="hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            <Card
+              key={card.title}
+              className="border-0 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 rounded-[24px] bg-white overflow-hidden group"
               onClick={() => navigate(card.path)}
             >
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {card.title}
-                    </p>
-                    <p className="text-3xl font-bold tracking-tight">
-                      {card.value}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-2xl bg-${card.color.replace('text-', '')}/10`}>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-6">
+                  <div className={`p-3.5 rounded-2xl ${card.bgColor} transition-colors group-hover:scale-110 duration-300`}>
                     <card.icon className={`h-6 w-6 ${card.color}`} />
                   </div>
+                  <div className={`flex items-center gap-1 text-sm font-medium ${card.trendUp ? 'text-emerald-600' : 'text-rose-600'} bg-gray-50 px-2 py-1 rounded-lg`}>
+                    {card.trendUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                    {card.trend}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium text-gray-500">
+                    {card.title}
+                  </h3>
+                  <p className="text-3xl font-bold text-gray-900 tracking-tight">
+                    {card.value}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -189,47 +214,63 @@ export default function Dashboard() {
         </div>
 
         {/* Gráfico de Receita */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Receita dos Últimos 6 Meses</CardTitle>
+        <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between p-8 pb-0">
+            <div>
+              <CardTitle className="text-xl font-bold text-gray-900">Receita</CardTitle>
+              <p className="text-sm text-gray-500 mt-1">Últimos 6 meses</p>
+            </div>
+            <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100">
+              <MoreHorizontal className="h-5 w-5 text-gray-500" />
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-6">
             {revenueData && revenueData.length > 0 ? (
               <RevenueChart data={revenueData} />
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="h-[300px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
                 Nenhum dado de receita disponível
               </div>
             )}
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Conversas Recentes</CardTitle>
+        <div className="grid gap-8 md:grid-cols-2">
+          <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden h-full">
+            <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">
+              <CardTitle className="text-xl font-bold text-gray-900">Conversas Recentes</CardTitle>
+              <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
+                Ver todas
+              </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8 pt-0">
               {recentConversations.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-8 text-center">
+                <div className="h-[200px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
                   Nenhuma conversa recente
-                </p>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {recentConversations.map((conv) => (
-                    <div 
-                      key={conv.id} 
-                      className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
+                    <div
+                      key={conv.id}
+                      className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group border border-transparent hover:border-gray-100"
                       onClick={() => navigate('/chat')}
                     >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate">{conv.contact_name}</p>
-                        <p className="text-xs text-muted-foreground truncate mt-1">
-                          {conv.last_message}
-                        </p>
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center text-purple-600 font-semibold text-lg">
+                          {conv.contact_name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 truncate group-hover:text-purple-600 transition-colors">
+                            {conv.contact_name}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate mt-0.5">
+                            {conv.last_message}
+                          </p>
+                        </div>
                       </div>
                       {conv.unread_count > 0 && (
-                        <span className="bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-1 rounded-full ml-3 flex-shrink-0">
+                        <span className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-rose-500/30">
                           {conv.unread_count}
                         </span>
                       )}
@@ -240,30 +281,37 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Tarefas de Hoje</CardTitle>
+          <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden h-full">
+            <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">
+              <CardTitle className="text-xl font-bold text-gray-900">Tarefas de Hoje</CardTitle>
+              <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
+                Ver todas
+              </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8 pt-0">
               {todayTasks.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-8 text-center">
+                <div className="h-[200px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
                   Nenhuma tarefa para hoje
-                </p>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {todayTasks.map((task) => (
-                    <div 
-                      key={task.id} 
-                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
+                    <div
+                      key={task.id}
+                      className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group border border-transparent hover:border-gray-100"
                       onClick={() => navigate('/tasks')}
                     >
-                      <div className="p-1.5 rounded-lg bg-primary/10 mt-0.5">
-                        <CheckSquare className="h-4 w-4 text-primary" />
+                      <div className="p-3 rounded-xl bg-orange-50 text-orange-500 group-hover:bg-orange-100 transition-colors">
+                        <CheckSquare className="h-6 w-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm">{task.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {task.contacts?.name} • {format(new Date(task.due_date), 'HH:mm', { locale: ptBR })}
+                        <p className="font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+                          {task.title}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-2">
+                          <span className="font-medium text-gray-700">{task.contacts?.name}</span>
+                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                          {format(new Date(task.due_date), 'HH:mm', { locale: ptBR })}
                         </p>
                       </div>
                     </div>

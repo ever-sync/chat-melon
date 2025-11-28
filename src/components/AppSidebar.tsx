@@ -1,4 +1,4 @@
-import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, Bot, LogOut } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useInsights } from "@/hooks/useInsights";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
 const menuItems = [{
   title: "Dashboard",
   url: "/dashboard",
@@ -73,16 +74,13 @@ const menuItems = [{
   url: "/companies",
   icon: Building2
 }];
+
 export function AppSidebar() {
-  const {
-    state
-  } = useSidebar();
+  const { state } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
-  const {
-    unreadCount
-  } = useInsights();
+  const { unreadCount } = useInsights();
   const { isPlatformAdmin } = usePlatformAdmin();
   const { isFeatureEnabled } = useFeatureFlags();
 
@@ -91,68 +89,121 @@ export function AppSidebar() {
     navigate('/auth');
     toast.success('Logout realizado com sucesso');
   };
-  
+
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + '/');
-  
-  // Filtrar menu items baseado em feature flags
+
   const visibleMenuItems = menuItems.filter((item) => {
     if (!item.featureKey) return true;
     return isFeatureEnabled(item.featureKey as any);
   });
-  return <Sidebar side="left" collapsible="icon">
-      <div className="flex items-center justify-center h-16 border-b border-border/30 bg-sidebar">
-        {state === "expanded" ? <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-primary/10">
-              <MessageCircle className="h-5 w-5 text-primary" />
+
+  return (
+    <Sidebar side="left" collapsible="icon" className="border-none bg-[#111111] text-gray-400 data-[state=collapsed]:w-[80px]">
+      <div className="flex items-center justify-center h-20 bg-[#111111]">
+        {state === "expanded" ? (
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20">
+              <span className="text-xl">🦎</span>
             </div>
-            <span className="text-lg font-semibold text-foreground">CRM</span>
-          </div> : <div className="p-1.5 rounded-lg bg-primary/10">
-            <MessageCircle className="h-5 w-5 text-primary" />
-          </div>}
+            <span className="text-xl font-bold text-white tracking-tight">CamalaChat</span>
+          </div>
+        ) : (
+          <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20">
+            <span className="text-xl">🦎</span>
+          </div>
+        )}
       </div>
-      
-      <SidebarContent className="px-2 py-4 bg-sidebar">
+
+      <SidebarContent className="px-3 py-4 bg-[#111111] scrollbar-none">
         <SidebarGroup className="mx-0 px-0">
-          <SidebarGroupLabel className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest px-3 mb-2">
-            Menu
+          <SidebarGroupLabel className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-4 mb-4 group-data-[collapsible=icon]:hidden">
+            Menu Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
-              {visibleMenuItems.map(item => <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={state === "collapsed" ? item.title : undefined} className="data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium data-[active=true]:border-l-2 data-[active=true]:border-primary hover:bg-muted/50 hover:text-foreground rounded-lg transition-all duration-200">
-                    <NavLink to={item.url} className="flex items-center gap-3 px-3 py-2.5">
-                      <div className="relative">
-                        <item.icon className="h-4.5 w-4.5 flex-shrink-0" />
+            <SidebarMenu className="space-y-2">
+              {visibleMenuItems.map(item => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    tooltip={state === "collapsed" ? item.title : undefined}
+                    className="
+                      h-11
+                      data-[active=true]:bg-white/10 
+                      data-[active=true]:text-white 
+                      data-[active=true]:font-medium 
+                      hover:bg-white/5 
+                      hover:text-white 
+                      text-gray-400
+                      rounded-2xl 
+                      transition-all 
+                      duration-300
+                      group
+                    "
+                  >
+                    <NavLink
+                      to={item.url}
+                      className={`flex items-center ${state === 'expanded' ? 'gap-4 px-3' : 'justify-center'}`}
+                    >
+                      <div className={`
+                        p-1.5 rounded-lg transition-all duration-300
+                        ${isActive(item.url) ? 'bg-white/10 text-emerald-400' : 'group-hover:text-emerald-400'}
+                      `}>
+                        <item.icon className="h-5 w-5" />
                       </div>
-                      {state === "expanded" && <span className="flex items-center gap-2 flex-1 text-sm font-normal">
+                      {state === "expanded" && (
+                        <span className="flex items-center gap-2 flex-1 text-[14px]">
                           {item.title}
-                          {item.url === "/reports" && unreadCount > 0 && <Badge variant="default" className="ml-auto bg-primary text-primary-foreground px-1.5 py-0 text-[10px] rounded-full h-4 min-w-4 flex items-center justify-center">
+                          {item.url === "/reports" && unreadCount > 0 && (
+                            <Badge className="ml-auto bg-emerald-500 text-white px-2 py-0.5 text-[10px] rounded-full">
                               {unreadCount}
-                            </Badge>}
-                        </span>}
+                            </Badge>
+                          )}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
-                </SidebarMenuItem>)}
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {isPlatformAdmin && (
-          <SidebarGroup className="mx-0 px-0 mt-4">
-            <SidebarGroupLabel className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest px-3 mb-2">
-              Admin
+          <SidebarGroup className="mx-0 px-0 mt-6">
+            <SidebarGroupLabel className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-4 mb-4 group-data-[collapsible=icon]:hidden">
+              Administração
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-0.5">
+              <SidebarMenu className="space-y-2">
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive("/super-admin")} tooltip={state === "collapsed" ? "Painel Admin" : undefined} className="data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium data-[active=true]:border-l-2 data-[active=true]:border-primary hover:bg-muted/50 hover:text-foreground rounded-lg transition-all duration-200">
-                    <NavLink to="/super-admin" className="flex items-center gap-3 px-3 py-2.5">
-                      <div className="relative">
-                        <Shield className="h-4.5 w-4.5 flex-shrink-0" />
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/super-admin")}
+                    tooltip={state === "collapsed" ? "Painel Admin" : undefined}
+                    className="
+                      h-11
+                      data-[active=true]:bg-white/10 
+                      data-[active=true]:text-white 
+                      data-[active=true]:font-medium 
+                      hover:bg-white/5 
+                      hover:text-white 
+                      text-gray-400
+                      rounded-2xl 
+                      transition-all 
+                      duration-300
+                    "
+                  >
+                    <NavLink
+                      to="/super-admin"
+                      className={`flex items-center ${state === 'expanded' ? 'gap-4 px-3' : 'justify-center'}`}
+                    >
+                      <div className="p-1.5 rounded-lg group-hover:text-purple-400 transition-colors">
+                        <Shield className="h-5 w-5" />
                       </div>
-                      {state === "expanded" && <span className="flex items-center gap-2 flex-1 text-sm font-normal">
-                          Painel Admin
-                        </span>}
+                      {state === "expanded" && (
+                        <span className="text-[14px]">Painel Admin</span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -162,33 +213,56 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/30 bg-sidebar p-2">
-        <SidebarMenu className="space-y-0.5">
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip={state === "collapsed" ? "Configurações" : undefined} className="data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium data-[active=true]:border-l-2 data-[active=true]:border-primary hover:bg-muted/50 hover:text-foreground rounded-lg transition-all duration-200">
-              <NavLink to="/settings" className="flex items-center gap-3 px-3 py-2.5">
-                <div className="relative">
-                  <Settings className="h-4.5 w-4.5 flex-shrink-0" />
-                </div>
-                {state === "expanded" && <span className="text-sm font-normal">
-                  Configurações
-                </span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} tooltip={state === "collapsed" ? "Sair" : undefined} className="hover:bg-destructive/10 hover:text-destructive rounded-lg transition-all duration-200">
-              <div className="flex items-center gap-3 px-3 py-2.5 w-full">
-                <div className="relative">
-                  <LogOut className="h-4.5 w-4.5 flex-shrink-0" />
-                </div>
-                {state === "expanded" && <span className="text-sm font-normal">
-                  Sair
-                </span>}
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="bg-[#111111] p-4 group-data-[collapsible=icon]:p-2">
+        <div className={`
+          rounded-2xl transition-all duration-300
+          ${state === 'expanded' ? 'bg-white/5 p-2 space-y-1' : 'bg-transparent p-0 space-y-2'}
+        `}>
+          <SidebarMenuButton
+            asChild
+            isActive={isActive("/settings")}
+            tooltip={state === "collapsed" ? "Configurações" : undefined}
+            className="
+              h-10
+              hover:bg-white/10 
+              hover:text-white 
+              text-gray-400
+              rounded-xl
+              transition-all 
+              duration-200
+              data-[state=open]:bg-white/10
+              data-[state=open]:text-white
+            "
+          >
+            <NavLink
+              to="/settings"
+              className={`flex items-center ${state === 'expanded' ? 'gap-3 px-2' : 'justify-center w-full'}`}
+            >
+              <Settings className="h-4 w-4" />
+              {state === "expanded" && <span className="text-sm">Configurações</span>}
+            </NavLink>
+          </SidebarMenuButton>
+
+          <SidebarMenuButton
+            onClick={handleLogout}
+            tooltip={state === "collapsed" ? "Sair" : undefined}
+            className="
+              h-10
+              hover:bg-red-500/10 
+              hover:text-red-400 
+              text-gray-400
+              rounded-xl
+              transition-all 
+              duration-200
+            "
+          >
+            <div className={`flex items-center ${state === 'expanded' ? 'gap-3 px-2 w-full' : 'justify-center w-full'}`}>
+              <LogOut className="h-4 w-4" />
+              {state === "expanded" && <span className="text-sm">Sair</span>}
+            </div>
+          </SidebarMenuButton>
+        </div>
       </SidebarFooter>
-    </Sidebar>;
+    </Sidebar>
+  );
 }

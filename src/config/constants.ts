@@ -306,33 +306,6 @@ export const COLORS = {
 } as const;
 
 // ==========================================
-// STORAGE KEYS
-// ==========================================
-
-export const STORAGE_KEYS = {
-  /** Tema (light/dark) */
-  THEME: 'evotalk-theme',
-
-  /** Onboarding completo */
-  ONBOARDING_DONE: 'evotalk-onboarding-done',
-
-  /** Empresa selecionada */
-  SELECTED_COMPANY: 'evotalk-selected-company',
-
-  /** Filtros salvos */
-  SAVED_FILTERS: 'evotalk-saved-filters',
-
-  /** Preferências de notificação */
-  NOTIFICATION_PREFS: 'evotalk-notification-prefs',
-
-  /** Última sincronização */
-  LAST_SYNC: 'evotalk-last-sync',
-} as const;
-
-// ==========================================
-// API ENDPOINTS (Evolution API)
-// ==========================================
-
 export const EVOLUTION_ENDPOINTS = {
   CREATE_INSTANCE: '/instance/create',
   DELETE_INSTANCE: '/instance/delete',

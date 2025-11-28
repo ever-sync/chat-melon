@@ -13,6 +13,9 @@ interface Company {
   logo_url?: string | null;
   business_status?: string | null;
   business_hours?: Json;
+  subscription_status?: string | null;
+  trial_started_at?: string | null;
+  trial_ends_at?: string | null;
 }
 
 interface CompanyContextType {
