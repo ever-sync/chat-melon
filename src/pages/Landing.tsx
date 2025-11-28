@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, MessageSquare, Users, BarChart3, Zap, Building2, Palette, ArrowRight, Shield, Globe, Smartphone } from "lucide-react";
+import { Check, MessageSquare, Users, BarChart3, Zap, Building2, Palette, ArrowRight, Shield, Globe, Smartphone, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Landing = () => {
@@ -38,29 +38,32 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white font-sans selection:bg-emerald-500/30">
+      {/* Noise Texture Overlay */}
+      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] pointer-events-none z-0"></div>
+
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-emerald-900/20">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 p-2 rounded-xl text-white">
+            <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
               <span className="text-2xl">🦎</span>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               CamalaChat
             </span>
           </div>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#features" className="hover:text-emerald-600 transition-colors">Recursos</a>
-            <a href="#solutions" className="hover:text-emerald-600 transition-colors">Soluções</a>
-            <a href="#pricing" className="hover:text-emerald-600 transition-colors">Preços</a>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+            <a href="#features" className="hover:text-emerald-400 transition-colors">Recursos</a>
+            <a href="#solutions" className="hover:text-emerald-400 transition-colors">Soluções</a>
+            <a href="#pricing" className="hover:text-emerald-400 transition-colors">Preços</a>
           </nav>
           <div className="flex items-center gap-4">
             <Link to="/auth">
-              <Button variant="ghost" className="font-medium hover:text-emerald-600 hover:bg-emerald-50">Login</Button>
+              <Button variant="ghost" className="font-medium text-gray-300 hover:text-emerald-400 hover:bg-emerald-900/20">Login</Button>
             </Link>
             <Link to="/signup">
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6 shadow-lg shadow-emerald-500/20">
+              <Button className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-full px-6 shadow-lg shadow-emerald-500/30">
                 Começar Grátis
               </Button>
             </Link>
@@ -71,40 +74,40 @@ const Landing = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-400/20 rounded-full blur-[100px]" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px]" />
+          <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-green-600/20 rounded-full blur-[120px]" />
         </div>
 
         <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-8 border border-emerald-100">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-900/30 backdrop-blur-sm text-emerald-300 text-sm font-medium mb-8 border border-emerald-500/20">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             Novo: Integração com IA Generativa
+            <Sparkles className="h-4 w-4" />
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-slate-900">
-            O Chat que se <br />
-            <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
-              Adapta ao seu Negócio
-            </span>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+            Empower <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">Modern</span>
+            <br />
+            Technology
           </h1>
 
-          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-            CamalaChat é a plataforma de comunicação e CRM que muda de cor conforme sua necessidade.
+          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            CamalaChat é a plataforma de comunicação e CRM que se adapta perfeitamente ao seu negócio.
             Atenda, venda e fidelize em um só lugar.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to="/signup">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-500/20 transition-all hover:scale-105">
+              <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 shadow-2xl shadow-emerald-500/30 transition-all hover:scale-105">
                 Iniciar Teste Grátis
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Link to="/pricing">
-              <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-2 hover:bg-slate-50">
+              <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-2 border-emerald-500/30 text-gray-300 hover:bg-emerald-900/20 hover:border-emerald-500/50">
                 Ver Planos e Preços
               </Button>
             </Link>
@@ -112,24 +115,24 @@ const Landing = () => {
 
           {/* Dashboard Preview */}
           <div className="mt-20 relative mx-auto max-w-5xl">
-            <div className="rounded-3xl border border-slate-200 bg-white/50 backdrop-blur-xl p-2 shadow-2xl shadow-slate-200/50">
-              <div className="rounded-2xl overflow-hidden border border-slate-100 bg-white">
+            <div className="rounded-3xl border border-emerald-500/20 bg-slate-900/50 backdrop-blur-xl p-2 shadow-2xl shadow-emerald-900/30">
+              <div className="rounded-2xl overflow-hidden border border-emerald-500/10 bg-gradient-to-br from-slate-900 to-slate-800">
                 <img
-                  src="https://placehold.co/1200x800/f8fafc/e2e8f0?text=Dashboard+Preview"
+                  src="https://placehold.co/1200x800/0a0a0a/10b981?text=Dashboard+Preview"
                   alt="CamalaChat Dashboard"
-                  className="w-full h-auto object-cover"
+                  className="w-full h-auto object-cover opacity-90"
                 />
               </div>
             </div>
             {/* Floating Elements */}
-            <div className="absolute -right-12 top-1/3 p-4 bg-white rounded-2xl shadow-xl border border-slate-100 animate-bounce delay-1000 hidden md:block">
+            <div className="absolute -right-12 top-1/3 p-4 bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-emerald-500/20 animate-bounce delay-1000 hidden md:block">
               <div className="flex items-center gap-3">
-                <div className="bg-green-100 p-2 rounded-full">
-                  <Check className="h-5 w-5 text-green-600" />
+                <div className="bg-green-500/20 p-2 rounded-full">
+                  <Check className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">Venda Realizada!</p>
-                  <p className="text-xs text-slate-500">R$ 1.450,00 via WhatsApp</p>
+                  <p className="text-sm font-bold text-white">Venda Realizada!</p>
+                  <p className="text-xs text-gray-400">R$ 1.450,00 via WhatsApp</p>
                 </div>
               </div>
             </div>
@@ -138,15 +141,14 @@ const Landing = () => {
       </section>
 
       {/* Partners/Social Proof */}
-      <section className="py-10 border-y border-slate-100 bg-slate-50/50">
+      <section className="py-10 border-y border-emerald-900/20 bg-slate-900/30">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-8">
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-8">
             Empresas que confiam na nossa adaptação
           </p>
-          <div className="flex flex-wrap justify-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-            {/* Placeholders for logos */}
+          <div className="flex flex-wrap justify-center gap-12 opacity-40 hover:opacity-60 transition-all duration-500">
             {['TechCorp', 'GlobalSales', 'InnovateX', 'GrowthLabs', 'FutureScale'].map((brand) => (
-              <span key={brand} className="text-xl font-bold text-slate-400 flex items-center gap-2">
+              <span key={brand} className="text-xl font-bold text-gray-400 flex items-center gap-2">
                 <Building2 className="h-6 w-6" /> {brand}
               </span>
             ))}
@@ -155,26 +157,29 @@ const Landing = () => {
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-24 bg-white">
+      <section id="features" className="py-24 relative">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Um ecossistema completo
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              Innovative Problem-Solving for
+              <span className="block bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+                Your Business Needs
+              </span>
             </h2>
-            <p className="text-lg text-slate-600">
-              Tudo o que você precisa para transformar conversas em conversões, em uma interface que você vai adorar usar.
+            <p className="text-lg text-gray-400">
+              Tudo o que você precisa para transformar conversas em conversões.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 group">
+              <Card key={index} className="border border-emerald-500/10 bg-slate-900/50 backdrop-blur-sm hover:bg-slate-900/70 hover:border-emerald-500/30 transition-all duration-300 group">
                 <CardContent className="p-8">
-                  <div className="h-14 w-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 group-hover:bg-emerald-500 transition-colors duration-300">
-                    <feature.icon className="h-7 w-7 text-emerald-600 group-hover:text-white transition-colors duration-300" />
+                  <div className="h-14 w-14 rounded-2xl bg-emerald-900/30 flex items-center justify-center mb-6 group-hover:bg-emerald-600 transition-colors duration-300">
+                    <feature.icon className="h-7 w-7 text-emerald-400 group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                  <p className="text-slate-600 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                  <p className="text-gray-400 leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -183,19 +188,19 @@ const Landing = () => {
       </section>
 
       {/* Chameleon Feature Highlight */}
-      <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/50 to-transparent"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <div className="inline-block px-4 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-medium text-sm mb-6 border border-emerald-500/30">
+              <div className="inline-block px-4 py-1 rounded-full bg-emerald-900/30 text-emerald-400 font-medium text-sm mb-6 border border-emerald-500/30">
                 Flexibilidade Total
               </div>
               <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                 Adapta-se como um <br />
-                <span className="text-emerald-400">Camaleão</span>
+                <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Camaleão</span>
               </h2>
-              <p className="text-lg text-slate-300 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-400 mb-8 leading-relaxed">
                 Não mude seu processo para caber no software. O CamalaChat se molda ao seu fluxo de trabalho. Crie campos personalizados, pipelines ilimitados e automações que refletem exatamente como sua empresa funciona.
               </p>
               <ul className="space-y-4">
@@ -205,8 +210,8 @@ const Landing = () => {
                   "Tags e segmentação dinâmica",
                   "Permissões granulares por usuário"
                 ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-slate-200">
-                    <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <li key={i} className="flex items-center gap-3 text-gray-300">
+                    <div className="h-6 w-6 rounded-full bg-emerald-900/30 flex items-center justify-center">
                       <Check className="h-4 w-4 text-emerald-400" />
                     </div>
                     {item}
@@ -215,24 +220,23 @@ const Landing = () => {
               </ul>
             </div>
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
-              <div className="relative bg-slate-800 rounded-2xl border border-slate-700 p-8 shadow-2xl">
-                {/* Mockup of customization UI */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-emerald-600 to-green-600 rounded-3xl blur-3xl opacity-20 animate-pulse"></div>
+              <div className="relative bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-emerald-500/20 p-8 shadow-2xl">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-700 pb-4">
-                    <div className="h-3 w-24 bg-slate-600 rounded-full"></div>
-                    <div className="h-8 w-8 bg-emerald-500 rounded-lg"></div>
+                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-4">
+                    <div className="h-3 w-24 bg-emerald-900/50 rounded-full"></div>
+                    <div className="h-8 w-8 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-lg"></div>
                   </div>
                   <div className="space-y-2">
-                    <div className="h-2 w-full bg-slate-700 rounded-full"></div>
-                    <div className="h-2 w-3/4 bg-slate-700 rounded-full"></div>
-                    <div className="h-2 w-1/2 bg-slate-700 rounded-full"></div>
+                    <div className="h-2 w-full bg-emerald-900/30 rounded-full"></div>
+                    <div className="h-2 w-3/4 bg-emerald-900/30 rounded-full"></div>
+                    <div className="h-2 w-1/2 bg-emerald-900/30 rounded-full"></div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-6">
-                    <div className="h-20 bg-slate-700/50 rounded-xl border border-slate-600 border-dashed flex items-center justify-center text-slate-500 text-xs">
+                    <div className="h-20 bg-emerald-900/20 rounded-xl border border-emerald-500/20 border-dashed flex items-center justify-center text-emerald-400 text-xs">
                       Campo Customizado
                     </div>
-                    <div className="h-20 bg-slate-700/50 rounded-xl border border-slate-600 border-dashed flex items-center justify-center text-slate-500 text-xs">
+                    <div className="h-20 bg-emerald-900/20 rounded-xl border border-emerald-500/20 border-dashed flex items-center justify-center text-emerald-400 text-xs">
                       Nova Etapa
                     </div>
                   </div>
@@ -244,13 +248,13 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-slate-50">
+      <section id="pricing" className="py-24 relative">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
               Planos Transparentes
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-gray-400">
               Comece pequeno e cresça. Sem contratos de fidelidade ou taxas escondidas.
             </p>
           </div>
@@ -279,29 +283,29 @@ const Landing = () => {
             ].map((plan, index) => (
               <Card
                 key={index}
-                className={`relative p-8 border-0 shadow-xl transition-all duration-300 hover:-translate-y-2 ${plan.popular
-                    ? "bg-white ring-2 ring-emerald-500 shadow-emerald-500/10"
-                    : "bg-white shadow-slate-200/50"
+                className={`relative p-8 border transition-all duration-300 hover:-translate-y-2 ${plan.popular
+                  ? "bg-slate-900/70 backdrop-blur-sm ring-2 ring-emerald-500 border-emerald-500/50 shadow-2xl shadow-emerald-500/20"
+                  : "bg-slate-900/50 backdrop-blur-sm border-emerald-500/10"
                   }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
                     Mais Escolhido
                   </div>
                 )}
                 <div className="mb-8">
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
-                  <p className="text-slate-500 text-sm">{plan.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                  <p className="text-gray-400 text-sm">{plan.description}</p>
                 </div>
                 <div className="mb-8">
-                  <span className="text-4xl font-bold text-slate-900">R$ {plan.price}</span>
-                  <span className="text-slate-500">/mês</span>
+                  <span className="text-4xl font-bold text-white">R$ {plan.price}</span>
+                  <span className="text-gray-400">/mês</span>
                 </div>
                 <Link to="/signup">
                   <Button
                     className={`w-full h-12 rounded-xl font-bold mb-8 ${plan.popular
-                        ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
-                        : "bg-slate-100 hover:bg-slate-200 text-slate-900"
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                      : "bg-emerald-900/30 hover:bg-emerald-900/50 text-white border border-emerald-500/20"
                       }`}
                   >
                     Começar Agora
@@ -309,8 +313,8 @@ const Landing = () => {
                 </Link>
                 <ul className="space-y-4">
                   {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm text-slate-600">
-                      <Check className={`h-5 w-5 ${plan.popular ? "text-emerald-500" : "text-slate-400"}`} />
+                    <li key={i} className="flex items-center gap-3 text-sm text-gray-300">
+                      <Check className={`h-5 w-5 ${plan.popular ? "text-emerald-400" : "text-gray-500"}`} />
                       {feature}
                     </li>
                   ))}
@@ -322,15 +326,15 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-white">
+      <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[3rem] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl shadow-emerald-900/20">
+          <div className="bg-gradient-to-br from-emerald-900/50 to-emerald-950/50 backdrop-blur-sm rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl border border-emerald-500/20">
             <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
             <div className="relative z-10 max-w-3xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold mb-8">
                 Pronto para evoluir seu atendimento?
               </h2>
-              <p className="text-xl text-emerald-100 mb-10">
+              <p className="text-xl text-emerald-200 mb-10">
                 Junte-se a mais de 500 empresas que já usam o CamalaChat para vender mais e atender melhor.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -340,7 +344,7 @@ const Landing = () => {
                   </Button>
                 </Link>
                 <Link to="/contact">
-                  <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-2 border-emerald-400 text-white hover:bg-emerald-600/50 rounded-full">
+                  <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-2 border-emerald-400 text-white hover:bg-emerald-600/30 rounded-full">
                     Falar com Consultor
                   </Button>
                 </Link>
@@ -351,7 +355,7 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
+      <footer className="bg-black text-gray-400 py-16 border-t border-emerald-900/20">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-2">
@@ -359,15 +363,14 @@ const Landing = () => {
                 <span className="text-2xl">🦎</span>
                 <span className="text-2xl font-bold text-white">CamalaChat</span>
               </div>
-              <p className="text-slate-400 max-w-sm mb-6">
+              <p className="text-gray-400 max-w-sm mb-6">
                 A plataforma de comunicação que se adapta ao seu negócio. Atendimento, CRM e Automação em um só lugar.
               </p>
               <div className="flex gap-4">
-                {/* Social Icons Placeholders */}
-                <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
+                <div className="h-10 w-10 rounded-full bg-emerald-900/30 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
                   <Globe className="h-5 w-5" />
                 </div>
-                <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
+                <div className="h-10 w-10 rounded-full bg-emerald-900/30 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
                   <Smartphone className="h-5 w-5" />
                 </div>
               </div>
@@ -394,7 +397,7 @@ const Landing = () => {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+          <div className="pt-8 border-t border-emerald-900/20 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
             <p>© 2025 CamalaChat. Todos os direitos reservados.</p>
             <div className="flex gap-8">
               <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>

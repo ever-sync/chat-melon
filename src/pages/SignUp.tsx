@@ -203,11 +203,14 @@ export default function SignUp() {
     const progressPercentage = (currentStep / 2) * 100;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-            <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden flex">
-                {/* Left Side - Image Placeholder */}
-                <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 p-12 items-center justify-center relative">
-                    <div className="absolute top-8 left-8">
+        <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
+            <div className="w-full max-w-6xl bg-[#111111] rounded-3xl shadow-2xl overflow-hidden flex border border-[#1F1F1F]">
+                {/* Left Side - Branding */}
+                <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0A0A0A] via-[#0F0F0F] to-[#0A0A0A] p-12 items-center justify-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#10B981]/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#10B981]/5 rounded-full blur-3xl"></div>
+
+                    <div className="absolute top-8 left-8 z-10">
                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />

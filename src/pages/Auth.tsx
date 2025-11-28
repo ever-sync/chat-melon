@@ -49,18 +49,18 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#111111] flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden flex">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl bg-[#111111] rounded-3xl shadow-2xl overflow-hidden flex border border-[#1F1F1F]">
         {/* Left Side - Branding */}
-        <div className="hidden lg:flex lg:w-1/2 bg-[#111111] p-12 flex-col justify-between relative overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0A0A0A] via-[#0F0F0F] to-[#0A0A0A] p-12 flex-col justify-between relative overflow-hidden">
           {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#34D399]/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#34D399]/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#10B981]/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#10B981]/5 rounded-full blur-3xl"></div>
 
           {/* Logo */}
           <div className="relative z-10">
             <Link to="/" className="inline-flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-[#34D399] shadow-lg shadow-[#34D399]/20">
+              <div className="p-3 rounded-2xl bg-[#10B981] shadow-lg shadow-[#10B981]/20">
                 <span className="text-3xl">🦎</span>
               </div>
               <span className="text-2xl font-bold text-white">CamalaChat</span>
@@ -78,9 +78,9 @@ const Auth = () => {
 
             {/* Decorative Chameleon Pattern */}
             <div className="mt-12 flex justify-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#34D399] animate-pulse"></div>
-              <div className="w-3 h-3 rounded-full bg-[#34D399]/60 animate-pulse delay-100"></div>
-              <div className="w-3 h-3 rounded-full bg-[#34D399]/30 animate-pulse delay-200"></div>
+              <div className="w-3 h-3 rounded-full bg-[#10B981] animate-pulse"></div>
+              <div className="w-3 h-3 rounded-full bg-[#10B981]/60 animate-pulse delay-100"></div>
+              <div className="w-3 h-3 rounded-full bg-[#10B981]/30 animate-pulse delay-200"></div>
             </div>
           </div>
 
@@ -91,25 +91,25 @@ const Auth = () => {
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+        <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center bg-[#111111]">
           <div className="max-w-md mx-auto w-full">
             {/* Mobile Logo */}
             <div className="lg:hidden mb-8 text-center">
               <div className="inline-flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#34D399]">
+                <div className="p-2 rounded-xl bg-[#10B981]">
                   <span className="text-2xl">🦎</span>
                 </div>
-                <span className="text-2xl font-bold text-[#111111]">CamalaChat</span>
+                <span className="text-2xl font-bold text-white">CamalaChat</span>
               </div>
             </div>
 
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-[#111111] mb-2">Entrar</h1>
-              <p className="text-gray-600">
+              <h1 className="text-3xl font-bold text-white mb-2">Entrar</h1>
+              <p className="text-gray-400">
                 Não tem uma conta?{" "}
                 <Link
                   to="/signup"
-                  className="text-[#34D399] hover:text-[#2ab57d] font-medium transition-colors"
+                  className="text-[#10B981] hover:text-[#059669] font-medium transition-colors"
                 >
                   Criar Conta
                 </Link>
@@ -118,7 +118,7 @@ const Auth = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="email" className="text-[#111111] font-medium">
+                <Label htmlFor="email" className="text-gray-200 font-medium">
                   Email
                 </Label>
                 <Input
@@ -128,13 +128,13 @@ const Auth = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="seu@email.com"
-                  className="mt-2 h-12 rounded-xl border-gray-300 focus:border-[#34D399] focus:ring-[#34D399]"
+                  className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500 focus:border-[#10B981] focus:ring-[#10B981]"
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="password" className="text-[#111111] font-medium">
+                <Label htmlFor="password" className="text-gray-200 font-medium">
                   Senha
                 </Label>
                 <div className="relative mt-2">
@@ -145,13 +145,13 @@ const Auth = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className="h-12 rounded-xl border-gray-300 focus:border-[#34D399] focus:ring-[#34D399] pr-12"
+                    className="h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500 focus:border-[#10B981] focus:ring-[#10B981] pr-12"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#34D399] transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#10B981] transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -161,7 +161,7 @@ const Auth = () => {
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-gray-600 hover:text-[#34D399] font-medium transition-colors"
+                  className="text-sm text-gray-400 hover:text-[#10B981] font-medium transition-colors"
                 >
                   Esqueceu a senha?
                 </Link>
@@ -170,7 +170,7 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-[#34D399] hover:bg-[#2ab57d] text-white rounded-xl font-medium text-base transition-all shadow-lg shadow-[#34D399]/20 hover:shadow-xl hover:shadow-[#34D399]/30"
+                className="w-full h-12 bg-[#10B981] hover:bg-[#059669] text-black rounded-xl font-medium text-base transition-all shadow-lg shadow-[#10B981]/20 hover:shadow-xl hover:shadow-[#10B981]/30"
               >
                 {loading ? (
                   <>
@@ -184,10 +184,10 @@ const Auth = () => {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-[#2A2A2A]"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">ou</span>
+                  <span className="px-4 bg-[#111111] text-gray-500">ou</span>
                 </div>
               </div>
 
@@ -195,7 +195,7 @@ const Auth = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-12 rounded-xl border-2 border-gray-200 hover:border-[#34D399] hover:bg-[#34D399]/5 transition-all"
+                  className="h-12 rounded-xl border-2 border-[#2A2A2A] bg-[#1A1A1A] hover:border-[#10B981] hover:bg-[#10B981]/5 transition-all text-gray-300"
                 >
                   <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                     <path
@@ -220,7 +220,7 @@ const Auth = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-12 rounded-xl border-2 border-gray-200 hover:border-[#34D399] hover:bg-[#34D399]/5 transition-all"
+                  className="h-12 rounded-xl border-2 border-[#2A2A2A] bg-[#1A1A1A] hover:border-[#10B981] hover:bg-[#10B981]/5 transition-all text-gray-300"
                 >
                   <svg className="mr-2 h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -233,7 +233,7 @@ const Auth = () => {
             <div className="mt-8 text-center">
               <Link
                 to="/"
-                className="text-sm text-gray-600 hover:text-[#34D399] transition-colors inline-flex items-center gap-2"
+                className="text-sm text-gray-400 hover:text-[#10B981] transition-colors inline-flex items-center gap-2"
               >
                 ← Voltar para o site
               </Link>
