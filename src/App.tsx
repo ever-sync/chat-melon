@@ -43,6 +43,7 @@ const SetPassword = lazy(() => import("./pages/SetPassword"));
 const Groups = lazy(() => import("./pages/Groups"));
 const InstanceSetup = lazy(() => import("./pages/InstanceSetup"));
 const ProposalPublic = lazy(() => import("@/pages/ProposalPublic").then(m => ({ default: m.ProposalPublic })));
+const Upgrade = lazy(() => import("./pages/Upgrade"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -104,6 +105,7 @@ const App = () => {
                   <Route path="/instance-setup" element={<InstanceSetup />} />
                   <Route path="/companies" element={<Companies />} />
                   <Route path="/super-admin" element={<SuperAdmin />} />
+                  <Route path="/upgrade" element={<Upgrade />} />
                   <Route path="/p/:slug" element={<ProposalPublic />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />

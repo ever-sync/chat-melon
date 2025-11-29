@@ -6,6 +6,7 @@ import { FeatureFlagsManager } from "@/components/super-admin/FeatureFlagsManage
 import { PlanFeaturesEditor } from "@/components/super-admin/PlanFeaturesEditor";
 import { PlatformMetrics } from "@/components/super-admin/PlatformMetrics";
 import { PlatformCompanies } from "@/components/super-admin/PlatformCompanies";
+import { PlanManager } from "@/components/super-admin/PlanManager";
 import { MainLayout } from "@/components/MainLayout";
 
 export default function SuperAdmin() {
@@ -28,7 +29,8 @@ export default function SuperAdmin() {
         <Tabs defaultValue="features" className="space-y-4">
           <TabsList>
             <TabsTrigger value="features">Features Globais</TabsTrigger>
-            <TabsTrigger value="plans">Planos</TabsTrigger>
+            <TabsTrigger value="plans">Gerenciar Planos</TabsTrigger>
+            <TabsTrigger value="plan-features">Features por Plano</TabsTrigger>
             <TabsTrigger value="companies">Empresas</TabsTrigger>
             <TabsTrigger value="metrics">Métricas</TabsTrigger>
           </TabsList>
@@ -50,7 +52,21 @@ export default function SuperAdmin() {
           <TabsContent value="plans">
             <Card>
               <CardHeader>
-                <CardTitle>Configurar Planos</CardTitle>
+                <CardTitle>Gerenciar Planos de Assinatura</CardTitle>
+                <CardDescription>
+                  Crie, edite ou remova planos de assinatura da plataforma
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PlanManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="plan-features">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurar Features por Plano</CardTitle>
                 <CardDescription>
                   Defina quais features cada plano possui
                 </CardDescription>

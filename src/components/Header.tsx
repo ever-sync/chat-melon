@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { TrialBadge } from "@/components/TrialBadge";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -139,7 +140,9 @@ export const Header = () => {
           <div className="p-2 rounded-xl bg-primary/10">
             <MessageCircle className="h-5 w-5 text-primary" />
           </div>
-          
+
+          <TrialBadge />
+
           <NotificationBell />
 
           <DropdownMenu>
