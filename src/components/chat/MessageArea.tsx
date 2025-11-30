@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, Send, Info, RotateCcw, Tag, ArrowRightLeft, EyeOff, Bot } from "lucide-react";
+import { ArrowLeft, Send, Info, RotateCcw, Tag, ArrowRightLeft, EyeOff, Bot, Phone, Video } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,8 @@ import { useSendPresence } from "@/hooks/useSendPresence";
 import { useMarkAsRead } from "@/hooks/useMarkAsRead";
 import { MessageBubble } from "./MessageBubble";
 import { ChatLegend } from "./ChatLegend";
+import { useSendTextMessage, useStartCall } from "@/hooks/useEvolutionApi";
+import { useCompany } from "@/contexts/CompanyContext";
 
 type Message = {
   id: string;
@@ -72,6 +74,11 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
   // Hook de presença (digitando/gravando)
   const { startTyping, startRecording, stopPresence } = useSendPresence(conversation?.id || "");
   const { markAsRead } = useMarkAsRead();
+
+  // Hooks Evolution API
+  const { currentCompany } = useCompany();
+  const sendTextMessage = useSendTextMessage();
+  const startCall = useStartCall();
 
   // Atalhos de teclado
   useEffect(() => {
@@ -259,7 +266,11 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
         return;
       }
 
-      // Mensagem normal via WhatsApp
+      // Mensagem normal via Evolution API
+      if (!currentCompany?.evolution_instance_name) {
+        throw new Error("Evolution API não configurada. Configure em Configurações");
+      }
+
       const tempMessage: Message = {
         id: `temp-${Date.now()}`,
         content: messageToSend,
@@ -270,23 +281,46 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
 
       setMessages((prev) => [...prev, tempMessage]);
 
-      const { data, error } = await supabase.functions.invoke(
-        "evolution-send-message",
-        {
-          body: {
-            conversationId: conversation.id,
-            message: messageToSend,
-          },
-        }
-      );
+      // Enviar via Evolution API
+      await sendTextMessage.mutateAsync({
+        instanceName: currentCompany.evolution_instance_name,
+        data: {
+          number: conversation.contact_number,
+          text: messageToSend,
+        },
+      });
 
-      if (error) throw error;
+      // Salvar no banco de dados
+      const { data: companyUser } = await supabase
+        .from("company_users")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .eq("is_default", true)
+        .maybeSingle();
 
-      if (!data.success) {
-        throw new Error(data.error || "Erro ao enviar mensagem");
-      }
+      await supabase.from("messages").insert({
+        conversation_id: conversation.id,
+        user_id: user.id,
+        company_id: companyUser?.company_id || null,
+        content: messageToSend,
+        is_from_me: true,
+        message_type: "text",
+        status: "sent",
+      });
 
-      toast.success("Mensagem enviada com sucesso");
+      // Atualizar última mensagem da conversa
+      await supabase
+        .from("conversations")
+        .update({
+          last_message: messageToSend,
+          last_message_time: new Date().toISOString(),
+        })
+        .eq("id", conversation.id);
+
+      // Remover mensagem temporária
+      setMessages((prev) => prev.filter((m) => !m.id.startsWith("temp-")));
+
+      toast.success("Mensagem enviada!");
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
       setNewMessage(messageToSend);
@@ -298,6 +332,50 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       toast.error(error instanceof Error ? error.message : "Não foi possível enviar a mensagem");
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleVoiceCall = async () => {
+    if (!currentCompany?.evolution_instance_name || !conversation) {
+      toast.error("Evolution API não configurada");
+      return;
+    }
+
+    try {
+      await startCall.mutateAsync({
+        instanceName: currentCompany.evolution_instance_name,
+        data: {
+          number: conversation.contact_number,
+          isVideo: false,
+        },
+      });
+
+      toast.success("Chamada de voz iniciada!");
+    } catch (error) {
+      console.error("Erro ao iniciar chamada:", error);
+      toast.error("Não foi possível iniciar a chamada de voz");
+    }
+  };
+
+  const handleVideoCall = async () => {
+    if (!currentCompany?.evolution_instance_name || !conversation) {
+      toast.error("Evolution API não configurada");
+      return;
+    }
+
+    try {
+      await startCall.mutateAsync({
+        instanceName: currentCompany.evolution_instance_name,
+        data: {
+          number: conversation.contact_number,
+          isVideo: true,
+        },
+      });
+
+      toast.success("Chamada de vídeo iniciada!");
+    } catch (error) {
+      console.error("Erro ao iniciar chamada:", error);
+      toast.error("Não foi possível iniciar a chamada de vídeo");
     }
   };
 
@@ -441,6 +519,28 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           ) : (
             <>
               <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleVoiceCall}
+                  title="Chamada de voz"
+                  className="rounded-full hover:bg-green-100 dark:hover:bg-green-900"
+                  disabled={!currentCompany?.evolution_instance_name}
+                >
+                  <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleVideoCall}
+                  title="Chamada de vídeo"
+                  className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900"
+                  disabled={!currentCompany?.evolution_instance_name}
+                >
+                  <Video className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </Button>
                 <InteractiveMessageSender conversationId={conversation.id} />
               </div>
               <div className="flex gap-2">

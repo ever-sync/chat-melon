@@ -339,35 +339,16 @@ BEGIN
   END IF;
 END $$;
 
--- 4.22 Custom Field Values (se existir)
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'custom_field_values') THEN
-    DELETE FROM custom_field_values WHERE company_id NOT IN (SELECT id FROM companies);
-
-    ALTER TABLE custom_field_values
-    DROP CONSTRAINT IF EXISTS custom_field_values_company_id_fkey,
-    ADD CONSTRAINT custom_field_values_company_id_fkey
-      FOREIGN KEY (company_id)
-      REFERENCES companies(id)
-      ON DELETE CASCADE;
-  END IF;
-END $$;
+-- 4.22 Custom Field Values
+-- NOTA: custom_field_values NÃO tem company_id diretamente
+-- Ela referencia custom_fields que já tem CASCADE para companies
+-- Então: companies -> custom_fields (CASCADE) -> custom_field_values (CASCADE já existe)
+-- Não precisa fazer nada aqui!
 
 -- 4.23 Segments (se existir)
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'segments') THEN
-    DELETE FROM segments WHERE company_id NOT IN (SELECT id FROM companies);
-
-    ALTER TABLE segments
-    DROP CONSTRAINT IF EXISTS segments_company_id_fkey,
-    ADD CONSTRAINT segments_company_id_fkey
-      FOREIGN KEY (company_id)
-      REFERENCES companies(id)
-      ON DELETE CASCADE;
-  END IF;
-END $$;
+-- NOTA: segments já tem ON DELETE CASCADE na própria definição da tabela
+-- Criado com: REFERENCES companies(id) ON DELETE CASCADE
+-- Não precisa alterar a constraint!
 
 -- 4.24 Pipelines (se existir)
 DO $$
@@ -384,20 +365,11 @@ BEGIN
   END IF;
 END $$;
 
--- 4.25 Pipeline Stages (se existir)
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'pipeline_stages') THEN
-    DELETE FROM pipeline_stages WHERE company_id NOT IN (SELECT id FROM companies);
-
-    ALTER TABLE pipeline_stages
-    DROP CONSTRAINT IF EXISTS pipeline_stages_company_id_fkey,
-    ADD CONSTRAINT pipeline_stages_company_id_fkey
-      FOREIGN KEY (company_id)
-      REFERENCES companies(id)
-      ON DELETE CASCADE;
-  END IF;
-END $$;
+-- 4.25 Pipeline Stages
+-- NOTA: pipeline_stages NÃO tem company_id diretamente
+-- Ela referencia pipelines que já tem CASCADE para companies
+-- Então: companies -> pipelines (CASCADE) -> pipeline_stages (CASCADE já existe)
+-- Não precisa fazer nada aqui!
 
 -- 4.26 Deals (se existir)
 DO $$
@@ -444,20 +416,12 @@ BEGIN
   END IF;
 END $$;
 
--- 4.29 Campaign Contacts (se existir)
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'campaign_contacts') THEN
-    DELETE FROM campaign_contacts WHERE company_id NOT IN (SELECT id FROM companies);
-
-    ALTER TABLE campaign_contacts
-    DROP CONSTRAINT IF EXISTS campaign_contacts_company_id_fkey,
-    ADD CONSTRAINT campaign_contacts_company_id_fkey
-      FOREIGN KEY (company_id)
-      REFERENCES companies(id)
-      ON DELETE CASCADE;
-  END IF;
-END $$;
+-- 4.29 Campaign Contacts
+-- NOTA: campaign_contacts NÃO tem company_id diretamente
+-- Ela referencia campaigns e contacts que já têm CASCADE para companies
+-- Então: companies -> campaigns (CASCADE) -> campaign_contacts (CASCADE já existe)
+-- E também: companies -> contacts (CASCADE) -> campaign_contacts (CASCADE já existe)
+-- Não precisa fazer nada aqui!
 
 -- 4.30 Queues (se existir)
 DO $$
@@ -474,20 +438,11 @@ BEGIN
   END IF;
 END $$;
 
--- 4.31 Queue Members (se existir)
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'queue_members') THEN
-    DELETE FROM queue_members WHERE company_id NOT IN (SELECT id FROM companies);
-
-    ALTER TABLE queue_members
-    DROP CONSTRAINT IF EXISTS queue_members_company_id_fkey,
-    ADD CONSTRAINT queue_members_company_id_fkey
-      FOREIGN KEY (company_id)
-      REFERENCES companies(id)
-      ON DELETE CASCADE;
-  END IF;
-END $$;
+-- 4.31 Queue Members
+-- NOTA: queue_members NÃO tem company_id diretamente
+-- Ela referencia queues que já tem CASCADE para companies
+-- Então: companies -> queues (CASCADE) -> queue_members (CASCADE já existe)
+-- Não precisa fazer nada aqui!
 
 -- 4.32 Company Members (se existir)
 DO $$
