@@ -130,6 +130,30 @@ export default function SignUp() {
                 return;
             }
 
+            // Validar CNPJ único antes de inserir
+            if (companyData.cnpj) {
+                const { data: existingCompany, error: checkError } = await supabase
+                    .from("companies")
+                    .select("id, name")
+                    .eq("cnpj", companyData.cnpj)
+                    .is("deleted_at", null)
+                    .maybeSingle();
+
+                if (checkError && checkError.code !== 'PGRST116') {
+                    throw checkError;
+                }
+
+                if (existingCompany) {
+                    toast.error(
+                        `CNPJ já cadastrado! Este CNPJ já está sendo usado pela empresa "${existingCompany.name}". ` +
+                        `Se você já possui uma conta, faça login. Caso contrário, entre em contato com o suporte.`,
+                        { duration: 8000 }
+                    );
+                    setLoading(false);
+                    return;
+                }
+            }
+
             // Calculate trial end date (3 days from now)
             const trialStartsAt = new Date();
             const trialEndsAt = new Date();
@@ -194,7 +218,23 @@ export default function SignUp() {
             navigate("/dashboard");
         } catch (error: any) {
             console.error("Error:", error);
-            toast.error(error.message || "Erro ao cadastrar empresa");
+
+            // Tratamento específico para CNPJ duplicado
+            if (error.message && error.message.includes('CNPJ já cadastrado')) {
+                toast.error(
+                    "CNPJ já cadastrado! Este CNPJ já está sendo usado por outra empresa. " +
+                    "Se você já possui uma conta, faça login. Caso contrário, entre em contato com o suporte.",
+                    { duration: 8000 }
+                );
+            } else if (error.code === '23505' && error.message.includes('unique_company_cnpj')) {
+                // Constraint violation do PostgreSQL
+                toast.error(
+                    "CNPJ já cadastrado! Este CNPJ já está sendo usado por outra empresa.",
+                    { duration: 8000 }
+                );
+            } else {
+                toast.error(error.message || "Erro ao cadastrar empresa");
+            }
         } finally {
             setLoading(false);
         }
@@ -206,45 +246,84 @@ export default function SignUp() {
         <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
             <div className="w-full max-w-6xl bg-[#111111] rounded-3xl shadow-2xl overflow-hidden flex border border-[#1F1F1F]">
                 {/* Left Side - Branding */}
-                <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0A0A0A] via-[#0F0F0F] to-[#0A0A0A] p-12 items-center justify-center relative overflow-hidden">
+                <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0A0A0A] via-[#0F0F0F] to-[#0A0A0A] p-12 flex-col justify-between relative overflow-hidden">
+                    {/* Decorative Elements */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#10B981]/10 rounded-full blur-3xl"></div>
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#10B981]/5 rounded-full blur-3xl"></div>
 
-                    <div className="absolute top-8 left-8 z-10">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <Link to="/auth" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-8">
-                        <ArrowLeft className="h-5 w-5" />
-                        <span>Voltar para Login</span>
-                    </Link>
-
-                    {/* Progress Bar */}
-                    <div className="mb-8">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-gray-700">
-                                Passo {currentStep} de 2
-                            </span>
-                            <span className="text-sm text-gray-500">{progressPercentage}%</span>
-                        </div>
-                        <Progress value={progressPercentage} className="h-2" />
+                    {/* Logo */}
+                    <div className="relative z-10">
+                        <Link to="/" className="inline-flex items-center gap-3">
+                            <div className="p-3 rounded-2xl bg-[#10B981] shadow-lg shadow-[#10B981]/20">
+                                <span className="text-3xl">🦎</span>
+                            </div>
+                            <span className="text-2xl font-bold text-white">CamalaChat</span>
+                        </Link>
                     </div>
 
-                    <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
+                    {/* Center Content */}
+                    <div className="relative z-10 text-center">
+                        <h2 className="text-4xl font-bold text-white mb-4">
+                            Comece Gratuitamente
+                        </h2>
+                        <p className="text-gray-400 text-lg mb-6">
+                            Crie sua conta e ganhe 3 dias de trial
+                        </p>
+
+                        {/* Progress Steps */}
+                        <div className="flex items-center justify-center gap-4 mb-8">
+                            <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-[#10B981]' : 'text-gray-600'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-[#10B981]' : 'bg-gray-700'}`}>
+                                    {currentStep > 1 ? <CheckCircle2 className="w-5 h-5 text-white" /> : <span className="text-white text-sm">1</span>}
+                                </div>
+                                <span className="text-sm font-medium hidden md:inline">Dados Pessoais</span>
+                            </div>
+                            <div className="h-0.5 w-12 bg-gray-700"></div>
+                            <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-[#10B981]' : 'text-gray-600'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-[#10B981]' : 'bg-gray-700'}`}>
+                                    <span className="text-white text-sm">2</span>
+                                </div>
+                                <span className="text-sm font-medium hidden md:inline">Dados da Empresa</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="relative z-10 text-center text-gray-500 text-sm">
+                        © 2025 CamalaChat. Todos os direitos reservados.
+                    </div>
+                </div>
+
+                {/* Right Side - Form */}
+                <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center bg-[#111111]">
+                    <div className="max-w-md mx-auto w-full">
+                        {/* Mobile Logo */}
+                        <div className="lg:hidden mb-8 text-center">
+                            <div className="inline-flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-[#10B981]">
+                                    <span className="text-2xl">🦎</span>
+                                </div>
+                                <span className="text-xl font-bold text-white">CamalaChat</span>
+                            </div>
+                        </div>
+
+                        {/* Back to Login Link */}
+                        <Link to="/auth" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6">
+                            <ArrowLeft className="h-4 w-4" />
+                            <span className="text-sm">Voltar para Login</span>
+                        </Link>
+
                         {/* Step 1: Personal Data */}
                         {currentStep === 1 && (
                             <>
-                                <h1 className="text-4xl font-bold text-gray-900 mb-2">Dados Pessoais</h1>
-                                <p className="text-gray-600 mb-8">
+                                <h1 className="text-3xl font-bold text-white mb-2">Dados Pessoais</h1>
+                                <p className="text-gray-400 mb-8">
                                     Preencha seus dados para criar sua conta
                                 </p>
 
-                                <form onSubmit={handleStep1Submit} className="space-y-6">
+                                <form onSubmit={handleStep1Submit} className="space-y-5">
                                     <div>
-                                        <Label htmlFor="fullName" className="text-gray-700 font-medium">
+                                        <Label htmlFor="fullName" className="text-gray-300 font-medium">
                                             Nome Completo *
                                         </Label>
                                         <Input
@@ -253,13 +332,13 @@ export default function SignUp() {
                                             value={personalData.fullName}
                                             onChange={handlePersonalChange}
                                             placeholder="João Silva"
-                                            className="mt-2 h-12 rounded-xl"
+                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="email" className="text-gray-700 font-medium">
+                                        <Label htmlFor="email" className="text-gray-300 font-medium">
                                             Email *
                                         </Label>
                                         <Input
@@ -269,13 +348,13 @@ export default function SignUp() {
                                             value={personalData.email}
                                             onChange={handlePersonalChange}
                                             placeholder="joao@empresa.com"
-                                            className="mt-2 h-12 rounded-xl"
+                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="password" className="text-gray-700 font-medium">
+                                        <Label htmlFor="password" className="text-gray-300 font-medium">
                                             Senha *
                                         </Label>
                                         <div className="relative mt-2">
@@ -300,7 +379,7 @@ export default function SignUp() {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="phone" className="text-gray-700 font-medium">
+                                        <Label htmlFor="phone" className="text-gray-300 font-medium">
                                             Telefone *
                                         </Label>
                                         <Input
@@ -309,7 +388,7 @@ export default function SignUp() {
                                             value={personalData.phone}
                                             onChange={handlePersonalChange}
                                             placeholder="(00) 00000-0000"
-                                            className="mt-2 h-12 rounded-xl"
+                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                             required
                                         />
                                     </div>
@@ -321,11 +400,11 @@ export default function SignUp() {
                                             onCheckedChange={(checked) =>
                                                 setPersonalData({ ...personalData, agreedToTerms: checked as boolean })
                                             }
-                                            className="mt-1"
+                                            className="mt-1 border-[#2A2A2A]"
                                         />
-                                        <label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
+                                        <label htmlFor="terms" className="text-sm text-gray-400 leading-relaxed cursor-pointer">
                                             Eu concordo com os{" "}
-                                            <Link to="/terms" className="text-purple-600 hover:text-purple-700 underline">
+                                            <Link to="/terms" className="text-[#10B981] hover:text-[#0EA574] underline">
                                                 Termos & Condições
                                             </Link>
                                         </label>
@@ -355,15 +434,15 @@ export default function SignUp() {
                         {/* Step 2: Company Data */}
                         {currentStep === 2 && (
                             <>
-                                <h1 className="text-4xl font-bold text-gray-900 mb-2">Dados da Empresa</h1>
-                                <p className="text-gray-600 mb-8">
+                                <h1 className="text-3xl font-bold text-white mb-2">Dados da Empresa</h1>
+                                <p className="text-gray-400 mb-8">
                                     Agora preencha os dados da sua empresa
                                 </p>
 
                                 <form onSubmit={handleStep2Submit} className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <Label htmlFor="cnpj" className="text-gray-700 font-medium">
+                                            <Label htmlFor="cnpj" className="text-gray-300 font-medium">
                                                 CNPJ *
                                             </Label>
                                             <Input
@@ -372,13 +451,13 @@ export default function SignUp() {
                                                 value={companyData.cnpj}
                                                 onChange={handleCompanyChange}
                                                 placeholder="00.000.000/0000-00"
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 required
                                             />
                                         </div>
 
                                         <div>
-                                            <Label htmlFor="legalName" className="text-gray-700 font-medium">
+                                            <Label htmlFor="legalName" className="text-gray-300 font-medium">
                                                 Razão Social *
                                             </Label>
                                             <Input
@@ -386,14 +465,14 @@ export default function SignUp() {
                                                 name="legalName"
                                                 value={companyData.legalName}
                                                 onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 required
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="fantasyName" className="text-gray-700 font-medium">
+                                        <Label htmlFor="fantasyName" className="text-gray-300 font-medium">
                                             Nome Fantasia *
                                         </Label>
                                         <Input
@@ -401,14 +480,14 @@ export default function SignUp() {
                                             name="fantasyName"
                                             value={companyData.fantasyName}
                                             onChange={handleCompanyChange}
-                                            className="mt-2 h-12 rounded-xl"
+                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                             required
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <Label htmlFor="companyEmail" className="text-gray-700 font-medium">
+                                            <Label htmlFor="companyEmail" className="text-gray-300 font-medium">
                                                 Email da Empresa *
                                             </Label>
                                             <Input
@@ -417,13 +496,13 @@ export default function SignUp() {
                                                 type="email"
                                                 value={companyData.companyEmail}
                                                 onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 required
                                             />
                                         </div>
 
                                         <div>
-                                            <Label htmlFor="companyPhone" className="text-gray-700 font-medium">
+                                            <Label htmlFor="companyPhone" className="text-gray-300 font-medium">
                                                 Telefone
                                             </Label>
                                             <Input
@@ -432,14 +511,14 @@ export default function SignUp() {
                                                 value={companyData.companyPhone}
                                                 onChange={handleCompanyChange}
                                                 placeholder="(00) 0000-0000"
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="col-span-2">
-                                            <Label htmlFor="postalCode" className="text-gray-700 font-medium">
+                                            <Label htmlFor="postalCode" className="text-gray-300 font-medium">
                                                 CEP *
                                             </Label>
                                             <Input
@@ -448,7 +527,7 @@ export default function SignUp() {
                                                 value={companyData.postalCode}
                                                 onChange={handleCompanyChange}
                                                 placeholder="00000-000"
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 maxLength={8}
                                                 required
                                             />
@@ -467,7 +546,7 @@ export default function SignUp() {
 
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="col-span-2">
-                                            <Label htmlFor="street" className="text-gray-700 font-medium">
+                                            <Label htmlFor="street" className="text-gray-300 font-medium">
                                                 Rua *
                                             </Label>
                                             <Input
@@ -475,12 +554,12 @@ export default function SignUp() {
                                                 name="street"
                                                 value={companyData.street}
                                                 onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 required
                                             />
                                         </div>
                                         <div>
-                                            <Label htmlFor="number" className="text-gray-700 font-medium">
+                                            <Label htmlFor="number" className="text-gray-300 font-medium">
                                                 Número *
                                             </Label>
                                             <Input
@@ -488,7 +567,7 @@ export default function SignUp() {
                                                 name="number"
                                                 value={companyData.number}
                                                 onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 required
                                             />
                                         </div>
@@ -496,7 +575,7 @@ export default function SignUp() {
 
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
-                                            <Label htmlFor="complement" className="text-gray-700 font-medium">
+                                            <Label htmlFor="complement" className="text-gray-300 font-medium">
                                                 Complemento
                                             </Label>
                                             <Input
@@ -504,11 +583,11 @@ export default function SignUp() {
                                                 name="complement"
                                                 value={companyData.complement}
                                                 onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                             />
                                         </div>
                                         <div>
-                                            <Label htmlFor="neighborhood" className="text-gray-700 font-medium">
+                                            <Label htmlFor="neighborhood" className="text-gray-300 font-medium">
                                                 Bairro *
                                             </Label>
                                             <Input
@@ -516,12 +595,12 @@ export default function SignUp() {
                                                 name="neighborhood"
                                                 value={companyData.neighborhood}
                                                 onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 required
                                             />
                                         </div>
                                         <div>
-                                            <Label htmlFor="city" className="text-gray-700 font-medium">
+                                            <Label htmlFor="city" className="text-gray-300 font-medium">
                                                 Cidade *
                                             </Label>
                                             <Input
@@ -529,14 +608,14 @@ export default function SignUp() {
                                                 name="city"
                                                 value={companyData.city}
                                                 onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl"
+                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                                 required
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="state" className="text-gray-700 font-medium">
+                                        <Label htmlFor="state" className="text-gray-300 font-medium">
                                             Estado *
                                         </Label>
                                         <Input
@@ -546,7 +625,7 @@ export default function SignUp() {
                                             onChange={handleCompanyChange}
                                             maxLength={2}
                                             placeholder="SP"
-                                            className="mt-2 h-12 rounded-xl"
+                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
                                             required
                                         />
                                     </div>

@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ContactAvatar } from "@/components/ContactAvatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -381,17 +381,15 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           {/* 📋 Informações Básicas */}
           <div className="space-y-4">
             <div className="flex flex-col items-center gap-3">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={conversation.profile_pic_url} />
-                  <AvatarFallback className="text-xl">
-                    {getInitials(conversation.contact_name)}
-                  </AvatarFallback>
-                </Avatar>
-                {isOnline && (
-                  <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-card" />
-                )}
-              </div>
+              <ContactAvatar
+                phoneNumber={conversation.contact_number}
+                name={conversation.contact_name}
+                instanceName={currentCompany?.evolution_instance_name || ''}
+                profilePictureUrl={conversation.profile_pic_url}
+                size="xl"
+                showOnline={true}
+                isOnline={isOnline}
+              />
 
               {/* Nome editável */}
               <div className="text-center w-full">

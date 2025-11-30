@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Phone, Mail, Building2, Pencil, Trash2, User, MessageSquare, Briefcase, ChevronDown, ChevronUp, Upload, Download, Edit } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ContactAvatar } from "@/components/ContactAvatar";
 import { useContacts } from "@/hooks/useContacts";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -13,6 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompany } from "@/contexts/CompanyContext";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { TablesInsert } from "@/integrations/supabase/types";
@@ -156,6 +157,7 @@ function ContactDetails({ contactId }: { contactId: string }) {
 }
 
 export default function Contacts() {
+  const { currentCompany } = useCompany();
   const [selectedSegmentId, setSelectedSegmentId] = useState<string>("");
   const { contacts, isLoading, createContact, updateContact, deleteContact } = useContacts(selectedSegmentId || undefined);
   const { fields } = useCustomFields("contact");
@@ -369,13 +371,12 @@ export default function Contacts() {
                     <div className="border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4 flex-1">
-                          <Avatar>
-                            <AvatarFallback>
-                              {contact.name
-                                ? contact.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                                : '?'}
-                            </AvatarFallback>
-                          </Avatar>
+                          <ContactAvatar
+                            phoneNumber={contact.phone_number}
+                            name={contact.name || undefined}
+                            instanceName={currentCompany?.evolution_instance_name || ''}
+                            size="md"
+                          />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="font-medium">{contact.name || "Sem nome"}</p>
