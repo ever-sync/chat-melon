@@ -266,7 +266,8 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
         return;
       }
 
-      // Mensagem normal via Evolution API
+
+      // Mensagem normal via Edge Function (seguro)
       if (!currentCompany?.evolution_instance_name) {
         throw new Error("Evolution API não configurada. Configure em Configurações");
       }
@@ -281,18 +282,24 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
 
       setMessages((prev) => [...prev, tempMessage]);
 
-      // Enviar via Evolution API
-      await sendTextMessage.mutateAsync({
-        number: conversation.contact_number,
-        text: messageToSend,
+      // Enviar via Edge Function (seguro - não expõe credenciais)
+      const { data: sendResult, error: sendError } = await supabase.functions.invoke('send-message', {
+        body: {
+          conversationId: conversation.id,
+          content: messageToSend,
+          messageType: 'text'
+        }
       });
+
+      if (sendError || !sendResult?.success) {
+        throw new Error(sendResult?.error || 'Erro ao enviar mensagem');
+      }
 
       // Salvar no banco de dados
       const { data: companyUser } = await supabase
-        .from("company_users")
+        .from("company_members")
         .select("company_id")
         .eq("user_id", user.id)
-        .eq("is_default", true)
         .maybeSingle();
 
       await supabase.from("messages").insert({
