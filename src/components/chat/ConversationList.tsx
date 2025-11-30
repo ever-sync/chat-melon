@@ -12,7 +12,7 @@ import SearchBar from "./SearchBar";
 import { AdvancedFiltersDialog } from "./AdvancedFiltersDialog";
 import { ChatFilters } from "@/types/chatFilters";
 import { ChatFiltersBar } from "./ChatFiltersBar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { LabelBadge } from "./LabelBadge";
 import { SatisfactionBadge } from "./SatisfactionBadge";
 import { useCompany } from "@/contexts/CompanyContext";
@@ -71,7 +71,7 @@ const ConversationList = ({
     if (conversations.length > 0 && currentCompany?.id) {
       loadConversationLabels();
     }
-  }, [conversations, currentCompany?.id]);
+  }, [conversations.length, currentCompany?.id]); // Use .length to avoid infinite loop
 
   // Carregar labels disponíveis
   useEffect(() => {
@@ -95,7 +95,7 @@ const ConversationList = ({
     }
   };
 
-  const loadConversationLabels = async () => {
+  const loadConversationLabels = useCallback(async () => {
     try {
       const conversationIds = conversations.map(c => c.id);
       const { data, error } = await supabase
@@ -122,7 +122,7 @@ const ConversationList = ({
     } catch (error) {
       console.error('Erro ao carregar labels:', error);
     }
-  };
+  }, [conversations]);
 
   const loadConversationSatisfaction = async () => {
     try {

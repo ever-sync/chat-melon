@@ -99,7 +99,8 @@ const Chat = () => {
     if (companyId) {
       loadConversations();
     }
-  }, [companyId, loadConversations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId]); // Only depend on companyId, loadConversations is already memoized
 
   useEffect(() => {
     filterConversations();
@@ -140,7 +141,7 @@ const Chat = () => {
           .from('conversation_labels')
           .select('conversation_id')
           .in('label_id', filters.labels);
-        
+
         const conversationIdsWithLabel = conversationsWithLabel?.map(cl => cl.conversation_id) || [];
         filtered = filtered.filter(conv => conversationIdsWithLabel.includes(conv.id));
       } catch (error) {
@@ -152,7 +153,7 @@ const Chat = () => {
     if (filters.lastMessageDate) {
       const now = new Date();
       let cutoffDate = now;
-      
+
       switch (filters.lastMessageDate) {
         case 'today':
           cutoffDate.setHours(0, 0, 0, 0);
@@ -168,7 +169,7 @@ const Chat = () => {
           cutoffDate.setMonth(cutoffDate.getMonth() - 1);
           break;
       }
-      
+
       filtered = filtered.filter(conv => {
         if (!conv.last_message_time) return false;
         return new Date(conv.last_message_time) >= cutoffDate;
@@ -181,7 +182,7 @@ const Chat = () => {
       const hourLimits = { '1h': 1, '4h': 4, '24h': 24, '48h': 48 };
       const hoursAgo = hourLimits[filters.noResponseTime];
       const cutoff = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
-      
+
       filtered = filtered.filter(conv => {
         if (!conv.last_message_time) return false;
         return new Date(conv.last_message_time) < cutoff;
@@ -204,14 +205,14 @@ const Chat = () => {
       filtered = filtered.filter((conv) => {
         if (!conv.last_message_time) return false;
         const messageDate = new Date(conv.last_message_time);
-        
+
         if (startDate && messageDate < startDate) return false;
         if (endDate) {
           const endOfDay = new Date(endDate);
           endOfDay.setHours(23, 59, 59, 999);
           if (messageDate > endOfDay) return false;
         }
-        
+
         return true;
       });
     }
@@ -291,7 +292,7 @@ const Chat = () => {
 
   const handleSelectFromNotification = async (conversationId: string) => {
     if (!companyId) return;
-    
+
     try {
       const { data, error } = await withCompanyFilter(
         supabase

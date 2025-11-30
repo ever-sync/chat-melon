@@ -25,9 +25,9 @@ serve(async (req) => {
     // ============= QRCODE UPDATED =============
     if (event === 'qrcode.updated') {
       console.log('QR Code atualizado:', instanceName);
-      
+
       const qrCode = webhookData.data?.qrcode?.base64 || webhookData.data?.base64;
-      
+
       if (instanceName && qrCode) {
         await supabase
           .from('evolution_settings')
@@ -47,9 +47,9 @@ serve(async (req) => {
     // ============= CONNECTION UPDATE =============
     if (event === 'connection.update') {
       console.log('Evento de conexão detectado:', webhookData.data);
-      
+
       const state = webhookData.data?.state || webhookData.data?.connection;
-      
+
       if (instanceName) {
         let newStatus = 'created';
         let isConnected = false;
@@ -83,10 +83,10 @@ serve(async (req) => {
     // ============= MESSAGES UPDATE (status) =============
     if (event === 'messages.update') {
       console.log('Status de mensagem atualizado:', webhookData.data);
-      
+
       const messageId = webhookData.data?.key?.id;
       const statusCode = webhookData.data?.update?.status;
-      
+
       const statusMap: Record<number, string> = {
         0: 'error',
         1: 'pending',
@@ -95,12 +95,12 @@ serve(async (req) => {
         4: 'read',
         5: 'played'
       };
-      
+
       const newStatus = statusMap[statusCode] || 'sent';
-      
+
       if (messageId) {
         const updateData: any = { status: newStatus };
-        
+
         if (newStatus === 'delivered') {
           updateData.delivered_at = new Date().toISOString();
         } else if (newStatus === 'read') {
@@ -108,12 +108,12 @@ serve(async (req) => {
         } else if (newStatus === 'played') {
           updateData.played_at = new Date().toISOString();
         }
-        
+
         await supabase
           .from('messages')
           .update(updateData)
           .eq('external_id', messageId);
-          
+
         console.log(`Mensagem ${messageId} atualizada para ${newStatus}`);
       }
 
@@ -126,9 +126,9 @@ serve(async (req) => {
     // ============= SEND MESSAGE (confirmação) =============
     if (event === 'send.message') {
       console.log('Confirmação de envio:', webhookData.data);
-      
+
       const messageId = webhookData.data?.key?.id;
-      
+
       if (messageId) {
         await supabase
           .from('messages')
@@ -148,13 +148,13 @@ serve(async (req) => {
     // ============= PRESENCE UPDATE =============
     if (event === 'presence.update') {
       console.log('Presença atualizada:', webhookData.data);
-      
+
       const remoteJid = webhookData.data?.remoteJid;
       const phone = remoteJid?.replace('@s.whatsapp.net', '');
-      
+
       if (phone) {
         const updateData: any = {};
-        
+
         if (webhookData.data?.isOnline !== undefined) {
           updateData.is_online = webhookData.data.isOnline;
         }
@@ -167,12 +167,12 @@ serve(async (req) => {
         if (webhookData.data?.isRecording !== undefined) {
           updateData.is_recording = webhookData.data.isRecording;
         }
-        
+
         await supabase
           .from('conversations')
           .update(updateData)
           .eq('contact_number', phone);
-        
+
         // Broadcast via Realtime para mostrar "digitando..." na interface
         const channel = supabase.channel('presence');
         await channel.send({
@@ -196,13 +196,13 @@ serve(async (req) => {
     // ============= CHATS UPDATE =============
     if (event === 'chats.update') {
       console.log('Chat atualizado:', webhookData.data);
-      
+
       const chatJid = webhookData.data?.id;
       const phone = chatJid?.replace('@s.whatsapp.net', '');
-      
+
       if (phone) {
         const updateData: any = {};
-        
+
         // Atualizar informações do chat
         if (webhookData.data?.unreadCount !== undefined) {
           updateData.unread_count = webhookData.data.unreadCount;
@@ -210,7 +210,7 @@ serve(async (req) => {
         if (webhookData.data?.name) {
           updateData.contact_name = webhookData.data.name;
         }
-        
+
         await supabase
           .from('conversations')
           .update(updateData)
@@ -226,10 +226,10 @@ serve(async (req) => {
     // ============= MESSAGES DELETE =============
     if (event === 'messages.delete') {
       console.log('Mensagem deletada:', webhookData.data);
-      
+
       const messageId = webhookData.data?.key?.id;
       const deleteForEveryone = webhookData.data?.deleteForEveryone || false;
-      
+
       if (messageId) {
         await supabase
           .from('messages')
@@ -249,22 +249,22 @@ serve(async (req) => {
     // ============= MESSAGES UPSERT (nova mensagem) =============
     if (event === 'messages.upsert') {
       const messageData = webhookData.data;
-      
+
       if (!messageData) {
         return new Response(
           JSON.stringify({ message: 'Dados de mensagem ausentes' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
+
       const isFromMe = messageData.key.fromMe || false;
 
       let remoteJid = messageData.key.remoteJid;
-      
+
       // Se for lista ou grupo, tentar usar o remoteJidAlt (número real do contato)
       if (remoteJid.includes('@lid') || remoteJid.includes('@g.us')) {
         const altJid = messageData.key.remoteJidAlt;
-        
+
         if (altJid && altJid.includes('@s.whatsapp.net')) {
           console.log('Usando remoteJidAlt para lista/grupo:', { original: remoteJid, alt: altJid });
           remoteJid = altJid;
@@ -281,14 +281,14 @@ serve(async (req) => {
       const fromNumber = remoteJid.replace('@s.whatsapp.net', '');
       const pushName = messageData.pushName || fromNumber;
       const externalId = messageData.key.id;
-      
+
       // Verificar se mensagem já existe (evitar duplicatas)
       const { data: existingMessage } = await supabase
         .from('messages')
         .select('id')
         .eq('external_id', externalId)
         .maybeSingle();
-      
+
       if (existingMessage) {
         console.log('Mensagem já existe, ignorando duplicata:', externalId);
         return new Response(
@@ -296,13 +296,13 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
+
       // Detectar tipo de mensagem
       const message = messageData.message;
       let messageType = 'text';
       let mediaUrl = null;
       let mediaType = null;
-      
+
       if (message?.imageMessage) {
         messageType = 'text';
         mediaType = 'image';
@@ -328,12 +328,12 @@ serve(async (req) => {
       } else if (message?.locationMessage) {
         messageType = 'location';
       }
-      
-      const messageContent = messageData.message?.conversation || 
-                            messageData.message?.extendedTextMessage?.text ||
-                            messageData.message?.imageMessage?.caption ||
-                            messageData.message?.videoMessage?.caption ||
-                            'Mensagem não textual';
+
+      const messageContent = messageData.message?.conversation ||
+        messageData.message?.extendedTextMessage?.text ||
+        messageData.message?.imageMessage?.caption ||
+        messageData.message?.videoMessage?.caption ||
+        'Mensagem não textual';
 
       // Buscar empresa pela instância
       let companyId: string | null = null;
@@ -410,7 +410,7 @@ serve(async (req) => {
             contact_id: contact?.id || null,
             contact_name: contact?.name || pushName,
             contact_number: fromNumber,
-            profile_pic_url: contact?.profile_pic_cached_path 
+            profile_pic_url: contact?.profile_pic_cached_path
               ? `${supabaseUrl}/storage/v1/object/public/profile-pictures/${contact.profile_pic_cached_path}`
               : null,
             last_message: messageContent,
@@ -424,18 +424,18 @@ serve(async (req) => {
         conversationId = newConversation!.id;
       } else {
         conversationId = conversations[0].id;
-        
+
         // Atualizar conversa
         const updateData: any = {
           last_message: messageContent,
           last_message_time: new Date().toISOString(),
         };
-        
+
         // Só incrementar unread_count se for mensagem recebida (não enviada por mim)
         if (!isFromMe) {
           updateData.unread_count = conversations[0].unread_count + 1;
         }
-        
+
         await supabase
           .from('conversations')
           .update(updateData)
@@ -443,7 +443,7 @@ serve(async (req) => {
       }
 
       // Salvar mensagem
-      await supabase
+      const { error: insertError } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
@@ -458,12 +458,17 @@ serve(async (req) => {
           external_id: externalId,
         });
 
+      if (insertError) {
+        console.error('❌ Erro ao salvar mensagem:', insertError);
+        throw insertError;
+      }
+
       console.log('Mensagem processada com sucesso');
-      
+
       // ========================================
       // CHAMAR N8N PARA PROCESSAR COM IA
       // ========================================
-      
+
       // Buscar configurações de IA da empresa
       const { data: aiSettings } = await supabase
         .from('ai_settings')
@@ -484,13 +489,13 @@ serve(async (req) => {
       // 3. Tem URL do N8N configurada
       // 4. NÃO é mensagem enviada por mim (isFromMe = false)
       const aiEnabled = !isFromMe &&
-                        aiSettings?.is_enabled && 
-                        (conversationAI?.ai_enabled !== false) && 
-                        aiSettings?.n8n_webhook_url;
+        aiSettings?.is_enabled &&
+        (conversationAI?.ai_enabled !== false) &&
+        aiSettings?.n8n_webhook_url;
 
       if (aiEnabled) {
         console.log('🤖 Chamando N8N webhook:', aiSettings.n8n_webhook_url);
-        
+
         try {
           const n8nPayload = {
             // Identificadores
@@ -498,19 +503,19 @@ serve(async (req) => {
             contact_id: contact?.id,
             company_id: companyId,
             message_id: externalId,
-            
+
             // Dados da mensagem
             message_content: messageContent,
             message_type: messageType,
-            
+
             // Dados do contato
             contact_name: contact?.name || pushName,
             contact_phone: fromNumber,
-            
+
             // Dados da instância
             instance_name: instanceName,
             external_id: externalId,
-            
+
             // Metadados
             timestamp: new Date().toISOString(),
             ai_mode: conversationAI?.ai_mode || aiSettings?.default_mode || 'auto',
@@ -528,17 +533,17 @@ serve(async (req) => {
 
           if (n8nResponse.ok) {
             console.log('✅ N8N webhook chamado com sucesso');
-            
+
             // Atualizar contador de mensagens processadas pela IA
             const { data: conv } = await supabase
               .from('conversations')
               .select('ai_messages_count')
               .eq('id', conversationId)
               .single();
-            
+
             await supabase
               .from('conversations')
-              .update({ 
+              .update({
                 ai_messages_count: (conv?.ai_messages_count || 0) + 1
               })
               .eq('id', conversationId);
@@ -553,12 +558,12 @@ serve(async (req) => {
       } else {
         console.log('ℹ️ IA desabilitada ou N8N não configurado para esta empresa/conversa');
       }
-      
+
       // Check for opt-out/opt-in keywords
       const normalizedContent = messageContent.toLowerCase().trim();
       const optOutKeywords = ['sair', 'parar', 'stop', 'cancelar', 'remover'];
       const optInKeywords = ['voltar', 'retornar', 'continuar'];
-      
+
       if (optOutKeywords.some(keyword => normalizedContent === keyword)) {
         await supabase
           .from('blocked_contacts')
@@ -568,7 +573,7 @@ serve(async (req) => {
             blocked_number: fromNumber,
             reason: 'Opt-out via mensagem: ' + messageContent,
           });
-        
+
         await supabase
           .from('conversations')
           .update({ opted_in: false })
@@ -579,7 +584,7 @@ serve(async (req) => {
           .delete()
           .eq('company_id', companyId)
           .eq('blocked_number', fromNumber);
-        
+
         await supabase
           .from('conversations')
           .update({ opted_in: true })
@@ -595,11 +600,11 @@ serve(async (req) => {
     // ============= CONTACTS UPDATE =============
     if (event === 'contacts.update') {
       console.log('Contato atualizado:', webhookData.data);
-      
+
       const contactJid = webhookData.data?.remoteJid || webhookData.data?.id;
       const phone = contactJid?.replace('@s.whatsapp.net', '');
       const newName = webhookData.data?.pushName || webhookData.data?.name;
-      
+
       if (phone && newName) {
         await supabase
           .from('conversations')
@@ -617,7 +622,7 @@ serve(async (req) => {
     if (event === 'groups.upsert') {
       console.log('Grupo criado/atualizado:', webhookData.data);
       // Implementar lógica de grupos se necessário
-      
+
       return new Response(
         JSON.stringify({ success: true, message: 'Grupo processado' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
