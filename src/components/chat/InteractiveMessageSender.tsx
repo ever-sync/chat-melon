@@ -5,17 +5,28 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ListOrdered, BarChart3, MapPin, Contact } from "lucide-react";
+import { useSendPollMessage, useSendListMessage, useSendLocationMessage, useSendContactMessage } from "@/hooks/useEvolutionApi";
+import { useCompany } from "@/contexts/CompanyContext";
 
 interface InteractiveMessageSenderProps {
   conversationId: string;
+  contactNumber?: string;
+  onMessageSent?: () => void;
 }
 
-export function InteractiveMessageSender({ conversationId }: InteractiveMessageSenderProps) {
+export function InteractiveMessageSender({ conversationId, contactNumber, onMessageSent }: InteractiveMessageSenderProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { currentCompany } = useCompany();
+  const instanceName = currentCompany?.evolution_instance_name || '';
+
+  const sendPollHook = useSendPollMessage(instanceName);
+  const sendListHook = useSendListMessage(instanceName);
+  const sendLocationHook = useSendLocationMessage(instanceName);
+  const sendContactHook = useSendContactMessage(instanceName);
 
   // Poll state
   const [pollQuestion, setPollQuestion] = useState("");
@@ -50,168 +61,149 @@ export function InteractiveMessageSender({ conversationId }: InteractiveMessageS
     setListOptions(newOptions);
   };
 
-  const sendPoll = async () => {
+  const handleSendPoll = async () => {
+    if (!contactNumber) {
+      toast.error("Número do contato não encontrado");
+      return;
+    }
     if (!pollQuestion || pollOptions.filter(o => o).length < 2) {
       toast.error("Adicione uma pergunta e pelo menos 2 opções");
       return;
     }
+    if (!instanceName) {
+      toast.error("Evolution API não configurada");
+      return;
+    }
 
     setLoading(true);
     try {
-      // Verificar sessão ativa
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Você precisa estar logado para enviar mensagens");
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('evolution-send-poll', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          conversationId,
-          question: pollQuestion,
-          options: pollOptions.filter(o => o)
-        }
+      await sendPollHook.mutateAsync({
+        number: contactNumber,
+        name: pollQuestion,
+        selectableCount: 1,
+        values: pollOptions.filter(o => o)
       });
 
-      if (error) throw error;
-      toast.success("Enquete enviada!");
       setOpen(false);
       setPollQuestion("");
       setPollOptions(["", ""]);
+      onMessageSent?.();
     } catch (error: any) {
       console.error('Error sending poll:', error);
-      toast.error(error.message || "Erro ao enviar enquete");
     } finally {
       setLoading(false);
     }
   };
 
-  const sendList = async () => {
+  const handleSendList = async () => {
+    if (!contactNumber) {
+      toast.error("Número do contato não encontrado");
+      return;
+    }
     if (!listTitle || listOptions.filter(o => o.title).length < 1) {
       toast.error("Adicione um título e pelo menos 1 opção");
       return;
     }
-
-    setLoading(true);
-    try {
-      // Verificar sessão ativa
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Você precisa estar logado para enviar mensagens");
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('evolution-send-list', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          conversationId,
-          title: listTitle,
-          description: listDescription,
-          sections: [{
-            title: "Opções",
-            rows: listOptions
-              .filter(o => o.title)
-              .map((o, i) => ({ id: `opt_${i}`, title: o.title, description: o.description }))
-          }]
-        }
-      });
-
-      if (error) throw error;
-      toast.success("Lista enviada!");
-      setOpen(false);
-      setListTitle("");
-      setListDescription("");
-      setListOptions([{ title: "", description: "" }]);
-    } catch (error: any) {
-      console.error('Error sending list:', error);
-      toast.error(error.message || "Erro ao enviar lista");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const sendLocation = async () => {
-    if (!latitude || !longitude) {
-      toast.error("Informe latitude e longitude");
+    if (!instanceName) {
+      toast.error("Evolution API não configurada");
       return;
     }
 
     setLoading(true);
     try {
-      // Verificar sessão ativa
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Você precisa estar logado para enviar mensagens");
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('evolution-send-location', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          conversationId,
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude),
-          name: locationName,
-          address: locationAddress
-        }
+      await sendListHook.mutateAsync({
+        number: contactNumber,
+        title: listTitle,
+        description: listDescription,
+        buttonText: "Ver Opções",
+        sections: [{
+          title: "Opções",
+          rows: listOptions
+            .filter(o => o.title)
+            .map((o, i) => ({ title: o.title, description: o.description, rowId: `opt_${i}` }))
+        }]
       });
 
-      if (error) throw error;
-      toast.success("Localização enviada!");
+      setOpen(false);
+      setListTitle("");
+      setListDescription("");
+      setListOptions([{ title: "", description: "" }]);
+      onMessageSent?.();
+    } catch (error: any) {
+      console.error('Error sending list:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendLocation = async () => {
+    if (!contactNumber) {
+      toast.error("Número do contato não encontrado");
+      return;
+    }
+    if (!latitude || !longitude) {
+      toast.error("Informe latitude e longitude");
+      return;
+    }
+    if (!instanceName) {
+      toast.error("Evolution API não configurada");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendLocationHook.mutateAsync({
+        number: contactNumber,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        name: locationName,
+        address: locationAddress
+      });
+
       setOpen(false);
       setLocationName("");
       setLocationAddress("");
       setLatitude("");
       setLongitude("");
+      onMessageSent?.();
     } catch (error: any) {
       console.error('Error sending location:', error);
-      toast.error(error.message || "Erro ao enviar localização");
     } finally {
       setLoading(false);
     }
   };
 
-  const sendContact = async () => {
+  const handleSendContact = async () => {
+    if (!contactNumber) {
+      toast.error("Número do contato não encontrado");
+      return;
+    }
     if (!contactName || !contactPhone) {
       toast.error("Informe nome e telefone do contato");
+      return;
+    }
+    if (!instanceName) {
+      toast.error("Evolution API não configurada");
       return;
     }
 
     setLoading(true);
     try {
-      // Verificar sessão ativa
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Você precisa estar logado para enviar mensagens");
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('evolution-send-contact', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          conversationId,
-          contactName,
-          contactPhone
-        }
+      await sendContactHook.mutateAsync({
+        number: contactNumber,
+        contact: [{
+          fullName: contactName,
+          wuid: contactPhone.includes('@') ? contactPhone : `${contactPhone}@s.whatsapp.net`,
+          phoneNumber: contactPhone
+        }]
       });
 
-      if (error) throw error;
-      toast.success("Contato enviado!");
       setOpen(false);
       setContactName("");
       setContactPhone("");
+      onMessageSent?.();
     } catch (error: any) {
       console.error('Error sending contact:', error);
-      toast.error(error.message || "Erro ao enviar contato");
     } finally {
       setLoading(false);
     }
@@ -220,9 +212,8 @@ export function InteractiveMessageSender({ conversationId }: InteractiveMessageS
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <ListOrdered className="h-4 w-4 mr-2" />
-          Mensagem Interativa
+        <Button variant="ghost" size="icon" title="Mensagem Interativa" className="rounded-full hover:bg-primary/10">
+          <ListOrdered className="w-5 h-5 text-muted-foreground" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -260,7 +251,7 @@ export function InteractiveMessageSender({ conversationId }: InteractiveMessageS
             <Button variant="outline" onClick={addPollOption} className="w-full">
               Adicionar Opção
             </Button>
-            <Button onClick={sendPoll} disabled={loading} className="w-full">
+            <Button onClick={handleSendPoll} disabled={loading} className="w-full">
               Enviar Enquete
             </Button>
           </TabsContent>
@@ -299,7 +290,7 @@ export function InteractiveMessageSender({ conversationId }: InteractiveMessageS
             <Button variant="outline" onClick={addListOption} className="w-full">
               Adicionar Opção
             </Button>
-            <Button onClick={sendList} disabled={loading} className="w-full">
+            <Button onClick={handleSendList} disabled={loading} className="w-full">
               Enviar Lista
             </Button>
           </TabsContent>
@@ -339,7 +330,7 @@ export function InteractiveMessageSender({ conversationId }: InteractiveMessageS
                 />
               </div>
             </div>
-            <Button onClick={sendLocation} disabled={loading} className="w-full">
+            <Button onClick={handleSendLocation} disabled={loading} className="w-full">
               Enviar Localização
             </Button>
           </TabsContent>
@@ -361,7 +352,7 @@ export function InteractiveMessageSender({ conversationId }: InteractiveMessageS
                 placeholder="5511999999999"
               />
             </div>
-            <Button onClick={sendContact} disabled={loading} className="w-full">
+            <Button onClick={handleSendContact} disabled={loading} className="w-full">
               Enviar Contato
             </Button>
           </TabsContent>

@@ -16,6 +16,9 @@ interface Company {
   subscription_status?: string | null;
   trial_started_at?: string | null;
   trial_ends_at?: string | null;
+  evolution_api_url?: string | null;
+  evolution_api_key?: string | null;
+  evolution_instance_name?: string | null;
 }
 
 interface CompanyContextType {

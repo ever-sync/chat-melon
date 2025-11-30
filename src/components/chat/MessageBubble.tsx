@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Bot, User, Clock, Check, CheckCheck, AlertCircle, EyeOff } from 'lucide-react';
+import { Bot, User, Clock, Check, CheckCheck, AlertCircle, EyeOff, BarChart3, ListOrdered, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageActions } from './MessageActions';
@@ -46,7 +46,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
   const isFromAI = message.is_from_ai;
   const isSystemMessage = message.message_type === 'system' || message.content_type === 'system';
   const isInternalNote = message.message_type === 'internal_note';
-  
+
   // Mensagens de sistema (transferências, alertas)
   if (isSystemMessage) {
     return (
@@ -77,7 +77,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
       </div>
     );
   }
-  
+
   // Definir cores baseado no tipo
   const getBubbleStyle = () => {
     if (!isFromMe) {
@@ -91,29 +91,29 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
     // Mensagem do atendente humano - verde/esmeralda
     return 'bg-emerald-500 text-white';
   };
-  
+
   const getSentimentBadge = () => {
     if (!message.ai_sentiment) return null;
-    
+
     const colors = {
       positive: 'bg-green-100 text-green-800',
       neutral: 'bg-gray-100 text-gray-800',
       negative: 'bg-red-100 text-red-800',
     };
-    
+
     const labels = {
       positive: '😊 Positivo',
       neutral: '😐 Neutro',
       negative: '😟 Negativo',
     };
-    
+
     return (
       <Badge className={cn('text-xs', colors[message.ai_sentiment as keyof typeof colors])}>
         {labels[message.ai_sentiment as keyof typeof labels]}
       </Badge>
     );
   };
-  
+
   const getStatusIcon = () => {
     switch (message.status) {
       case 'pending':
@@ -146,7 +146,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
             </AvatarFallback>
           </Avatar>
         )}
-        
+
         <div className={cn(
           'max-w-[70%] flex flex-col',
           isFromMe ? 'items-end' : 'items-start'
@@ -181,7 +181,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
               )}
             </div>
           )}
-          
+
           {/* Bolha da mensagem */}
           <div className={cn(
             'px-4 py-2 rounded-2xl shadow-sm',
@@ -192,45 +192,48 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
             {message.media_url && (
               <div className="mb-2">
                 {message.media_type?.startsWith('image/') && (
-                  <img 
-                    src={message.media_url} 
-                    alt="Media" 
+                  <img
+                    src={message.media_url}
+                    alt="Media"
                     className="max-w-full rounded max-h-64 object-contain"
                   />
                 )}
                 {message.media_type?.startsWith('video/') && (
-                  <video 
-                    src={message.media_url} 
-                    controls 
+                  <video
+                    src={message.media_url}
+                    controls
                     className="max-w-full rounded max-h-64"
                   />
                 )}
                 {message.media_type?.startsWith('audio/') && (
                   <audio src={message.media_url} controls className="max-w-full" />
                 )}
-                {!message.media_type?.startsWith('image/') && 
-                 !message.media_type?.startsWith('video/') && 
-                 !message.media_type?.startsWith('audio/') && (
-                  <a 
-                    href={message.media_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="underline text-xs"
-                  >
-                    📎 Abrir arquivo
-                  </a>
-                )}
+                {!message.media_type?.startsWith('image/') &&
+                  !message.media_type?.startsWith('video/') &&
+                  !message.media_type?.startsWith('audio/') && (
+                    <a
+                      href={message.media_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-xs"
+                    >
+                      📎 Abrir arquivo
+                    </a>
+                  )}
               </div>
             )}
 
             {/* Poll data */}
             {message.poll_data && (
-              <div className="mb-2 p-3 bg-black/10 rounded space-y-2">
-                <p className="font-medium">{message.poll_data.question}</p>
+              <div className="mb-2 p-3 bg-black/10 rounded-lg space-y-2">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  <p className="font-medium">{message.poll_data.question}</p>
+                </div>
                 {message.poll_data.options?.map((opt: any, i: number) => (
-                  <div key={i} className="flex justify-between text-sm">
+                  <div key={i} className="flex justify-between text-sm bg-black/5 p-2 rounded">
                     <span>{opt.name}</span>
-                    <span>{opt.votes} votos</span>
+                    <span className="font-medium">{opt.votes || 0} votos</span>
                   </div>
                 ))}
               </div>
@@ -238,53 +241,62 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
 
             {/* List data */}
             {message.list_data && (
-              <div className="mb-2 p-3 bg-black/10 rounded">
-                <p className="font-medium">{message.list_data.title}</p>
+              <div className="mb-2 p-3 bg-black/10 rounded-lg space-y-1">
+                <div className="flex items-center gap-2">
+                  <ListOrdered className="w-4 h-4" />
+                  <p className="font-medium">{message.list_data.title}</p>
+                </div>
                 <p className="text-sm opacity-80">{message.list_data.description}</p>
               </div>
             )}
 
             {/* Location data */}
             {message.location_data && (
-              <div className="mb-2 p-3 bg-black/10 rounded space-y-1">
-                <p className="font-medium">{message.location_data.name || 'Localização'}</p>
+              <div className="mb-2 p-3 bg-black/10 rounded-lg space-y-1">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <p className="font-medium">{message.location_data.name || 'Localização'}</p>
+                </div>
                 {message.location_data.address && (
-                  <p className="text-sm">{message.location_data.address}</p>
+                  <p className="text-sm opacity-80">{message.location_data.address}</p>
                 )}
-                <a 
+                <a
                   href={`https://www.google.com/maps?q=${message.location_data.latitude},${message.location_data.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs underline opacity-80"
+                  className="text-xs underline opacity-80 hover:opacity-100 flex items-center gap-1"
                 >
-                  Abrir no Google Maps
+                  🗺️ Abrir no Google Maps
                 </a>
               </div>
             )}
 
             {/* Contact data */}
             {message.contact_data && (
-              <div className="mb-2 p-3 bg-black/10 rounded">
-                <p className="font-medium">{message.contact_data.name}</p>
-                <p className="text-sm">{message.contact_data.phone}</p>
+              <div className="mb-2 p-3 bg-black/10 rounded-lg space-y-1">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <p className="font-medium">{message.contact_data.name}</p>
+                </div>
+                <p className="text-sm opacity-80">{message.contact_data.phone}</p>
               </div>
             )}
 
             <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
           </div>
-          
+
           {/* Footer com hora, status e sentimento */}
           <div className="flex items-center gap-2 mt-1">
             <span className="text-xs text-gray-400">
               {format(new Date(message.timestamp), 'HH:mm', { locale: ptBR })}
             </span>
-            
+
             {isFromMe && getStatusIcon()}
             {message.edited_at && <span className="text-xs italic text-gray-400">(editado)</span>}
-            
+
             {/* Badge de sentimento (só para mensagens do lead analisadas) */}
             {!isFromMe && message.ai_sentiment && getSentimentBadge()}
-            
+
             {/* Message actions */}
             {isFromMe && onUpdated && (
               <MessageActions
@@ -297,7 +309,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
             )}
           </div>
         </div>
-        
+
         {/* Avatar do atendente/IA (direita) */}
         {isFromMe && (
           <Avatar className={cn(

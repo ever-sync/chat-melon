@@ -1,5 +1,6 @@
 import { MessageSquarePlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ContactAvatar } from "@/components/ContactAvatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -61,8 +62,8 @@ const ConversationList = ({
 }: ConversationListProps) => {
   const { currentCompany } = useCompany();
   const [showNewConversation, setShowNewConversation] = useState(false);
-  const [conversationLabels, setConversationLabels] = useState<Record<string, Array<{id: string, name: string, color: string, icon?: string}>>>({});
-  const [conversationSatisfaction, setConversationSatisfaction] = useState<Record<string, {score: number, survey_type: 'csat' | 'nps'}>>({});
+  const [conversationLabels, setConversationLabels] = useState<Record<string, Array<{ id: string, name: string, color: string, icon?: string }>>>({});
+  const [conversationSatisfaction, setConversationSatisfaction] = useState<Record<string, { score: number, survey_type: 'csat' | 'nps' }>>({});
   const [labels, setLabels] = useState<Array<{ id: string; name: string; color: string; icon?: string | null }>>([]);
 
   // Carregar labels das conversas
@@ -79,7 +80,7 @@ const ConversationList = ({
 
   const loadLabels = async () => {
     if (!currentCompany?.id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("labels")
@@ -107,7 +108,7 @@ const ConversationList = ({
 
       if (error) throw error;
 
-      const labelsMap: Record<string, Array<{id: string, name: string, color: string, icon?: string}>> = {};
+      const labelsMap: Record<string, Array<{ id: string, name: string, color: string, icon?: string }>> = {};
       data?.forEach((item: any) => {
         if (!labelsMap[item.conversation_id]) {
           labelsMap[item.conversation_id] = [];
@@ -116,7 +117,7 @@ const ConversationList = ({
           labelsMap[item.conversation_id].push(item.labels);
         }
       });
-      
+
       setConversationLabels(labelsMap);
     } catch (error) {
       console.error('Erro ao carregar labels:', error);
@@ -136,7 +137,7 @@ const ConversationList = ({
 
       if (error) throw error;
 
-      const satisfactionMap: Record<string, {score: number, survey_type: 'csat' | 'nps'}> = {};
+      const satisfactionMap: Record<string, { score: number, survey_type: 'csat' | 'nps' }> = {};
       data?.forEach((survey: any) => {
         satisfactionMap[survey.conversation_id] = {
           score: survey.score,
@@ -177,7 +178,7 @@ const ConversationList = ({
 
   const getStatusBadge = (status: string | null) => {
     if (!status) return null;
-    
+
     const statusConfig = {
       waiting: { label: "Aguardando", variant: "secondary" as const },
       re_entry: { label: "Reentrada", variant: "default" as const },
@@ -276,15 +277,18 @@ const ConversationList = ({
                   className={cn(
                     "w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-chat-hover",
                     selectedConversation?.id === conversation.id &&
-                      "bg-primary/10 border-l-4 border-primary"
+                    "bg-primary/10 border-l-4 border-primary"
                   )}
                 >
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={conversation.profile_pic_url} />
-                    <AvatarFallback className="bg-primary/20 text-primary">
-                      {getInitials(conversation.contact_name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ContactAvatar
+                    phoneNumber={conversation.contact_number}
+                    name={conversation.contact_name}
+                    instanceName={currentCompany?.evolution_instance_name || ''}
+                    profilePictureUrl={conversation.profile_pic_url}
+                    size="md"
+                    showOnline={true}
+                    isOnline={conversation.is_online}
+                  />
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-semibold truncate">

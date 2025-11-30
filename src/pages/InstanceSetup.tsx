@@ -8,14 +8,15 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EvolutionQRCodeModal } from "@/components/evolution/EvolutionQRCodeModal";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
 
 export default function InstanceSetup() {
   const navigate = useNavigate();
-  const { companyId } = useCompanyQuery();
   const [instanceName, setInstanceName] = useState("");
   const [loading, setLoading] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+
+  // Pegar companyId do localStorage
+  const companyId = localStorage.getItem("currentCompanyId");
 
   const handleCreate = async () => {
     if (!instanceName.trim()) {
@@ -24,7 +25,8 @@ export default function InstanceSetup() {
     }
 
     if (!companyId) {
-      toast.error("Empresa não identificada");
+      toast.error("Empresa não identificada. Por favor, selecione uma empresa primeiro.");
+      navigate("/companies");
       return;
     }
 
@@ -100,8 +102,8 @@ export default function InstanceSetup() {
             </p>
           </div>
 
-          <Button 
-            onClick={handleCreate} 
+          <Button
+            onClick={handleCreate}
             disabled={loading || !instanceName.trim()}
             className="w-full"
           >

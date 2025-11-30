@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Paperclip, X, Image, FileText, Film, Music } from "lucide-react";
 import {
@@ -13,18 +12,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useSendMediaMessage } from "@/hooks/useEvolutionApi";
+import { useCompany } from "@/contexts/CompanyContext";
 
 interface MediaUploadProps {
   conversationId: string;
+  contactNumber: string;
   onMediaSent: () => void;
 }
 
-export function MediaUpload({ conversationId, onMediaSent }: MediaUploadProps) {
+export function MediaUpload({ conversationId, contactNumber, onMediaSent }: MediaUploadProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+
+  const { currentCompany } = useCompany();
+  const sendMediaMessageHook = useSendMediaMessage(currentCompany?.evolution_instance_name || '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -52,48 +57,38 @@ export function MediaUpload({ conversationId, onMediaSent }: MediaUploadProps) {
   const handleUpload = async () => {
     if (!file) return;
 
+    if (!currentCompany?.evolution_instance_name) {
+      toast.error("Evolution API não configurada");
+      return;
+    }
+
     setUploading(true);
     try {
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${conversationId}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('chat-media')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(filePath);
-
-      // Get session for authorization
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Sessão expirada');
+      // Convert file to Base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          const base64String = (reader.result as string).split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+      });
 
       // Determine media type category
-      let mediaType = 'document';
+      let mediaType: 'image' | 'video' | 'audio' | 'document' = 'document';
       if (file.type.startsWith('image/')) mediaType = 'image';
       else if (file.type.startsWith('video/')) mediaType = 'video';
       else if (file.type.startsWith('audio/')) mediaType = 'audio';
 
       // Send media via Evolution API
-      const { error: sendError } = await supabase.functions.invoke('evolution-send-media', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          conversationId,
-          mediaUrl: publicUrl,
-          mediaType,
-          caption: caption.trim() || undefined,
-        },
+      await sendMediaMessageHook.mutateAsync({
+        number: contactNumber,
+        mediatype: mediaType,
+        media: base64,
+        fileName: file.name,
+        caption: caption.trim() || undefined,
       });
-
-      if (sendError) throw sendError;
 
       toast.success("Mídia enviada com sucesso");
 
@@ -113,7 +108,7 @@ export function MediaUpload({ conversationId, onMediaSent }: MediaUploadProps) {
 
   const getFileIcon = () => {
     if (!file) return <Paperclip className="h-4 w-4" />;
-    
+
     if (file.type.startsWith('image/')) return <Image className="h-4 w-4" />;
     if (file.type.startsWith('video/')) return <Film className="h-4 w-4" />;
     if (file.type.startsWith('audio/')) return <Music className="h-4 w-4" />;
@@ -163,9 +158,9 @@ export function MediaUpload({ conversationId, onMediaSent }: MediaUploadProps) {
               </div>
 
               {preview && (
-                <img 
-                  src={preview} 
-                  alt="Preview" 
+                <img
+                  src={preview}
+                  alt="Preview"
                   className="mt-2 rounded max-h-48 w-full object-contain"
                 />
               )}

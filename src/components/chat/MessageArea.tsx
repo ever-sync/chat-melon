@@ -23,7 +23,7 @@ import { useSendPresence } from "@/hooks/useSendPresence";
 import { useMarkAsRead } from "@/hooks/useMarkAsRead";
 import { MessageBubble } from "./MessageBubble";
 import { ChatLegend } from "./ChatLegend";
-import { useSendTextMessage, useStartCall } from "@/hooks/useEvolutionApi";
+import { useSendTextMessage } from "@/hooks/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
 
 type Message = {
@@ -77,8 +77,8 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
 
   // Hooks Evolution API
   const { currentCompany } = useCompany();
-  const sendTextMessage = useSendTextMessage();
-  const startCall = useStartCall();
+  const sendTextMessage = useSendTextMessage(currentCompany?.evolution_instance_name || '');
+  // const startCall = useStartCall();
 
   // Atalhos de teclado
   useEffect(() => {
@@ -283,11 +283,8 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
 
       // Enviar via Evolution API
       await sendTextMessage.mutateAsync({
-        instanceName: currentCompany.evolution_instance_name,
-        data: {
-          number: conversation.contact_number,
-          text: messageToSend,
-        },
+        number: conversation.contact_number,
+        text: messageToSend,
       });
 
       // Salvar no banco de dados
@@ -341,6 +338,8 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       return;
     }
 
+    toast.info("Chamadas de voz em breve!");
+    /*
     try {
       await startCall.mutateAsync({
         instanceName: currentCompany.evolution_instance_name,
@@ -355,6 +354,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       console.error("Erro ao iniciar chamada:", error);
       toast.error("Não foi possível iniciar a chamada de voz");
     }
+    */
   };
 
   const handleVideoCall = async () => {
@@ -363,6 +363,8 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       return;
     }
 
+    toast.info("Chamadas de vídeo em breve!");
+    /*
     try {
       await startCall.mutateAsync({
         instanceName: currentCompany.evolution_instance_name,
@@ -377,6 +379,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       console.error("Erro ao iniciar chamada:", error);
       toast.error("Não foi possível iniciar a chamada de vídeo");
     }
+    */
   };
 
   const formatTime = (timestamp: string) => {
@@ -535,17 +538,21 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                   size="icon"
                   variant="ghost"
                   onClick={handleVideoCall}
-                  title="Chamada de vídeo"
                   className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900"
                   disabled={!currentCompany?.evolution_instance_name}
                 >
                   <Video className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </Button>
-                <InteractiveMessageSender conversationId={conversation.id} />
+                <InteractiveMessageSender
+                  conversationId={conversation.id}
+                  contactNumber={conversation.contact_number}
+                  onMessageSent={loadMessages}
+                />
               </div>
               <div className="flex gap-2">
                 <MediaUpload
                   conversationId={conversation.id}
+                  contactNumber={conversation.contact_number}
                   onMediaSent={loadMessages}
                 />
                 <AudioRecorder

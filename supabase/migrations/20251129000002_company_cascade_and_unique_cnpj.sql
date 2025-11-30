@@ -1,5 +1,5 @@
 -- ============================================
--- EMPRESA: CASCADE DELETE E CNPJ ÚNICO
+-- EMPRESA: CASCADE DELETE E CNPJ ÚNICO (VERSÃO IDEMPOTENTE)
 -- ============================================
 
 -- PASSO 1: LIMPAR DADOS ÓRFÃOS
@@ -145,9 +145,19 @@ BEGIN
   RAISE NOTICE '✅ Limpeza de dados órfãos concluída!';
 END $$;
 
--- PASSO 2: ADICIONAR CONSTRAINT DE CNPJ ÚNICO
-ALTER TABLE companies
-ADD CONSTRAINT unique_company_cnpj UNIQUE (cnpj);
+-- PASSO 2: ADICIONAR CONSTRAINT DE CNPJ ÚNICO (SE NÃO EXISTIR)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'unique_company_cnpj'
+  ) THEN
+    ALTER TABLE companies ADD CONSTRAINT unique_company_cnpj UNIQUE (cnpj);
+    RAISE NOTICE '✅ Constraint unique_company_cnpj criada';
+  ELSE
+    RAISE NOTICE 'ℹ️ Constraint unique_company_cnpj já existe (pulando)';
+  END IF;
+END $$;
 
 -- PASSO 3: ÍNDICE PARA PERFORMANCE NA BUSCA POR CNPJ
 CREATE INDEX IF NOT EXISTS idx_companies_cnpj ON companies(cnpj);
@@ -312,7 +322,6 @@ ADD CONSTRAINT evolution_settings_company_id_fkey
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'contact_notes') THEN
-    -- Limpar órfãos
     DELETE FROM contact_notes WHERE company_id NOT IN (SELECT id FROM companies);
 
     ALTER TABLE contact_notes
@@ -339,17 +348,6 @@ BEGIN
   END IF;
 END $$;
 
--- 4.22 Custom Field Values
--- NOTA: custom_field_values NÃO tem company_id diretamente
--- Ela referencia custom_fields que já tem CASCADE para companies
--- Então: companies -> custom_fields (CASCADE) -> custom_field_values (CASCADE já existe)
--- Não precisa fazer nada aqui!
-
--- 4.23 Segments (se existir)
--- NOTA: segments já tem ON DELETE CASCADE na própria definição da tabela
--- Criado com: REFERENCES companies(id) ON DELETE CASCADE
--- Não precisa alterar a constraint!
-
 -- 4.24 Pipelines (se existir)
 DO $$
 BEGIN
@@ -364,12 +362,6 @@ BEGIN
       ON DELETE CASCADE;
   END IF;
 END $$;
-
--- 4.25 Pipeline Stages
--- NOTA: pipeline_stages NÃO tem company_id diretamente
--- Ela referencia pipelines que já tem CASCADE para companies
--- Então: companies -> pipelines (CASCADE) -> pipeline_stages (CASCADE já existe)
--- Não precisa fazer nada aqui!
 
 -- 4.26 Deals (se existir)
 DO $$
@@ -416,13 +408,6 @@ BEGIN
   END IF;
 END $$;
 
--- 4.29 Campaign Contacts
--- NOTA: campaign_contacts NÃO tem company_id diretamente
--- Ela referencia campaigns e contacts que já têm CASCADE para companies
--- Então: companies -> campaigns (CASCADE) -> campaign_contacts (CASCADE já existe)
--- E também: companies -> contacts (CASCADE) -> campaign_contacts (CASCADE já existe)
--- Não precisa fazer nada aqui!
-
 -- 4.30 Queues (se existir)
 DO $$
 BEGIN
@@ -437,12 +422,6 @@ BEGIN
       ON DELETE CASCADE;
   END IF;
 END $$;
-
--- 4.31 Queue Members
--- NOTA: queue_members NÃO tem company_id diretamente
--- Ela referencia queues que já tem CASCADE para companies
--- Então: companies -> queues (CASCADE) -> queue_members (CASCADE já existe)
--- Não precisa fazer nada aqui!
 
 -- 4.32 Company Members (se existir)
 DO $$
@@ -498,7 +477,6 @@ BEGIN
       SELECT 1 FROM companies
       WHERE cnpj = NEW.cnpj
       AND id != NEW.id
-      AND deleted_at IS NULL
     ) THEN
       RAISE EXCEPTION 'CNPJ já cadastrado. Este CNPJ já está sendo usado por outra empresa.'
         USING HINT = 'Verifique se você já possui uma conta ou entre em contato com o suporte.';
@@ -517,8 +495,13 @@ CREATE TRIGGER trigger_validate_unique_cnpj
   EXECUTE FUNCTION validate_unique_cnpj();
 
 -- PASSO 7: COMENTÁRIOS
-COMMENT ON CONSTRAINT unique_company_cnpj ON companies IS
-  'Garante que não pode haver duas empresas ativas com o mesmo CNPJ';
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'unique_company_cnpj') THEN
+    COMMENT ON CONSTRAINT unique_company_cnpj ON companies IS
+      'Garante que não pode haver duas empresas ativas com o mesmo CNPJ';
+  END IF;
+END $$;
 
 COMMENT ON FUNCTION validate_unique_cnpj() IS
   'Valida se o CNPJ já está cadastrado antes de inserir/atualizar uma empresa';

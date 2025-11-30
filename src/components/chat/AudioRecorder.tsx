@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSendAudioMessage } from "@/hooks/useEvolutionApi";
+import { useCompany } from "@/contexts/CompanyContext";
 
 interface AudioRecorderProps {
   conversationId: string;
@@ -52,47 +54,41 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
     }
   };
 
+  const { currentCompany } = useCompany();
+  const sendAudioMessageHook = useSendAudioMessage(currentCompany?.evolution_instance_name || '');
+
   const sendAudioMessage = async (audioBlob: Blob) => {
+    if (!currentCompany?.evolution_instance_name) {
+      toast.error("Evolution API não configurada");
+      return;
+    }
+
     setIsSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
+      // Convert Blob to Base64
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
 
-      // Upload to storage
-      const fileName = `audio_${Date.now()}.ogg`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('chat-media')
-        .upload(`${user.id}/${fileName}`, audioBlob, {
-          contentType: 'audio/ogg',
-          upsert: false
-        });
+      await new Promise((resolve, reject) => {
+        reader.onloadend = async () => {
+          try {
+            const base64Audio = (reader.result as string).split(',')[1];
 
-      if (uploadError) throw uploadError;
+            // Send via Evolution API
+            await sendAudioMessageHook.mutateAsync({
+              number: contactNumber,
+              audio: base64Audio,
+            });
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(uploadData.path);
-
-      // Get session for authorization
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Sessão expirada');
-
-      // Send via Evolution API with correct audio endpoint
-      const { error: sendError } = await supabase.functions.invoke('evolution-send-audio', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          conversationId: conversationId,
-          audioUrl: publicUrl,
-        }
+            toast.success("Áudio enviado!");
+            onSent?.();
+            resolve(true);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = reject;
       });
-
-      if (sendError) throw sendError;
-
-      toast.success("Áudio enviado com sucesso");
-
-      onSent?.();
     } catch (error) {
       console.error('Error sending audio:', error);
       toast.error("Erro ao enviar áudio");
