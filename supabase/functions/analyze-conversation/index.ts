@@ -13,7 +13,7 @@ serve(async (req) => {
 
   try {
     const { messages, contactName, contactCompany, tone = 'friendly' } = await req.json();
-    
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -74,8 +74,8 @@ Responda APENAS com JSON válido no formato:
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { 
-            role: 'user', 
+          {
+            role: 'user',
             content: `Contato: ${contactName}${contactCompany ? ` (${contactCompany})` : ''}\n\nConversa:\n${conversationContext}\n\nAnalise e responda em JSON.`
           }
         ],
@@ -91,7 +91,7 @@ Responda APENAS com JSON válido no formato:
 
     const data = await response.json();
     const analysisText = data.choices?.[0]?.message?.content || '{}';
-    
+
     // Parse JSON da resposta
     const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
     const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
@@ -103,7 +103,7 @@ Responda APENAS com JSON válido no formato:
   } catch (error) {
     console.error('Error in analyze-conversation:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error instanceof Error ? error.message : 'Unknown error',
         suggestions: [],
         sentiment: 0.5,
@@ -113,9 +113,9 @@ Responda APENAS com JSON válido no formato:
         summary: '',
         next_action: 'continuar conversa',
         suggested_actions: []
-      }), 
+      }),
       {
-        status: 500,
+        status: 200, // Return 200 so the client can parse the error message
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );

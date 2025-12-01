@@ -75,9 +75,9 @@ Deno.serve(async (req) => {
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
         return new Response(
-            JSON.stringify({ success: false, error: error.message }),
+            JSON.stringify({ success: false, error: (error as Error).message }),
             {
-                status: 400,
+                status: 200, // Return 200 so the client can parse the error message
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             }
         );
