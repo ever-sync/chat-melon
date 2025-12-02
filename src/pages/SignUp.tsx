@@ -5,18 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function SignUp() {
     const navigate = useNavigate();
-    const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [userId, setUserId] = useState<string | null>(null);
 
-    // Step 1: Personal Data
+    // Personal Data
     const [personalData, setPersonalData] = useState({
         fullName: "",
         email: "",
@@ -25,60 +22,11 @@ export default function SignUp() {
         agreedToTerms: false,
     });
 
-    // Step 2: Company Data
-    const [companyData, setCompanyData] = useState({
-        cnpj: "",
-        legalName: "",
-        fantasyName: "",
-        companyEmail: "",
-        companyPhone: "",
-        postalCode: "",
-        street: "",
-        number: "",
-        complement: "",
-        neighborhood: "",
-        city: "",
-        state: "",
-    });
-
     const handlePersonalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPersonalData({ ...personalData, [e.target.name]: e.target.value });
     };
 
-    const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCompanyData({ ...companyData, [e.target.name]: e.target.value });
-    };
-
-    const searchCEP = async () => {
-        if (companyData.postalCode.length !== 8) {
-            toast.error("CEP deve ter 8 dígitos");
-            return;
-        }
-
-        try {
-            const response = await fetch(`https://viacep.com.br/ws/${companyData.postalCode}/json/`);
-            const data = await response.json();
-
-            if (data.erro) {
-                toast.error("CEP não encontrado");
-                return;
-            }
-
-            setCompanyData({
-                ...companyData,
-                street: data.logradouro || "",
-                neighborhood: data.bairro || "",
-                city: data.localidade || "",
-                state: data.uf || "",
-            });
-
-            toast.success("Endereço encontrado!");
-        } catch (error) {
-            toast.error("Erro ao buscar CEP");
-        }
-    };
-
-    const handleStep1Submit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!personalData.agreedToTerms) {
@@ -94,7 +42,7 @@ export default function SignUp() {
         setLoading(true);
 
         try {
-            // Create Supabase auth user
+            // Create Supabase auth user (email confirmation required)
             const { data, error } = await supabase.auth.signUp({
                 email: personalData.email,
                 password: personalData.password,
@@ -103,15 +51,18 @@ export default function SignUp() {
                         full_name: personalData.fullName,
                         phone: personalData.phone,
                     },
+                    emailRedirectTo: `${window.location.origin}/dashboard`,
                 },
             });
 
             if (error) throw error;
 
             if (data.user) {
-                setUserId(data.user.id);
-                toast.success("Conta criada! Agora complete os dados da empresa.");
-                setCurrentStep(2);
+                toast.success(
+                    "Conta criada! Verifique seu e-mail para confirmar o cadastro.",
+                    { duration: 8000 }
+                );
+                navigate("/auth");
             }
         } catch (error: any) {
             toast.error(error.message || "Erro ao criar conta");
@@ -120,127 +71,6 @@ export default function SignUp() {
         }
     };
 
-    const handleStep2Submit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-
-        try {
-            if (!userId) {
-                toast.error("Erro: usuário não encontrado");
-                return;
-            }
-
-            // Validar CNPJ único antes de inserir
-            if (companyData.cnpj) {
-                const { data: existingCompany, error: checkError } = await supabase
-                    .from("companies")
-                    .select("id, name")
-                    .eq("cnpj", companyData.cnpj)
-                    .is("deleted_at", null)
-                    .maybeSingle();
-
-                if (checkError && checkError.code !== 'PGRST116') {
-                    throw checkError;
-                }
-
-                if (existingCompany) {
-                    toast.error(
-                        `CNPJ já cadastrado! Este CNPJ já está sendo usado pela empresa "${existingCompany.name}". ` +
-                        `Se você já possui uma conta, faça login. Caso contrário, entre em contato com o suporte.`,
-                        { duration: 8000 }
-                    );
-                    setLoading(false);
-                    return;
-                }
-            }
-
-            // Calculate trial end date (3 days from now)
-            const trialStartsAt = new Date();
-            const trialEndsAt = new Date();
-            trialEndsAt.setDate(trialEndsAt.getDate() + 3);
-
-            // Create company
-            const { data: company, error: companyError } = await supabase
-                .from("companies")
-                .insert({
-                    name: companyData.fantasyName,
-                    legal_name: companyData.legalName,
-                    cnpj: companyData.cnpj,
-                    email: companyData.companyEmail,
-                    phone: companyData.companyPhone,
-                    responsible_name: personalData.fullName,
-                    responsible_phone: personalData.phone,
-                    postal_code: companyData.postalCode,
-                    street: companyData.street,
-                    number: companyData.number,
-                    complement: companyData.complement,
-                    neighborhood: companyData.neighborhood,
-                    city: companyData.city,
-                    state: companyData.state,
-                    status: "active",
-                    is_active: true,
-                    subscription_status: "trial",
-                    trial_started_at: trialStartsAt.toISOString(),
-                    trial_ends_at: trialEndsAt.toISOString(),
-                    created_by: userId,
-                })
-                .select()
-                .single();
-
-            if (companyError) throw companyError;
-
-            // Create company_users relationship
-            const { error: companyUserError } = await supabase
-                .from("company_users")
-                .insert({
-                    user_id: userId,
-                    company_id: company.id,
-                    is_default: true,
-                });
-
-            if (companyUserError) throw companyUserError;
-
-            // Create company_members with admin role
-            const { error: memberError } = await supabase
-                .from("company_members")
-                .insert({
-                    user_id: userId,
-                    company_id: company.id,
-                    role: "admin",
-                    display_name: personalData.fullName,
-                    email: personalData.email,
-                    is_active: true,
-                });
-
-            if (memberError) throw memberError;
-
-            toast.success("Cadastro concluído! Você tem 3 dias de trial gratuito.");
-            navigate("/dashboard");
-        } catch (error: any) {
-            console.error("Error:", error);
-
-            // Tratamento específico para CNPJ duplicado
-            if (error.message && error.message.includes('CNPJ já cadastrado')) {
-                toast.error(
-                    "CNPJ já cadastrado! Este CNPJ já está sendo usado por outra empresa. " +
-                    "Se você já possui uma conta, faça login. Caso contrário, entre em contato com o suporte.",
-                    { duration: 8000 }
-                );
-            } else if (error.code === '23505' && error.message.includes('unique_company_cnpj')) {
-                // Constraint violation do PostgreSQL
-                toast.error(
-                    "CNPJ já cadastrado! Este CNPJ já está sendo usado por outra empresa.",
-                    { duration: 8000 }
-                );
-            } else {
-                toast.error(error.message || "Erro ao cadastrar empresa");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const progressPercentage = (currentStep / 2) * 100;
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
@@ -269,23 +99,10 @@ export default function SignUp() {
                         <p className="text-gray-400 text-lg mb-6">
                             Crie sua conta e ganhe 3 dias de trial
                         </p>
-
-                        {/* Progress Steps */}
-                        <div className="flex items-center justify-center gap-4 mb-8">
-                            <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-[#10B981]' : 'text-gray-600'}`}>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-[#10B981]' : 'bg-gray-700'}`}>
-                                    {currentStep > 1 ? <CheckCircle2 className="w-5 h-5 text-white" /> : <span className="text-white text-sm">1</span>}
-                                </div>
-                                <span className="text-sm font-medium hidden md:inline">Dados Pessoais</span>
-                            </div>
-                            <div className="h-0.5 w-12 bg-gray-700"></div>
-                            <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-[#10B981]' : 'text-gray-600'}`}>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-[#10B981]' : 'bg-gray-700'}`}>
-                                    <span className="text-white text-sm">2</span>
-                                </div>
-                                <span className="text-sm font-medium hidden md:inline">Dados da Empresa</span>
-                            </div>
-                        </div>
+                        <p className="text-gray-500 text-sm">
+                            Após confirmar seu e-mail, você será guiado<br />
+                            para configurar sua empresa e WhatsApp
+                        </p>
                     </div>
 
                     {/* Footer */}
@@ -313,15 +130,12 @@ export default function SignUp() {
                             <span className="text-sm">Voltar para Login</span>
                         </Link>
 
-                        {/* Step 1: Personal Data */}
-                        {currentStep === 1 && (
-                            <>
-                                <h1 className="text-3xl font-bold text-white mb-2">Dados Pessoais</h1>
-                                <p className="text-gray-400 mb-8">
-                                    Preencha seus dados para criar sua conta
-                                </p>
+                        <h1 className="text-3xl font-bold text-white mb-2">Criar Conta</h1>
+                        <p className="text-gray-400 mb-8">
+                            Preencha seus dados pessoais para começar
+                        </p>
 
-                                <form onSubmit={handleStep1Submit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                                     <div>
                                         <Label htmlFor="fullName" className="text-gray-300 font-medium">
                                             Nome Completo *
@@ -410,258 +224,24 @@ export default function SignUp() {
                                         </label>
                                     </div>
 
-                                    <Button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-xl font-medium text-base"
-                                    >
-                                        {loading ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                                Criando conta...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Próximo
-                                                <ArrowRight className="ml-2 h-5 w-5" />
-                                            </>
-                                        )}
-                                    </Button>
-                                </form>
-                            </>
-                        )}
-
-                        {/* Step 2: Company Data */}
-                        {currentStep === 2 && (
-                            <>
-                                <h1 className="text-3xl font-bold text-white mb-2">Dados da Empresa</h1>
-                                <p className="text-gray-400 mb-8">
-                                    Agora preencha os dados da sua empresa
-                                </p>
-
-                                <form onSubmit={handleStep2Submit} className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="cnpj" className="text-gray-300 font-medium">
-                                                CNPJ *
-                                            </Label>
-                                            <Input
-                                                id="cnpj"
-                                                name="cnpj"
-                                                value={companyData.cnpj}
-                                                onChange={handleCompanyChange}
-                                                placeholder="00.000.000/0000-00"
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="legalName" className="text-gray-300 font-medium">
-                                                Razão Social *
-                                            </Label>
-                                            <Input
-                                                id="legalName"
-                                                name="legalName"
-                                                value={companyData.legalName}
-                                                onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="fantasyName" className="text-gray-300 font-medium">
-                                            Nome Fantasia *
-                                        </Label>
-                                        <Input
-                                            id="fantasyName"
-                                            name="fantasyName"
-                                            value={companyData.fantasyName}
-                                            onChange={handleCompanyChange}
-                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="companyEmail" className="text-gray-300 font-medium">
-                                                Email da Empresa *
-                                            </Label>
-                                            <Input
-                                                id="companyEmail"
-                                                name="companyEmail"
-                                                type="email"
-                                                value={companyData.companyEmail}
-                                                onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="companyPhone" className="text-gray-300 font-medium">
-                                                Telefone
-                                            </Label>
-                                            <Input
-                                                id="companyPhone"
-                                                name="companyPhone"
-                                                value={companyData.companyPhone}
-                                                onChange={handleCompanyChange}
-                                                placeholder="(00) 0000-0000"
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="col-span-2">
-                                            <Label htmlFor="postalCode" className="text-gray-300 font-medium">
-                                                CEP *
-                                            </Label>
-                                            <Input
-                                                id="postalCode"
-                                                name="postalCode"
-                                                value={companyData.postalCode}
-                                                onChange={handleCompanyChange}
-                                                placeholder="00000-000"
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                maxLength={8}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="flex items-end">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={searchCEP}
-                                                className="w-full h-12 rounded-xl"
-                                            >
-                                                Buscar
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="col-span-2">
-                                            <Label htmlFor="street" className="text-gray-300 font-medium">
-                                                Rua *
-                                            </Label>
-                                            <Input
-                                                id="street"
-                                                name="street"
-                                                value={companyData.street}
-                                                onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="number" className="text-gray-300 font-medium">
-                                                Número *
-                                            </Label>
-                                            <Input
-                                                id="number"
-                                                name="number"
-                                                value={companyData.number}
-                                                onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <Label htmlFor="complement" className="text-gray-300 font-medium">
-                                                Complemento
-                                            </Label>
-                                            <Input
-                                                id="complement"
-                                                name="complement"
-                                                value={companyData.complement}
-                                                onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="neighborhood" className="text-gray-300 font-medium">
-                                                Bairro *
-                                            </Label>
-                                            <Input
-                                                id="neighborhood"
-                                                name="neighborhood"
-                                                value={companyData.neighborhood}
-                                                onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="city" className="text-gray-300 font-medium">
-                                                Cidade *
-                                            </Label>
-                                            <Input
-                                                id="city"
-                                                name="city"
-                                                value={companyData.city}
-                                                onChange={handleCompanyChange}
-                                                className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="state" className="text-gray-300 font-medium">
-                                            Estado *
-                                        </Label>
-                                        <Input
-                                            id="state"
-                                            name="state"
-                                            value={companyData.state}
-                                            onChange={handleCompanyChange}
-                                            maxLength={2}
-                                            placeholder="SP"
-                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="flex gap-4 pt-4">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setCurrentStep(1)}
-                                            className="flex-1 h-12 rounded-xl"
-                                            disabled={loading}
-                                        >
-                                            <ArrowLeft className="mr-2 h-5 w-5" />
-                                            Voltar
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            disabled={loading}
-                                            className="flex-1 h-12 bg-black hover:bg-gray-800 text-white rounded-xl font-medium"
-                                        >
-                                            {loading ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                                    Finalizando...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <CheckCircle2 className="mr-2 h-5 w-5" />
-                                                    Começar Trial Gratuito
-                                                </>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </>
-                        )}
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full h-12 bg-[#10B981] hover:bg-[#0EA574] text-white rounded-xl font-medium text-base"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                        Criando conta...
+                                    </>
+                                ) : (
+                                    <>
+                                        Criar Conta
+                                        <ArrowRight className="ml-2 h-5 w-5" />
+                                    </>
+                                )}
+                            </Button>
+                        </form>
                     </div>
                 </div>
             </div>

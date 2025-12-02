@@ -8,6 +8,7 @@ import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { UpdatePrompt } from "@/components/mobile/UpdatePrompt";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { PageLoadingSkeleton } from "@/components/LoadingFallback";
+import { RequireCompany } from "@/components/RequireCompany";
 
 // Lazy load de páginas - carregadas apenas quando necessário
 const Landing = lazy(() => import("./pages/Landing"));
@@ -66,11 +67,12 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <CompanyProvider>
-              <Toaster />
-              <InstallPrompt />
-              <UpdatePrompt />
-              <Suspense fallback={<PageLoadingSkeleton />}>
-                <Routes>
+              <RequireCompany>
+                <Toaster />
+                <InstallPrompt />
+                <UpdatePrompt />
+                <Suspense fallback={<PageLoadingSkeleton />}>
+                  <Routes>
                   <Route path="/" element={<Landing />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/auth" element={<Auth />} />
@@ -111,6 +113,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              </RequireCompany>
             </CompanyProvider>
           </TooltipProvider>
         </QueryClientProvider>
