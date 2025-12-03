@@ -61,7 +61,7 @@ const Auth = () => {
           <div className="relative z-10">
             <Link to="/" className="inline-flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-[#10B981] shadow-lg shadow-[#10B981]/20">
-                <span className="text-3xl">🦎</span>
+                <img src="/icon-512.png" alt="Logo" className="w-10 h-10" />
               </div>
               <span className="text-2xl font-bold text-white">CamalaChat</span>
             </Link>
@@ -97,7 +97,7 @@ const Auth = () => {
             <div className="lg:hidden mb-8 text-center">
               <div className="inline-flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-[#10B981]">
-                  <span className="text-2xl">🦎</span>
+                  <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
                 </div>
                 <span className="text-2xl font-bold text-white">CamalaChat</span>
               </div>

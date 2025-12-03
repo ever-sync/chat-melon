@@ -110,20 +110,20 @@ export default function UsersPage() {
   const { currentCompany } = useCompany();
   const companyId = currentCompany?.id;
   const { can, isAtLeast } = usePermissions();
-  
+
   const [members, setMembers] = useState<Member[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  
+
   // Modal states
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  
+
   // Form states
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('seller');
@@ -174,28 +174,46 @@ export default function UsersPage() {
 
     setIsSubmitting(true);
     try {
-      // Aqui você pode implementar o convite por email
-      // Opção 1: Criar usuário direto (se já existe no auth)
-      // Opção 2: Enviar email de convite
+      // 1. Criar o convite no banco de dados
+      const { data: inviteData, error: inviteError } = await supabase
+        .from('company_invites')
+        .insert([{
+          company_id: companyId,
+          email: inviteEmail,
+          role: inviteRole as any,
+          team_id: inviteTeam || null,
+          status: 'pending',
+          invited_by: (await supabase.auth.getUser()).data.user?.id
+        }])
+        .select()
+        .single();
 
-      // Por enquanto, vamos simular criando um registro pendente
-      const { error } = await supabase.from('company_invites').insert([{
-        company_id: companyId,
-        email: inviteEmail,
-        role: inviteRole as any,
-        team_id: inviteTeam || null,
-        status: 'pending',
-      }]);
+      if (inviteError) throw inviteError;
 
-      if (error) throw error;
+      // 2. Enviar o email usando a Edge Function
+      const { error: emailError } = await supabase.functions.invoke('send-invite-email', {
+        body: {
+          invite_id: inviteData.id,
+          email: inviteEmail,
+          role: inviteRole,
+          company_name: currentCompany?.name || 'Nossa Empresa',
+          invited_by_name: (await supabase.auth.getUser()).data.user?.user_metadata?.full_name
+        }
+      });
 
-      toast.success(`Um email foi enviado para ${inviteEmail}`);
+      if (emailError) {
+        console.error('Erro ao enviar email:', emailError);
+        toast.warning('Convite criado, mas houve erro ao enviar o email.');
+      } else {
+        toast.success(`Convite enviado para ${inviteEmail}`);
+      }
 
       setIsInviteOpen(false);
       setInviteEmail('');
       setInviteRole('seller');
       setInviteTeam('');
     } catch (err: any) {
+      console.error('Erro no processo de convite:', err);
       toast.error(err.message || 'Erro ao convidar');
     } finally {
       setIsSubmitting(false);
@@ -228,15 +246,15 @@ export default function UsersPage() {
   };
 
   const filteredMembers = members.filter(member => {
-    const matchesSearch = 
+    const matchesSearch =
       member.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || member.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || 
+    const matchesStatus = statusFilter === 'all' ||
       (statusFilter === 'active' && member.is_active) ||
       (statusFilter === 'inactive' && !member.is_active) ||
       (statusFilter === 'online' && member.is_online);
-    
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
@@ -284,7 +302,7 @@ export default function UsersPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -298,7 +316,7 @@ export default function UsersPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -312,7 +330,7 @@ export default function UsersPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -341,7 +359,7 @@ export default function UsersPage() {
                   className="pl-9"
                 />
               </div>
-              
+
               <Select value={roleFilter} onValueChange={setRoleFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrar por cargo" />
@@ -353,7 +371,7 @@ export default function UsersPage() {
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrar por status" />
@@ -404,13 +422,13 @@ export default function UsersPage() {
                       </div>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
                     <Badge className={ROLE_LABELS[member.role]?.color}>
                       {ROLE_LABELS[member.role]?.label}
                     </Badge>
                   </TableCell>
-                  
+
                   <TableCell>
                     {member.team ? (
                       <Badge variant="outline">{member.team.name}</Badge>
@@ -418,30 +436,29 @@ export default function UsersPage() {
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  
+
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${
-                        member.is_online 
+                      <div className={`h-2 w-2 rounded-full ${member.is_online
                           ? STATUS_LABELS[member.current_status]?.color || 'bg-green-500'
                           : 'bg-gray-400'
-                      }`} />
+                        }`} />
                       <span className="text-sm">
-                        {member.is_online 
+                        {member.is_online
                           ? STATUS_LABELS[member.current_status]?.label || 'Online'
                           : 'Offline'}
                       </span>
                     </div>
                   </TableCell>
-                  
+
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      {member.last_seen_at 
+                      {member.last_seen_at
                         ? new Date(member.last_seen_at).toLocaleString('pt-BR')
                         : 'Nunca'}
                     </span>
                   </TableCell>
-                  
+
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -457,7 +474,7 @@ export default function UsersPage() {
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
-                        
+
                         <DropdownMenuItem onClick={() => {
                           setSelectedMember(member);
                           setIsPermissionsOpen(true);
@@ -465,10 +482,10 @@ export default function UsersPage() {
                           <Key className="h-4 w-4 mr-2" />
                           Permissões
                         </DropdownMenuItem>
-                        
+
                         <DropdownMenuSeparator />
-                        
-                        <DropdownMenuItem 
+
+                        <DropdownMenuItem
                           onClick={() => handleDeactivate(member)}
                           disabled={member.role === 'owner'}
                         >
@@ -480,7 +497,7 @@ export default function UsersPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              
+
               {filteredMembers.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
@@ -501,7 +518,7 @@ export default function UsersPage() {
                 Envie um convite por email para adicionar um novo membro à equipe.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div>
                 <Label>Email</Label>
@@ -512,7 +529,7 @@ export default function UsersPage() {
                   onChange={(e) => setInviteEmail(e.target.value)}
                 />
               </div>
-              
+
               <div>
                 <Label>Cargo</Label>
                 <Select value={inviteRole} onValueChange={setInviteRole}>
@@ -529,7 +546,7 @@ export default function UsersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label>Equipe (opcional)</Label>
                 <Select value={inviteTeam} onValueChange={setInviteTeam}>
@@ -545,7 +562,7 @@ export default function UsersPage() {
                 </Select>
               </div>
             </div>
-            
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
                 Cancelar

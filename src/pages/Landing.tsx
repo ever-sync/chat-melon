@@ -47,7 +47,7 @@ const Landing = () => {
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
-              <span className="text-2xl">🦎</span>
+              <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               CamalaChat
@@ -360,7 +360,7 @@ const Landing = () => {
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-2 mb-6">
-                <span className="text-2xl">🦎</span>
+                <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
                 <span className="text-2xl font-bold text-white">CamalaChat</span>
               </div>
               <p className="text-gray-400 max-w-sm mb-6">
