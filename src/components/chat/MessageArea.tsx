@@ -128,20 +128,68 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "messages",
           filter: `conversation_id=eq.${conversation.id}`,
         },
         (payload) => {
-          console.log("Realtime: Message changed", payload);
-          loadMessages();
+          console.log("Realtime: New message", payload);
+          const newMsg = payload.new as Message;
+
+          // Add message only if it doesn't exist (prevent duplicates)
+          setMessages((prev) => {
+            const exists = prev.some(m => m.id === newMsg.id);
+            if (exists) return prev;
+            return [...prev, newMsg];
+          });
+
+          // Scroll to bottom on new message
+          setTimeout(() => {
+            scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversation.id}`,
+        },
+        (payload) => {
+          console.log("Realtime: Message updated", payload);
+          const updatedMsg = payload.new as Message;
+
+          // Update message in list
+          setMessages((prev) =>
+            prev.map((m) => (m.id === updatedMsg.id ? updatedMsg : m))
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversation.id}`,
+        },
+        (payload) => {
+          console.log("Realtime: Message deleted", payload);
+          const deletedMsg = payload.old as Message;
+
+          // Remove message from list
+          setMessages((prev) => prev.filter((m) => m.id !== deletedMsg.id));
         }
       )
       .subscribe((status) => {
         console.log("Realtime subscription status:", status);
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.error('Erro na subscription de mensagens');
+        if (status === 'SUBSCRIBED') {
+          console.log("✅ Realtime conectado com sucesso!");
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('❌ Erro na subscription de mensagens');
           toast.error("Falha ao conectar ao sistema de mensagens em tempo real");
         }
       });

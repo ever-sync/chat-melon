@@ -102,6 +102,69 @@ const Chat = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]); // Only depend on companyId, loadConversations is already memoized
 
+  // Realtime subscription for conversations
+  useEffect(() => {
+    if (!companyId) return;
+
+    const channel = supabase
+      .channel(`conversations-${companyId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "conversations",
+          filter: `company_id=eq.${companyId}`,
+        },
+        (payload) => {
+          console.log("Realtime: New conversation", payload);
+          setConversations((prev) => [payload.new as Conversation, ...prev]);
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversations",
+          filter: `company_id=eq.${companyId}`,
+        },
+        (payload) => {
+          console.log("Realtime: Conversation updated", payload);
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv.id === payload.new.id ? (payload.new as Conversation) : conv
+            )
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "conversations",
+          filter: `company_id=eq.${companyId}`,
+        },
+        (payload) => {
+          console.log("Realtime: Conversation deleted", payload);
+          setConversations((prev) =>
+            prev.filter((conv) => conv.id !== payload.old.id)
+          );
+        }
+      )
+      .subscribe((status) => {
+        console.log("Realtime conversations status:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("✅ Realtime conversations conectado!");
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [companyId]);
+
   useEffect(() => {
     filterConversations();
   }, [searchQuery, startDate, endDate, conversations, filters]);

@@ -17,6 +17,7 @@ import { useCompany } from "@/contexts/CompanyContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { TrialBadge } from "@/components/TrialBadge";
+import { InternalChatPanel } from "@/components/internal-chat/InternalChatPanel";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -137,9 +138,7 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/10">
-            <MessageCircle className="h-5 w-5 text-primary" />
-          </div>
+          <InternalChatPanel />
 
           <TrialBadge />
 

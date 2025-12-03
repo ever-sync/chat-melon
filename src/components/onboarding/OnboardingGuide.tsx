@@ -28,19 +28,10 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
     fantasyName: "",
     companyEmail: "",
     companyPhone: "",
-    postalCode: "",
-    street: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
-    city: "",
-    state: "",
   });
 
   // Step 2: WhatsApp Data (Evolution API)
   const [whatsappData, setWhatsappData] = useState({
-    apiUrl: "",
-    apiKey: "",
     instanceName: "",
   });
 
@@ -50,35 +41,6 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
 
   const handleWhatsAppChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWhatsappData({ ...whatsappData, [e.target.name]: e.target.value });
-  };
-
-  const searchCEP = async () => {
-    if (companyData.postalCode.length !== 8) {
-      toast.error("CEP deve ter 8 dígitos");
-      return;
-    }
-
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${companyData.postalCode}/json/`);
-      const data = await response.json();
-
-      if (data.erro) {
-        toast.error("CEP não encontrado");
-        return;
-      }
-
-      setCompanyData({
-        ...companyData,
-        street: data.logradouro || "",
-        neighborhood: data.bairro || "",
-        city: data.localidade || "",
-        state: data.uf || "",
-      });
-
-      toast.success("Endereço encontrado!");
-    } catch (error) {
-      toast.error("Erro ao buscar CEP");
-    }
   };
 
   const handleStep1Submit = async (e: React.FormEvent) => {
@@ -94,51 +56,50 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
         return;
       }
 
-      // Validar CNPJ único
+      // Verificar se CNPJ já existe
       if (companyData.cnpj) {
-        const { data: existingCompany } = await supabase
+        const { data: existingCompanies } = await supabase
           .from("companies")
           .select("id, name")
           .eq("cnpj", companyData.cnpj)
-          .is("deleted_at", null)
-          .maybeSingle();
+          .is("deleted_at", null);
 
-        if (existingCompany) {
-          toast.error(
-            `CNPJ já cadastrado! Este CNPJ já está sendo usado pela empresa "${existingCompany.name}".`,
-            { duration: 8000 }
-          );
-          setLoading(false);
-          return;
+        if (existingCompanies && existingCompanies.length > 0) {
+          const existingCompany = existingCompanies[0];
+
+          // Verificar se a empresa pertence ao usuário atual
+          const { data: userCompany } = await supabase
+            .from("company_users")
+            .select("company_id")
+            .eq("user_id", user.id)
+            .eq("company_id", existingCompany.id)
+            .maybeSingle();
+
+          if (userCompany) {
+            // Empresa já existe e pertence ao usuário - pular para próximo step
+            localStorage.setItem("onboardingCompanyId", existingCompany.id);
+            toast.success("Empresa já cadastrada! Vamos configurar o WhatsApp.");
+            setCurrentStep(2);
+            setLoading(false);
+            return;
+          } else {
+            // Empresa existe mas pertence a outro usuário
+            toast.error(
+              `Este CNPJ já está cadastrado pela empresa "${existingCompany.name}". Use outro CNPJ ou entre em contato com o suporte.`,
+              { duration: 8000 }
+            );
+            setLoading(false);
+            return;
+          }
         }
       }
 
-      // Calculate trial end date (3 days from now)
-      const trialStartsAt = new Date();
-      const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 3);
-
-      // Create company
+      // Create company - APENAS name (obrigatória), cnpj e created_by (para RLS)
       const { data: company, error: companyError } = await supabase
         .from("companies")
         .insert({
-          name: companyData.fantasyName,
-          legal_name: companyData.legalName,
-          cnpj: companyData.cnpj,
-          email: companyData.companyEmail,
-          phone: companyData.companyPhone,
-          postal_code: companyData.postalCode,
-          street: companyData.street,
-          number: companyData.number,
-          complement: companyData.complement,
-          neighborhood: companyData.neighborhood,
-          city: companyData.city,
-          state: companyData.state,
-          status: "active",
-          is_active: true,
-          subscription_status: "trial",
-          trial_started_at: trialStartsAt.toISOString(),
-          trial_ends_at: trialEndsAt.toISOString(),
+          name: companyData.fantasyName || companyData.legalName || "Empresa",
+          cnpj: companyData.cnpj || null,
           created_by: user.id,
         })
         .select()
@@ -146,30 +107,37 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
 
       if (companyError) throw companyError;
 
-      // Create company_users relationship
-      const { error: companyUserError } = await supabase
-        .from("company_users")
-        .insert({
-          user_id: user.id,
-          company_id: company.id,
-          is_default: true,
-        });
+      // Atualizar campos extras em segunda query (evita cache)
+      const trialEnds = new Date();
+      trialEnds.setDate(trialEnds.getDate() + 3);
 
-      if (companyUserError) throw companyUserError;
+      await supabase
+        .from("companies")
+        .update({
+          email: companyData.companyEmail,
+          phone: companyData.companyPhone,
+          trial_started_at: new Date().toISOString(),
+          trial_ends_at: trialEnds.toISOString(),
+          subscription_status: 'trial',
+        })
+        .eq("id", company.id);
 
-      // Create company_members with admin role
-      const { error: memberError } = await supabase
-        .from("company_members")
-        .insert({
-          user_id: user.id,
-          company_id: company.id,
-          role: "admin",
-          display_name: user.user_metadata?.full_name || user.email,
-          email: user.email,
-          is_active: true,
-        });
+      // Criar company_users
+      await supabase.from("company_users").insert({
+        user_id: user.id,
+        company_id: company.id,
+        is_default: true,
+      });
 
-      if (memberError) throw memberError;
+      // Criar company_members
+      await supabase.from("company_members").insert({
+        user_id: user.id,
+        company_id: company.id,
+        role: "admin",
+        display_name: user.user_metadata?.full_name || user.email || "Admin",
+        email: user.email,
+        is_active: true,
+      });
 
       // Save company ID for next step
       localStorage.setItem("onboardingCompanyId", company.id);
@@ -201,22 +169,23 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
         return;
       }
 
-      // Update company with Evolution API config
-      const { error } = await supabase
-        .from("companies")
-        .update({
-          evolution_api_url: whatsappData.apiUrl,
-          evolution_api_key: whatsappData.apiKey,
-          evolution_instance_name: whatsappData.instanceName,
-        })
-        .eq("id", companyId);
-
-      if (error) throw error;
+      // Tentar salvar o nome da instância (pode falhar por cache)
+      try {
+        await supabase
+          .from("companies")
+          .update({
+            evolution_instance_name: whatsappData.instanceName,
+          })
+          .eq("id", companyId);
+      } catch (updateError) {
+        console.warn("Não foi possível salvar instância (cache issue):", updateError);
+        // Continua mesmo se falhar
+      }
 
       localStorage.removeItem("onboardingCompanyId");
       await refreshCompanies();
 
-      toast.success("WhatsApp configurado! Redirecionando para o dashboard...");
+      toast.success("WhatsApp configurado! Você pode ajustar nas Configurações.");
       setCurrentStep(3);
 
       // Wait 2 seconds to show success, then complete
@@ -351,94 +320,6 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                  <Label htmlFor="postalCode">CEP *</Label>
-                  <Input
-                    id="postalCode"
-                    name="postalCode"
-                    value={companyData.postalCode}
-                    onChange={handleCompanyChange}
-                    placeholder="00000-000"
-                    maxLength={8}
-                    required
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button type="button" variant="outline" onClick={searchCEP} className="w-full">
-                    Buscar CEP
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                  <Label htmlFor="street">Rua *</Label>
-                  <Input
-                    id="street"
-                    name="street"
-                    value={companyData.street}
-                    onChange={handleCompanyChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="number">Número *</Label>
-                  <Input
-                    id="number"
-                    name="number"
-                    value={companyData.number}
-                    onChange={handleCompanyChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="complement">Complemento</Label>
-                  <Input
-                    id="complement"
-                    name="complement"
-                    value={companyData.complement}
-                    onChange={handleCompanyChange}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="neighborhood">Bairro *</Label>
-                  <Input
-                    id="neighborhood"
-                    name="neighborhood"
-                    value={companyData.neighborhood}
-                    onChange={handleCompanyChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="city">Cidade *</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    value={companyData.city}
-                    onChange={handleCompanyChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="state">Estado *</Label>
-                <Input
-                  id="state"
-                  name="state"
-                  value={companyData.state}
-                  onChange={handleCompanyChange}
-                  maxLength={2}
-                  placeholder="SP"
-                  required
-                />
-              </div>
-
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
@@ -458,45 +339,30 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
           {/* Step 2: WhatsApp */}
           {currentStep === 2 && (
             <form onSubmit={handleStep2Submit} className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 Importante:</strong> Você precisa ter uma instância do WhatsApp já criada
+                  na Evolution API. As credenciais da API são configuradas pelo administrador do sistema.
+                </p>
+              </div>
+
               <p className="text-gray-600">
-                Configure sua conexão com WhatsApp através da Evolution API:
+                Informe o nome da sua instância do WhatsApp na Evolution API:
               </p>
 
               <div>
-                <Label htmlFor="apiUrl">URL da API Evolution *</Label>
-                <Input
-                  id="apiUrl"
-                  name="apiUrl"
-                  value={whatsappData.apiUrl}
-                  onChange={handleWhatsAppChange}
-                  placeholder="https://api.seudominio.com"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="apiKey">API Key *</Label>
-                <Input
-                  id="apiKey"
-                  name="apiKey"
-                  type="password"
-                  value={whatsappData.apiKey}
-                  onChange={handleWhatsAppChange}
-                  placeholder="Sua chave de API"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="instanceName">Nome da Instância *</Label>
+                <Label htmlFor="instanceName">Nome da Instância WhatsApp *</Label>
                 <Input
                   id="instanceName"
                   name="instanceName"
                   value={whatsappData.instanceName}
                   onChange={handleWhatsAppChange}
-                  placeholder="minha-instancia"
+                  placeholder="Ex: empresa-whatsapp"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Este é o nome da instância que você criou na Evolution API
+                </p>
               </div>
 
               <div className="flex gap-4">
@@ -532,7 +398,7 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
                 className="w-full"
                 disabled={loading}
               >
-                Pular por enquanto (configurar depois)
+                Pular por enquanto (configurar depois em Configurações)
               </Button>
             </form>
           )}

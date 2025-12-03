@@ -32,24 +32,9 @@ export function RequireCompany({ children }: RequireCompanyProps) {
 
       setIsAuthenticated(true);
 
-      // Check if user has a company
-      const { data: companyUsers, error } = await supabase
-        .from("company_users")
-        .select("company_id, companies(id, name, is_active)")
-        .eq("user_id", user.id)
-        .eq("is_default", true)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") throw error;
-
-      // If no company, show onboarding
-      if (!companyUsers) {
-        setShowOnboarding(true);
-        setLoading(false);
-        return;
-      }
-
-      // User has a company, allow access
+      // 🔓 ONBOARDING DESABILITADO PARA TODOS OS USUÁRIOS
+      // Os usuários podem usar o sistema sem empresa e criar depois nas configurações
+      console.log("✅ Onboarding desabilitado - acesso liberado para todos");
       setShowOnboarding(false);
       setLoading(false);
     } catch (error) {
@@ -58,9 +43,14 @@ export function RequireCompany({ children }: RequireCompanyProps) {
     }
   };
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
+    console.log("🎉 Onboarding completado!");
+
+    // Fechar modal imediatamente
     setShowOnboarding(false);
-    // Refresh the page to load company data
+
+    // Forçar reload da página para carregar dados da empresa
+    console.log("🔄 Recarregando página...");
     window.location.reload();
   };
 
