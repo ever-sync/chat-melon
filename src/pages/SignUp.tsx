@@ -85,7 +85,7 @@ export default function SignUp() {
                     <div className="relative z-10">
                         <Link to="/" className="inline-flex items-center gap-3">
                             <div className="p-3 rounded-2xl bg-[#10B981] shadow-lg shadow-[#10B981]/20">
-                                <span className="text-3xl">🦎</span>
+                                <img src="/icon-512.png" alt="Logo" className="w-10 h-10" />
                             </div>
                             <span className="text-2xl font-bold text-white">CamalaChat</span>
                         </Link>
@@ -118,7 +118,7 @@ export default function SignUp() {
                         <div className="lg:hidden mb-8 text-center">
                             <div className="inline-flex items-center gap-3">
                                 <div className="p-2 rounded-xl bg-[#10B981]">
-                                    <span className="text-2xl">🦎</span>
+                                    <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
                                 </div>
                                 <span className="text-xl font-bold text-white">CamalaChat</span>
                             </div>
@@ -136,93 +136,93 @@ export default function SignUp() {
                         </p>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
-                                    <div>
-                                        <Label htmlFor="fullName" className="text-gray-300 font-medium">
-                                            Nome Completo *
-                                        </Label>
-                                        <Input
-                                            id="fullName"
-                                            name="fullName"
-                                            value={personalData.fullName}
-                                            onChange={handlePersonalChange}
-                                            placeholder="João Silva"
-                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                            required
-                                        />
-                                    </div>
+                            <div>
+                                <Label htmlFor="fullName" className="text-gray-300 font-medium">
+                                    Nome Completo *
+                                </Label>
+                                <Input
+                                    id="fullName"
+                                    name="fullName"
+                                    value={personalData.fullName}
+                                    onChange={handlePersonalChange}
+                                    placeholder="João Silva"
+                                    className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
+                                    required
+                                />
+                            </div>
 
-                                    <div>
-                                        <Label htmlFor="email" className="text-gray-300 font-medium">
-                                            Email *
-                                        </Label>
-                                        <Input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            value={personalData.email}
-                                            onChange={handlePersonalChange}
-                                            placeholder="joao@empresa.com"
-                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                            required
-                                        />
-                                    </div>
+                            <div>
+                                <Label htmlFor="email" className="text-gray-300 font-medium">
+                                    Email *
+                                </Label>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={personalData.email}
+                                    onChange={handlePersonalChange}
+                                    placeholder="joao@empresa.com"
+                                    className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
+                                    required
+                                />
+                            </div>
 
-                                    <div>
-                                        <Label htmlFor="password" className="text-gray-300 font-medium">
-                                            Senha *
-                                        </Label>
-                                        <div className="relative mt-2">
-                                            <Input
-                                                id="password"
-                                                name="password"
-                                                type={showPassword ? "text" : "password"}
-                                                value={personalData.password}
-                                                onChange={handlePersonalChange}
-                                                placeholder="Mínimo 6 caracteres"
-                                                className="h-12 rounded-xl pr-12"
-                                                required
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                            >
-                                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div>
+                                <Label htmlFor="password" className="text-gray-300 font-medium">
+                                    Senha *
+                                </Label>
+                                <div className="relative mt-2">
+                                    <Input
+                                        id="password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={personalData.password}
+                                        onChange={handlePersonalChange}
+                                        placeholder="Mínimo 6 caracteres"
+                                        className="h-12 rounded-xl pr-12"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                            </div>
 
-                                    <div>
-                                        <Label htmlFor="phone" className="text-gray-300 font-medium">
-                                            Telefone *
-                                        </Label>
-                                        <Input
-                                            id="phone"
-                                            name="phone"
-                                            value={personalData.phone}
-                                            onChange={handlePersonalChange}
-                                            placeholder="(00) 00000-0000"
-                                            className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
-                                            required
-                                        />
-                                    </div>
+                            <div>
+                                <Label htmlFor="phone" className="text-gray-300 font-medium">
+                                    Telefone *
+                                </Label>
+                                <Input
+                                    id="phone"
+                                    name="phone"
+                                    value={personalData.phone}
+                                    onChange={handlePersonalChange}
+                                    placeholder="(00) 00000-0000"
+                                    className="mt-2 h-12 rounded-xl bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-gray-500"
+                                    required
+                                />
+                            </div>
 
-                                    <div className="flex items-start gap-3">
-                                        <Checkbox
-                                            id="terms"
-                                            checked={personalData.agreedToTerms}
-                                            onCheckedChange={(checked) =>
-                                                setPersonalData({ ...personalData, agreedToTerms: checked as boolean })
-                                            }
-                                            className="mt-1 border-[#2A2A2A]"
-                                        />
-                                        <label htmlFor="terms" className="text-sm text-gray-400 leading-relaxed cursor-pointer">
-                                            Eu concordo com os{" "}
-                                            <Link to="/terms" className="text-[#10B981] hover:text-[#0EA574] underline">
-                                                Termos & Condições
-                                            </Link>
-                                        </label>
-                                    </div>
+                            <div className="flex items-start gap-3">
+                                <Checkbox
+                                    id="terms"
+                                    checked={personalData.agreedToTerms}
+                                    onCheckedChange={(checked) =>
+                                        setPersonalData({ ...personalData, agreedToTerms: checked as boolean })
+                                    }
+                                    className="mt-1 border-[#2A2A2A]"
+                                />
+                                <label htmlFor="terms" className="text-sm text-gray-400 leading-relaxed cursor-pointer">
+                                    Eu concordo com os{" "}
+                                    <Link to="/terms" className="text-[#10B981] hover:text-[#0EA574] underline">
+                                        Termos & Condições
+                                    </Link>
+                                </label>
+                            </div>
 
                             <Button
                                 type="submit"
