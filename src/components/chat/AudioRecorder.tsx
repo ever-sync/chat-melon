@@ -21,6 +21,12 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
 
   const startRecording = async () => {
     try {
+      // Check if mediaDevices is available (requires HTTPS or localhost)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Acesso ao microfone requer HTTPS ou localhost. Acesse via http://localhost:5173");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -41,9 +47,9 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
       mediaRecorder.start();
       setIsRecording(true);
       onStartRecording?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting recording:', error);
-      toast.error("Não foi possível acessar o microfone");
+      toast.error(`Erro ao acessar microfone: ${error.message || "Permissão negada ou contexto inseguro"}`);
     }
   };
 
@@ -55,13 +61,13 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
   };
 
   const { currentCompany } = useCompany();
-  const sendAudioMessageHook = useSendAudioMessage(currentCompany?.evolution_instance_name || '');
+  // const sendAudioMessageHook = useSendAudioMessage(currentCompany?.evolution_instance_name || '');
 
   const sendAudioMessage = async (audioBlob: Blob) => {
-    if (!currentCompany?.evolution_instance_name) {
-      toast.error("Evolution API não configurada");
-      return;
-    }
+    // if (!currentCompany?.evolution_instance_name) {
+    //   toast.error("Evolution API não configurada");
+    //   return;
+    // }
 
     setIsSending(true);
     try {
@@ -74,11 +80,18 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
           try {
             const base64Audio = (reader.result as string).split(',')[1];
 
-            // Send via Evolution API
-            await sendAudioMessageHook.mutateAsync({
-              number: contactNumber,
-              audio: base64Audio,
+            // Send via Edge Function
+            const { data: result, error } = await supabase.functions.invoke('send-message', {
+              body: {
+                conversationId,
+                messageType: 'audio',
+                audio: base64Audio,
+              }
             });
+
+            if (error || !result?.success) {
+              throw new Error(result?.error || error?.message || "Erro ao enviar áudio");
+            }
 
             toast.success("Áudio enviado!");
             onSent?.();

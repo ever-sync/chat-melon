@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Paperclip, X, Image, FileText, Film, Music } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,7 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
   const [preview, setPreview] = useState<string | null>(null);
 
   const { currentCompany } = useCompany();
-  const sendMediaMessageHook = useSendMediaMessage(currentCompany?.evolution_instance_name || '');
+  // const sendMediaMessageHook = useSendMediaMessage(currentCompany?.evolution_instance_name || '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -57,10 +58,10 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
   const handleUpload = async () => {
     if (!file) return;
 
-    if (!currentCompany?.evolution_instance_name) {
-      toast.error("Evolution API não configurada");
-      return;
-    }
+    // if (!currentCompany?.evolution_instance_name) {
+    //   toast.error("Evolution API não configurada");
+    //   return;
+    // }
 
     setUploading(true);
     try {
@@ -81,14 +82,21 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
       else if (file.type.startsWith('video/')) mediaType = 'video';
       else if (file.type.startsWith('audio/')) mediaType = 'audio';
 
-      // Send media via Evolution API
-      await sendMediaMessageHook.mutateAsync({
-        number: contactNumber,
-        mediatype: mediaType,
-        media: base64,
-        fileName: file.name,
-        caption: caption.trim() || undefined,
+      // Send media via Edge Function
+      const { data: result, error } = await supabase.functions.invoke('send-message', {
+        body: {
+          conversationId,
+          messageType: 'media',
+          mediaType,
+          media: base64,
+          content: file.name,
+          caption: caption.trim() || undefined,
+        }
       });
+
+      if (error || !result?.success) {
+        throw new Error(result?.error || error?.message || "Erro ao enviar mídia");
+      }
 
       toast.success("Mídia enviada com sucesso");
 

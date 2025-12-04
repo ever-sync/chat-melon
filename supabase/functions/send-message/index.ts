@@ -19,14 +19,14 @@ Deno.serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const { conversationId, content, messageType = 'text' } = await req.json();
+        const { conversationId, content, messageType = 'text', media, mediaType: fileType, caption, audio } = await req.json();
 
-        console.log('📨 Recebido pedido para enviar mensagem:', { conversationId, content, messageType });
+        console.log('📨 Recebido pedido para enviar mensagem:', { conversationId, messageType });
 
-        // Buscar dados da conversa e empresa
+        // Buscar dados da conversa
         const { data: conversation, error: convError } = await supabase
             .from('conversations')
-            .select('contact_number, company_id, companies!inner(evolution_instance_name)')
+            .select('contact_number, company_id')
             .eq('id', conversationId)
             .single();
 
@@ -37,8 +37,15 @@ Deno.serve(async (req) => {
             throw new Error('Conversa não encontrada');
         }
 
-        const instanceName = (conversation.companies as any)?.evolution_instance_name;
-        console.log('🏢 Nome da instância:', instanceName);
+        // Buscar nome da instância na tabela evolution_settings
+        const { data: settings } = await supabase
+            .from('evolution_settings')
+            .select('instance_name')
+            .eq('company_id', conversation.company_id)
+            .single();
+
+        const instanceName = settings?.instance_name;
+        console.log('🏢 Nome da instância (evolution_settings):', instanceName);
 
         if (!instanceName) {
             console.error('❌ Instância Evolution não configurada');
@@ -46,18 +53,37 @@ Deno.serve(async (req) => {
         }
 
         const phone = conversation.contact_number;
+        let endpoint = '/message/sendText/';
+        let body: any = { number: phone };
+
+        switch (messageType) {
+            case 'text':
+                endpoint = '/message/sendText/';
+                body.text = content;
+                break;
+            case 'media':
+                endpoint = '/message/sendMedia/';
+                body.mediatype = fileType; // image, video, document
+                body.media = media; // base64
+                body.caption = caption;
+                body.fileName = content; // Usando content como nome do arquivo se disponível
+                break;
+            case 'audio':
+                endpoint = '/message/sendWhatsAppAudio/';
+                body.audio = audio; // base64
+                break;
+            default:
+                throw new Error(`Tipo de mensagem não suportado: ${messageType}`);
+        }
 
         // Enviar mensagem via Evolution API
-        const response = await fetch(`${evolutionApiUrl}/message/sendText/${instanceName}`, {
+        const response = await fetch(`${evolutionApiUrl}${endpoint}${instanceName}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'apikey': evolutionApiKey,
             },
-            body: JSON.stringify({
-                number: phone,
-                text: content,
-            }),
+            body: JSON.stringify(body),
         });
 
         if (!response.ok) {

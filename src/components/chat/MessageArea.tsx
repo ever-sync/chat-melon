@@ -316,9 +316,10 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
 
 
       // Mensagem normal via Edge Function (seguro)
-      if (!currentCompany?.evolution_instance_name) {
-        throw new Error("Evolution API não configurada. Configure em Configurações");
-      }
+      // Verificação removida para permitir envio quando configurado via Secrets/Evolution Settings
+      // if (!currentCompany?.evolution_instance_name) {
+      //   throw new Error("Evolution API não configurada. Configure em Configurações");
+      // }
 
       const tempMessage: Message = {
         id: `temp-${Date.now()}`,
@@ -388,8 +389,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
   };
 
   const handleVoiceCall = async () => {
-    if (!currentCompany?.evolution_instance_name || !conversation) {
-      toast.error("Evolution API não configurada");
+    if (!conversation) {
       return;
     }
 
@@ -413,8 +413,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
   };
 
   const handleVideoCall = async () => {
-    if (!currentCompany?.evolution_instance_name || !conversation) {
-      toast.error("Evolution API não configurada");
+    if (!conversation) {
       return;
     }
 
@@ -584,7 +583,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                   onClick={handleVoiceCall}
                   title="Chamada de voz"
                   className="rounded-full hover:bg-green-100 dark:hover:bg-green-900"
-                  disabled={!currentCompany?.evolution_instance_name}
+                // disabled={!currentCompany?.evolution_instance_name}
                 >
                   <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </Button>
@@ -594,7 +593,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                   variant="ghost"
                   onClick={handleVideoCall}
                   className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900"
-                  disabled={!currentCompany?.evolution_instance_name}
+                // disabled={!currentCompany?.evolution_instance_name}
                 >
                   <Video className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </Button>
