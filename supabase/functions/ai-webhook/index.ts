@@ -178,14 +178,25 @@ async function handleMessageSent(supabase: any, payload: AIWebhookPayload) {
     return;
   }
 
+  // Buscar o user_id (primeiro usuário da empresa como fallback para IA)
+  const { data: companyUser } = await supabase
+    .from('company_users')
+    .select('user_id')
+    .eq('company_id', company_id)
+    .limit(1)
+    .single();
+
+  const userId = companyUser?.user_id || '00000000-0000-0000-0000-000000000000'; // UUID vazio como fallback
+
   // Criar mensagem no banco primeiro (status pending)
-  const { data: newMessage } = await supabase
+  const { data: newMessage, error: insertError } = await supabase
     .from('messages')
     .insert({
       conversation_id,
       company_id,
+      user_id: userId,
       content: message.content,
-      content_type: 'text',
+      message_type: 'text',
       is_from_me: true,
       is_from_ai: true,
       ai_model: message.model,
@@ -197,6 +208,11 @@ async function handleMessageSent(supabase: any, payload: AIWebhookPayload) {
     })
     .select()
     .single();
+
+  if (insertError || !newMessage) {
+    console.error('❌ Erro ao inserir mensagem no banco:', insertError);
+    return;
+  }
 
   // Enviar via Evolution API
   const evolutionUrl = evolutionSettings.api_url || Deno.env.get('EVOLUTION_API_URL');

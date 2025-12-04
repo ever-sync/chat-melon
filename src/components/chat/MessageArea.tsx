@@ -558,6 +558,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                   showSender={true}
                   contactAvatar={conversation?.profile_pic_url}
                   contactName={conversation?.contact_name}
+                  contactPhone={conversation?.contact_number}
                   onUpdated={loadMessages}
                 />
               ))

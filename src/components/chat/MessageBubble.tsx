@@ -6,6 +6,8 @@ import { Bot, User, Clock, Check, CheckCheck, AlertCircle, EyeOff, BarChart3, Li
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageActions } from './MessageActions';
+import { ContactAvatar } from '@/components/ContactAvatar';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface MessageBubbleProps {
   message: {
@@ -38,10 +40,12 @@ interface MessageBubbleProps {
   showSender?: boolean;
   contactAvatar?: string;
   contactName?: string;
+  contactPhone?: string;
   onUpdated?: () => void;
 }
 
-export function MessageBubble({ message, showSender = false, contactAvatar, contactName, onUpdated }: MessageBubbleProps) {
+export function MessageBubble({ message, showSender = false, contactAvatar, contactName, contactPhone, onUpdated }: MessageBubbleProps) {
+  const { currentCompany } = useCompany();
   const isFromMe = message.is_from_me;
   const isFromAI = message.is_from_ai;
   const isSystemMessage = message.message_type === 'system' || message.content_type === 'system';
@@ -89,7 +93,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
       return 'bg-violet-500 text-white';
     }
     // Mensagem do atendente humano - verde/esmeralda
-    return 'bg-emerald-500 text-white';
+    return 'bg-emerald-500 text-black';
   };
 
   const getSentimentBadge = () => {
@@ -138,13 +142,14 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
         isFromMe ? 'justify-end' : 'justify-start'
       )}>
         {/* Avatar do lead (esquerda) */}
-        {!isFromMe && (
-          <Avatar className="h-8 w-8 flex-shrink-0">
-            <AvatarImage src={contactAvatar} />
-            <AvatarFallback className="bg-gray-200">
-              <User className="h-4 w-4 text-gray-500" />
-            </AvatarFallback>
-          </Avatar>
+        {!isFromMe && contactPhone && (
+          <ContactAvatar
+            phoneNumber={contactPhone}
+            name={contactName}
+            instanceName={currentCompany?.evolution_instance_name || ''}
+            profilePictureUrl={contactAvatar}
+            size="sm"
+          />
         )}
 
         <div className={cn(
