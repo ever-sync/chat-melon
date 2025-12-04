@@ -354,6 +354,8 @@ export function useFetchProfilePicture(instanceName: string) {
  * Hook to get cached profile picture URL
  */
 export function useContactProfilePicture(instanceName: string, phoneNumber: string) {
+  const { data: initialized } = useEvolutionInit();
+
   return useQuery({
     queryKey: ['contact-profile-picture', instanceName, phoneNumber],
     queryFn: async () => {
@@ -362,9 +364,9 @@ export function useContactProfilePicture(instanceName: string, phoneNumber: stri
       });
       return response.profilePictureUrl || null;
     },
-    enabled: !!instanceName && !!phoneNumber,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+    enabled: !!initialized && !!instanceName && !!phoneNumber,
+    staleTime: 0, // Sempre buscar atualizado
+    gcTime: 1000 * 60 * 5, // 5 minutos
   });
 }
 

@@ -279,7 +279,12 @@ serve(async (req) => {
 
       // Processar contato individual
       const fromNumber = remoteJid.replace('@s.whatsapp.net', '');
-      const pushName = messageData.pushName || fromNumber;
+
+      // Extrair pushName corretamente
+      // Se a mensagem for de mim (fromMe = true), o pushName é do sistema, não do contato
+      // Então só usamos pushName se for mensagem RECEBIDA (fromMe = false)
+      const pushName = !isFromMe && messageData.pushName ? messageData.pushName : fromNumber;
+
       const externalId = messageData.key.id;
 
       // Verificar se mensagem já existe (evitar duplicatas)
@@ -376,6 +381,30 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!existingContact) {
+        // Buscar foto de perfil da Evolution API
+        let profilePicUrl = null;
+        try {
+          const profilePicResponse = await fetch(
+            `${evolutionSettings.api_url}/chat/fetchProfilePictureUrl/${evolutionSettings.instance_name}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionSettings.api_key,
+              },
+              body: JSON.stringify({ number: fromNumber }),
+            }
+          );
+
+          if (profilePicResponse.ok) {
+            const profilePicData = await profilePicResponse.json();
+            profilePicUrl = profilePicData.profilePictureUrl || null;
+            console.log('✅ Foto de perfil obtida:', profilePicUrl ? 'SIM' : 'NÃO');
+          }
+        } catch (error) {
+          console.log('⚠️ Erro ao buscar foto de perfil:', error);
+        }
+
         const { data: newContact } = await supabase
           .from('contacts')
           .insert({
@@ -383,6 +412,8 @@ serve(async (req) => {
             phone_number: fromNumber,
             push_name: pushName,
             name: pushName !== fromNumber ? pushName : null,
+            profile_pic_url: profilePicUrl,
+            profile_pic_updated_at: profilePicUrl ? new Date().toISOString() : null,
           })
           .select()
           .single();
@@ -390,6 +421,67 @@ serve(async (req) => {
         contact = newContact;
       } else {
         contact = existingContact;
+
+        // Preparar dados para atualização
+        const updateData: any = {
+          updated_at: new Date().toISOString(),
+        };
+
+        // Atualizar push_name se mudou
+        if (pushName && pushName !== contact.push_name) {
+          updateData.push_name = pushName;
+          // Atualizar name apenas se não estava definido ou era igual ao push_name antigo
+          if (!contact.name || contact.name === contact.push_name) {
+            updateData.name = pushName !== fromNumber ? pushName : null;
+          }
+        }
+
+        // Atualizar foto se não existir ou estiver desatualizada (mais de 7 dias)
+        const shouldUpdatePhoto = !contact.profile_pic_url ||
+            !contact.profile_pic_updated_at ||
+            (new Date().getTime() - new Date(contact.profile_pic_updated_at).getTime()) > 7 * 24 * 60 * 60 * 1000;
+
+        if (shouldUpdatePhoto) {
+          try {
+            const profilePicResponse = await fetch(
+              `${evolutionSettings.api_url}/chat/fetchProfilePictureUrl/${evolutionSettings.instance_name}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': evolutionSettings.api_key,
+                },
+                body: JSON.stringify({ number: fromNumber }),
+              }
+            );
+
+            if (profilePicResponse.ok) {
+              const profilePicData = await profilePicResponse.json();
+              const profilePicUrl = profilePicData.profilePictureUrl || null;
+
+              if (profilePicUrl) {
+                updateData.profile_pic_url = profilePicUrl;
+                updateData.profile_pic_updated_at = new Date().toISOString();
+                contact.profile_pic_url = profilePicUrl;
+                console.log('✅ Foto de perfil atualizada');
+              }
+            }
+          } catch (error) {
+            console.log('⚠️ Erro ao atualizar foto de perfil:', error);
+          }
+        }
+
+        // Aplicar atualizações se houver
+        if (Object.keys(updateData).length > 1) { // mais de 1 porque updated_at sempre existe
+          await supabase
+            .from('contacts')
+            .update(updateData)
+            .eq('id', contact.id);
+
+          // Atualizar objeto local com novos dados
+          contact = { ...contact, ...updateData };
+          console.log('✅ Contato atualizado:', Object.keys(updateData).filter(k => k !== 'updated_at'));
+        }
       }
 
       // Buscar ou criar conversa

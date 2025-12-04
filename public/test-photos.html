@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Evolution API - Fotos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+    #result {
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+    .success { color: #4ec9b0; }
+    .error { color: #f48771; }
+    .warning { color: #dcdcaa; }
+    .info { color: #569cd6; }
+    img {
+      max-width: 200px;
+      margin-top: 10px;
+      border: 2px solid #4ec9b0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Teste de Fotos - Evolution API</h1>
+  <button onclick="runTest()">Executar Teste</button>
+  <div id="result"></div>
+
+  <script>
+    const supabaseUrl = 'https://nmbiuebxhovmwxrbaxsz.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tYml1ZWJ4aG92bXd4cmJheHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDUyOTYsImV4cCI6MjA3OTc4MTI5Nn0._plGgsBhPeuk2T3GR4XNKzkygdN-wwkD9Gk7TP0e4LM';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    function log(message, type = 'info') {
+      const resultDiv = document.getElementById('result');
+      const span = document.createElement('div');
+      span.className = type;
+      span.textContent = message;
+      resultDiv.appendChild(span);
+    }
+
+    async function runTest() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+
+      log('🔍 Iniciando teste...\n', 'info');
+
+      try {
+        // 1. Usuário
+        log('1. Verificando usuário...', 'info');
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          log('❌ Usuário não autenticado. Faça login no app primeiro!', 'error');
+          return;
+        }
+        log(`✅ Usuário: ${user.email}`, 'success');
+
+        // 2. Empresa
+        log('\n2. Buscando empresa...', 'info');
+        const { data: companyUser, error: companyError } = await supabase
+          .from('company_users')
+          .select('company_id, companies(name, evolution_instance_name)')
+          .eq('user_id', user.id)
+          .single();
+
+        if (companyError || !companyUser) {
+          log('❌ Erro ao buscar empresa: ' + companyError?.message, 'error');
+          return;
+        }
+        log(`✅ Empresa: ${companyUser.companies?.name}`, 'success');
+        log(`   Instance: ${companyUser.companies?.evolution_instance_name || 'NÃO CONFIGURADO'}`, companyUser.companies?.evolution_instance_name ? 'success' : 'warning');
+
+        // 3. Evolution Settings
+        log('\n3. Verificando Evolution Settings...', 'info');
+        const { data: settings, error: settingsError } = await supabase
+          .from('evolution_settings')
+          .select('*')
+          .eq('company_id', companyUser.company_id)
+          .single();
+
+        if (settingsError || !settings) {
+          log('❌ Evolution Settings não encontrado!', 'error');
+          log('   Execute no Supabase SQL Editor:', 'warning');
+          log(`   INSERT INTO evolution_settings (company_id, api_url, api_key, instance_name, is_connected)`, 'warning');
+          log(`   VALUES ('${companyUser.company_id}', 'URL', 'KEY', 'INSTANCE', true);`, 'warning');
+          return;
+        }
+
+        log('✅ Evolution Settings encontrado:', 'success');
+        log(`   API URL: ${settings.api_url}`, settings.api_url ? 'success' : 'error');
+        log(`   API Key: ${settings.api_key ? '***' + settings.api_key.slice(-4) : 'NÃO CONFIGURADO'}`, settings.api_key ? 'success' : 'error');
+        log(`   Instance: ${settings.instance_name}`, settings.instance_name ? 'success' : 'error');
+        log(`   Conectado: ${settings.is_connected}`, settings.is_connected ? 'success' : 'error');
+
+        if (!settings.api_url || !settings.api_key || !settings.instance_name) {
+          log('\n❌ Configuração incompleta!', 'error');
+          return;
+        }
+
+        // 4. Conversa
+        log('\n4. Buscando conversa para teste...', 'info');
+        const { data: conversation, error: convError } = await supabase
+          .from('conversations')
+          .select('id, contact_number, contact_name, profile_pic_url')
+          .eq('company_id', companyUser.company_id)
+          .limit(1)
+          .single();
+
+        if (convError || !conversation) {
+          log('❌ Nenhuma conversa encontrada', 'error');
+          return;
+        }
+
+        log(`✅ Conversa: ${conversation.contact_name}`, 'success');
+        log(`   Telefone: ${conversation.contact_number}`, 'info');
+        log(`   Foto no banco: ${conversation.profile_pic_url || 'NÃO TEM'}`, conversation.profile_pic_url ? 'success' : 'warning');
+
+        // 5. Testar Evolution API
+        log('\n5. Testando Evolution API...', 'info');
+        const url = `${settings.api_url}/chat/fetchProfilePictureUrl/${settings.instance_name}`;
+        log(`   URL: ${url}`, 'info');
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': settings.api_key,
+          },
+          body: JSON.stringify({ number: conversation.contact_number }),
+        });
+
+        log(`   Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          log(`   Erro: ${errorText}`, 'error');
+          return;
+        }
+
+        const result = await response.json();
+        log('   Resposta:', 'info');
+        log(JSON.stringify(result, null, 2), 'info');
+
+        if (result.profilePictureUrl) {
+          log('\n✅ FOTO ENCONTRADA!', 'success');
+          log(`   URL: ${result.profilePictureUrl}`, 'success');
+
+          const img = document.createElement('img');
+          img.src = result.profilePictureUrl;
+          img.onload = () => log('✅ Imagem carregada com sucesso!', 'success');
+          img.onerror = () => log('❌ Erro ao carregar imagem', 'error');
+          resultDiv.appendChild(img);
+        } else {
+          log('⚠️ Foto não disponível para este contato', 'warning');
+        }
+
+        log('\n✅ Teste concluído!', 'success');
+
+      } catch (error) {
+        log(`\n❌ ERRO: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

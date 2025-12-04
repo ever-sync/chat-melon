@@ -61,21 +61,37 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
 
       if (error) throw error;
 
-      setCompanies(data || []);
+      // Buscar evolution_settings para cada empresa e mesclar o instance_name
+      const companiesWithSettings = await Promise.all(
+        (data || []).map(async (company) => {
+          const { data: evolutionSettings } = await supabase
+            .from("evolution_settings")
+            .select("instance_name")
+            .eq("company_id", company.id)
+            .single();
+
+          return {
+            ...company,
+            evolution_instance_name: evolutionSettings?.instance_name || company.evolution_instance_name
+          };
+        })
+      );
+
+      setCompanies(companiesWithSettings);
 
       // Set current company from localStorage or first available
       const savedCompanyId = localStorage.getItem("currentCompanyId");
-      if (savedCompanyId && data) {
-        const saved = data.find((c) => c.id === savedCompanyId);
+      if (savedCompanyId && companiesWithSettings) {
+        const saved = companiesWithSettings.find((c) => c.id === savedCompanyId);
         if (saved) {
           setCurrentCompany(saved);
-        } else if (data.length > 0) {
-          setCurrentCompany(data[0]);
-          localStorage.setItem("currentCompanyId", data[0].id);
+        } else if (companiesWithSettings.length > 0) {
+          setCurrentCompany(companiesWithSettings[0]);
+          localStorage.setItem("currentCompanyId", companiesWithSettings[0].id);
         }
-      } else if (data && data.length > 0) {
-        setCurrentCompany(data[0]);
-        localStorage.setItem("currentCompanyId", data[0].id);
+      } else if (companiesWithSettings && companiesWithSettings.length > 0) {
+        setCurrentCompany(companiesWithSettings[0]);
+        localStorage.setItem("currentCompanyId", companiesWithSettings[0].id);
       }
     } catch (error: any) {
       console.error("Error fetching companies:", error);

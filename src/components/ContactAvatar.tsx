@@ -73,7 +73,8 @@ export function ContactAvatar({
 
   // Fetch profile picture from Evolution API if not pre-loaded
   const shouldFetch = !preLoadedUrl && !imageError && !!instanceName && !!phoneNumber;
-  const { data: fetchedUrl, isLoading } = useContactProfilePicture(
+
+  const { data: fetchedUrl, isLoading, error } = useContactProfilePicture(
     shouldFetch ? instanceName : '',
     shouldFetch ? phoneNumber : ''
   );

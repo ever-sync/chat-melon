@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de Fotos de Perfil</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Teste de Fotos de Perfil - Evolution API</h1>
+  <button onclick="testFetchPhoto()">Buscar Foto de Perfil</button>
+  <div id="result"></div>
+
+  <script>
+    const supabaseUrl = 'https://nmbiuebxhovmwxrbaxsz.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tYml1ZWJ4aG92bXd4cmJheHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDUyOTYsImV4cCI6MjA3OTc4MTI5Nn0._plGgsBhPeuk2T3GR4XNKzkygdN-wwkD9Gk7TP0e4LM';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function testFetchPhoto() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Verificando configurações...';
+
+      try {
+        // 1. Verificar usuário logado
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          resultDiv.innerHTML = `<p style="color: red">❌ Erro: Usuário não autenticado. Faça login primeiro.</p>`;
+          return;
+        }
+
+        resultDiv.innerHTML += `<p>✅ Usuário autenticado: ${user.email}</p>`;
+
+        // 2. Buscar company do usuário
+        const { data: companyUser, error: companyError } = await supabase
+          .from('company_users')
+          .select('company_id, companies(evolution_instance_name)')
+          .eq('user_id', user.id)
+          .single();
+
+        if (companyError || !companyUser) {
+          resultDiv.innerHTML += `<p style="color: red">❌ Erro ao buscar empresa: ${companyError?.message}</p>`;
+          return;
+        }
+
+        const instanceName = companyUser.companies?.evolution_instance_name;
+        resultDiv.innerHTML += `<p>✅ Empresa encontrada. Instance: ${instanceName || 'NÃO CONFIGURADO'}</p>`;
+
+        if (!instanceName) {
+          resultDiv.innerHTML += `<p style="color: orange">⚠️ Evolution instance_name não está configurado na empresa!</p>`;
+          resultDiv.innerHTML += `<p>Configure em: Configurações > Evolution API</p>`;
+          return;
+        }
+
+        // 3. Buscar uma conversa com telefone
+        const { data: conversation, error: convError } = await supabase
+          .from('conversations')
+          .select('contact_number, contact_name')
+          .eq('company_id', companyUser.company_id)
+          .limit(1)
+          .single();
+
+        if (convError || !conversation) {
+          resultDiv.innerHTML += `<p style="color: red">❌ Nenhuma conversa encontrada</p>`;
+          return;
+        }
+
+        resultDiv.innerHTML += `<p>✅ Conversa encontrada: ${conversation.contact_name} (${conversation.contact_number})</p>`;
+
+        // 4. Verificar se Evolution API está configurada
+        const { data: evolutionSettings, error: evolutionError } = await supabase
+          .from('evolution_settings')
+          .select('*')
+          .eq('company_id', companyUser.company_id)
+          .single();
+
+        if (evolutionError || !evolutionSettings) {
+          resultDiv.innerHTML += `<p style="color: red">❌ Evolution Settings não encontrado</p>`;
+          return;
+        }
+
+        resultDiv.innerHTML += `<p>✅ Evolution Settings encontrado:</p>`;
+        resultDiv.innerHTML += `<pre>${JSON.stringify({
+          instance_name: evolutionSettings.instance_name,
+          is_connected: evolutionSettings.is_connected,
+          api_url: evolutionSettings.api_url
+        }, null, 2)}</pre>`;
+
+        // 5. Tentar buscar a foto
+        resultDiv.innerHTML += `<p>🔍 Buscando foto de perfil...</p>`;
+
+        // Aqui você precisaria fazer a chamada para a Evolution API
+        // Mas como não temos acesso direto do frontend, precisamos verificar se a API está configurada
+
+      } catch (error) {
+        resultDiv.innerHTML += `<p style="color: red">❌ Erro: ${error.message}</p>`;
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

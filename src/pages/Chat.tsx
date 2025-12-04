@@ -76,12 +76,24 @@ const Chat = () => {
       const { data, error } = await withCompanyFilter(
         supabase
           .from("conversations")
-          .select("*")
+          .select(`
+            *,
+            contacts (
+              profile_pic_url
+            )
+          `)
       ).order("last_message_time", { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
-      setFilteredConversations(data || []);
+
+      // Mesclar profile_pic_url do contact na conversation
+      const conversationsWithPhotos = (data || []).map((conv: any) => ({
+        ...conv,
+        profile_pic_url: conv.contacts?.profile_pic_url || conv.profile_pic_url
+      }));
+
+      setConversations(conversationsWithPhotos || []);
+      setFilteredConversations(conversationsWithPhotos || []);
     } catch (error) {
       console.error("Erro ao carregar conversas:", error);
       toast.error("Não foi possível carregar as conversas");

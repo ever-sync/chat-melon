@@ -179,21 +179,22 @@ class EvolutionApiClient {
 
   /**
    * Initialize client with company-specific Evolution API credentials
+   * Uses evolution_settings table which contains per-company settings
    */
   async initialize(companyId: string): Promise<void> {
-    const { data: company, error } = await supabase
-      .from('companies')
-      .select('evolution_api_url, evolution_api_key')
-      .eq('id', companyId)
+    const { data: settings, error } = await supabase
+      .from('evolution_settings')
+      .select('api_url, api_key')
+      .eq('company_id', companyId)
       .single();
 
     if (error) throw new Error('Failed to load Evolution API credentials');
-    if (!company?.evolution_api_url || !company?.evolution_api_key) {
+    if (!settings?.api_url || !settings?.api_key) {
       throw new Error('Evolution API credentials not configured for this company');
     }
 
-    this.baseUrl = company.evolution_api_url;
-    this.apiKey = company.evolution_api_key;
+    this.baseUrl = settings.api_url;
+    this.apiKey = settings.api_key;
   }
 
   /**
