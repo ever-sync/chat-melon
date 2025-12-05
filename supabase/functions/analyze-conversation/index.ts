@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,14 +11,16 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, contactName, contactCompany, tone = 'friendly' } = await req.json();
+    const { messages, contactName, contactCompany, tone = 'friendly', salesScript, geminiApiKey, openaiApiKey, groqApiKey } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    console.log('Keys received:', {
+      hasGemini: !!geminiApiKey,
+      hasOpenAI: !!openaiApiKey,
+      hasGroq: !!groqApiKey,
+      groqKeyLength: groqApiKey?.length || 0
+    });
 
-    // Construir contexto das últimas mensagens (agora 20 para melhor análise)
+    // Construir contexto das últimas mensagens
     const conversationContext = messages
       .slice(-20)
       .map((msg: any) => `${msg.is_from_me ? 'Você' : contactName}: ${msg.content}`)
@@ -33,10 +34,16 @@ serve(async (req) => {
       friendly: 'Seja caloroso, empático e acolhedor. Demonstre interesse genuíno.',
     };
 
-    const systemPrompt = `Você é um assistente de vendas experiente analisando uma conversa comercial de WhatsApp.
-Tom das respostas: ${toneInstructions[tone] || toneInstructions.friendly}
+    let systemPrompt = `Você é um assistente de vendas experiente analisando uma conversa comercial de WhatsApp.
+Tom das respostas: ${toneInstructions[tone] || toneInstructions.friendly}`;
 
-Analise a conversa e forneça:
+    if (salesScript) {
+      systemPrompt += `\n\nDIRETRIZES E SCRIPT DE VENDAS (IMPORTANTE):
+Siga estas instruções rigorosamente ao sugerir respostas:
+${salesScript}`;
+    }
+
+    systemPrompt += `\n\nAnalise a conversa e forneça:
 
 1. TRÊS sugestões de resposta contextualizadas (curtas, naturais, em português brasileiro)
 2. Score de sentimento (0 a 1, onde 0 = muito negativo, 0.5 = neutro, 1 = muito positivo)
@@ -64,37 +71,185 @@ Responda APENAS com JSON válido no formato:
   "competitor_mentioned": null
 }`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Contato: ${contactName}${contactCompany ? ` (${contactCompany})` : ''}\n\nConversa:\n${conversationContext}\n\nAnalise e responda em JSON.`
-          }
-        ],
-        temperature: 0.7,
-      }),
-    });
+    const userMessage = `Contato: ${contactName}${contactCompany ? ` (${contactCompany})` : ''}\n\nConversa:\n${conversationContext}\n\nAnalise e responda em JSON.`;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+    let analysis = null;
+    let error = null;
+
+    // Tentar Groq primeiro (gratuito e rápido)
+    if (groqApiKey) {
+      try {
+        console.log('Trying Groq API with key length:', groqApiKey.length);
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.7,
+          }),
+        });
+
+        console.log('Groq response status:', groqResponse.status);
+
+        if (groqResponse.ok) {
+          const data = await groqResponse.json();
+          const analysisText = data.choices?.[0]?.message?.content || '{}';
+          console.log('Groq response text:', analysisText.substring(0, 200));
+          const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+          analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+        } else {
+          const errorData = await groqResponse.text();
+          console.error('Groq API error:', groqResponse.status, errorData);
+        }
+      } catch (e: any) {
+        console.error('Groq error:', e.message);
+      }
     }
 
-    const data = await response.json();
-    const analysisText = data.choices?.[0]?.message?.content || '{}';
+    // Tentar Gemini se Groq falhou
+    if (!analysis && geminiApiKey) {
+      try {
+        console.log('Trying Gemini API with key length:', geminiApiKey.length);
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: systemPrompt + '\n\n' + userMessage }]
+              }],
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 2048,
+              }
+            })
+          }
+        );
 
-    // Parse JSON da resposta
-    const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-    const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+        console.log('Gemini response status:', geminiResponse.status);
+
+        if (geminiResponse.ok) {
+          const data = await geminiResponse.json();
+          const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+          const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+          analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+        } else {
+          const errorData = await geminiResponse.json().catch(() => ({}));
+          const status = geminiResponse.status;
+
+          // Check for quota exceeded (429) or resource exhausted
+          if (status === 429 || errorData?.error?.status === 'RESOURCE_EXHAUSTED') {
+            error = 'QUOTA_EXCEEDED';
+          } else {
+            error = `Gemini API error: ${status}`;
+          }
+          console.error(error, errorData);
+        }
+      } catch (e: any) {
+        error = `Gemini error: ${e.message}`;
+        console.error(error);
+      }
+    }
+
+    // Fallback para OpenAI se Gemini falhou
+    if (!analysis && openaiApiKey) {
+      try {
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.7,
+          }),
+        });
+
+        if (openaiResponse.ok) {
+          const data = await openaiResponse.json();
+          const analysisText = data.choices?.[0]?.message?.content || '{}';
+          const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+          analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+          error = null; // Clear error since OpenAI worked
+        } else {
+          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        }
+      } catch (e: any) {
+        // Keep original Gemini error if OpenAI also fails
+        console.error(`OpenAI fallback failed: ${e.message}`);
+      }
+    }
+
+    // Fallback para Groq se Gemini e OpenAI falharam
+    if (!analysis && groqApiKey) {
+      try {
+        console.log('Trying Groq API');
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-70b-versatile',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.7,
+          }),
+        });
+
+        console.log('Groq response status:', groqResponse.status);
+
+        if (groqResponse.ok) {
+          const data = await groqResponse.json();
+          const analysisText = data.choices?.[0]?.message?.content || '{}';
+          const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+          analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+          error = null;
+        } else {
+          console.error(`Groq API error: ${groqResponse.status}`);
+        }
+      } catch (e: any) {
+        console.error(`Groq fallback failed: ${e.message}`);
+      }
+    }
+
+    // Return quota exceeded specifically for upgrade prompt
+    if (!analysis && error === 'QUOTA_EXCEEDED' && !openaiApiKey) {
+      return new Response(JSON.stringify({
+        error: 'QUOTA_EXCEEDED',
+        quota_exceeded: true,
+        suggestions: [],
+        sentiment: 0.5,
+        intent: 'neutro',
+        temperature: 'warm',
+        urgency: 'média',
+        summary: '',
+        next_action: '',
+        suggested_actions: []
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!analysis) {
+      throw new Error(error || 'No API keys provided or all providers failed');
+    }
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -115,7 +270,7 @@ Responda APENAS com JSON válido no formato:
         suggested_actions: []
       }),
       {
-        status: 200, // Return 200 so the client can parse the error message
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );

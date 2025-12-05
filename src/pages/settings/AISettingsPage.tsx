@@ -57,6 +57,11 @@ interface AISettings {
   system_prompt: string;
   greeting_message: string;
   handoff_message: string;
+  copilot_script: string;
+  gemini_api_key: string;
+  openai_api_key: string;
+  groq_api_key: string;
+  agent_name: string;
 }
 
 export default function AISettingsPage({ embedded = false }: { embedded?: boolean }) {
@@ -95,7 +100,14 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
       }
 
       if (existingSettings) {
-        setSettings(existingSettings);
+        setSettings({
+          ...existingSettings,
+          copilot_script: (existingSettings as any).copilot_script || "",
+          gemini_api_key: (existingSettings as any).gemini_api_key || "",
+          openai_api_key: (existingSettings as any).openai_api_key || "",
+          groq_api_key: (existingSettings as any).groq_api_key || "",
+          agent_name: (existingSettings as any).agent_name || "Copiloto",
+        } as AISettings);
       } else {
         const defaultSettings: AISettings = {
           is_enabled: true,
@@ -119,6 +131,11 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
           system_prompt: "Você é um assistente virtual prestativo e profissional.",
           n8n_webhook_url: "",
           n8n_api_key: generateApiKey(),
+          copilot_script: "",
+          gemini_api_key: "",
+          openai_api_key: "",
+          groq_api_key: "",
+          agent_name: "Copiloto",
         };
 
         console.log("Criando configurações padrão para company_id:", companyId);
@@ -137,9 +154,9 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
           toast.error("Erro ao criar configurações de IA. Verifique suas permissões.");
           throw insertError;
         }
-        
+
         console.log("Configurações criadas com sucesso:", newSettings);
-        setSettings(newSettings);
+        setSettings(newSettings as unknown as AISettings);
       }
     } catch (error: any) {
       console.error("Erro ao carregar configurações de IA:", error);
@@ -158,12 +175,12 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
 
   const handleSave = async () => {
     if (!settings) return;
-    
+
     setIsSaving(true);
-    
+
     // Remove campos que não devem ser atualizados
     const { id, company_id, created_at, updated_at, ...updateData } = settings as any;
-    
+
     const { error } = await supabase
       .from('ai_settings')
       .update(updateData)
@@ -228,406 +245,508 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
           Erro ao carregar configurações. Tente novamente.
         </div>
       ) : (
-      <div className={embedded ? "space-y-6" : "p-6 space-y-6 max-w-4xl"}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={embedded ? "text-xl font-bold flex items-center gap-2" : "text-2xl font-bold flex items-center gap-2"}>
-              <Bot className="h-6 w-6 text-violet-600" />
-              Configurações da IA
-            </h1>
-            <p className="text-muted-foreground">
-              Configure o comportamento do assistente de IA
-            </p>
+        <div className={embedded ? "space-y-6" : "p-6 space-y-6 max-w-4xl"}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className={embedded ? "text-xl font-bold flex items-center gap-2" : "text-2xl font-bold flex items-center gap-2"}>
+                <Bot className="h-6 w-6 text-violet-600" />
+                Configurações da IA
+              </h1>
+              <p className="text-muted-foreground">
+                Configure o comportamento do assistente de IA
+              </p>
+            </div>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              Salvar
+            </Button>
           </div>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-            Salvar
-          </Button>
-        </div>
 
-        <Tabs defaultValue="general">
-          <TabsList>
-            <TabsTrigger value="general">Geral</TabsTrigger>
-            <TabsTrigger value="behavior">Comportamento</TabsTrigger>
-            <TabsTrigger value="handoff">Transferência</TabsTrigger>
-            <TabsTrigger value="messages">Mensagens</TabsTrigger>
-            <TabsTrigger value="integration">Integração N8N</TabsTrigger>
-          </TabsList>
+          <Tabs defaultValue="general">
+            <TabsList>
+              <TabsTrigger value="general">Geral</TabsTrigger>
+              <TabsTrigger value="behavior">Comportamento</TabsTrigger>
+              <TabsTrigger value="handoff">Transferência</TabsTrigger>
+              <TabsTrigger value="messages">Mensagens</TabsTrigger>
+              <TabsTrigger value="copilot">Copiloto</TabsTrigger>
+              <TabsTrigger value="ai-providers">Chaves IA</TabsTrigger>
+              <TabsTrigger value="integration">Integração N8N</TabsTrigger>
+            </TabsList>
 
-          {/* Tab Geral */}
-          <TabsContent value="general" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ativação</CardTitle>
-                <CardDescription>Controle se a IA está ativa globalmente</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
+            {/* Tab Geral */}
+            <TabsContent value="general" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Identidade do Agente</CardTitle>
+                  <CardDescription>Personalize como o agente aparece para os atendentes</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <Label>IA Habilitada</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Ativa/desativa a IA para todas as conversas
+                    <Label htmlFor="agent_name">Nome do Agente</Label>
+                    <Input
+                      id="agent_name"
+                      value={settings.agent_name}
+                      onChange={(e) => setSettings({ ...settings, agent_name: e.target.value })}
+                      placeholder="Ex: Copiloto, Max, Assistente..."
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Este nome aparecerá no painel do Copiloto
                     </p>
                   </div>
-                  <Switch
-                    checked={settings.is_enabled}
-                    onCheckedChange={(checked) => setSettings({ ...settings, is_enabled: checked })}
-                  />
-                </div>
+                </CardContent>
+              </Card>
 
-                <div>
-                  <Label>Modo Padrão</Label>
-                  <Select
-                    value={settings.default_mode}
-                    onValueChange={(value) => setSettings({ ...settings, default_mode: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="auto">Automático - IA responde sozinha</SelectItem>
-                      <SelectItem value="suggestion">Sugestão - IA sugere, humano envia</SelectItem>
-                      <SelectItem value="off">Desligado - Apenas humanos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Personalidade</Label>
-                  <Select
-                    value={settings.personality}
-                    onValueChange={(value) => setSettings({ ...settings, personality: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="professional">Profissional</SelectItem>
-                      <SelectItem value="friendly">Amigável</SelectItem>
-                      <SelectItem value="technical">Técnico</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Horário de Funcionamento</CardTitle>
-                <CardDescription>Quando a IA deve responder automaticamente</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Início</Label>
-                    <Input
-                      type="time"
-                      value={settings.active_hours_start}
-                      onChange={(e) => setSettings({ ...settings, active_hours_start: e.target.value })}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ativação</CardTitle>
+                  <CardDescription>Controle se a IA está ativa globalmente</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>IA Habilitada</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Ativa/desativa a IA para todas as conversas
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.is_enabled}
+                      onCheckedChange={(checked) => setSettings({ ...settings, is_enabled: checked })}
                     />
                   </div>
+
                   <div>
-                    <Label>Fim</Label>
-                    <Input
-                      type="time"
-                      value={settings.active_hours_end}
-                      onChange={(e) => setSettings({ ...settings, active_hours_end: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Ativa nos fins de semana</Label>
-                  </div>
-                  <Switch
-                    checked={settings.active_on_weekends}
-                    onCheckedChange={(checked) => setSettings({ ...settings, active_on_weekends: checked })}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Tab Comportamento */}
-          <TabsContent value="behavior" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tempo de Resposta</CardTitle>
-                <CardDescription>Simula tempo de digitação para parecer mais humano</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Delay antes de responder: {settings.response_delay_ms}ms</Label>
-                  <Slider
-                    value={[settings.response_delay_ms]}
-                    onValueChange={([value]) => setSettings({ ...settings, response_delay_ms: value })}
-                    min={0}
-                    max={5000}
-                    step={500}
-                    className="mt-2"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    0ms = instantâneo, 5000ms = 5 segundos
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Mostrar "digitando..."</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Exibe indicador de digitação enquanto processa
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.typing_indicator}
-                    onCheckedChange={(checked) => setSettings({ ...settings, typing_indicator: checked })}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Limites</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Máximo de mensagens antes de transferir: {settings.max_messages_before_handoff}</Label>
-                  <Slider
-                    value={[settings.max_messages_before_handoff]}
-                    onValueChange={([value]) => setSettings({ ...settings, max_messages_before_handoff: value })}
-                    min={3}
-                    max={30}
-                    step={1}
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label>Tamanho máximo da resposta: {settings.max_response_length} caracteres</Label>
-                  <Slider
-                    value={[settings.max_response_length]}
-                    onValueChange={([value]) => setSettings({ ...settings, max_response_length: value })}
-                    min={100}
-                    max={2000}
-                    step={100}
-                    className="mt-2"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Tab Transferência */}
-          <TabsContent value="handoff" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Palavras-chave de Transferência</CardTitle>
-                <CardDescription>
-                  Quando o lead mencionar essas palavras, a IA transfere para um humano
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Nova palavra-chave..."
-                    value={newKeyword}
-                    onChange={(e) => setNewKeyword(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
-                  />
-                  <Button onClick={addKeyword}>Adicionar</Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {settings.handoff_keywords.map((keyword) => (
-                    <Badge
-                      key={keyword}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-red-100"
-                      onClick={() => removeKeyword(keyword)}
+                    <Label>Modo Padrão</Label>
+                    <Select
+                      value={settings.default_mode}
+                      onValueChange={(value) => setSettings({ ...settings, default_mode: value })}
                     >
-                      {keyword} ×
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Transferência Automática</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Transferir em sentimento negativo</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Quando detectar frustração ou raiva do lead
-                    </p>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">Automático - IA responde sozinha</SelectItem>
+                        <SelectItem value="suggestion">Sugestão - IA sugere, humano envia</SelectItem>
+                        <SelectItem value="off">Desligado - Apenas humanos</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Switch
-                    checked={settings.handoff_on_negative_sentiment}
-                    onCheckedChange={(checked) => setSettings({ ...settings, handoff_on_negative_sentiment: checked })}
-                  />
-                </div>
 
-                <div className="flex items-center justify-between">
                   <div>
-                    <Label>Transferir em alto valor</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Quando o lead mencionar valores altos
-                    </p>
+                    <Label>Personalidade</Label>
+                    <Select
+                      value={settings.personality}
+                      onValueChange={(value) => setSettings({ ...settings, personality: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="professional">Profissional</SelectItem>
+                        <SelectItem value="friendly">Amigável</SelectItem>
+                        <SelectItem value="technical">Técnico</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Switch
-                    checked={settings.handoff_on_high_value}
-                    onCheckedChange={(checked) => setSettings({ ...settings, handoff_on_high_value: checked })}
-                  />
-                </div>
+                </CardContent>
+              </Card>
 
-                {settings.handoff_on_high_value && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Horário de Funcionamento</CardTitle>
+                  <CardDescription>Quando a IA deve responder automaticamente</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Início</Label>
+                      <Input
+                        type="time"
+                        value={settings.active_hours_start}
+                        onChange={(e) => setSettings({ ...settings, active_hours_start: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Fim</Label>
+                      <Input
+                        type="time"
+                        value={settings.active_hours_end}
+                        onChange={(e) => setSettings({ ...settings, active_hours_end: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Ativa nos fins de semana</Label>
+                    </div>
+                    <Switch
+                      checked={settings.active_on_weekends}
+                      onCheckedChange={(checked) => setSettings({ ...settings, active_on_weekends: checked })}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab Comportamento */}
+            <TabsContent value="behavior" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tempo de Resposta</CardTitle>
+                  <CardDescription>Simula tempo de digitação para parecer mais humano</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <Label>Valor mínimo para transferência: R$ {settings.high_value_threshold.toLocaleString()}</Label>
+                    <Label>Delay antes de responder: {settings.response_delay_ms}ms</Label>
                     <Slider
-                      value={[settings.high_value_threshold]}
-                      onValueChange={([value]) => setSettings({ ...settings, high_value_threshold: value })}
-                      min={1000}
-                      max={50000}
-                      step={1000}
+                      value={[settings.response_delay_ms]}
+                      onValueChange={([value]) => setSettings({ ...settings, response_delay_ms: value })}
+                      min={0}
+                      max={5000}
+                      step={500}
+                      className="mt-2"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      0ms = instantâneo, 5000ms = 5 segundos
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Mostrar "digitando..."</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Exibe indicador de digitação enquanto processa
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.typing_indicator}
+                      onCheckedChange={(checked) => setSettings({ ...settings, typing_indicator: checked })}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Limites</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Máximo de mensagens antes de transferir: {settings.max_messages_before_handoff}</Label>
+                    <Slider
+                      value={[settings.max_messages_before_handoff]}
+                      onValueChange={([value]) => setSettings({ ...settings, max_messages_before_handoff: value })}
+                      min={3}
+                      max={30}
+                      step={1}
                       className="mt-2"
                     />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Tab Mensagens */}
-          <TabsContent value="messages" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Mensagens Padrão</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Mensagem de saudação</Label>
-                  <Textarea
-                    value={settings.greeting_message || ''}
-                    onChange={(e) => setSettings({ ...settings, greeting_message: e.target.value })}
-                    placeholder="Olá! Sou o assistente virtual da empresa. Como posso ajudar?"
-                    rows={3}
-                  />
-                </div>
+                  <div>
+                    <Label>Tamanho máximo da resposta: {settings.max_response_length} caracteres</Label>
+                    <Slider
+                      value={[settings.max_response_length]}
+                      onValueChange={([value]) => setSettings({ ...settings, max_response_length: value })}
+                      min={100}
+                      max={2000}
+                      step={100}
+                      className="mt-2"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                <div>
-                  <Label>Mensagem ao transferir</Label>
-                  <Textarea
-                    value={settings.handoff_message}
-                    onChange={(e) => setSettings({ ...settings, handoff_message: e.target.value })}
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label>Mensagem fora do horário</Label>
-                  <Textarea
-                    value={settings.fallback_message}
-                    onChange={(e) => setSettings({ ...settings, fallback_message: e.target.value })}
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label>Prompt de Sistema (Avançado)</Label>
-                  <Textarea
-                    value={settings.system_prompt || ''}
-                    onChange={(e) => setSettings({ ...settings, system_prompt: e.target.value })}
-                    placeholder="Instruções adicionais para a IA..."
-                    rows={5}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Este prompt é enviado junto com cada mensagem para contextualizar a IA
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Tab Integração */}
-          <TabsContent value="integration" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Integração com N8N</CardTitle>
-                <CardDescription>
-                  Configure a conexão com seu workflow de IA no N8N
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>URL do Webhook (enviar para N8N)</Label>
+            {/* Tab Transferência */}
+            <TabsContent value="handoff" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Palavras-chave de Transferência</CardTitle>
+                  <CardDescription>
+                    Quando o lead mencionar essas palavras, a IA transfere para um humano
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="flex gap-2">
                     <Input
-                      value={`${window.location.origin}/functions/v1/ai-webhook`}
-                      readOnly
-                      className="bg-gray-50"
+                      placeholder="Nova palavra-chave..."
+                      value={newKeyword}
+                      onChange={(e) => setNewKeyword(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
                     />
-                    <Button variant="outline" onClick={copyWebhookUrl}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    <Button onClick={addKeyword}>Adicionar</Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Use esta URL no N8N para enviar dados processados de volta
-                  </p>
-                </div>
 
-                <div>
-                  <Label>API Key</Label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    {settings.handoff_keywords.map((keyword) => (
+                      <Badge
+                        key={keyword}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-red-100"
+                        onClick={() => removeKeyword(keyword)}
+                      >
+                        {keyword} ×
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transferência Automática</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Transferir em sentimento negativo</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Quando detectar frustração ou raiva do lead
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.handoff_on_negative_sentiment}
+                      onCheckedChange={(checked) => setSettings({ ...settings, handoff_on_negative_sentiment: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Transferir em alto valor</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Quando o lead mencionar valores altos
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.handoff_on_high_value}
+                      onCheckedChange={(checked) => setSettings({ ...settings, handoff_on_high_value: checked })}
+                    />
+                  </div>
+
+                  {settings.handoff_on_high_value && (
+                    <div>
+                      <Label>Valor mínimo para transferência: R$ {settings.high_value_threshold.toLocaleString()}</Label>
+                      <Slider
+                        value={[settings.high_value_threshold]}
+                        onValueChange={([value]) => setSettings({ ...settings, high_value_threshold: value })}
+                        min={1000}
+                        max={50000}
+                        step={1000}
+                        className="mt-2"
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab Mensagens */}
+            <TabsContent value="messages" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Mensagens Padrão</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Mensagem de saudação</Label>
+                    <Textarea
+                      value={settings.greeting_message || ''}
+                      onChange={(e) => setSettings({ ...settings, greeting_message: e.target.value })}
+                      placeholder="Olá! Sou o assistente virtual da empresa. Como posso ajudar?"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Mensagem ao transferir</Label>
+                    <Textarea
+                      value={settings.handoff_message}
+                      onChange={(e) => setSettings({ ...settings, handoff_message: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Mensagem fora do horário</Label>
+                    <Textarea
+                      value={settings.fallback_message}
+                      onChange={(e) => setSettings({ ...settings, fallback_message: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Prompt de Sistema (Avançado)</Label>
+                    <Textarea
+                      value={settings.system_prompt || ''}
+                      onChange={(e) => setSettings({ ...settings, system_prompt: e.target.value })}
+                      placeholder="Instruções adicionais para a IA..."
+                      rows={5}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Este prompt é enviado junto com cada mensagem para contextualizar a IA
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab Copiloto */}
+            <TabsContent value="copilot" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Script do Copiloto (Assistente Amarelo)</CardTitle>
+                  <CardDescription>
+                    Defina diretrizes, scripts de vendas ou instruções específicas para o assistente que sugere respostas.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Script de Vendas / Diretrizes</Label>
+                    <Textarea
+                      value={settings.copilot_script || ''}
+                      onChange={(e) => setSettings({ ...settings, copilot_script: e.target.value })}
+                      placeholder="Ex: Sempre ofereça 10% de desconto na primeira compra. Se o cliente perguntar sobre prazo, diga que é de 5 dias úteis. Seja sempre muito educado."
+                      rows={10}
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Essas instruções serão enviadas para a IA toda vez que ela analisar uma conversa.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab Chaves IA */}
+            <TabsContent value="ai-providers" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Chaves de API - IA</CardTitle>
+                  <CardDescription>
+                    Configure as chaves de API para análise de conversas. Gemini é gratuito (1500/dia), OpenAI é usado como backup.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Google Gemini API Key (Grátis - Prioridade)</Label>
                     <Input
-                      type={showApiKey ? 'text' : 'password'}
-                      value={settings.n8n_api_key}
-                      readOnly
-                      className="bg-gray-50 font-mono text-sm"
+                      type="password"
+                      value={settings.gemini_api_key || ''}
+                      onChange={(e) => setSettings({ ...settings, gemini_api_key: e.target.value })}
+                      placeholder="AIza..."
                     />
-                    <Button variant="outline" onClick={() => setShowApiKey(!showApiKey)}>
-                      {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="outline" onClick={copyApiKey}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Obtenha em: <a href="https://aistudio.google.com/app/apikey" target="_blank" className="underline">Google AI Studio</a>
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Adicione esta key no header "x-ai-key" das requisições do N8N
-                  </p>
-                </div>
 
-                <Button variant="outline" onClick={regenerateApiKey}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Gerar nova API Key
-                </Button>
+                  <div>
+                    <Label>OpenAI API Key (Pago - Fallback)</Label>
+                    <Input
+                      type="password"
+                      value={settings.openai_api_key || ''}
+                      onChange={(e) => setSettings({ ...settings, openai_api_key: e.target.value })}
+                      placeholder="sk-..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Usada apenas se Gemini falhar. Obtenha em: <a href="https://platform.openai.com/api-keys" target="_blank" className="underline">OpenAI Platform</a>
+                    </p>
+                  </div>
 
-                <div>
-                  <Label>URL do Webhook N8N (opcional)</Label>
-                  <Input
-                    value={settings.n8n_webhook_url || ''}
-                    onChange={(e) => setSettings({ ...settings, n8n_webhook_url: e.target.value })}
-                    placeholder="https://seu-n8n.com/webhook/..."
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    URL do N8N para enviar mensagens recebidas para processamento
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                  <div>
+                    <Label>Groq API Key (Grátis - Fallback Rápido)</Label>
+                    <Input
+                      type="password"
+                      value={settings.groq_api_key || ''}
+                      onChange={(e) => setSettings({ ...settings, groq_api_key: e.target.value })}
+                      placeholder="gsk_..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Usa Llama 3.1 70B, muito rápido! Obtenha em: <a href="https://console.groq.com/keys" target="_blank" className="underline">Groq Console</a>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Fluxo de Integração</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono">
-                  <p className="text-muted-foreground mb-2">// No N8N, envie para nosso webhook:</p>
-                  <pre className="text-xs overflow-x-auto">{`POST /functions/v1/ai-webhook
+            {/* Tab Integração */}
+            <TabsContent value="integration" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Integração com N8N</CardTitle>
+                  <CardDescription>
+                    Configure a conexão com seu workflow de IA no N8N
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>URL do Webhook (enviar para N8N)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={`${window.location.origin}/functions/v1/ai-webhook`}
+                        readOnly
+                        className="bg-gray-50"
+                      />
+                      <Button variant="outline" onClick={copyWebhookUrl}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Use esta URL no N8N para enviar dados processados de volta
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label>API Key</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type={showApiKey ? 'text' : 'password'}
+                        value={settings.n8n_api_key}
+                        readOnly
+                        className="bg-gray-50 font-mono text-sm"
+                      />
+                      <Button variant="outline" onClick={() => setShowApiKey(!showApiKey)}>
+                        {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                      <Button variant="outline" onClick={copyApiKey}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Adicione esta key no header "x-ai-key" das requisições do N8N
+                    </p>
+                  </div>
+
+                  <Button variant="outline" onClick={regenerateApiKey}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Gerar nova API Key
+                  </Button>
+
+                  <div>
+                    <Label>URL do Webhook N8N (opcional)</Label>
+                    <Input
+                      value={settings.n8n_webhook_url || ''}
+                      onChange={(e) => setSettings({ ...settings, n8n_webhook_url: e.target.value })}
+                      placeholder="https://seu-n8n.com/webhook/..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      URL do N8N para enviar mensagens recebidas para processamento
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fluxo de Integração</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono">
+                    <p className="text-muted-foreground mb-2">// No N8N, envie para nosso webhook:</p>
+                    <pre className="text-xs overflow-x-auto">{`POST /functions/v1/ai-webhook
 Headers:
   Content-Type: application/json
   x-ai-key: ${settings.n8n_api_key?.substring(0, 10)}...
@@ -642,12 +761,12 @@ Body:
   "insights": [ ... ],
   "qualification": { ... }
 }`}</pre>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       )}
     </PermissionGate>
   );

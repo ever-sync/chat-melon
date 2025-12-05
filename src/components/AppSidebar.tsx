@@ -102,13 +102,13 @@ export function AppSidebar() {
       <div className="flex items-center justify-center h-20 bg-[#111111]">
         {state === "expanded" ? (
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20">
+            <div>
               <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
             </div>
             <span className="text-xl font-bold text-white tracking-tight">CamalaChat</span>
           </div>
         ) : (
-          <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20">
+          <div>
             <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
           </div>
         )}

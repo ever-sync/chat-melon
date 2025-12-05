@@ -180,7 +180,7 @@ const ConversationList = ({
     if (!status) return null;
 
     const statusConfig = {
-      waiting: { label: "Aguardando", variant: "secondary" as const },
+      waiting: { label: "Não Lido", variant: "secondary" as const },
       re_entry: { label: "Reentrada", variant: "default" as const },
       active: { label: "Ativo", variant: "default" as const },
       chatbot: { label: "ChatBot", variant: "outline" as const },

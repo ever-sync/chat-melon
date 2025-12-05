@@ -89,13 +89,13 @@ function ContactDetails({ contactId }: { contactId: string }) {
                   <span className="font-medium">{conv.contact_name}</span>
                   <Badge variant={
                     conv.status === "waiting" ? "default" :
-                    conv.status === "closed" ? "secondary" : "outline"
+                      conv.status === "closed" ? "secondary" : "outline"
                   }>
                     {conv.status === "waiting" ? "Aguardando" :
-                     conv.status === "active" ? "Ativo" :
-                     conv.status === "closed" ? "Fechado" :
-                     conv.status === "chatbot" ? "Chatbot" :
-                     conv.status === "re_entry" ? "Reentrada" : conv.status}
+                      conv.status === "active" ? "Ativo" :
+                        conv.status === "closed" ? "Fechado" :
+                          conv.status === "chatbot" ? "Chatbot" :
+                            conv.status === "re_entry" ? "Reentrada" : conv.status}
                   </Badge>
                 </div>
                 {conv.last_message && (
@@ -103,9 +103,9 @@ function ContactDetails({ contactId }: { contactId: string }) {
                 )}
                 {conv.last_message_time && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    {formatDistanceToNow(new Date(conv.last_message_time), { 
-                      addSuffix: true, 
-                      locale: ptBR 
+                    {formatDistanceToNow(new Date(conv.last_message_time), {
+                      addSuffix: true,
+                      locale: ptBR
                     })}
                   </p>
                 )}
@@ -130,8 +130,8 @@ function ContactDetails({ contactId }: { contactId: string }) {
               <div key={deal.id} className="text-sm p-2 bg-muted/50 rounded">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{deal.title}</span>
-                  <Badge 
-                    style={{ 
+                  <Badge
+                    style={{
                       backgroundColor: deal.pipeline_stages?.color || "#3B82F6",
                       color: "white"
                     }}
@@ -214,7 +214,7 @@ export default function Contacts() {
     }
 
     let contactId: string;
-    
+
     if (editingContact) {
       updateContact({ id: editingContact.id, ...formData });
       contactId = editingContact.id;
@@ -226,7 +226,7 @@ export default function Contacts() {
         .eq("phone_number", formData.phone_number)
         .is("deleted_at", null)
         .maybeSingle();
-      
+
       if (existingContact) {
         const confirmCreate = confirm(
           `Já existe um contato com este telefone:\n\n` +
@@ -234,20 +234,20 @@ export default function Contacts() {
           `Telefone: ${existingContact.phone_number}\n\n` +
           `Deseja criar mesmo assim?`
         );
-        
+
         if (!confirmCreate) {
           setShowModal(false);
           return;
         }
       }
-      
+
       // Create contact first, then get its ID
       const { data } = await supabase
         .from("contacts")
         .insert(formData as TablesInsert<"contacts">)
         .select()
         .single();
-      
+
       if (data) {
         contactId = data.id;
       } else {
@@ -266,7 +266,7 @@ export default function Contacts() {
   };
 
   const handleDelete = (contactId: string) => {
-    if (confirm("Tem certeza que deseja excluir este contato?")) {
+    if (confirm("Tem certeza que deseja excluir este contato?\n\nATENÇÃO: Todas as mensagens, negociações, tarefas e histórico relacionados serão excluídos permanentemente. Esta ação não pode ser desfeita.")) {
       deleteContact(contactId);
     }
   };
@@ -312,7 +312,7 @@ export default function Contacts() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
+
               {segments.length > 0 && (
                 <Select value={selectedSegmentId} onValueChange={setSelectedSegmentId}>
                   <SelectTrigger className="w-[200px]">
@@ -328,7 +328,7 @@ export default function Contacts() {
                   </SelectContent>
                 </Select>
               )}
-              
+
               <Button variant="outline" onClick={() => setIsImportOpen(true)}>
                 <Upload className="h-4 w-4 mr-2" />
                 Importar
@@ -380,24 +380,24 @@ export default function Contacts() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="font-medium">{contact.name || "Sem nome"}</p>
-                              <LeadScoreBadge 
-                                score={contact.lead_score || 0} 
+                              <LeadScoreBadge
+                                score={contact.lead_score || 0}
                                 breakdown={contact.score_breakdown as Record<string, number>}
                               />
                             </div>
-                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Phone className="h-3 w-3" />
                                 {contact.phone_number}
                               </span>
                               {contact.enrichment_status && (
-                                <Badge 
-                                  variant={contact.enrichment_status === "enriched" ? "default" : 
-                                          contact.enrichment_status === "pending" ? "secondary" : "outline"}
+                                <Badge
+                                  variant={contact.enrichment_status === "enriched" ? "default" :
+                                    contact.enrichment_status === "pending" ? "secondary" : "outline"}
                                   className="ml-2"
                                 >
                                   {contact.enrichment_status === "enriched" ? "✅" :
-                                   contact.enrichment_status === "pending" ? "⏳" : "❌"}
+                                    contact.enrichment_status === "pending" ? "⏳" : "❌"}
                                 </Badge>
                               )}
                             </div>
@@ -492,12 +492,12 @@ export default function Contacts() {
                 onChange={(e) => {
                   let value = e.target.value.replace(/\D/g, "");
                   if (value.length > 14) value = value.slice(0, 14);
-                  
+
                   if (value.length > 2) value = value.slice(0, 2) + "." + value.slice(2);
                   if (value.length > 6) value = value.slice(0, 6) + "." + value.slice(6);
                   if (value.length > 10) value = value.slice(0, 10) + "/" + value.slice(10);
                   if (value.length > 15) value = value.slice(0, 15) + "-" + value.slice(15);
-                  
+
                   setFormData({ ...formData, company_cnpj: value });
                 }}
                 placeholder="00.000.000/0000-00"
@@ -514,7 +514,7 @@ export default function Contacts() {
                       key={field.id}
                       field={field}
                       value={customFieldsData[field.id] || ""}
-                      onChange={(value) => 
+                      onChange={(value) =>
                         setCustomFieldsData({ ...customFieldsData, [field.id]: value })
                       }
                     />
@@ -534,7 +534,7 @@ export default function Contacts() {
         </DialogContent>
       </Dialog>
 
-      <ContactImportDialog 
+      <ContactImportDialog
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
         onImportComplete={() => {

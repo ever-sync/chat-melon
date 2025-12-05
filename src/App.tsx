@@ -45,6 +45,7 @@ const Groups = lazy(() => import("./pages/Groups"));
 const InstanceSetup = lazy(() => import("./pages/InstanceSetup"));
 const ProposalPublic = lazy(() => import("@/pages/ProposalPublic").then(m => ({ default: m.ProposalPublic })));
 const Upgrade = lazy(() => import("./pages/Upgrade"));
+const PilotoPro = lazy(() => import("./pages/PilotoProPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -73,46 +74,47 @@ const App = () => {
                 <UpdatePrompt />
                 <Suspense fallback={<PageLoadingSkeleton />}>
                   <Routes>
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/set-password" element={<SetPassword />} />
-                  <Route path="/dashboard" element={<ErrorBoundary context="dashboard"><Dashboard /></ErrorBoundary>} />
-                  <Route path="/chat" element={<ErrorBoundary context="chat"><Chat /></ErrorBoundary>} />
-                  <Route path="/groups" element={<ErrorBoundary context="groups"><Groups /></ErrorBoundary>} />
-                  <Route path="/crm" element={<ErrorBoundary context="crm"><CRM /></ErrorBoundary>} />
-                  <Route path="/tasks" element={<ErrorBoundary context="tasks"><Tasks /></ErrorBoundary>} />
-                  <Route path="/templates" element={<Templates />} />
-                  <Route path="/proposals" element={<Proposals />} />
-                  <Route path="/settings/proposal-templates" element={<ProposalTemplates />} />
-                  <Route path="/automation" element={<ErrorBoundary context="automation"><Automation /></ErrorBoundary>} />
-                  <Route path="/gamification" element={<Gamification />} />
-                  <Route path="/contacts" element={<ErrorBoundary context="contacts"><Contacts /></ErrorBoundary>} />
-                  <Route path="/duplicates" element={<Duplicates />} />
-                  <Route path="/segments" element={<Segments />} />
-                  <Route path="/settings/queues" element={<QueuesSettings />} />
-                  <Route path="/settings/pipelines" element={<PipelineSettings />} />
-                  <Route path="/settings/users" element={<UsersPage />} />
-                  <Route path="/settings/ai" element={<AISettingsPage />} />
-                  <Route path="/configuracoes/ai" element={<Navigate to="/settings/ai" replace />} />
-                  <Route path="/configurações/ai" element={<Navigate to="/settings/ai" replace />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/reports" element={<ErrorBoundary context="reports"><Reports /></ErrorBoundary>} />
-                  <Route path="/reports/team" element={<TeamPerformancePage />} />
-                  <Route path="/campaigns" element={<ErrorBoundary context="campaigns"><Campaigns /></ErrorBoundary>} />
-                  <Route path="/campaigns/:id" element={<CampaignDetail />} />
-                  <Route path="/settings" element={<NewSettings />} />
-                  <Route path="/instance-setup" element={<InstanceSetup />} />
-                  <Route path="/companies" element={<Companies />} />
-                  <Route path="/super-admin" element={<SuperAdmin />} />
-                  <Route path="/upgrade" element={<Upgrade />} />
-                  <Route path="/p/:slug" element={<ProposalPublic />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="/set-password" element={<SetPassword />} />
+                    <Route path="/dashboard" element={<ErrorBoundary context="dashboard"><Dashboard /></ErrorBoundary>} />
+                    <Route path="/chat" element={<ErrorBoundary context="chat"><Chat /></ErrorBoundary>} />
+                    <Route path="/groups" element={<ErrorBoundary context="groups"><Groups /></ErrorBoundary>} />
+                    <Route path="/crm" element={<ErrorBoundary context="crm"><CRM /></ErrorBoundary>} />
+                    <Route path="/tasks" element={<ErrorBoundary context="tasks"><Tasks /></ErrorBoundary>} />
+                    <Route path="/templates" element={<Templates />} />
+                    <Route path="/proposals" element={<Proposals />} />
+                    <Route path="/settings/proposal-templates" element={<ProposalTemplates />} />
+                    <Route path="/automation" element={<ErrorBoundary context="automation"><Automation /></ErrorBoundary>} />
+                    <Route path="/gamification" element={<Gamification />} />
+                    <Route path="/contacts" element={<ErrorBoundary context="contacts"><Contacts /></ErrorBoundary>} />
+                    <Route path="/duplicates" element={<Duplicates />} />
+                    <Route path="/segments" element={<Segments />} />
+                    <Route path="/settings/queues" element={<QueuesSettings />} />
+                    <Route path="/settings/pipelines" element={<PipelineSettings />} />
+                    <Route path="/settings/users" element={<UsersPage />} />
+                    <Route path="/settings/ai" element={<AISettingsPage />} />
+                    <Route path="/configuracoes/ai" element={<Navigate to="/settings/ai" replace />} />
+                    <Route path="/configurações/ai" element={<Navigate to="/settings/ai" replace />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/reports" element={<ErrorBoundary context="reports"><Reports /></ErrorBoundary>} />
+                    <Route path="/reports/team" element={<TeamPerformancePage />} />
+                    <Route path="/campaigns" element={<ErrorBoundary context="campaigns"><Campaigns /></ErrorBoundary>} />
+                    <Route path="/campaigns/:id" element={<CampaignDetail />} />
+                    <Route path="/settings" element={<NewSettings />} />
+                    <Route path="/instance-setup" element={<InstanceSetup />} />
+                    <Route path="/companies" element={<Companies />} />
+                    <Route path="/super-admin" element={<SuperAdmin />} />
+                    <Route path="/upgrade" element={<Upgrade />} />
+                    <Route path="/piloto-pro" element={<PilotoPro />} />
+                    <Route path="/p/:slug" element={<ProposalPublic />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
               </RequireCompany>
             </CompanyProvider>
           </TooltipProvider>

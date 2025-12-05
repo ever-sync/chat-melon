@@ -93,10 +93,11 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [agentName, setAgentName] = useState("Copiloto");
 
   useEffect(() => {
     loadData();
-    
+
     // Subscrever a atualizações em tempo real
     const channel = supabase
       .channel(`ai-panel-${conversationId}`)
@@ -126,8 +127,20 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
       loadInsights(),
       loadQualification(),
       loadSuggestions(),
+      loadAgentName(),
     ]);
     setIsLoading(false);
+  };
+
+  const loadAgentName = async () => {
+    const { data } = await supabase
+      .from('ai_settings')
+      .select('*')
+      .eq('company_id', companyId)
+      .maybeSingle();
+    if ((data as any)?.agent_name) {
+      setAgentName((data as any).agent_name);
+    }
   };
 
   const loadConversation = async () => {
@@ -172,7 +185,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   const toggleAI = async () => {
     setIsUpdating(true);
     const newEnabled = !conversation?.ai_enabled;
-    
+
     const { error } = await supabase
       .from('conversations')
       .update({
@@ -184,7 +197,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
     if (error) {
       toast.error('Erro ao atualizar');
     } else {
-      const message = newEnabled 
+      const message = newEnabled
         ? 'A IA voltará a responder automaticamente'
         : 'A IA não responderá mais nesta conversa';
       toast.success(newEnabled ? 'IA ativada' : 'IA pausada', { description: message });
@@ -196,13 +209,13 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   const useSuggestion = async (suggestion: AISuggestion) => {
     // Copiar para clipboard
     await navigator.clipboard.writeText(suggestion.content);
-    
+
     // Marcar como usada
     await supabase
       .from('ai_suggestions')
       .update({ status: 'used', used_at: new Date().toISOString() })
       .eq('id', suggestion.id);
-    
+
     toast.success('Sugestão copiada!');
     loadSuggestions();
   };
@@ -283,13 +296,13 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
               <Bot className={`h-5 w-5 ${conversation?.ai_enabled ? 'text-violet-600' : 'text-gray-400'}`} />
             </div>
             <div>
-              <h3 className="font-semibold">Assistente IA</h3>
+              <h3 className="font-semibold">{agentName}</h3>
               <p className="text-xs text-muted-foreground">
                 {conversation?.ai_messages_count || 0} msgs enviadas
               </p>
             </div>
           </div>
-          
+
           <Button
             variant={conversation?.ai_enabled ? 'default' : 'outline'}
             size="sm"
@@ -310,7 +323,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
             )}
           </Button>
         </div>
-        
+
         {/* Status */}
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${conversation?.ai_enabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />

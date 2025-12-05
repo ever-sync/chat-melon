@@ -377,10 +377,35 @@ const Chat = () => {
 
       if (error) throw error;
       if (data) {
-        setSelectedConversation(data);
+        handleSelectConversation(data);
       }
     } catch (error) {
       console.error('Erro ao buscar conversa:', error);
+    }
+  };
+
+  // Função para selecionar conversa e marcar como lida
+  const handleSelectConversation = async (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+
+    // Se o status for "waiting", mudar para "active" (marcar como lido)
+    if (conversation.status === 'waiting') {
+      try {
+        const { error } = await supabase
+          .from('conversations')
+          .update({ status: 'active' })
+          .eq('id', conversation.id);
+
+        if (error) throw error;
+
+        // Atualizar localmente
+        setConversations(prev =>
+          prev.map(c => c.id === conversation.id ? { ...c, status: 'active' } : c)
+        );
+        setSelectedConversation(prev => prev ? { ...prev, status: 'active' } : prev);
+      } catch (error) {
+        console.error('Erro ao marcar conversa como lida:', error);
+      }
     }
   };
 
@@ -391,7 +416,7 @@ const Chat = () => {
           <ConversationList
             conversations={filteredConversations}
             selectedConversation={selectedConversation}
-            onSelectConversation={setSelectedConversation}
+            onSelectConversation={handleSelectConversation}
             isLoading={isLoading}
             searchQuery={searchQuery}
             startDate={startDate}

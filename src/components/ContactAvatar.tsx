@@ -133,7 +133,7 @@ export function ContactAvatar({
             size === 'md' && 'h-2.5 w-2.5',
             size === 'lg' && 'h-3 w-3',
             size === 'xl' && 'h-4 w-4',
-            isOnline ? 'bg-green-500' : 'bg-gray-400'
+            isOnline ? 'bg-[#DBEB00]' : 'bg-gray-400'
           )}
         />
       )}

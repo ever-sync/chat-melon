@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, TrendingUp, Flame, Snowflake, AlertCircle, Edit, Copy, RefreshCw, Target, FileText, Calendar, CheckCircle } from "lucide-react";
+import { Sparkles, TrendingUp, Flame, Snowflake, AlertCircle, Edit, Copy, RefreshCw, Target, FileText, Calendar, CheckCircle, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCompany } from "@/contexts/CompanyContext";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import type { Conversation } from "@/pages/Chat";
 
 type Message = {
@@ -45,12 +47,14 @@ interface AIAssistantProps {
 }
 
 export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateTask, onCreateProposal }: AIAssistantProps) => {
+  const { currentCompany } = useCompany();
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [tone, setTone] = useState<ToneType>(() => {
     const saved = localStorage.getItem('ai-tone');
     return (saved as ToneType) || 'friendly';
   });
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -60,20 +64,62 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
 
   const analyzeConversation = async () => {
     if (messages.length === 0) return;
-    
+
     setIsLoading(true);
     try {
+      // Buscar script do copiloto e chaves de API
+      let salesScript = "";
+      let geminiApiKey = "";
+      let openaiApiKey = "";
+      let groqApiKey = "";
+
+      if (currentCompany?.id) {
+        const { data: settings, error: settingsError } = await supabase
+          .from("ai_settings")
+          .select("copilot_script, gemini_api_key, openai_api_key, groq_api_key")
+          .eq("company_id", currentCompany.id)
+          .maybeSingle();
+
+        console.log('AI Settings fetched:', { settings, error: settingsError });
+
+        if (settings) {
+          salesScript = (settings as any)?.copilot_script || "";
+          geminiApiKey = (settings as any)?.gemini_api_key || "";
+          openaiApiKey = (settings as any)?.openai_api_key || "";
+          groqApiKey = (settings as any)?.groq_api_key || "";
+          console.log('API Keys:', {
+            hasGemini: !!geminiApiKey,
+            hasOpenAI: !!openaiApiKey,
+            hasGroq: !!groqApiKey,
+            geminiKeyLength: geminiApiKey?.length || 0
+          });
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-conversation', {
         body: {
           messages: messages.slice(-20),
           contactName: conversation.contact_name,
           contactCompany: null,
           tone,
+          salesScript,
+          geminiApiKey,
+          openaiApiKey,
+          groqApiKey,
         },
       });
 
       if (error) throw error;
-      setAnalysis(data);
+
+      // Check if quota exceeded specifically
+      if (data?.quota_exceeded === true) {
+        setQuotaExceeded(true);
+        setAnalysis(null);
+      } else {
+        console.log('Analysis data received:', data);
+        setQuotaExceeded(false);
+        setAnalysis(data);
+      }
     } catch (error) {
       console.error('Error analyzing conversation:', error);
       toast.error("Não foi possível analisar a conversa");
@@ -150,7 +196,7 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold">Assistente IA</h3>
+            <h3 className="font-semibold">Copiloto</h3>
           </div>
         </div>
         <Select value={tone} onValueChange={(v) => handleToneChange(v as ToneType)}>
@@ -174,6 +220,30 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-16 w-full" />
             </div>
+          ) : quotaExceeded ? (
+            <Card className="border-violet-500/50 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-violet-600" />
+                  Limite de Análises Atingido
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Você atingiu o limite gratuito de análises de IA.
+                  Ative o <strong>Piloto PRO</strong> para continuar usando análises ilimitadas!
+                </p>
+                <Link to="/piloto-pro">
+                  <Button className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Contratar Piloto PRO
+                  </Button>
+                </Link>
+                <p className="text-xs text-center text-muted-foreground">
+                  A partir de R$ 49/mês
+                </p>
+              </CardContent>
+            </Card>
           ) : analysis ? (
             <>
               {/* Análise da Conversa */}
