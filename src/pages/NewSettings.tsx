@@ -33,6 +33,10 @@ export default function NewSettings() {
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [profile, setProfile] = useState({
     full_name: '',
+    first_name: '',
+    last_name: '',
+    nickname: '',
+    email: '',
     phone: '',
   });
 
@@ -54,6 +58,10 @@ export default function NewSettings() {
     if (profileData.data) {
       setProfile({
         full_name: profileData.data.full_name || '',
+        first_name: profileData.data.first_name || '',
+        last_name: profileData.data.last_name || '',
+        nickname: profileData.data.nickname || '',
+        email: profileData.data.email || '',
         phone: profileData.data.phone || '',
       });
     }
@@ -204,26 +212,78 @@ export default function NewSettings() {
                     Atualize suas informações pessoais
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="first_name">Primeiro Nome</Label>
+                      <Input
+                        id="first_name"
+                        placeholder="João"
+                        value={profile.first_name}
+                        onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="last_name">Sobrenome</Label>
+                      <Input
+                        id="last_name"
+                        placeholder="Silva"
+                        value={profile.last_name}
+                        onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="nickname">Apelido</Label>
+                    <Input
+                      id="nickname"
+                      placeholder="Como você quer ser chamado no sistema"
+                      value={profile.nickname}
+                      onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Este nome aparecerá nas telas de login e em outras áreas do sistema
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome Completo</Label>
                     <Input
                       id="name"
+                      placeholder="João da Silva"
                       value={profile.full_name}
                       onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone</Label>
-                    <Input
-                      id="phone"
-                      value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    />
+
+                  <Separator />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="joao@empresa.com"
+                        value={profile.email}
+                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Telefone</Label>
+                      <Input
+                        id="phone"
+                        placeholder="(11) 99999-9999"
+                        value={profile.phone}
+                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                      />
+                    </div>
                   </div>
+
                   <Separator />
                   <Button onClick={handleSaveProfile} disabled={loading}>
-                    Salvar Alterações
+                    {loading ? "Salvando..." : "Salvar Alterações"}
                   </Button>
                 </CardContent>
               </Card>

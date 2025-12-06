@@ -14,6 +14,8 @@ interface Company {
   business_status?: string | null;
   business_hours?: Json;
   subscription_status?: string | null;
+  subscription_id?: string | null;
+  plan_id?: string | null;
   trial_started_at?: string | null;
   trial_ends_at?: string | null;
   evolution_api_url?: string | null;
@@ -50,8 +52,12 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
 
   const fetchCompanies = async () => {
     try {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("companies")
@@ -79,19 +85,27 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
 
       setCompanies(companiesWithSettings);
 
-      // Set current company from localStorage or first available
+      // Selecionar empresa automaticamente ao logar
+      // 1. Primeiro verifica se há empresa salva no localStorage
+      // 2. Se não houver ou não for válida, seleciona a primeira empresa disponível
       const savedCompanyId = localStorage.getItem("currentCompanyId");
-      if (savedCompanyId && companiesWithSettings) {
-        const saved = companiesWithSettings.find((c) => c.id === savedCompanyId);
-        if (saved) {
-          setCurrentCompany(saved);
-        } else if (companiesWithSettings.length > 0) {
-          setCurrentCompany(companiesWithSettings[0]);
-          localStorage.setItem("currentCompanyId", companiesWithSettings[0].id);
+
+      if (companiesWithSettings && companiesWithSettings.length > 0) {
+        let selectedCompany: Company | undefined;
+
+        // Tenta usar a empresa salva no localStorage
+        if (savedCompanyId) {
+          selectedCompany = companiesWithSettings.find((c) => c.id === savedCompanyId);
         }
-      } else if (companiesWithSettings && companiesWithSettings.length > 0) {
-        setCurrentCompany(companiesWithSettings[0]);
-        localStorage.setItem("currentCompanyId", companiesWithSettings[0].id);
+
+        // Se não encontrou, seleciona a primeira empresa
+        if (!selectedCompany) {
+          selectedCompany = companiesWithSettings[0];
+          console.log("🏢 Selecionando empresa automaticamente:", selectedCompany.name);
+        }
+
+        setCurrentCompany(selectedCompany);
+        localStorage.setItem("currentCompanyId", selectedCompany.id);
       }
     } catch (error: any) {
       console.error("Error fetching companies:", error);
@@ -117,7 +131,24 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
   };
 
   useEffect(() => {
+    // Carregar empresas na montagem inicial
     fetchCompanies();
+
+    // Escutar mudanças de autenticação para recarregar empresas quando usuário logar
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        // Usuário acabou de logar - recarregar empresas
+        console.log("🔐 Login detectado - carregando empresas...");
+        fetchCompanies();
+      } else if (event === "SIGNED_OUT") {
+        // Usuário deslogou - limpar estado
+        setCurrentCompany(null);
+        setCompanies([]);
+        localStorage.removeItem("currentCompanyId");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
