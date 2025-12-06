@@ -189,9 +189,97 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
     if (error) {
       console.error('Erro ao salvar configurações:', error);
       toast.error(error.message || 'Erro ao salvar');
+      setIsSaving(false);
+      return;
+    }
+
+    // Enviar configurações via webhook para o n8n
+    if (settings.n8n_webhook_url) {
+      try {
+        const webhookPayload = {
+          event_type: 'ai_settings_updated',
+          company_id: companyId,
+          timestamp: new Date().toISOString(),
+
+          // Dados da Evolution API (para o agente se conectar ao WhatsApp)
+          evolution: {
+            api_url: currentCompany?.evolution_api_url || '',
+            api_key: currentCompany?.evolution_api_key || '',
+            instance_name: currentCompany?.evolution_instance_name || '',
+          },
+
+          // Dados da empresa
+          company: {
+            name: currentCompany?.name || '',
+            cnpj: currentCompany?.cnpj || '',
+            email: currentCompany?.email || '',
+            phone: currentCompany?.phone || '',
+          },
+
+          settings: {
+            // Identidade do Agente
+            agent_name: settings.agent_name,
+
+            // Ativação
+            is_enabled: settings.is_enabled,
+            default_mode: settings.default_mode,
+            personality: settings.personality,
+            language: settings.language,
+
+            // Horário de Funcionamento
+            active_hours_start: settings.active_hours_start,
+            active_hours_end: settings.active_hours_end,
+            active_on_weekends: settings.active_on_weekends,
+
+            // Tempo de Resposta
+            response_delay_ms: settings.response_delay_ms,
+            typing_indicator: settings.typing_indicator,
+
+            // Limites
+            max_messages_before_handoff: settings.max_messages_before_handoff,
+            max_response_length: settings.max_response_length,
+
+            // Transferência
+            handoff_keywords: settings.handoff_keywords,
+            handoff_on_negative_sentiment: settings.handoff_on_negative_sentiment,
+            handoff_on_high_value: settings.handoff_on_high_value,
+            high_value_threshold: settings.high_value_threshold,
+
+            // Mensagens Padrão
+            greeting_message: settings.greeting_message,
+            handoff_message: settings.handoff_message,
+            fallback_message: settings.fallback_message,
+            system_prompt: settings.system_prompt,
+
+            // Script do Copiloto
+            copilot_script: settings.copilot_script,
+          },
+        };
+
+        const response = await fetch(settings.n8n_webhook_url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-ai-key': settings.n8n_api_key || '',
+          },
+          body: JSON.stringify(webhookPayload),
+        });
+
+        if (!response.ok) {
+          console.warn('Webhook N8N retornou erro:', response.status);
+          toast.warning('Configurações salvas, mas o webhook N8N falhou');
+        } else {
+          console.log('Configurações enviadas para N8N com sucesso');
+          toast.success('Configurações salvas e sincronizadas com N8N!');
+        }
+      } catch (webhookError) {
+        console.error('Erro ao enviar webhook para N8N:', webhookError);
+        toast.warning('Configurações salvas, mas não foi possível sincronizar com N8N');
+      }
     } else {
       toast.success('Configurações salvas!');
     }
+
     setIsSaving(false);
   };
 
