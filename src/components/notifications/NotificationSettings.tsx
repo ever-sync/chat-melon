@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Volume2, Moon, X, Save } from "lucide-react";
+import { Bell, Volume2, Moon, X, Save, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -19,6 +19,24 @@ type NotificationSettings = {
   do_not_disturb_enabled: boolean;
   do_not_disturb_start: string;
   do_not_disturb_end: string;
+};
+
+// Função para gerar um beep usando Web Audio API
+const createBeepSound = (audioContext: AudioContext, volume: number): void => {
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.frequency.value = 880; // Frequência em Hz (nota A5)
+  oscillator.type = "sine";
+
+  gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.3);
 };
 
 export const NotificationSettings = () => {
@@ -34,6 +52,41 @@ export const NotificationSettings = () => {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [newMutedContact, setNewMutedContact] = useState("");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  // Função para testar o som
+  const testSound = useCallback(() => {
+    const volume = settings.volume;
+
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio("/notification.mp3");
+      }
+
+      audioRef.current.volume = volume;
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {
+        // Se falhar, usar Web Audio API como fallback
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        if (audioContextRef.current.state === "suspended") {
+          audioContextRef.current.resume();
+        }
+        createBeepSound(audioContextRef.current, volume);
+      });
+    } catch (error) {
+      // Usar beep como fallback
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      if (audioContextRef.current.state === "suspended") {
+        audioContextRef.current.resume();
+      }
+      createBeepSound(audioContextRef.current, volume);
+    }
+  }, [settings.volume]);
 
   useEffect(() => {
     loadSettings();
@@ -182,20 +235,34 @@ export const NotificationSettings = () => {
           </div>
 
           {settings.sound_enabled && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Volume2 className="h-4 w-4" />
-                <Label>Volume: {Math.round(settings.volume * 100)}%</Label>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="h-4 w-4" />
+                    <Label>Volume: {Math.round(settings.volume * 100)}%</Label>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={testSound}
+                    disabled={!settings.enabled || !settings.sound_enabled}
+                  >
+                    <Play className="h-4 w-4 mr-1" />
+                    Testar Som
+                  </Button>
+                </div>
+                <Slider
+                  value={[settings.volume]}
+                  onValueChange={(value) =>
+                    setSettings({ ...settings, volume: value[0] })
+                  }
+                  max={1}
+                  step={0.1}
+                  disabled={!settings.enabled || !settings.sound_enabled}
+                />
               </div>
-              <Slider
-                value={[settings.volume]}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, volume: value[0] })
-                }
-                max={1}
-                step={0.1}
-                disabled={!settings.enabled || !settings.sound_enabled}
-              />
             </div>
           )}
 

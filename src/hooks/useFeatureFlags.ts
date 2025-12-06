@@ -29,9 +29,9 @@ export const useFeatureFlags = () => {
   const { currentCompany } = useCompany();
 
   const { data: features = [], isLoading } = useQuery({
-    queryKey: ["feature-flags", currentCompany?.id],
+    queryKey: ["feature-flags", currentCompany?.id, currentCompany?.plan_id],
     queryFn: async () => {
-      // Busca todas as features globalmente habilitadas
+      // 1. Buscar todas as features globalmente habilitadas
       const { data: allFeatures, error: featuresError } = await supabase
         .from("platform_features")
         .select("*")
@@ -39,8 +39,45 @@ export const useFeatureFlags = () => {
         .order("order_index");
 
       if (featuresError) throw featuresError;
+      if (!allFeatures || allFeatures.length === 0) return [];
 
-      return allFeatures || [];
+      // 2. Se não tem empresa selecionada ou não tem plano, retorna todas as features globais
+      if (!currentCompany?.id || !currentCompany?.plan_id) {
+        console.log("🏢 Empresa sem plano definido - mostrando todas as features globais");
+        return allFeatures;
+      }
+
+      // 3. Buscar features habilitadas para o plano da empresa
+      const { data: planFeatures, error: planFeaturesError } = await supabase
+        .from("plan_features")
+        .select("feature_id, is_enabled")
+        .eq("plan_id", currentCompany.plan_id);
+
+      if (planFeaturesError) {
+        console.error("Erro ao buscar features do plano:", planFeaturesError);
+        return allFeatures;
+      }
+
+      // 4. Se não há configuração de features para o plano, retorna todas as globais
+      if (!planFeatures || planFeatures.length === 0) {
+        console.log("📋 Plano sem configuração de features - mostrando todas as features globais");
+        return allFeatures;
+      }
+
+      // 5. Filtrar features: deve estar global_enabled E habilitada no plano
+      const enabledFeatureIds = new Set(
+        planFeatures
+          .filter((pf) => pf.is_enabled)
+          .map((pf) => pf.feature_id)
+      );
+
+      const filteredFeatures = allFeatures.filter((feature) =>
+        enabledFeatureIds.has(feature.id)
+      );
+
+      console.log(`✅ Features habilitadas para o plano: ${filteredFeatures.length}/${allFeatures.length}`);
+
+      return filteredFeatures;
     },
     enabled: true,
   });
