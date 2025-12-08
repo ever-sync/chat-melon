@@ -1,70 +1,72 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, MessageSquare, Users, BarChart3, Zap, Building2, Palette, ArrowRight, Shield, Globe, Smartphone, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  MessageSquare,
+  Plus,
+  Mail,
+  Calendar,
+  MoreHorizontal,
+  Bot,
+  BarChart3,
+  Phone,
+  Search,
+  Check
+} from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
 
 const Landing = () => {
-  const features = [
-    {
-      icon: MessageSquare,
-      title: "Chat Unificado",
-      description: "Centralize WhatsApp, Instagram e Webchat em uma única tela.",
-    },
-    {
-      icon: Palette,
-      title: "Adaptável como um Camaleão",
-      description: "Personalize fluxos, campos e a interface para se moldar ao seu negócio.",
-    },
-    {
-      icon: Users,
-      title: "CRM Flexível",
-      description: "Gerencie leads e clientes com pipelines que você define.",
-    },
-    {
-      icon: Zap,
-      title: "Automação Inteligente",
-      description: "Crie bots e fluxos de trabalho sem digitar uma linha de código.",
-    },
-    {
-      icon: BarChart3,
-      title: "Analytics em Tempo Real",
-      description: "Tome decisões baseadas em dados com dashboards detalhados.",
-    },
-    {
-      icon: Building2,
-      title: "Multi-Empresa",
-      description: "Gerencie múltiplas operações ou filiais em uma única conta.",
-    },
-  ];
+  const [isAnnual, setIsAnnual] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white font-sans selection:bg-emerald-500/30">
-      {/* Noise Texture Overlay */}
-      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] pointer-events-none z-0"></div>
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-purple-100">
+      {/* Background Dot Pattern */}
+      <div className="fixed inset-0 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none -z-10"></div>
 
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-emerald-900/20">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+          {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-2 rounded-xl shadow-lg shadow-emerald-500/20">
-              <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
+            <div className="bg-purple-600 rounded-lg p-1.5 flex items-center justify-center">
+              <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              CamalaChat
-            </span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
           </div>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-            <a href="#features" className="hover:text-emerald-400 transition-colors">Recursos</a>
-            <a href="#solutions" className="hover:text-emerald-400 transition-colors">Soluções</a>
-            <a href="#pricing" className="hover:text-emerald-400 transition-colors">Preços</a>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center bg-gray-50/80 px-2 py-1.5 rounded-full border border-gray-100 shadow-sm">
+            {['Home', 'Features', 'Solutions', 'Resources', 'Pricing'].map((item) => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className={`px-5 py-2 text-sm font-medium rounded-full transition-all ${item === 'Home'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-purple-600'
+                  }`}
+              >
+                {item}
+              </a>
+            ))}
           </nav>
+
+          {/* Actions */}
           <div className="flex items-center gap-4">
             <Link to="/auth">
-              <Button variant="ghost" className="font-medium text-gray-300 hover:text-emerald-400 hover:bg-emerald-900/20">Login</Button>
+              <Button variant="ghost" className="font-semibold text-slate-600 hover:text-purple-600 hover:bg-purple-50">
+                Log In
+              </Button>
             </Link>
             <Link to="/signup">
-              <Button className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-full px-6 shadow-lg shadow-emerald-500/30">
-                Começar Grátis
+              <Button className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white font-semibold rounded-xl px-6 py-5 shadow-lg shadow-purple-200 transition-all hover:shadow-purple-300 hover:scale-[1.02]">
+                Schedule A Demo
               </Button>
             </Link>
           </div>
@@ -72,336 +74,500 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
-          <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-green-600/20 rounded-full blur-[120px]" />
-        </div>
+      <main className="pt-32 pb-20 overflow-hidden text-center">
+        <div className="container mx-auto px-4 relative z-10">
 
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-900/30 backdrop-blur-sm text-emerald-300 text-sm font-medium mb-8 border border-emerald-500/20">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Novo: Integração com IA Generativa
-            <Sparkles className="h-4 w-4" />
+          {/* Badge */}
+          <div className="inline-flex items-center justify-center mb-8">
+            <div className="px-5 py-2 rounded-full border border-purple-100 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-default">
+              <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent font-semibold text-sm">
+                Instant Crm Ai Tools
+              </span>
+            </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
-            Empower <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">Modern</span>
+          {/* Headline */}
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-slate-900 leading-[1.1]">
+            Every Customer Insights,
             <br />
-            Technology
+            <span className="bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600 bg-clip-text text-transparent pb-2">
+              Intelligently Handled
+            </span>
           </h1>
 
-          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            CamalaChat é a plataforma de comunicação e CRM que se adapta perfeitamente ao seu negócio.
-            Atenda, venda e fidelize em um só lugar.
+          {/* Subheadline */}
+          <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
+            Give your team the clarity, context, and speed they need to deliver
+            extraordinary experiences — at every touchpoint
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {/* CTA */}
+          <div className="flex justify-center mb-24">
             <Link to="/signup">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 shadow-2xl shadow-emerald-500/30 transition-all hover:scale-105">
-                Iniciar Teste Grátis
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link to="/pricing">
-              <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-2 border-emerald-500/30 text-gray-300 hover:bg-emerald-900/20 hover:border-emerald-500/50">
-                Ver Planos e Preços
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-blue-200 transition-all hover:scale-105 font-semibold">
+                Get Started
               </Button>
             </Link>
           </div>
 
-          {/* Dashboard Preview */}
-          <div className="mt-20 relative mx-auto max-w-5xl">
-            <div className="rounded-3xl border border-emerald-500/20 bg-slate-900/50 backdrop-blur-xl p-2 shadow-2xl shadow-emerald-900/30">
-              <div className="rounded-2xl overflow-hidden border border-emerald-500/10 bg-gradient-to-br from-slate-900 to-slate-800">
-                <img
-                  src="https://placehold.co/1200x800/0a0a0a/10b981?text=Dashboard+Preview"
-                  alt="CamalaChat Dashboard"
-                  className="w-full h-auto object-cover opacity-90"
-                />
+          {/* Interactive Flow Visual */}
+          <div className="relative mx-auto max-w-6xl h-[600px] hidden md:block select-none text-left">
+            {/* Connecting Lines (SVG overlay) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+              <path d="M300,180 C300,250 500,250 500,320" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
+              <path d="M850,230 C850,280 650,280 650,320" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
+              <path d="M300,380 C300,450 400,450 400,500" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
+              <path d="M850,380 C850,450 750,450 750,480" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
+            </svg>
+
+            {/* Card 1: Schedule */}
+            <div className="absolute top-20 left-20 z-10 animate-fade-in-up [animation-delay:200ms]">
+              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+                <Calendar className="w-4 h-4" /> Schedule
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-64 hover:shadow-lg transition-shadow">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-bold text-slate-800">Shortcall Demo</h4>
+                </div>
+                <div className="text-xs text-slate-400 mb-4">May 12, 14.30 - 15.30 PM</div>
+                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg h-9 text-xs font-semibold gap-2">
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                  meet/sdk-889-000
+                </Button>
               </div>
             </div>
-            {/* Floating Elements */}
-            <div className="absolute -right-12 top-1/3 p-4 bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-emerald-500/20 animate-bounce delay-1000 hidden md:block">
-              <div className="flex items-center gap-3">
-                <div className="bg-green-500/20 p-2 rounded-full">
-                  <Check className="h-5 w-5 text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-white">Venda Realizada!</p>
-                  <p className="text-xs text-gray-400">R$ 1.450,00 via WhatsApp</p>
-                </div>
+
+            {/* Card 2: Sales Outreach */}
+            <div className="absolute top-24 right-20 z-10 animate-fade-in-up [animation-delay:400ms]">
+              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+                <BarChart3 className="w-4 h-4" /> Sales Outreach
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Partners/Social Proof */}
-      <section className="py-10 border-y border-emerald-900/20 bg-slate-900/30">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-8">
-            Empresas que confiam na nossa adaptação
-          </p>
-          <div className="flex flex-wrap justify-center gap-12 opacity-40 hover:opacity-60 transition-all duration-500">
-            {['TechCorp', 'GlobalSales', 'InnovateX', 'GrowthLabs', 'FutureScale'].map((brand) => (
-              <span key={brand} className="text-xl font-bold text-gray-400 flex items-center gap-2">
-                <Building2 className="h-6 w-6" /> {brand}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="py-24 relative">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Innovative Problem-Solving for
-              <span className="block bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Your Business Needs
-              </span>
-            </h2>
-            <p className="text-lg text-gray-400">
-              Tudo o que você precisa para transformar conversas em conversões.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <Card key={index} className="border border-emerald-500/10 bg-slate-900/50 backdrop-blur-sm hover:bg-slate-900/70 hover:border-emerald-500/30 transition-all duration-300 group">
-                <CardContent className="p-8">
-                  <div className="h-14 w-14 rounded-2xl bg-emerald-900/30 flex items-center justify-center mb-6 group-hover:bg-emerald-600 transition-colors duration-300">
-                    <feature.icon className="h-7 w-7 text-emerald-400 group-hover:text-white transition-colors duration-300" />
+              <div className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-80 relative group hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-purple-100 p-2 rounded-lg">
+                    <Phone className="w-5 h-5 text-purple-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Chameleon Feature Highlight */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/50 to-transparent"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-block px-4 py-1 rounded-full bg-emerald-900/30 text-emerald-400 font-medium text-sm mb-6 border border-emerald-500/30">
-                Flexibilidade Total
+                  <div>
+                    <h4 className="font-bold text-slate-800">Step 2 Phone Call Attempt</h4>
+                  </div>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex gap-1">
+                  <div className="h-full w-1/3 bg-purple-600 rounded-full"></div>
+                  <div className="h-full w-1/4 bg-slate-200 rounded-full"></div>
+                  <div className="h-full w-1/4 bg-slate-200 rounded-full"></div>
+                </div>
+                {/* Simulated Cursor */}
+                <div className="absolute -bottom-4 -right-4 flex flex-col items-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg transform translate-y-1">
+                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19179L17.9036 8.97152L10.374 8.97152C10.05 8.97152 9.76159 9.14151 9.61042 9.42173L5.65376 12.3673Z" fill="black" />
+                  </svg>
+                  <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
+                    AI Assistant
+                  </div>
+                </div>
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                Adapta-se como um <br />
-                <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Camaleão</span>
-              </h2>
-              <p className="text-lg text-gray-400 mb-8 leading-relaxed">
-                Não mude seu processo para caber no software. O CamalaChat se molda ao seu fluxo de trabalho. Crie campos personalizados, pipelines ilimitados e automações que refletem exatamente como sua empresa funciona.
-              </p>
-              <ul className="space-y-4">
-                {[
-                  "Campos de contato ilimitados",
-                  "Pipelines de vendas customizáveis",
-                  "Tags e segmentação dinâmica",
-                  "Permissões granulares por usuário"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-300">
-                    <div className="h-6 w-6 rounded-full bg-emerald-900/30 flex items-center justify-center">
-                      <Check className="h-4 w-4 text-emerald-400" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-emerald-600 to-green-600 rounded-3xl blur-3xl opacity-20 animate-pulse"></div>
-              <div className="relative bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-emerald-500/20 p-8 shadow-2xl">
+
+            {/* Center Main Card: Profile */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 animate-fade-in-up [animation-delay:0ms]">
+              <div className="bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgb(0,0,0,0.1)] border border-purple-100 w-[420px]">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                      alt="User"
+                      className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover"
+                    />
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">Lucas Graham</h3>
+                      <p className="text-sm text-slate-400">Head of IT Everafter.io</p>
+                    </div>
+                  </div>
+                  <Button size="icon" variant="ghost" className="text-slate-300">
+                    <MoreHorizontal className="w-5 h-5" />
+                  </Button>
+                </div>
+                <div className="flex gap-2 mb-6">
+                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl h-10 shadow-lg shadow-purple-200">
+                    <Mail className="w-4 h-4 mr-2" /> Compose Email
+                  </Button>
+                  <Button variant="outline" size="icon" className="rounded-xl border-slate-200">
+                    <Calendar className="w-4 h-4 text-slate-500" />
+                  </Button>
+                  <Button variant="outline" size="icon" className="rounded-xl border-slate-200">
+                    <Plus className="w-4 h-4 text-slate-500" />
+                  </Button>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Summary</span>
+                  </div>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Lucas Graham, the head of IT Everafter.io planning to be increase their team efficiency through modern...
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Company */}
+            <div className="absolute bottom-20 left-48 z-10 animate-fade-in-up [animation-delay:600ms]">
+              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+                <Bot className="w-4 h-4" /> Company
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-56 hover:shadow-lg transition-shadow relative">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">N</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-bold text-slate-800">Everafter.io</h4>
+                      <Link to="#" className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 hover:bg-purple-200">
+                        <ArrowRight className="w-3 h-3 -rotate-45" />
+                      </Link>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">Venezia, Italy</p>
+                  </div>
+                </div>
+                {/* Simulated Cursor */}
+                <div className="absolute -bottom-6 -right-8 flex flex-col items-center z-50">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg transform translate-y-1">
+                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19179L17.9036 8.97152L10.374 8.97152C10.05 8.97152 9.76159 9.14151 9.61042 9.42173L5.65376 12.3673Z" fill="black" />
+                  </svg>
+                  <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
+                    AI Assistant
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Activity */}
+            <div className="absolute bottom-24 right-40 z-10 animate-fade-in-up [animation-delay:800ms]">
+              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+                <Search className="w-4 h-4" /> Activity
+              </div>
+              <div className="bg-white rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-72 hover:shadow-lg transition-shadow">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-emerald-500/20 pb-4">
-                    <div className="h-3 w-24 bg-emerald-900/50 rounded-full"></div>
-                    <div className="h-8 w-8 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-lg"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-2 w-full bg-emerald-900/30 rounded-full"></div>
-                    <div className="h-2 w-3/4 bg-emerald-900/30 rounded-full"></div>
-                    <div className="h-2 w-1/2 bg-emerald-900/30 rounded-full"></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mt-6">
-                    <div className="h-20 bg-emerald-900/20 rounded-xl border border-emerald-500/20 border-dashed flex items-center justify-center text-emerald-400 text-xs">
-                      Campo Customizado
+                  <div className="flex gap-3 relative">
+                    <div className="absolute left-[11px] top-6 w-0.5 h-6 bg-slate-100"></div>
+                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0 z-10">
+                      <div className="w-2 h-2 rounded-full bg-slate-300"></div>
                     </div>
-                    <div className="h-20 bg-emerald-900/20 rounded-xl border border-emerald-500/20 border-dashed flex items-center justify-center text-emerald-400 text-xs">
-                      Nova Etapa
+                    <div className="text-sm">
+                      <p className="font-medium text-slate-800"><span className="font-bold">Andrew</span> Reaching out lucas</p>
+                      <p className="text-xs text-slate-400">Yesterday, 11.30am</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center shrink-0 z-10">
+                      <Calendar className="w-3 h-3 text-purple-600" />
+                    </div>
+                    <div className="text-sm">
+                      <p className="font-medium text-slate-800"><span className="font-bold">Billy</span> Scheduling meeting</p>
+                      <p className="text-xs text-slate-400">Today, 09.20am</p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* AI Workforce Section */}
+      <section className="py-24 bg-white border-y border-slate-100 overflow-hidden">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row shadow-2xl rounded-3xl overflow-hidden border border-slate-100">
+            {/* Left Content */}
+            <div className="w-full md:w-1/2 p-12 md:p-20 bg-white flex flex-col justify-center">
+              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8 leading-tight">
+                The AI Workforce humans can lean on.
+              </h2>
+              <p className="text-xl text-slate-500 mb-12 leading-relaxed">
+                Never quits, and always improves. Scale to meet any demand.
+              </p>
+              <Link to="#" className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group">
+                More about clara
+                <ArrowRight className="w-5 h-5 text-purple-600 group-hover:text-purple-700" />
+              </Link>
+            </div>
+            {/* Right Visual */}
+            <div className="w-full md:w-1/2 bg-purple-600 relative min-h-[400px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-violet-700 opacity-90"></div>
+              {/* Background Text Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+                <span className="text-[20rem] font-bold text-white opacity-10 select-none">AI</span>
+              </div>
+              <img
+                src="https://images.unsplash.com/photo-1573497620053-ea5300f94f21?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                alt="AI Workforce"
+                className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-80 md:opacity-100"
+              />
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 relative">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Planos Transparentes
+      <section id="pricing" className="py-24 bg-slate-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-medium text-slate-600 mb-6">
+              <div className="w-2 h-2 rounded-full bg-purple-500"></div> Pricing
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+              5M+ users and still counting
             </h2>
-            <p className="text-lg text-gray-400">
-              Comece pequeno e cresça. Sem contratos de fidelidade ou taxas escondidas.
+            <p className="text-lg text-slate-500 mb-10">
+              Start free and upgrade anytime as your team and projects grow
+            </p>
+
+            {/* Toggle */}
+            <div className="flex items-center justify-center gap-4 text-sm font-medium">
+              <span className={!isAnnual ? "text-slate-900" : "text-slate-500"}>Monthly</span>
+              <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
+              <span className={isAnnual ? "text-slate-900" : "text-slate-500"}>Annual</span>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {/* Starter */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
+              <h3 className="font-bold text-lg mb-2">Starter</h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold tracking-tight">$0</span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? "year" : "month"}</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For personal</p>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> 2 User Seat Only
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Basic Activity Feed
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> AI Smart Summary
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Basic Email Tracking
+                </li>
+              </ul>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Free Access</Button>
+            </div>
+
+            {/* Growth */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
+              <h3 className="font-bold text-lg mb-2">Growth</h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold tracking-tight">${isAnnual ? "29" : "35"}</span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? "year" : "month"}</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For growing teams</p>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Up To 10 Users
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Smart Summary + Score
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Touchpoint Reminder
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Outreach Sequence
+                </li>
+              </ul>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Get Started</Button>
+            </div>
+
+            {/* Pro - Highlighted */}
+            <div className="bg-white rounded-2xl p-6 border-2 border-purple-500 shadow-2xl shadow-purple-200/50 relative transform md:-translate-y-4">
+              <div className="absolute top-0 left-0 w-full h-8 bg-purple-600 text-white text-[10px] font-bold uppercase tracking-wider flex items-center justify-center rounded-t-lg -mt-[2px]">
+                Users best choice !
+              </div>
+              <h3 className="font-bold text-lg mb-2 mt-6">Pro</h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold tracking-tight">${isAnnual ? "45" : "55"}</span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? "year" : "month"}</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For multi-user teams</p>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> Unlimited Users
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> Clara Snapshot
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> AI Suggestion Engine
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> Advanced Scheduling
+                </li>
+              </ul>
+              <Button className="w-full bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-xl h-11 hover:from-purple-600 hover:to-violet-700 shadow-lg shadow-purple-200">Get Started</Button>
+            </div>
+
+            {/* Enterprise */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
+              <h3 className="font-bold text-lg mb-2">Enterprise</h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold tracking-tight text-purple-500">Custom</span>
+                <span className="text-slate-500 text-sm block">More flexible</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For large teams</p>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Fields & Data Model
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Various Integrations
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Custom Insight AI
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> SLA, Onboarding
+                </li>
+              </ul>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Talk to sales</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6 flex flex-col lg:flex-row gap-16">
+          <div className="lg:w-1/3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 shadow-sm text-sm font-medium text-slate-600 mb-6">
+              <MessageSquare className="w-3 h-3 text-purple-500" /> FAQ
+            </div>
+            <h2 className="text-4xl font-bold text-slate-900 mb-6">
+              Everything You're Wondering, Answered.
+            </h2>
+            <p className="text-slate-500 mb-4">
+              Couldn't Find Something ? <a href="#" className="text-purple-600 font-semibold hover:underline">Message Us</a>
             </p>
           </div>
+          <div className="lg:w-2/3">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">How is Clara different from other CRMs?</AccordionTrigger>
+                <AccordionContent className="text-slate-600 text-base leading-relaxed">
+                  Clara doesn't just store data—it understands it. From summarizing customer interactions to suggesting next steps, Clara is like a co-pilot that helps you move faster with more confidence.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-2">
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">Can Clara help my team save time?</AccordionTrigger>
+                <AccordionContent className="text-slate-600 text-base leading-relaxed">
+                  Absolutely. Clara automates routine tasks, schedules follow-ups, and provides instant summaries of meetings, allowing your team to focus on high-value interactions.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-3">
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">Is Clara hard to set up?</AccordionTrigger>
+                <AccordionContent className="text-slate-600 text-base leading-relaxed">
+                  Not at all. We offer a seamless onboarding process, and our support team is available to help migrate your data and configure your workflows in just a few clicks.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4">
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">What tools does Clara integrate with?</AccordionTrigger>
+                <AccordionContent className="text-slate-600 text-base leading-relaxed">
+                  Clara integrates with popular tools like Google Workspace, Slack, Zoom, and various marketing automation platforms to keep your data synchronized across your stack.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                name: "Starter",
-                price: "97",
-                description: "Para pequenos negócios iniciantes",
-                features: ["1 usuário", "1 conexão WhatsApp", "CRM Básico", "1.000 conversas/mês"]
-              },
-              {
-                name: "Pro",
-                price: "297",
-                popular: true,
-                description: "Para times em crescimento",
-                features: ["5 usuários", "3 conexões WhatsApp", "Automação de Marketing", "CRM Avançado", "Conversas Ilimitadas"]
-              },
-              {
-                name: "Business",
-                price: "697",
-                description: "Para grandes operações",
-                features: ["15 usuários", "10 conexões WhatsApp", "API Aberta", "Gerente de Conta", "SLA Garantido"]
-              },
-            ].map((plan, index) => (
-              <Card
-                key={index}
-                className={`relative p-8 border transition-all duration-300 hover:-translate-y-2 ${plan.popular
-                  ? "bg-slate-900/70 backdrop-blur-sm ring-2 ring-emerald-500 border-emerald-500/50 shadow-2xl shadow-emerald-500/20"
-                  : "bg-slate-900/50 backdrop-blur-sm border-emerald-500/10"
-                  }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
-                    Mais Escolhido
+      {/* CTA & Mega Footer Section */}
+      <footer className="bg-gradient-to-br from-violet-600 to-purple-700 text-white pt-24 pb-8 overflow-hidden relative">
+        {/* Decorative Arcs */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[180%] h-[1000px] bg-white/5 rounded-[100%] blur-3xl pointer-events-none -translate-y-1/2"></div>
+
+        {/* CTA Content */}
+        <div className="container mx-auto px-6 text-center relative z-10 mb-20">
+          <div className="flex justify-center mb-6">
+            <div className="w-6 h-6 rotate-45 bg-white shadow-[0_0_20px_rgba(255,255,255,0.5)]"></div>
+          </div>
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">
+            Know More, Act Faster And <br /> Close Smarter.
+          </h2>
+          <p className="text-xl text-purple-100 mb-10">
+            AI-powered clarity for every stage of your customer journey
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button className="bg-white text-purple-900 border-none hover:bg-slate-100 font-bold h-12 px-8 rounded-lg shadow-lg">
+              Get Started
+            </Button>
+            <Button variant="outline" className="bg-slate-900/30 text-white border-white/20 hover:bg-slate-900/50 font-bold h-12 px-8 rounded-lg">
+              Schedule A Demo
+            </Button>
+          </div>
+        </div>
+
+        {/* White Footer Card */}
+        <div className="container mx-auto px-4">
+          <div className="bg-white rounded-3xl p-12 text-slate-900 shadow-2xl">
+            <div className="grid md:grid-cols-4 gap-12 mb-16">
+              {/* Brand */}
+              <div className="col-span-1 md:col-span-1">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="bg-purple-600 rounded-lg p-1.5 flex items-center justify-center">
+                    <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
                   </div>
-                )}
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                  <p className="text-gray-400 text-sm">{plan.description}</p>
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
                 </div>
-                <div className="mb-8">
-                  <span className="text-4xl font-bold text-white">R$ {plan.price}</span>
-                  <span className="text-gray-400">/mês</span>
-                </div>
-                <Link to="/signup">
-                  <Button
-                    className={`w-full h-12 rounded-xl font-bold mb-8 ${plan.popular
-                      ? "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/30"
-                      : "bg-emerald-900/30 hover:bg-emerald-900/50 text-white border border-emerald-500/20"
-                      }`}
-                  >
-                    Começar Agora
-                  </Button>
-                </Link>
-                <ul className="space-y-4">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm text-gray-300">
-                      <Check className={`h-5 w-5 ${plan.popular ? "text-emerald-400" : "text-gray-500"}`} />
-                      {feature}
-                    </li>
-                  ))}
+                <h3 className="text-3xl font-bold text-slate-400 leading-tight">
+                  Every Customer Insights, <span className="text-slate-900">Intelligently Handled</span>
+                </h3>
+              </div>
+
+              {/* Links */}
+              <div>
+                <h4 className="font-bold mb-6">Features</h4>
+                <ul className="space-y-4 text-slate-500">
+                  <li><a href="#" className="hover:text-purple-600">Clara feed</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Smart summary</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Pulse Score</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Touchpoint Reminder</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Clara Snapshot</a></li>
                 </ul>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-4">
-          <div className="bg-gradient-to-br from-emerald-900/50 to-emerald-950/50 backdrop-blur-sm rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl border border-emerald-500/20">
-            <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
-            <div className="relative z-10 max-w-3xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-bold mb-8">
-                Pronto para evoluir seu atendimento?
-              </h2>
-              <p className="text-xl text-emerald-200 mb-10">
-                Junte-se a mais de 500 empresas que já usam o CamalaChat para vender mais e atender melhor.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/signup">
-                  <Button size="lg" className="h-14 px-10 text-lg bg-white text-emerald-700 hover:bg-emerald-50 font-bold rounded-full shadow-xl">
-                    Criar Conta Grátis
-                  </Button>
-                </Link>
-                <Link to="/contact">
-                  <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-2 border-emerald-400 text-white hover:bg-emerald-600/30 rounded-full">
-                    Falar com Consultor
-                  </Button>
-                </Link>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="bg-black text-gray-400 py-16 border-t border-emerald-900/20">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
-                <span className="text-2xl font-bold text-white">CamalaChat</span>
+              <div>
+                <h4 className="font-bold mb-6">Company</h4>
+                <ul className="space-y-4 text-slate-500">
+                  <li><a href="#" className="hover:text-purple-600">About us</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Careers</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Contact Us</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Feature</a></li>
+                </ul>
               </div>
-              <p className="text-gray-400 max-w-sm mb-6">
-                A plataforma de comunicação que se adapta ao seu negócio. Atendimento, CRM e Automação em um só lugar.
-              </p>
-              <div className="flex gap-4">
-                <div className="h-10 w-10 rounded-full bg-emerald-900/30 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
-                  <Globe className="h-5 w-5" />
-                </div>
-                <div className="h-10 w-10 rounded-full bg-emerald-900/30 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">
-                  <Smartphone className="h-5 w-5" />
-                </div>
+
+              <div>
+                <h4 className="font-bold mb-6">Stay in touch</h4>
+                <ul className="space-y-4 text-slate-500">
+                  <li><a href="#" className="hover:text-purple-600">Instagram</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Facebook</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Twitter</a></li>
+                  <li><a href="#" className="hover:text-purple-600">Youtube</a></li>
+                </ul>
               </div>
             </div>
 
-            <div>
-              <h4 className="text-white font-bold mb-6">Produto</h4>
-              <ul className="space-y-4">
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Recursos</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Preços</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Integrações</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Changelog</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-white font-bold mb-6">Empresa</h4>
-              <ul className="space-y-4">
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Sobre Nós</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Carreiras</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Contato</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-emerald-900/20 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-            <p>© 2025 CamalaChat. Todos os direitos reservados.</p>
-            <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
-              <a href="#" className="hover:text-white transition-colors">Privacidade</a>
+            <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
+              <p>Copyright 2025, All right reserved by Clara</p>
+              <div className="flex gap-6">
+                <a href="#" className="hover:text-purple-600">Privacy policy</a>
+                <a href="#" className="hover:text-purple-600">Terms and condition</a>
+              </div>
             </div>
           </div>
         </div>
