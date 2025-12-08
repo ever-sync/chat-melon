@@ -92,10 +92,12 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + '/');
 
-  const visibleMenuItems = menuItems.filter((item) => {
-    if (!item.featureKey) return true;
-    return isFeatureEnabled(item.featureKey as any);
-  });
+  // Temporarily showing all features for user to see sidebar options
+  const visibleMenuItems = menuItems;
+  // const visibleMenuItems = menuItems.filter((item) => {
+  //   if (!item.featureKey) return true;
+  //   return isFeatureEnabled(item.featureKey as any);
+  // });
 
   return (
     <Sidebar side="left" collapsible="icon" className="border-none bg-[#111111] text-gray-400 data-[state=collapsed]:w-[80px]">
@@ -147,7 +149,7 @@ export function AppSidebar() {
                     >
                       <div className={`
                         p-1.5 rounded-lg transition-all duration-300
-                        ${isActive(item.url) ? 'bg-white/10 text-emerald-400' : 'group-hover:text-emerald-400'}
+                        ${isActive(item.url) ? 'bg-white/10 text-indigo-400' : 'group-hover:text-indigo-400'}
                       `}>
                         <item.icon className="h-5 w-5" />
                       </div>
@@ -155,7 +157,7 @@ export function AppSidebar() {
                         <span className="flex items-center gap-2 flex-1 text-[14px]">
                           {item.title}
                           {item.url === "/reports" && unreadCount > 0 && (
-                            <Badge className="ml-auto bg-emerald-500 text-white px-2 py-0.5 text-[10px] rounded-full">
+                            <Badge className="ml-auto bg-indigo-500 text-white px-2 py-0.5 text-[10px] rounded-full">
                               {unreadCount}
                             </Badge>
                           )}
@@ -198,7 +200,7 @@ export function AppSidebar() {
                       to="/super-admin"
                       className={`flex items-center ${state === 'expanded' ? 'gap-4 px-3' : 'justify-center'}`}
                     >
-                      <div className="p-1.5 rounded-lg group-hover:text-purple-400 transition-colors">
+                      <div className="p-1.5 rounded-lg group-hover:text-indigo-400 transition-colors">
                         <Shield className="h-5 w-5" />
                       </div>
                       {state === "expanded" && (

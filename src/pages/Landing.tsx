@@ -26,7 +26,7 @@ const Landing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-purple-100">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-100">
       {/* Background Dot Pattern */}
       <div className="fixed inset-0 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none -z-10"></div>
 
@@ -35,7 +35,7 @@ const Landing = () => {
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="bg-purple-600 rounded-lg p-1.5 flex items-center justify-center">
+            <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
               <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
             </div>
             <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
@@ -48,8 +48,8 @@ const Landing = () => {
                 key={item}
                 href={`#${item.toLowerCase()}`}
                 className={`px-5 py-2 text-sm font-medium rounded-full transition-all ${item === 'Home'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-purple-600'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-indigo-600'
                   }`}
               >
                 {item}
@@ -60,12 +60,12 @@ const Landing = () => {
           {/* Actions */}
           <div className="flex items-center gap-4">
             <Link to="/auth">
-              <Button variant="ghost" className="font-semibold text-slate-600 hover:text-purple-600 hover:bg-purple-50">
+              <Button variant="ghost" className="font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50">
                 Log In
               </Button>
             </Link>
             <Link to="/signup">
-              <Button className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white font-semibold rounded-xl px-6 py-5 shadow-lg shadow-purple-200 transition-all hover:shadow-purple-300 hover:scale-[1.02]">
+              <Button className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-semibold rounded-xl px-6 py-5 shadow-lg shadow-indigo-200 transition-all hover:shadow-indigo-300 hover:scale-[1.02]">
                 Schedule A Demo
               </Button>
             </Link>
@@ -79,8 +79,8 @@ const Landing = () => {
 
           {/* Badge */}
           <div className="inline-flex items-center justify-center mb-8">
-            <div className="px-5 py-2 rounded-full border border-purple-100 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-default">
-              <span className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent font-semibold text-sm">
+            <div className="px-5 py-2 rounded-full border border-indigo-100 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-default">
+              <span className="bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent font-semibold text-sm">
                 Instant Crm Ai Tools
               </span>
             </div>
@@ -90,7 +90,7 @@ const Landing = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-slate-900 leading-[1.1]">
             Every Customer Insights,
             <br />
-            <span className="bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600 bg-clip-text text-transparent pb-2">
+            <span className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent pb-2">
               Intelligently Handled
             </span>
           </h1>
@@ -104,7 +104,7 @@ const Landing = () => {
           {/* CTA */}
           <div className="flex justify-center mb-24">
             <Link to="/signup">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-blue-200 transition-all hover:scale-105 font-semibold">
+              <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-indigo-200 transition-all hover:scale-105 font-semibold">
                 Get Started
               </Button>
             </Link>
@@ -122,7 +122,7 @@ const Landing = () => {
 
             {/* Card 1: Schedule */}
             <div className="absolute top-20 left-20 z-10 animate-fade-in-up [animation-delay:200ms]">
-              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
                 <Calendar className="w-4 h-4" /> Schedule
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-64 hover:shadow-lg transition-shadow">
@@ -130,7 +130,7 @@ const Landing = () => {
                   <h4 className="font-bold text-slate-800">Shortcall Demo</h4>
                 </div>
                 <div className="text-xs text-slate-400 mb-4">May 12, 14.30 - 15.30 PM</div>
-                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg h-9 text-xs font-semibold gap-2">
+                <Button size="sm" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg h-9 text-xs font-semibold gap-2">
                   <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                   meet/sdk-889-000
                 </Button>
@@ -139,20 +139,20 @@ const Landing = () => {
 
             {/* Card 2: Sales Outreach */}
             <div className="absolute top-24 right-20 z-10 animate-fade-in-up [animation-delay:400ms]">
-              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
                 <BarChart3 className="w-4 h-4" /> Sales Outreach
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-80 relative group hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-purple-100 p-2 rounded-lg">
-                    <Phone className="w-5 h-5 text-purple-600" />
+                  <div className="bg-indigo-100 p-2 rounded-lg">
+                    <Phone className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-800">Step 2 Phone Call Attempt</h4>
                   </div>
                 </div>
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex gap-1">
-                  <div className="h-full w-1/3 bg-purple-600 rounded-full"></div>
+                  <div className="h-full w-1/3 bg-indigo-600 rounded-full"></div>
                   <div className="h-full w-1/4 bg-slate-200 rounded-full"></div>
                   <div className="h-full w-1/4 bg-slate-200 rounded-full"></div>
                 </div>
@@ -161,7 +161,7 @@ const Landing = () => {
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg transform translate-y-1">
                     <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19179L17.9036 8.97152L10.374 8.97152C10.05 8.97152 9.76159 9.14151 9.61042 9.42173L5.65376 12.3673Z" fill="black" />
                   </svg>
-                  <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
+                  <div className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
                     AI Assistant
                   </div>
                 </div>
@@ -170,7 +170,7 @@ const Landing = () => {
 
             {/* Center Main Card: Profile */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 animate-fade-in-up [animation-delay:0ms]">
-              <div className="bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgb(0,0,0,0.1)] border border-purple-100 w-[420px]">
+              <div className="bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgb(0,0,0,0.1)] border border-indigo-100 w-[420px]">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
                     <img
@@ -188,7 +188,7 @@ const Landing = () => {
                   </Button>
                 </div>
                 <div className="flex gap-2 mb-6">
-                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl h-10 shadow-lg shadow-purple-200">
+                  <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10 shadow-lg shadow-indigo-200">
                     <Mail className="w-4 h-4 mr-2" /> Compose Email
                   </Button>
                   <Button variant="outline" size="icon" className="rounded-xl border-slate-200">
@@ -211,7 +211,7 @@ const Landing = () => {
 
             {/* Card 3: Company */}
             <div className="absolute bottom-20 left-48 z-10 animate-fade-in-up [animation-delay:600ms]">
-              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
                 <Bot className="w-4 h-4" /> Company
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-56 hover:shadow-lg transition-shadow relative">
@@ -222,7 +222,7 @@ const Landing = () => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <h4 className="font-bold text-slate-800">Everafter.io</h4>
-                      <Link to="#" className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 hover:bg-purple-200">
+                      <Link to="#" className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 hover:bg-indigo-200">
                         <ArrowRight className="w-3 h-3 -rotate-45" />
                       </Link>
                     </div>
@@ -234,7 +234,7 @@ const Landing = () => {
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg transform translate-y-1">
                     <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19179L17.9036 8.97152L10.374 8.97152C10.05 8.97152 9.76159 9.14151 9.61042 9.42173L5.65376 12.3673Z" fill="black" />
                   </svg>
-                  <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
+                  <div className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
                     AI Assistant
                   </div>
                 </div>
@@ -243,7 +243,7 @@ const Landing = () => {
 
             {/* Card 4: Activity */}
             <div className="absolute bottom-24 right-40 z-10 animate-fade-in-up [animation-delay:800ms]">
-              <div className="flex items-center gap-2 text-purple-500 font-semibold mb-2 text-sm">
+              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
                 <Search className="w-4 h-4" /> Activity
               </div>
               <div className="bg-white rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-72 hover:shadow-lg transition-shadow">
@@ -259,8 +259,8 @@ const Landing = () => {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center shrink-0 z-10">
-                      <Calendar className="w-3 h-3 text-purple-600" />
+                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 z-10">
+                      <Calendar className="w-3 h-3 text-indigo-600" />
                     </div>
                     <div className="text-sm">
                       <p className="font-medium text-slate-800"><span className="font-bold">Billy</span> Scheduling meeting</p>
@@ -288,12 +288,12 @@ const Landing = () => {
               </p>
               <Link to="#" className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group">
                 More about clara
-                <ArrowRight className="w-5 h-5 text-purple-600 group-hover:text-purple-700" />
+                <ArrowRight className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" />
               </Link>
             </div>
             {/* Right Visual */}
-            <div className="w-full md:w-1/2 bg-purple-600 relative min-h-[400px]">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-violet-700 opacity-90"></div>
+            <div className="w-full md:w-1/2 bg-indigo-600 relative min-h-[400px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-700 opacity-90"></div>
               {/* Background Text Overlay */}
               <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
                 <span className="text-[20rem] font-bold text-white opacity-10 select-none">AI</span>
@@ -313,7 +313,7 @@ const Landing = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-medium text-slate-600 mb-6">
-              <div className="w-2 h-2 rounded-full bg-purple-500"></div> Pricing
+              <div className="w-2 h-2 rounded-full bg-indigo-500"></div> Pricing
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               5M+ users and still counting
@@ -342,16 +342,16 @@ const Landing = () => {
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> 2 User Seat Only
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> 2 User Seat Only
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Basic Activity Feed
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Basic Activity Feed
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> AI Smart Summary
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> AI Smart Summary
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Basic Email Tracking
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Basic Email Tracking
                 </li>
               </ul>
               <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Free Access</Button>
@@ -368,24 +368,24 @@ const Landing = () => {
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Up To 10 Users
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Up To 10 Users
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Smart Summary + Score
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Smart Summary + Score
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Touchpoint Reminder
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Touchpoint Reminder
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Outreach Sequence
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Outreach Sequence
                 </li>
               </ul>
               <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Get Started</Button>
             </div>
 
             {/* Pro - Highlighted */}
-            <div className="bg-white rounded-2xl p-6 border-2 border-purple-500 shadow-2xl shadow-purple-200/50 relative transform md:-translate-y-4">
-              <div className="absolute top-0 left-0 w-full h-8 bg-purple-600 text-white text-[10px] font-bold uppercase tracking-wider flex items-center justify-center rounded-t-lg -mt-[2px]">
+            <div className="bg-white rounded-2xl p-6 border-2 border-indigo-500 shadow-2xl shadow-indigo-200/50 relative transform md:-translate-y-4">
+              <div className="absolute top-0 left-0 w-full h-8 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider flex items-center justify-center rounded-t-lg -mt-[2px]">
                 Users best choice !
               </div>
               <h3 className="font-bold text-lg mb-2 mt-6">Pro</h3>
@@ -397,42 +397,42 @@ const Landing = () => {
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> Unlimited Users
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Unlimited Users
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> Clara Snapshot
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Clara Snapshot
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> AI Suggestion Engine
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> AI Suggestion Engine
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" /> Advanced Scheduling
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Advanced Scheduling
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-xl h-11 hover:from-purple-600 hover:to-violet-700 shadow-lg shadow-purple-200">Get Started</Button>
+              <Button className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl h-11 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-200">Get Started</Button>
             </div>
 
             {/* Enterprise */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
               <h3 className="font-bold text-lg mb-2">Enterprise</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold tracking-tight text-purple-500">Custom</span>
+                <span className="text-4xl font-bold tracking-tight text-indigo-500">Custom</span>
                 <span className="text-slate-500 text-sm block">More flexible</span>
               </div>
               <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For large teams</p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Fields & Data Model
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Fields & Data Model
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Various Integrations
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Various Integrations
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> Custom Insight AI
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Custom Insight AI
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-violet-500 shrink-0 mt-0.5" /> SLA, Onboarding
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> SLA, Onboarding
                 </li>
               </ul>
               <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Talk to sales</Button>
@@ -446,13 +446,13 @@ const Landing = () => {
         <div className="container mx-auto px-6 flex flex-col lg:flex-row gap-16">
           <div className="lg:w-1/3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 shadow-sm text-sm font-medium text-slate-600 mb-6">
-              <MessageSquare className="w-3 h-3 text-purple-500" /> FAQ
+              <MessageSquare className="w-3 h-3 text-indigo-500" /> FAQ
             </div>
             <h2 className="text-4xl font-bold text-slate-900 mb-6">
               Everything You're Wondering, Answered.
             </h2>
             <p className="text-slate-500 mb-4">
-              Couldn't Find Something ? <a href="#" className="text-purple-600 font-semibold hover:underline">Message Us</a>
+              Couldn't Find Something ? <a href="#" className="text-indigo-600 font-semibold hover:underline">Message Us</a>
             </p>
           </div>
           <div className="lg:w-2/3">
@@ -487,7 +487,7 @@ const Landing = () => {
       </section>
 
       {/* CTA & Mega Footer Section */}
-      <footer className="bg-gradient-to-br from-violet-600 to-purple-700 text-white pt-24 pb-8 overflow-hidden relative">
+      <footer className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white pt-24 pb-8 overflow-hidden relative">
         {/* Decorative Arcs */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[180%] h-[1000px] bg-white/5 rounded-[100%] blur-3xl pointer-events-none -translate-y-1/2"></div>
 
@@ -499,11 +499,11 @@ const Landing = () => {
           <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">
             Know More, Act Faster And <br /> Close Smarter.
           </h2>
-          <p className="text-xl text-purple-100 mb-10">
+          <p className="text-xl text-indigo-100 mb-10">
             AI-powered clarity for every stage of your customer journey
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-white text-purple-900 border-none hover:bg-slate-100 font-bold h-12 px-8 rounded-lg shadow-lg">
+            <Button className="bg-white text-indigo-900 border-none hover:bg-slate-100 font-bold h-12 px-8 rounded-lg shadow-lg">
               Get Started
             </Button>
             <Button variant="outline" className="bg-slate-900/30 text-white border-white/20 hover:bg-slate-900/50 font-bold h-12 px-8 rounded-lg">
@@ -519,7 +519,7 @@ const Landing = () => {
               {/* Brand */}
               <div className="col-span-1 md:col-span-1">
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="bg-purple-600 rounded-lg p-1.5 flex items-center justify-center">
+                  <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
                     <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
                   </div>
                   <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
@@ -533,31 +533,31 @@ const Landing = () => {
               <div>
                 <h4 className="font-bold mb-6">Features</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-purple-600">Clara feed</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Smart summary</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Pulse Score</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Touchpoint Reminder</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Clara Snapshot</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Clara feed</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Smart summary</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Pulse Score</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Touchpoint Reminder</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Clara Snapshot</a></li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-bold mb-6">Company</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-purple-600">About us</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Careers</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Contact Us</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Feature</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">About us</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Careers</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Contact Us</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Feature</a></li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-bold mb-6">Stay in touch</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-purple-600">Instagram</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Facebook</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Twitter</a></li>
-                  <li><a href="#" className="hover:text-purple-600">Youtube</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Instagram</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Facebook</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Twitter</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Youtube</a></li>
                 </ul>
               </div>
             </div>
@@ -565,8 +565,8 @@ const Landing = () => {
             <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
               <p>Copyright 2025, All right reserved by Clara</p>
               <div className="flex gap-6">
-                <a href="#" className="hover:text-purple-600">Privacy policy</a>
-                <a href="#" className="hover:text-purple-600">Terms and condition</a>
+                <a href="#" className="hover:text-indigo-600">Privacy policy</a>
+                <a href="#" className="hover:text-indigo-600">Terms and condition</a>
               </div>
             </div>
           </div>

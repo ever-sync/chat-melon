@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompanyQuery } from "@/hooks/useCompanyQuery";
-import { 
-  MessageSquare, 
-  Target, 
-  TrendingUp, 
+import {
+  MessageSquare,
+  Target,
+  TrendingUp,
   CheckSquare,
   Clock,
   AlertCircle
@@ -113,8 +113,8 @@ export default function Index() {
       title: "Conversas Totais",
       value: stats?.totalConversations || 0,
       icon: MessageSquare,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950/20",
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50 dark:bg-indigo-950/20",
     },
     {
       title: "Negócios em Aberto",

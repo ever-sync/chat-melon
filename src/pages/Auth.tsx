@@ -101,7 +101,7 @@ const Auth = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="alex.jordan@gmail.com"
-                    className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                    className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
                     required
                   />
                 </div>
@@ -118,13 +118,13 @@ const Auth = () => {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="••••••••••••"
-                      className="h-12 rounded-xl border-2 border-purple-500 bg-white text-slate-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all pr-12"
+                      className="h-12 rounded-xl border-2 border-indigo-500 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all pr-12"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-600 transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -188,7 +188,7 @@ const Auth = () => {
 
               <div className="text-center mt-8">
                 <span className="text-slate-400 text-sm">Have an account? </span>
-                <Link to="/auth" className="text-purple-600 font-bold hover:underline text-sm">
+                <Link to="/auth" className="text-indigo-600 font-bold hover:underline text-sm">
                   Log in
                 </Link>
               </div>

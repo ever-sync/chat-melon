@@ -105,7 +105,7 @@ export default function SignUp() {
                 {/* Right Side - Form */}
                 <div className="w-full lg:w-[55%] p-10 lg:p-20 flex flex-col justify-center">
                     <div className="max-w-md mx-auto w-full">
-                        <Link to="/auth" className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-600 transition-colors mb-6 font-medium text-sm">
+                        <Link to="/auth" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors mb-6 font-medium text-sm">
                             <ArrowLeft className="h-4 w-4" />
                             Back to login
                         </Link>
@@ -128,7 +128,7 @@ export default function SignUp() {
                                     value={personalData.fullName}
                                     onChange={handlePersonalChange}
                                     placeholder="John Doe"
-                                    className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                                    className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
                                     required
                                 />
                             </div>
@@ -144,7 +144,7 @@ export default function SignUp() {
                                     value={personalData.email}
                                     onChange={handlePersonalChange}
                                     placeholder="john@company.com"
-                                    className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                                    className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
                                     required
                                 />
                             </div>
@@ -162,13 +162,13 @@ export default function SignUp() {
                                             value={personalData.password}
                                             onChange={handlePersonalChange}
                                             placeholder="Min 6 chars"
-                                            className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all pr-10"
+                                            className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all pr-10"
                                             required
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-600"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600"
                                         >
                                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
@@ -184,7 +184,7 @@ export default function SignUp() {
                                         value={personalData.phone}
                                         onChange={handlePersonalChange}
                                         placeholder="+1 (555) 000-0000"
-                                        className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                                        className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
                                         required
                                     />
                                 </div>
@@ -197,15 +197,15 @@ export default function SignUp() {
                                     onCheckedChange={(checked) =>
                                         setPersonalData({ ...personalData, agreedToTerms: checked as boolean })
                                     }
-                                    className="mt-1 border-slate-300 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                                    className="mt-1 border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                                 />
                                 <label htmlFor="terms" className="text-sm text-slate-500 leading-relaxed cursor-pointer">
                                     I agree to the{" "}
-                                    <Link to="/terms" className="text-purple-600 hover:text-purple-700 font-semibold hover:underline">
+                                    <Link to="/terms" className="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline">
                                         Terms & Conditions
                                     </Link>
                                     {" "}and{" "}
-                                    <Link to="/privacy" className="text-purple-600 hover:text-purple-700 font-semibold hover:underline">
+                                    <Link to="/privacy" className="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline">
                                         Privacy Policy
                                     </Link>
                                     .
@@ -232,7 +232,7 @@ export default function SignUp() {
 
                             <div className="text-center mt-6">
                                 <span className="text-slate-400 text-sm">Already have an account? </span>
-                                <Link to="/auth" className="text-purple-600 font-bold hover:underline text-sm">
+                                <Link to="/auth" className="text-indigo-600 font-bold hover:underline text-sm">
                                     Log in
                                 </Link>
                             </div>

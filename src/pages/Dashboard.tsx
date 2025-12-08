@@ -125,8 +125,8 @@ export default function Dashboard() {
       title: "Total de Conversas",
       value: stats.totalConversations,
       icon: MessageSquare,
-      color: "text-emerald-500",
-      bgColor: "bg-emerald-500/10",
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-600/10",
       path: "/chat",
       trend: "+12%",
       trendUp: true
@@ -135,8 +135,8 @@ export default function Dashboard() {
       title: "Receita Total",
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
-      color: "text-rose-500",
-      bgColor: "bg-rose-500/10",
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-600/10",
       path: "/crm",
       trend: "+8%",
       trendUp: true
@@ -257,11 +257,11 @@ export default function Dashboard() {
                       onClick={() => navigate('/chat')}
                     >
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center text-purple-600 font-semibold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-lg">
                           {conv.contact_name?.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-gray-900 truncate group-hover:text-purple-600 transition-colors">
+                          <p className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
                             {conv.contact_name}
                           </p>
                           <p className="text-sm text-gray-500 truncate mt-0.5">
