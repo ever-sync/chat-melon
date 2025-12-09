@@ -61,9 +61,9 @@ const PRESET_ICONS = [
   "Info", "Mail", "Phone", "MessageSquare", "Users", "Calendar"
 ];
 
-export function LabelsManager({ 
-  conversationId, 
-  currentLabels = [], 
+export function LabelsManager({
+  conversationId,
+  currentLabels = [],
   onLabelsChange,
   trigger,
   open: controlledOpen,
@@ -155,7 +155,7 @@ export function LabelsManager({
 
   const deleteLabel = async (labelId: string) => {
     if (!confirm("Tem certeza que deseja excluir esta label?")) return;
-    
+
     try {
       const { error } = await supabase
         .from('labels')
@@ -215,68 +215,55 @@ export function LabelsManager({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5" />
+      <DialogContent className="max-w-md w-full max-h-[85vh] p-4 sm:p-6 overflow-hidden flex flex-col">
+        <DialogHeader className="px-0 pt-0 pb-2">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Tag className="h-4 w-4" />
             Gerenciar Labels
           </DialogTitle>
-          <DialogDescription>
-            Organize suas conversas com etiquetas coloridas. Pressione "L" no chat para acesso rápido.
+          <DialogDescription className="text-xs">
+            Organize conversas com etiquetas.
           </DialogDescription>
         </DialogHeader>
-        
-        <ScrollArea className="h-[calc(90vh-120px)]">
-          <div className="space-y-6 pr-4">
-            {/* Preview da nova label */}
-            {newLabelName && (
-              <div className="p-4 border rounded-lg bg-muted/30">
-                <Label className="text-xs text-muted-foreground mb-2 block">Preview</Label>
-                <LabelBadge 
-                  name={newLabelName}
-                  color={newLabelColor}
-                  icon={newLabelIcon}
-                />
-              </div>
-            )}
 
+        <ScrollArea className="flex-1 -mx-4 px-4">
+          <div className="space-y-4 pb-4">
             {/* Create new label */}
-            <div className="space-y-3 p-4 border rounded-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <Label className="text-base font-semibold">Criar Nova Label</Label>
-              </div>
-              
-              <div>
-                <Label htmlFor="label-name">Nome *</Label>
-                <Input
-                  id="label-name"
-                  value={newLabelName}
-                  onChange={(e) => setNewLabelName(e.target.value)}
-                  placeholder="Ex: Urgente, Aguardando..."
-                  onKeyPress={(e) => e.key === 'Enter' && createLabel()}
-                />
+            <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <Label className="text-sm font-semibold">Nova Label</Label>
               </div>
 
-              <div>
-                <Label htmlFor="label-description">Descrição</Label>
-                <Textarea
-                  id="label-description"
-                  value={newLabelDescription}
-                  onChange={(e) => setNewLabelDescription(e.target.value)}
-                  placeholder="Descreva quando usar esta label..."
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
                 <div>
-                  <Label htmlFor="label-color">Cor</Label>
+                  <Input
+                    id="label-name"
+                    value={newLabelName}
+                    onChange={(e) => setNewLabelName(e.target.value)}
+                    placeholder="Nome da label..."
+                    className="h-8"
+                    onKeyPress={(e) => e.key === 'Enter' && createLabel()}
+                  />
+                </div>
+
+                <div>
+                  <Textarea
+                    id="label-description"
+                    value={newLabelDescription}
+                    onChange={(e) => setNewLabelDescription(e.target.value)}
+                    placeholder="Descrição opcional..."
+                    rows={1}
+                    className="min-h-[36px] resize-none text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
                   <Select value={newLabelColor} onValueChange={setNewLabelColor}>
-                    <SelectTrigger id="label-color">
+                    <SelectTrigger id="label-color" className="h-8">
                       <div className="flex items-center gap-2">
-                        <div 
-                          className="w-4 h-4 rounded border" 
+                        <div
+                          className="w-3 h-3 rounded border shrink-0"
                           style={{ backgroundColor: newLabelColor }}
                         />
                         <SelectValue />
@@ -286,8 +273,8 @@ export function LabelsManager({
                       {PRESET_COLORS.map(({ name, color }) => (
                         <SelectItem key={color} value={color}>
                           <div className="flex items-center gap-2">
-                            <div 
-                              className="w-4 h-4 rounded border" 
+                            <div
+                              className="w-3 h-3 rounded border"
                               style={{ backgroundColor: color }}
                             />
                             {name}
@@ -296,18 +283,15 @@ export function LabelsManager({
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
 
-                <div>
-                  <Label htmlFor="label-icon">Ícone</Label>
                   <Select value={newLabelIcon} onValueChange={setNewLabelIcon}>
-                    <SelectTrigger id="label-icon">
-                      <div className="flex items-center gap-2">
+                    <SelectTrigger id="label-icon" className="h-8">
+                      <div className="flex items-center gap-2 truncate">
                         {(() => {
                           const IconComponent = (LucideIcons as any)[newLabelIcon];
-                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+                          return IconComponent ? <IconComponent className="w-3 h-3 shrink-0" /> : null;
                         })()}
-                        <SelectValue />
+                        <span className="truncate">{newLabelIcon}</span>
                       </div>
                     </SelectTrigger>
                     <SelectContent>
@@ -316,7 +300,7 @@ export function LabelsManager({
                         return (
                           <SelectItem key={iconName} value={iconName}>
                             <div className="flex items-center gap-2">
-                              {IconComponent && <IconComponent className="w-4 h-4" />}
+                              {IconComponent && <IconComponent className="w-3 h-3" />}
                               {iconName}
                             </div>
                           </SelectItem>
@@ -325,59 +309,74 @@ export function LabelsManager({
                     </SelectContent>
                   </Select>
                 </div>
+
+                <Button
+                  onClick={createLabel}
+                  disabled={loading || !newLabelName.trim()}
+                  className="w-full h-8 text-xs"
+                  size="sm"
+                >
+                  <Plus className="h-3 w-3 mr-1.5" />
+                  Criar
+                </Button>
               </div>
 
-              <Button 
-                onClick={createLabel} 
-                disabled={loading || !newLabelName.trim()}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Label
-              </Button>
+              {/* Preview simples */}
+              {newLabelName && (
+                <div className="pt-2 border-t flex justify-center">
+                  <LabelBadge
+                    name={newLabelName}
+                    color={newLabelColor}
+                    icon={newLabelIcon}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Labels da conversa atual */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Aplicar à Conversa</Label>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Aplicar</Label>
+              <div className="grid grid-cols-1 gap-2">
                 {labels.map(label => {
                   const isSelected = conversationLabelIds.includes(label.id);
                   return (
-                    <div 
-                      key={label.id} 
-                      className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                    <div
+                      key={label.id}
+                      className="group flex items-center gap-2 p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
                       onClick={() => toggleLabel(label.id)}
                     >
-                      <Checkbox 
+                      <Checkbox
                         checked={isSelected}
                         onCheckedChange={() => toggleLabel(label.id)}
+                        className="h-4 w-4"
                       />
-                      <LabelBadge
-                        name={label.name}
-                        color={label.color}
-                        icon={label.icon}
-                        variant={isSelected ? "default" : "outline"}
-                        className="flex-1"
-                      />
+                      <div className="flex-1 min-w-0">
+                        <LabelBadge
+                          name={label.name}
+                          color={label.color}
+                          icon={label.icon}
+                          variant={isSelected ? "default" : "outline"}
+                          className="max-w-full justify-start"
+                        />
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteLabel(label.id);
                         }}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3 w-3 text-destructive" />
                       </Button>
                     </div>
                   );
                 })}
               </div>
               {labels.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhuma label criada ainda. Crie sua primeira label acima! 🏷️
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  Nenhuma label disponível.
                 </p>
               )}
             </div>

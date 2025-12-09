@@ -1,4 +1,4 @@
-import { User, LogOut, Settings as SettingsIcon, Building2, ChevronDown, MessageCircle, CheckSquare, FileText } from "lucide-react";
+import { User, LogOut, Settings as SettingsIcon, Building2, ChevronDown, MessageCircle, CheckSquare, FileText, Filter } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -44,7 +44,7 @@ export const Header = () => {
             })
             .select('full_name, avatar_url')
             .single();
-          
+
           data = newProfile;
         }
 
@@ -70,7 +70,7 @@ export const Header = () => {
     <header className="sticky top-0 z-[60] w-full border-b border-border/50 bg-background/95 backdrop-blur-md">
       <div className="flex h-20 items-center gap-6 px-6">
         <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-        
+
         <div className="flex-1 flex items-center gap-6">
           {/* Company Selector */}
           {!loading && companies.length > 0 && (
@@ -115,7 +115,7 @@ export const Header = () => {
 
           {/* Search */}
           <GlobalSearch />
-          
+
           {/* Navigation Tabs */}
           <div className="flex items-center gap-2">
             <Button
@@ -134,13 +134,21 @@ export const Header = () => {
               <FileText className="h-5 w-5" />
               <span className="hidden md:inline">Templates</span>
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/segments')}
+              className="gap-2 rounded-xl hover:bg-muted/50"
+            >
+              <Filter className="h-5 w-5" />
+              <span className="hidden md:inline">Segmentos</span>
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <InternalChatPanel />
-
+        <div className="flex items-center gap-2">
           <TrialBadge />
+
+          <InternalChatPanel />
 
           <NotificationBell />
 
@@ -156,23 +164,23 @@ export const Header = () => {
                 </span>
               </Button>
             </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-background">
-            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/settings')}>
-              <User className="mr-2 h-4 w-4" />
-              Perfil
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/settings')}>
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              Configurações
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
+            <DropdownMenuContent align="end" className="w-56 bg-background">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <SettingsIcon className="mr-2 h-4 w-4" />
+                Configurações
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>

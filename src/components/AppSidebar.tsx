@@ -45,16 +45,8 @@ const menuItems = [{
   title: "Contatos",
   url: "/contacts",
   icon: Contact
-}, {
-  title: "Segmentos",
-  url: "/segments",
-  icon: Filter,
-  featureKey: "segments"
-}, {
-  title: "Duplicados",
-  url: "/duplicates",
-  icon: GitMerge,
-  featureKey: "duplicates"
+
+
 }, {
   title: "Produtos",
   url: "/products",
@@ -69,10 +61,6 @@ const menuItems = [{
   url: "/gamification",
   icon: Trophy,
   featureKey: "gamification"
-}, {
-  title: "Empresas",
-  url: "/companies",
-  icon: Building2
 }, {
   title: "FAQ",
   url: "/faq",
@@ -100,12 +88,10 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + '/');
 
-  // Temporarily showing all features for user to see sidebar options
-  const visibleMenuItems = menuItems;
-  // const visibleMenuItems = menuItems.filter((item) => {
-  //   if (!item.featureKey) return true;
-  //   return isFeatureEnabled(item.featureKey as any);
-  // });
+  const visibleMenuItems = menuItems.filter((item) => {
+    if (!item.featureKey) return true;
+    return isFeatureEnabled(item.featureKey as any);
+  });
 
   return (
     <Sidebar side="left" collapsible="icon" className="border-none bg-[#111111] text-gray-400 data-[state=collapsed]:w-[80px]">
@@ -228,6 +214,31 @@ export function AppSidebar() {
           rounded-2xl transition-all duration-300
           ${state === 'expanded' ? 'bg-white/5 p-2 space-y-1' : 'bg-transparent p-0 space-y-2'}
         `}>
+          <SidebarMenuButton
+            asChild
+            isActive={isActive("/companies")}
+            tooltip={state === "collapsed" ? "Empresas" : undefined}
+            className="
+              h-10
+              hover:bg-white/10 
+              hover:text-white 
+              text-gray-400
+              rounded-xl
+              transition-all 
+              duration-200
+              data-[state=open]:bg-white/10
+              data-[state=open]:text-white
+            "
+          >
+            <NavLink
+              to="/companies"
+              className={`flex items-center ${state === 'expanded' ? 'gap-3 px-2' : 'justify-center w-full'}`}
+            >
+              <Building2 className="h-4 w-4" />
+              {state === "expanded" && <span className="text-sm">Empresas</span>}
+            </NavLink>
+          </SidebarMenuButton>
+
           <SidebarMenuButton
             asChild
             isActive={isActive("/settings")}
