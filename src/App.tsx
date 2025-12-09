@@ -9,6 +9,7 @@ import { UpdatePrompt } from "@/components/mobile/UpdatePrompt";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { PageLoadingSkeleton } from "@/components/LoadingFallback";
 import { RequireCompany } from "@/components/RequireCompany";
+import Dashboard from "./pages/Dashboard";
 
 // Lazy load de páginas - carregadas apenas quando necessário
 const Landing = lazy(() => import("./pages/Landing"));
@@ -17,7 +18,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Chat = lazy(() => import("./pages/Chat"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+
 const CRM = lazy(() => import("./pages/CRM"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Templates = lazy(() => import("@/pages/Templates"));
