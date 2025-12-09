@@ -21,18 +21,24 @@ export function CallButton({ contactNumber, contactName }: CallButtonProps) {
         throw new Error('Usuário não autenticado');
       }
 
-      const { data, error } = await supabase.functions.invoke('evolution-initiate-call', {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nmbiuebxhovmwxrbaxsz.supabase.co';
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/evolution-initiate-call`, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        body: {
+        body: JSON.stringify({
           number: contactNumber,
           type: type === 'audio' ? 'voice' : 'video'
-        }
+        })
       });
 
-      if (error) {
-        throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || `Erro ${response.status}: ${response.statusText}`);
       }
 
       toast.success(`Chamada de ${type === 'audio' ? 'voz' : 'vídeo'} iniciada com sucesso`);

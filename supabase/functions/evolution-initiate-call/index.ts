@@ -13,19 +13,25 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    console.log('Auth header received:', authHeader ? 'Yes (length: ' + authHeader.length + ')' : 'No');
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader! },
         },
       }
     );
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    console.log('User result:', user ? 'User found: ' + user.id : 'No user');
+    console.log('User error:', userError ? userError.message : 'None');
+
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      return new Response(JSON.stringify({ error: 'Unauthorized', details: userError?.message }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -36,7 +42,7 @@ serve(async (req) => {
       number: z.string().regex(/^\d{10,15}$/, 'Invalid phone number format'),
       type: z.enum(['voice', 'video']),
     });
-    
+
     const { number, type } = requestSchema.parse(await req.json());
 
     // Usar segredos globais

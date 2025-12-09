@@ -343,24 +343,28 @@ serve(async (req) => {
       // Buscar empresa pela instância
       let companyId: string | null = null;
       let userId: string | null = null;
+      let evolutionApiUrl: string | null = null;
+      let evolutionApiKey: string | null = null;
 
       if (instanceName) {
         const { data: settings } = await supabase
           .from('evolution_settings')
-          .select('user_id, company_id')
+          .select('user_id, company_id, api_url, api_key')
           .eq('instance_name', instanceName)
           .maybeSingle();
 
         if (settings) {
           userId = settings.user_id;
           companyId = settings.company_id;
+          evolutionApiUrl = settings.api_url;
+          evolutionApiKey = settings.api_key;
         }
       }
 
       if (!companyId || !userId) {
         const { data: allSettings } = await supabase
           .from('evolution_settings')
-          .select('user_id, company_id')
+          .select('user_id, company_id, api_url, api_key')
           .limit(1);
 
         if (!allSettings || allSettings.length === 0) {
@@ -369,6 +373,8 @@ serve(async (req) => {
 
         userId = allSettings[0].user_id;
         companyId = allSettings[0].company_id;
+        evolutionApiUrl = allSettings[0].api_url;
+        evolutionApiKey = allSettings[0].api_key;
       }
 
       // Buscar ou criar contato
@@ -383,26 +389,28 @@ serve(async (req) => {
       if (!existingContact) {
         // Buscar foto de perfil da Evolution API
         let profilePicUrl = null;
-        try {
-          const profilePicResponse = await fetch(
-            `${evolutionSettings.api_url}/chat/fetchProfilePictureUrl/${evolutionSettings.instance_name}`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionSettings.api_key,
-              },
-              body: JSON.stringify({ number: fromNumber }),
-            }
-          );
+        if (evolutionApiUrl && evolutionApiKey && instanceName) {
+          try {
+            const profilePicResponse = await fetch(
+              `${evolutionApiUrl}/chat/fetchProfilePictureUrl/${instanceName}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': evolutionApiKey,
+                },
+                body: JSON.stringify({ number: fromNumber }),
+              }
+            );
 
-          if (profilePicResponse.ok) {
-            const profilePicData = await profilePicResponse.json();
-            profilePicUrl = profilePicData.profilePictureUrl || null;
-            console.log('✅ Foto de perfil obtida:', profilePicUrl ? 'SIM' : 'NÃO');
+            if (profilePicResponse.ok) {
+              const profilePicData = await profilePicResponse.json();
+              profilePicUrl = profilePicData.profilePictureUrl || null;
+              console.log('✅ Foto de perfil obtida:', profilePicUrl ? 'SIM' : 'NÃO');
+            }
+          } catch (error) {
+            console.log('⚠️ Erro ao buscar foto de perfil:', error);
           }
-        } catch (error) {
-          console.log('⚠️ Erro ao buscar foto de perfil:', error);
         }
 
         const { data: newContact } = await supabase
@@ -438,18 +446,18 @@ serve(async (req) => {
 
         // Atualizar foto se não existir ou estiver desatualizada (mais de 7 dias)
         const shouldUpdatePhoto = !contact.profile_pic_url ||
-            !contact.profile_pic_updated_at ||
-            (new Date().getTime() - new Date(contact.profile_pic_updated_at).getTime()) > 7 * 24 * 60 * 60 * 1000;
+          !contact.profile_pic_updated_at ||
+          (new Date().getTime() - new Date(contact.profile_pic_updated_at).getTime()) > 7 * 24 * 60 * 60 * 1000;
 
-        if (shouldUpdatePhoto) {
+        if (shouldUpdatePhoto && evolutionApiUrl && evolutionApiKey && instanceName) {
           try {
             const profilePicResponse = await fetch(
-              `${evolutionSettings.api_url}/chat/fetchProfilePictureUrl/${evolutionSettings.instance_name}`,
+              `${evolutionApiUrl}/chat/fetchProfilePictureUrl/${instanceName}`,
               {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'apikey': evolutionSettings.api_key,
+                  'apikey': evolutionApiKey,
                 },
                 body: JSON.stringify({ number: fromNumber }),
               }
@@ -502,9 +510,7 @@ serve(async (req) => {
             contact_id: contact?.id || null,
             contact_name: contact?.name || pushName,
             contact_number: fromNumber,
-            profile_pic_url: contact?.profile_pic_cached_path
-              ? `${supabaseUrl}/storage/v1/object/public/profile-pictures/${contact.profile_pic_cached_path}`
-              : null,
+            profile_pic_url: contact?.profile_pic_url || null,
             last_message: messageContent,
             last_message_time: new Date().toISOString(),
             unread_count: isFromMe ? 0 : 1,
@@ -522,6 +528,11 @@ serve(async (req) => {
           last_message: messageContent,
           last_message_time: new Date().toISOString(),
         };
+
+        // Atualizar foto de perfil se disponível e diferente
+        if (contact?.profile_pic_url && contact.profile_pic_url !== conversations[0].profile_pic_url) {
+          updateData.profile_pic_url = contact.profile_pic_url;
+        }
 
         // Só incrementar unread_count se for mensagem recebida (não enviada por mim)
         if (!isFromMe) {

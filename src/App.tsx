@@ -48,6 +48,8 @@ const ProposalPublic = lazy(() => import("@/pages/ProposalPublic").then(m => ({ 
 const Upgrade = lazy(() => import("./pages/Upgrade"));
 const PilotoPro = lazy(() => import("./pages/PilotoProPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Documents = lazy(() => import("./pages/Documents"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -112,6 +114,8 @@ const App = () => {
                     <Route path="/upgrade" element={<Upgrade />} />
                     <Route path="/piloto-pro" element={<PilotoPro />} />
                     <Route path="/p/:slug" element={<ProposalPublic />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/documents" element={<Documents />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

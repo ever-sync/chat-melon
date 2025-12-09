@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, Send, Info, RotateCcw, Tag, ArrowRightLeft, EyeOff, Bot, Phone, Video } from "lucide-react";
+import { ArrowLeft, Send, Info, RotateCcw, Tag, ArrowRightLeft, EyeOff, Bot } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,8 @@ import ReopenConversationDialog from "./ReopenConversationDialog";
 import TransferDialog from "./TransferDialog";
 import { AudioRecorder } from "./AudioRecorder";
 import { QuickReplies } from "./QuickReplies";
+import { FAQSelector } from "./FAQSelector";
+import { DocumentSelector } from "./DocumentSelector";
 import { AIAssistant } from "./AIAssistant";
 import { MessageStatus } from "./MessageStatus";
 import { useSendPresence } from "@/hooks/useSendPresence";
@@ -25,6 +27,7 @@ import { MessageBubble } from "./MessageBubble";
 import { ChatLegend } from "./ChatLegend";
 import { useSendTextMessage } from "@/hooks/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
+import { CallButton } from "./CallButton";
 
 type Message = {
   id: string;
@@ -388,53 +391,8 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
     }
   };
 
-  const handleVoiceCall = async () => {
-    if (!conversation) {
-      return;
-    }
 
-    toast.info("Chamadas de voz em breve!");
-    /*
-    try {
-      await startCall.mutateAsync({
-        instanceName: currentCompany.evolution_instance_name,
-        data: {
-          number: conversation.contact_number,
-          isVideo: false,
-        },
-      });
 
-      toast.success("Chamada de voz iniciada!");
-    } catch (error) {
-      console.error("Erro ao iniciar chamada:", error);
-      toast.error("Não foi possível iniciar a chamada de voz");
-    }
-    */
-  };
-
-  const handleVideoCall = async () => {
-    if (!conversation) {
-      return;
-    }
-
-    toast.info("Chamadas de vídeo em breve!");
-    /*
-    try {
-      await startCall.mutateAsync({
-        instanceName: currentCompany.evolution_instance_name,
-        data: {
-          number: conversation.contact_number,
-          isVideo: true,
-        },
-      });
-
-      toast.success("Chamada de vídeo iniciada!");
-    } catch (error) {
-      console.error("Erro ao iniciar chamada:", error);
-      toast.error("Não foi possível iniciar a chamada de vídeo");
-    }
-    */
-  };
 
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString("pt-BR", {
@@ -504,6 +462,10 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           >
             <ArrowRightLeft className="w-5 h-5" />
           </Button>
+          <CallButton
+            contactNumber={conversation.contact_number}
+            contactName={conversation.contact_name}
+          />
           <Button
             variant={showInternalNotes ? "default" : "ghost"}
             size="icon"
@@ -576,35 +538,12 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
             </div>
           ) : (
             <>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleVoiceCall}
-                  title="Chamada de voz"
-                  className="rounded-full hover:bg-green-100 dark:hover:bg-green-900"
-                // disabled={!currentCompany?.evolution_instance_name}
-                >
-                  <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleVideoCall}
-                  className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900"
-                // disabled={!currentCompany?.evolution_instance_name}
-                >
-                  <Video className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </Button>
+              <div className="flex items-center gap-1 mb-2">
                 <InteractiveMessageSender
                   conversationId={conversation.id}
                   contactNumber={conversation.contact_number}
                   onMessageSent={loadMessages}
                 />
-              </div>
-              <div className="flex gap-2">
                 <MediaUpload
                   conversationId={conversation.id}
                   contactNumber={conversation.contact_number}
@@ -622,6 +561,16 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                     setSelectedTemplateId(templateId);
                   }}
                 />
+                <FAQSelector
+                  onSelect={(answer) => {
+                    setNewMessage(answer);
+                  }}
+                />
+                <DocumentSelector
+                  onSelect={(link) => {
+                    setNewMessage(prev => prev + (prev ? " " : "") + link);
+                  }}
+                />
                 <Button
                   type="button"
                   size="icon"
@@ -635,6 +584,9 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                 >
                   <EyeOff className="w-5 h-5" />
                 </Button>
+              </div>
+
+              <div className="flex gap-2">
                 <Input
                   value={newMessage}
                   onChange={(e) => {
@@ -684,20 +636,22 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
         />
       </div>
 
-      {showAIAssistant && conversation && (
-        <AIAssistant
-          conversation={conversation}
-          messages={messages}
-          onUseSuggestion={(text) => setNewMessage(text)}
-          onCreateTask={() => {
-            toast.info("Em breve: Criação rápida de tarefa em desenvolvimento");
-          }}
-          onCreateProposal={() => {
-            toast.info("Em breve: Criação rápida de proposta em desenvolvimento");
-          }}
-        />
-      )}
-    </div>
+      {
+        showAIAssistant && conversation && (
+          <AIAssistant
+            conversation={conversation}
+            messages={messages}
+            onUseSuggestion={(text) => setNewMessage(text)}
+            onCreateTask={() => {
+              toast.info("Em breve: Criação rápida de tarefa em desenvolvimento");
+            }}
+            onCreateProposal={() => {
+              toast.info("Em breve: Criação rápida de proposta em desenvolvimento");
+            }}
+          />
+        )
+      }
+    </div >
   );
 };
 

@@ -1,4 +1,4 @@
-import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut, FileText, HelpCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useInsights } from "@/hooks/useInsights";
@@ -73,6 +73,14 @@ const menuItems = [{
   title: "Empresas",
   url: "/companies",
   icon: Building2
+}, {
+  title: "FAQ",
+  url: "/faq",
+  icon: HelpCircle
+}, {
+  title: "Documentos",
+  url: "/documents",
+  icon: FileText
 }];
 
 export function AppSidebar() {

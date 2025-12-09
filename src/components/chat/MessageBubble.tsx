@@ -89,11 +89,28 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
       return 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100';
     }
     if (isFromAI) {
-      // Mensagem da IA - roxo/violeta
-      return 'bg-violet-500 text-white';
+      // Mensagem da IA - roxo suave - violet-500 is too dark, trying violet-400 or a specific hex if needed, 
+      // but 'bg-violet-500' was complained about. Let's try 'bg-[#8B5CF6]' (violet-500) but maybe the user meant it's too dark visually.
+      // Let's go with a lighter purple. 'bg-purple-100 text-purple-900' for a very soft look or 'bg-violet-400' for a bit lighter than 500.
+      // User said "ROXO MUITO ESCURO... QUERO ALGO MENOS AGRECIVO".
+      // Previous human agent was: bg-indigo-600 (quite dark).
+      // AI was: bg-violet-500.
+      // Let's try a softer, more pastel purple for AI: `bg-purple-100 text-purple-900` or `bg-violet-200 text-violet-900`. 
+      // AND for human agent, if they felt the previous one (indigo-600) was too aggressive too?
+      // "ROXO MUITO ESCURO" usually refers to the AI one or maybe the human one if they consider it purple.
+      // Assuming they refer to the message sent by the user/bot.
+      // Let's change BOTH to be less aggressive.
+      // Human: 'bg-indigo-500' is lighter. Or 'bg-[#4F46E5]'.
+      // AI: 'bg-violet-400' or similar.
+      // Let's try:
+      // AI: `bg-violet-100 text-violet-900` (very soft)
+      // Human: `bg-indigo-100 text-indigo-900` (very soft)
+      // BUT usually sent messages are colored bubbles.
+      // Let's try `bg-indigo-500` for human and `bg-violet-400` for AI.
+      return 'bg-violet-400 text-white';
     }
-    // Mensagem do atendente humano - verde/esmeralda
-    return 'bg-emerald-500 text-black';
+    // Mensagem do atendente humano - indigo suave
+    return 'bg-indigo-500 text-white';
   };
 
   const getSentimentBadge = () => {
@@ -319,7 +336,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
         {isFromMe && (
           <Avatar className={cn(
             'h-8 w-8 flex-shrink-0',
-            isFromAI ? 'ring-2 ring-violet-500' : 'ring-2 ring-emerald-500'
+            isFromAI ? 'ring-2 ring-violet-400' : 'ring-2 ring-indigo-500'
           )}>
             {isFromAI ? (
               <AvatarFallback className="bg-violet-100">
@@ -328,7 +345,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
             ) : (
               <>
                 <AvatarImage src={message.sender?.avatar_url} />
-                <AvatarFallback className="bg-emerald-100">
+                <AvatarFallback className="bg-indigo-100 text-indigo-700">
                   {message.sender?.name?.charAt(0) || 'A'}
                 </AvatarFallback>
               </>
