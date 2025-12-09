@@ -13,29 +13,29 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    console.log('Auth header received:', authHeader ? 'Yes (length: ' + authHeader.length + ')' : 'No');
+    // Get auth header
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader! },
-        },
-      }
-    );
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    console.log('User result:', user ? 'User found: ' + user.id : 'No user');
-    console.log('User error:', userError ? userError.message : 'None');
-
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized', details: userError?.message }), {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Missing or invalid Authorization header' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Decode JWT to get user ID (the token was already validated by Supabase infra)
+    const token = authHeader.replace('Bearer ', '');
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.sub;
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'Invalid token - no user ID' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('User ID from JWT:', userId);
 
     // Validate input
     const requestSchema = z.object({
@@ -45,7 +45,29 @@ serve(async (req) => {
 
     const { number, type } = requestSchema.parse(await req.json());
 
-    // Usar segredos globais
+    // Use service role to access database
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Get evolution settings for this user
+    const { data: settings, error: settingsError } = await supabase
+      .from('evolution_settings')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!settings || settingsError) {
+      console.log('Settings error:', settingsError?.message);
+      throw new Error('Evolution API não configurado para este usuário');
+    }
+
+    if (!settings.is_connected) {
+      throw new Error('Instância Evolution API não está conectada');
+    }
+
+    // Use env vars for Evolution API
     const apiUrl = Deno.env.get('EVOLUTION_API_URL');
     const apiKey = Deno.env.get('EVOLUTION_API_KEY');
 
@@ -53,20 +75,7 @@ serve(async (req) => {
       throw new Error('Evolution API não configurada no backend');
     }
 
-    // Get evolution settings
-    const { data: settings, error: settingsError } = await supabase
-      .from('evolution_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!settings || settingsError) {
-      throw new Error('Evolution API não configurado');
-    }
-
-    if (!settings.is_connected) {
-      throw new Error('Instância Evolution API não está conectada');
-    }
+    console.log('Calling Evolution API:', `${apiUrl}/call/offer/${settings.instance_name}`);
 
     // Call Evolution API to initiate call
     const response = await fetch(

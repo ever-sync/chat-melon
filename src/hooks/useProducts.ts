@@ -12,6 +12,8 @@ export interface Product {
   cost: number | null;
   sku: string | null;
   category: string | null;
+  category_id: string | null;
+  custom_field_values: Record<string, any> | null;
   images: string[] | null;
   is_active: boolean | null;
   company_id: string;
@@ -21,7 +23,7 @@ export const useProducts = () => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, refetch } = useQuery({
     queryKey: ["products", companyId],
     queryFn: async () => {
       if (!companyId) return [];
@@ -107,6 +109,7 @@ export const useProducts = () => {
   return {
     products,
     isLoading,
+    refetch,
     createProduct: createProduct.mutate,
     updateProduct: updateProduct.mutate,
     deleteProduct: deleteProduct.mutate,

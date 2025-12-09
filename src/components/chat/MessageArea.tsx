@@ -20,6 +20,7 @@ import { QuickReplies } from "./QuickReplies";
 import { FAQSelector } from "./FAQSelector";
 import { DocumentSelector } from "./DocumentSelector";
 import { AIAssistant } from "./AIAssistant";
+import { ProductSelector } from "./ProductSelector";
 import { MessageStatus } from "./MessageStatus";
 import { useSendPresence } from "@/hooks/useSendPresence";
 import { useMarkAsRead } from "@/hooks/useMarkAsRead";
@@ -27,7 +28,6 @@ import { MessageBubble } from "./MessageBubble";
 import { ChatLegend } from "./ChatLegend";
 import { useSendTextMessage } from "@/hooks/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
-import { CallButton } from "./CallButton";
 
 type Message = {
   id: string;
@@ -462,10 +462,6 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           >
             <ArrowRightLeft className="w-5 h-5" />
           </Button>
-          <CallButton
-            contactNumber={conversation.contact_number}
-            contactName={conversation.contact_name}
-          />
           <Button
             variant={showInternalNotes ? "default" : "ghost"}
             size="icon"
@@ -569,6 +565,11 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                 <DocumentSelector
                   onSelect={(link) => {
                     setNewMessage(prev => prev + (prev ? " " : "") + link);
+                  }}
+                />
+                <ProductSelector
+                  onProductSelect={(message) => {
+                    setNewMessage(message);
                   }}
                 />
                 <Button

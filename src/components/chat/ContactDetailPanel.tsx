@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { 
-  X, Phone, Ban, Archive, Copy, ChevronDown, ChevronRight, 
+import {
+  X, Ban, Archive, Copy, ChevronDown, ChevronRight,
   Plus, Check, Pencil, Save, FileText, Image, FileAudio,
   DollarSign, CheckSquare, Mail
 } from "lucide-react";
@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { LabelBadge } from "./LabelBadge";
 import { LabelsManager } from "./LabelsManager";
 import { EmailComposer } from "@/components/crm/EmailComposer";
-import { CallButton } from "./CallButton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -81,7 +80,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .select("*")
         .eq("id", conversation.contact_id)
         .single();
-      
+
       if (error) throw error;
       setContactData(data);
     } catch (error) {
@@ -91,7 +90,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const loadDeals = async () => {
     if (!currentCompany?.id || !conversation.contact_id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("deals")
@@ -102,7 +101,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .eq("company_id", currentCompany.id)
         .eq("contact_id", conversation.contact_id)
         .order("created_at", { ascending: false });
-      
+
       if (error) throw error;
       setDeals(data || []);
     } catch (error) {
@@ -112,7 +111,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const loadTasks = async () => {
     if (!currentCompany?.id || !conversation.contact_id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("tasks")
@@ -121,7 +120,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .eq("contact_id", conversation.contact_id)
         .eq("status", "pending")
         .order("due_date", { ascending: true });
-      
+
       if (error) throw error;
       setTasks(data || []);
     } catch (error) {
@@ -131,7 +130,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const loadNotes = async () => {
     if (!currentCompany?.id || !conversation.contact_id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("contact_notes")
@@ -142,7 +141,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .eq("company_id", currentCompany.id)
         .eq("contact_id", conversation.contact_id)
         .order("created_at", { ascending: false });
-      
+
       if (error) throw error;
       setNotes(data || []);
     } catch (error) {
@@ -152,7 +151,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const loadMediaFiles = async () => {
     if (!currentCompany?.id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("messages")
@@ -161,7 +160,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .not("media_url", "is", null)
         .order("timestamp", { ascending: false })
         .limit(50);
-      
+
       if (error) throw error;
       setMediaFiles(data || []);
     } catch (error) {
@@ -171,7 +170,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const loadStats = async () => {
     if (!currentCompany?.id || !conversation.contact_id) return;
-    
+
     try {
       // Primeira mensagem
       const { data: firstMsg } = await supabase
@@ -181,14 +180,14 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .order("timestamp", { ascending: true })
         .limit(1)
         .single();
-      
+
       // Total de conversas
       const { count } = await supabase
         .from("conversations")
         .select("*", { count: "exact", head: true })
         .eq("company_id", currentCompany.id)
         .eq("contact_id", conversation.contact_id);
-      
+
       // Total gasto (deals ganhos)
       const { data: wonDeals } = await supabase
         .from("deals")
@@ -196,9 +195,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .eq("company_id", currentCompany.id)
         .eq("contact_id", conversation.contact_id)
         .eq("status", "won");
-      
+
       const totalSpent = wonDeals?.reduce((sum, deal) => sum + (deal.value || 0), 0) || 0;
-      
+
       setStats({
         firstMessage: firstMsg?.timestamp || null,
         totalConversations: count || 0,
@@ -217,7 +216,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           labels(id, name, color, icon)
         `)
         .eq("conversation_id", conversation.id);
-      
+
       if (error) throw error;
       setLabels(data?.map((item: any) => item.labels) || []);
     } catch (error) {
@@ -232,18 +231,18 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const handleUpdateContact = async (field: string, value: string) => {
     if (!contactData) return;
-    
+
     try {
       const { error } = await supabase
         .from("contacts")
         .update({ [field]: value })
         .eq("id", conversation.contact_id);
-      
+
       if (error) throw error;
-      
+
       setContactData({ ...contactData, [field]: value });
       toast.success("Contato atualizado!");
-      
+
       if (field === "name") {
         setIsEditingName(false);
         onConversationUpdated();
@@ -256,11 +255,11 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const handleAddNote = async () => {
     if (!newNote.trim() || !currentCompany?.id || !conversation.contact_id) return;
-    
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      
+
       const { error } = await supabase
         .from("contact_notes")
         .insert({
@@ -269,9 +268,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           company_id: currentCompany.id,
           note: newNote
         });
-      
+
       if (error) throw error;
-      
+
       setNewNote("");
       loadNotes();
       toast.success("Nota adicionada!");
@@ -285,14 +284,14 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
     try {
       const { error } = await supabase
         .from("tasks")
-        .update({ 
+        .update({
           status: "completed",
           completed_at: new Date().toISOString()
         })
         .eq("id", taskId);
-      
+
       if (error) throw error;
-      
+
       loadTasks();
       toast.success("Tarefa concluída!");
     } catch (error) {
@@ -305,7 +304,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !currentCompany?.id) return;
-      
+
       const { error } = await supabase
         .from("blocked_contacts")
         .insert({
@@ -314,9 +313,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           blocked_number: conversation.contact_number,
           reason: "Bloqueado via painel de detalhes"
         });
-      
+
       if (error) throw error;
-      
+
       toast.success("Contato bloqueado!");
       onClose();
     } catch (error) {
@@ -331,9 +330,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         .from("conversations")
         .update({ status: "closed" })
         .eq("id", conversation.id);
-      
+
       if (error) throw error;
-      
+
       toast.success("Conversa arquivada!");
       onConversationUpdated();
       onClose();
@@ -469,14 +468,10 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           <Separator />
 
           {/* 🎯 Ações Rápidas */}
-          <div className="grid grid-cols-4 gap-2">
-            <CallButton 
-              contactNumber={conversation.contact_number}
-              contactName={conversation.contact_name}
-            />
-            <Button 
-              variant="outline" 
-              size="sm" 
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
               className="flex-col h-auto py-2"
               onClick={() => setShowEmailComposer(true)}
               disabled={!contactData?.enrichment_data?.email}
@@ -484,18 +479,18 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
               <Mail className="w-4 h-4 mb-1" />
               <span className="text-xs">Email</span>
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="flex-col h-auto py-2 text-destructive hover:text-destructive"
               onClick={handleBlockContact}
             >
               <Ban className="w-4 h-4 mb-1" />
               <span className="text-xs">Bloquear</span>
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="flex-col h-auto py-2"
               onClick={handleArchiveConversation}
             >
@@ -512,12 +507,12 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-sm">Dados da Empresa</h4>
-                  <Badge 
-                    variant={contactData.enrichment_status === "enriched" ? "default" : 
-                            contactData.enrichment_status === "pending" ? "secondary" : "outline"}
+                  <Badge
+                    variant={contactData.enrichment_status === "enriched" ? "default" :
+                      contactData.enrichment_status === "pending" ? "secondary" : "outline"}
                   >
                     {contactData.enrichment_status === "enriched" ? "✅ Enriquecido" :
-                     contactData.enrichment_status === "pending" ? "⏳ Pendente" : "❌ Não encontrado"}
+                      contactData.enrichment_status === "pending" ? "⏳ Pendente" : "❌ Não encontrado"}
                   </Badge>
                 </div>
 
@@ -540,7 +535,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                     {contactData.company_data.situacao_cadastral && (
                       <div>
                         <span className="text-muted-foreground">Situação:</span>
-                        <Badge 
+                        <Badge
                           variant={contactData.company_data.situacao_cadastral === "ATIVA" ? "default" : "destructive"}
                           className="ml-2"
                         >
@@ -563,9 +558,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                   </div>
                 )}
 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="w-full"
                   onClick={async () => {
                     try {
