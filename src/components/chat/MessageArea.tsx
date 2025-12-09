@@ -249,7 +249,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
     try {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, content, is_from_me, timestamp, status, media_url, media_type, message_type, edited_at, deleted_at, delivered_at, read_at, played_at, external_id, poll_data, list_data, location_data, contact_data, reaction")
+        .select("id, content, is_from_me, is_from_ai, ai_model, ai_confidence, ai_intent_detected, ai_sentiment, timestamp, status, media_url, media_type, message_type, edited_at, deleted_at, delivered_at, read_at, played_at, external_id, poll_data, list_data, location_data, contact_data, reaction")
         .eq("conversation_id", conversation.id)
         .is("deleted_at", null)
         .order("timestamp", { ascending: true });
