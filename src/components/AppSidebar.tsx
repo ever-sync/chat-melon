@@ -1,4 +1,4 @@
-import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut, FileText, HelpCircle } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut, FileText, HelpCircle, User, Briefcase, Star, Heart, ShoppingBag } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useInsights } from "@/hooks/useInsights";
@@ -8,68 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-const menuItems = [{
-  title: "Dashboard",
-  url: "/dashboard",
-  icon: LayoutDashboard
-}, {
-  title: "Conversas",
-  url: "/chat",
-  icon: MessageSquare
-}, {
-  title: "Grupos",
-  url: "/groups",
-  icon: UsersRound,
-  featureKey: "groups"
-}, {
-  title: "CRM",
-  url: "/crm",
-  icon: Users
-}, {
-  title: "Propostas",
-  url: "/proposals",
-  icon: FileBarChart,
-  featureKey: "proposals"
-}, {
-  title: "Automações",
-  url: "/automation",
-  icon: Zap,
-  featureKey: "automation"
-}, {
-  title: "Campanhas",
-  url: "/campaigns",
-  icon: Send,
-  featureKey: "campaigns"
-}, {
-  title: "Contatos",
-  url: "/contacts",
-  icon: Contact
-
-
-}, {
-  title: "Produtos",
-  url: "/products",
-  icon: Package,
-  featureKey: "products"
-}, {
-  title: "Relatórios",
-  url: "/reports",
-  icon: BarChart3
-}, {
-  title: "Gamificação",
-  url: "/gamification",
-  icon: Trophy,
-  featureKey: "gamification"
-}, {
-  title: "FAQ",
-  url: "/faq",
-  icon: HelpCircle
-}, {
-  title: "Documentos",
-  url: "/documents",
-  icon: FileText
-}];
+import { useContactSettings } from "@/hooks/useContactSettings";
+import { useProductSettings } from "@/hooks/useProductSettings";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -79,6 +19,82 @@ export function AppSidebar() {
   const { unreadCount } = useInsights();
   const { isPlatformAdmin } = usePlatformAdmin();
   const { isFeatureEnabled } = useFeatureFlags();
+
+  const { settings: contactSettings } = useContactSettings();
+  const { settings: productSettings } = useProductSettings();
+
+  const getIcon = (iconName: string, DefaultIcon: any) => {
+    switch (iconName) {
+      case 'User': return User;
+      case 'Briefcase': return Briefcase;
+      case 'Star': return Star;
+      case 'Heart': return Heart;
+      case 'Zap': return Zap;
+      case 'ShoppingBag': return ShoppingBag;
+      case 'Package': return Package;
+      default: return DefaultIcon;
+    }
+  };
+
+  const menuItems = [{
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard
+  }, {
+    title: "Conversas",
+    url: "/chat",
+    icon: MessageSquare
+  }, {
+    title: "Grupos",
+    url: "/groups",
+    icon: UsersRound,
+    featureKey: "groups"
+  }, {
+    title: "CRM",
+    url: "/crm",
+    icon: Users
+  }, {
+    title: "Propostas",
+    url: "/proposals",
+    icon: FileBarChart,
+    featureKey: "proposals"
+  }, {
+    title: "Automações",
+    url: "/automation",
+    icon: Zap,
+    featureKey: "automation"
+  }, {
+    title: "Campanhas",
+    url: "/campaigns",
+    icon: Send,
+    featureKey: "campaigns"
+  }, {
+    title: contactSettings?.entity_name_plural || "Contatos",
+    url: "/contacts",
+    icon: contactSettings?.entity_icon ? getIcon(contactSettings.entity_icon, Contact) : Contact
+  }, {
+    title: productSettings?.entity_name_plural || "Produtos",
+    url: "/products",
+    icon: productSettings?.entity_icon ? getIcon(productSettings.entity_icon, Package) : Package,
+    featureKey: "products"
+  }, {
+    title: "Relatórios",
+    url: "/reports",
+    icon: BarChart3
+  }, {
+    title: "Gamificação",
+    url: "/gamification",
+    icon: Trophy,
+    featureKey: "gamification"
+  }, {
+    title: "FAQ",
+    url: "/faq",
+    icon: HelpCircle
+  }, {
+    title: "Documentos",
+    url: "/documents",
+    icon: FileText
+  }];
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -118,7 +134,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
               {visibleMenuItems.map(item => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     asChild
                     isActive={isActive(item.url)}

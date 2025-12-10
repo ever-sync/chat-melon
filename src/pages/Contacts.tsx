@@ -253,7 +253,7 @@ export default function Contacts() {
         name: contact.name || "",
         phone_number: contact.phone_number || "",
         company_cnpj: contact.company_cnpj || "",
-        category_id: contact.category_id || "",
+        category_id: (contact as any).category_id || "",
       });
     } else {
       setEditingContact(null);
@@ -490,8 +490,8 @@ export default function Contacts() {
                                     score={contact.lead_score || 0}
                                     breakdown={contact.score_breakdown as Record<string, number>}
                                   />
-                                  {contact.category_id && (() => {
-                                    const cat = categories.find(c => c.id === contact.category_id);
+                                  {(contact as any).category_id && (() => {
+                                    const cat = categories.find(c => c.id === (contact as any).category_id);
                                     if (cat) return (
                                       <Badge style={{ backgroundColor: cat.color, color: 'white' }}>{cat.name}</Badge>
                                     );
