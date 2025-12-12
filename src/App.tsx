@@ -50,6 +50,8 @@ const PilotoPro = lazy(() => import("./pages/PilotoProPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Documents = lazy(() => import("./pages/Documents"));
+const APIDocumentation = lazy(() => import("./pages/APIDocumentation"));
+const WebhooksSettings = lazy(() => import("./pages/WebhooksSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -116,6 +118,8 @@ const App = () => {
                     <Route path="/p/:slug" element={<ProposalPublic />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/documents" element={<Documents />} />
+                    <Route path="/docs/api" element={<APIDocumentation />} />
+                    <Route path="/settings/webhooks" element={<WebhooksSettings />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

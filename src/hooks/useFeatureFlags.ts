@@ -3,16 +3,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/contexts/CompanyContext";
 
 export type FeatureKey =
+  | "chat"
+  | "quick_replies"
+  | "queues"
+  | "products"
+  | "contacts"
+  | "deals_pipeline"
+  | "custom_fields"
   | "proposals"
-  | "gamification"
+  | "faq"
+  | "workflows"
   | "campaigns"
+  | "chatbot"
+  | "reports_basic"
+  | "reports_advanced"
+  | "team_performance"
+  | "api_public"
+  | "webhooks"
+  | "multi_company"
+  | "white_label"
+  | "gamification"
+  | "groups"
   | "automation"
   | "segments"
   | "duplicates"
-  | "groups"
   | "ai_assistant"
-  | "reports_advanced"
-  | "products";
+  | "documents";
+
 
 interface PlatformFeature {
   id: string;
@@ -66,12 +83,12 @@ export const useFeatureFlags = () => {
 
       // 5. Filtrar features: deve estar global_enabled E habilitada no plano
       const enabledFeatureIds = new Set(
-        planFeatures
+        (planFeatures as { feature_id: string; is_enabled: boolean }[])
           .filter((pf) => pf.is_enabled)
           .map((pf) => pf.feature_id)
       );
 
-      const filteredFeatures = allFeatures.filter((feature) =>
+      const filteredFeatures = allFeatures.filter((feature: any) =>
         enabledFeatureIds.has(feature.id)
       );
 
@@ -83,7 +100,7 @@ export const useFeatureFlags = () => {
   });
 
   const isFeatureEnabled = (featureKey: FeatureKey): boolean => {
-    return features.some((f) => f.feature_key === featureKey);
+    return features.some((f: any) => f.feature_key === featureKey);
   };
 
   return {

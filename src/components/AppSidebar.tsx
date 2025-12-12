@@ -18,7 +18,7 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const { unreadCount } = useInsights();
   const { isPlatformAdmin } = usePlatformAdmin();
-  const { isFeatureEnabled } = useFeatureFlags();
+  const { isFeatureEnabled, features } = useFeatureFlags();
 
   const { settings: contactSettings } = useContactSettings();
   const { settings: productSettings } = useProductSettings();
@@ -43,7 +43,8 @@ export function AppSidebar() {
   }, {
     title: "Conversas",
     url: "/chat",
-    icon: MessageSquare
+    icon: MessageSquare,
+    featureKey: "chat"
   }, {
     title: "Grupos",
     url: "/groups",
@@ -52,7 +53,8 @@ export function AppSidebar() {
   }, {
     title: "CRM",
     url: "/crm",
-    icon: Users
+    icon: Users,
+    featureKey: "deals_pipeline"
   }, {
     title: "Propostas",
     url: "/proposals",
@@ -62,7 +64,7 @@ export function AppSidebar() {
     title: "Automações",
     url: "/automation",
     icon: Zap,
-    featureKey: "automation"
+    featureKey: "workflows"
   }, {
     title: "Campanhas",
     url: "/campaigns",
@@ -71,7 +73,8 @@ export function AppSidebar() {
   }, {
     title: contactSettings?.entity_name_plural || "Contatos",
     url: "/contacts",
-    icon: contactSettings?.entity_icon ? getIcon(contactSettings.entity_icon, Contact) : Contact
+    icon: contactSettings?.entity_icon ? getIcon(contactSettings.entity_icon, Contact) : Contact,
+    featureKey: "contacts"
   }, {
     title: productSettings?.entity_name_plural || "Produtos",
     url: "/products",
@@ -80,7 +83,8 @@ export function AppSidebar() {
   }, {
     title: "Relatórios",
     url: "/reports",
-    icon: BarChart3
+    icon: BarChart3,
+    featureKey: "reports_basic"
   }, {
     title: "Gamificação",
     url: "/gamification",
@@ -89,11 +93,13 @@ export function AppSidebar() {
   }, {
     title: "FAQ",
     url: "/faq",
-    icon: HelpCircle
+    icon: HelpCircle,
+    featureKey: "faq"
   }, {
     title: "Documentos",
     url: "/documents",
-    icon: FileText
+    icon: FileText,
+    featureKey: "documents"
   }];
 
   const handleLogout = async () => {
@@ -104,8 +110,16 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + '/');
 
+  // Show all items if features are still loading or not configured
+  // Only hide items if the feature is explicitly disabled
   const visibleMenuItems = menuItems.filter((item) => {
+    // Items without a feature key are always visible
     if (!item.featureKey) return true;
+
+    // If no features loaded yet, show all items by default
+    if (features.length === 0) return true;
+
+    // Check if this specific feature is enabled
     return isFeatureEnabled(item.featureKey as any);
   });
 
