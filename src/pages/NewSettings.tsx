@@ -27,9 +27,10 @@ import { TranscriptionSettings } from "@/components/settings/TranscriptionSettin
 import { WidgetSettings } from "@/components/settings/WidgetSettings";
 import { ApiKeyManager } from "@/components/settings/ApiKeyManager";
 import { WebhookManager } from "@/components/settings/WebhookManager";
+import { ChannelsSettings } from "@/components/settings/ChannelsSettings";
 import UsersPage from "@/pages/settings/UsersPage";
 import AISettingsPage from "@/pages/settings/AISettingsPage";
-import { Copy, Smartphone, Bot, Users, FileAudio, MessageCircle, Key, Webhook } from "lucide-react";
+import { Copy, Smartphone, Bot, Users, FileAudio, MessageCircle, Key, Webhook, Share2 } from "lucide-react";
 
 export default function NewSettings() {
   const { currentCompany } = useCompany();
@@ -111,31 +112,38 @@ export default function NewSettings() {
         <Tabs defaultValue="profile" className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           <div className="space-y-2">
             <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1">
-              <TabsTrigger 
-                value="profile" 
+              <TabsTrigger
+                value="profile"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Perfil
               </TabsTrigger>
-              <TabsTrigger 
-                value="company" 
+              <TabsTrigger
+                value="company"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Empresa
               </TabsTrigger>
-              <TabsTrigger 
-                value="users" 
+              <TabsTrigger
+                value="users"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 <Users className="h-4 w-4 mr-2" />
                 Usuários
               </TabsTrigger>
-              <TabsTrigger 
-                value="ai" 
+              <TabsTrigger
+                value="ai"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 <Bot className="h-4 w-4 mr-2" />
                 Assistente de IA
+              </TabsTrigger>
+              <TabsTrigger
+                value="channels"
+                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Canais de Comunicação
               </TabsTrigger>
               <TabsTrigger
                 value="evolution"
@@ -143,51 +151,51 @@ export default function NewSettings() {
               >
                 Instância WhatsApp
               </TabsTrigger>
-              <TabsTrigger 
-                value="health" 
+              <TabsTrigger
+                value="health"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Saúde do Sistema
               </TabsTrigger>
-              <TabsTrigger 
-                value="calendar" 
+              <TabsTrigger
+                value="calendar"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Google Calendar
               </TabsTrigger>
-              <TabsTrigger 
-                value="email" 
+              <TabsTrigger
+                value="email"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Configurações de Email
               </TabsTrigger>
-              <TabsTrigger 
-                value="pwa" 
+              <TabsTrigger
+                value="pwa"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 <Smartphone className="h-4 w-4 mr-2" />
                 PWA & Mobile
               </TabsTrigger>
-              <TabsTrigger 
-                value="privacy" 
+              <TabsTrigger
+                value="privacy"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Privacidade
               </TabsTrigger>
-              <TabsTrigger 
-                value="blocked" 
+              <TabsTrigger
+                value="blocked"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Contatos Bloqueados
               </TabsTrigger>
-              <TabsTrigger 
-                value="custom-fields" 
+              <TabsTrigger
+                value="custom-fields"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Campos Personalizados
               </TabsTrigger>
-              <TabsTrigger 
-                value="satisfaction" 
+              <TabsTrigger
+                value="satisfaction"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 CSAT/NPS
@@ -338,6 +346,10 @@ export default function NewSettings() {
 
             <TabsContent value="ai" className="m-0">
               <AISettingsPage embedded={true} />
+            </TabsContent>
+
+            <TabsContent value="channels" className="m-0">
+              <ChannelsSettings />
             </TabsContent>
 
             <TabsContent value="evolution" className="m-0">

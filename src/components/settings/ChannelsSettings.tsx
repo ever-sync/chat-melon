@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -41,6 +42,8 @@ import {
   Plug,
   Unplug,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
 import { useChannels, useChannelHealth } from '@/hooks/useChannels';
 import { ChannelIcon, getChannelLabel } from '@/components/chat/ChannelIcon';
 import type { Channel, ChannelType, ChannelStatus, CHANNEL_INFO } from '@/types/channels';
@@ -56,6 +59,7 @@ export const ChannelsSettings = () => {
     deleteChannel,
     connectChannel,
     disconnectChannel,
+    refetch,
   } = useChannels();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -231,6 +235,11 @@ export const ChannelsSettings = () => {
         channelType={selectedType}
         onSubmit={async (data) => {
           await createChannel.mutateAsync(data);
+          setShowAddDialog(false);
+          setSelectedType(null);
+        }}
+        onChannelConnected={() => {
+          refetch();
           setShowAddDialog(false);
           setSelectedType(null);
         }}
@@ -421,7 +430,8 @@ interface AddChannelDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   channelType: ChannelType | null;
-  onSubmit: (data: { type: ChannelType; name: string; credentials: Record<string, unknown> }) => Promise<void>;
+  onSubmit: (data: { type: ChannelType; name: string; credentials: any }) => Promise<void>;
+  onChannelConnected: () => void;
   isLoading: boolean;
 }
 
@@ -430,8 +440,10 @@ const AddChannelDialog = ({
   onOpenChange,
   channelType,
   onSubmit,
+  onChannelConnected,
   isLoading,
 }: AddChannelDialogProps) => {
+  const { currentCompany } = useCompany();
   const [name, setName] = useState('');
   const [credentials, setCredentials] = useState<Record<string, string>>({});
 
@@ -441,7 +453,7 @@ const AddChannelDialog = ({
     await onSubmit({
       type: channelType,
       name,
-      credentials,
+      credentials: credentials as any,
     });
 
     setName('');
@@ -460,9 +472,41 @@ const AddChannelDialog = ({
               Para conectar o {getChannelLabel(channelType)}, você precisa autorizar
               o acesso através do Facebook.
             </p>
-            <Button className="w-full" onClick={() => {
-              // TODO: Initiate OAuth flow
-              window.open('/api/oauth/facebook', '_blank');
+            <Button className="w-full" onClick={async () => {
+              try {
+                const { data, error } = await supabase.functions.invoke('meta-oauth', {
+                  body: { action: 'get_auth_url', companyId: currentCompany?.id }
+                });
+
+                if (error) throw error;
+                if (data?.authUrl) {
+                  const width = 600;
+                  const height = 700;
+                  const left = window.screen.width / 2 - width / 2;
+                  const top = window.screen.height / 2 - height / 2;
+
+                  const popup = window.open(
+                    data.authUrl,
+                    'Connect With Meta',
+                    `width=${width},height=${height},left=${left},top=${top}`
+                  );
+
+                  const handleMessage = (event: MessageEvent) => {
+                    if (event.data?.type === 'oauth-success' && event.data?.provider === 'meta') {
+                      toast.success('Conectado com sucesso!');
+                      popup?.close();
+                      window.removeEventListener('message', handleMessage);
+                      // Trigger refresh and close dialog
+                      onChannelConnected();
+                    }
+                  };
+
+                  window.addEventListener('message', handleMessage);
+                }
+              } catch (error) {
+                console.error('Meta OAuth Error:', error);
+                toast.error('Erro ao iniciar conexão');
+              }
             }}>
               <ExternalLink className="h-4 w-4 mr-2" />
               Conectar com Facebook

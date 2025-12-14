@@ -113,3 +113,15 @@ verify_jwt = false
 
 [functions.send-welcome-email]
 verify_jwt = false
+
+[functions.meta-webhook]
+verify_jwt = false
+
+[functions.meta-oauth]
+verify_jwt = false
+
+[functions.privacy-policy]
+verify_jwt = false
+
+[functions.terms-of-service]
+verify_jwt = false

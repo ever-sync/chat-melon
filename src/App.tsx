@@ -52,6 +52,8 @@ const FAQ = lazy(() => import("./pages/FAQ"));
 const Documents = lazy(() => import("./pages/Documents"));
 const APIDocumentation = lazy(() => import("./pages/APIDocumentation"));
 const WebhooksSettings = lazy(() => import("./pages/WebhooksSettings"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -120,6 +122,8 @@ const App = () => {
                     <Route path="/documents" element={<Documents />} />
                     <Route path="/docs/api" element={<APIDocumentation />} />
                     <Route path="/settings/webhooks" element={<WebhooksSettings />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

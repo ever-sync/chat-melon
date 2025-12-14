@@ -23,10 +23,10 @@ Deno.serve(async (req) => {
 
         console.log('📨 Recebido pedido para enviar mensagem:', { conversationId, messageType });
 
-        // Buscar dados da conversa
+        // Buscar dados da conversa com informações do canal
         const { data: conversation, error: convError } = await supabase
             .from('conversations')
-            .select('contact_number, company_id')
+            .select('contact_number, company_id, channel_id, channel_type')
             .eq('id', conversationId)
             .single();
 
@@ -37,73 +37,147 @@ Deno.serve(async (req) => {
             throw new Error('Conversa não encontrada');
         }
 
-        // Buscar nome da instância na tabela evolution_settings
-        const { data: settings } = await supabase
-            .from('evolution_settings')
-            .select('instance_name')
-            .eq('company_id', conversation.company_id)
-            .single();
+        const { channel_type, contact_number: recipientId } = conversation;
 
-        const instanceName = settings?.instance_name;
-        console.log('🏢 Nome da instância (evolution_settings):', instanceName);
+        // ==========================================
+        // ROUTING LOGIC
+        // ==========================================
 
-        if (!instanceName) {
-            console.error('❌ Instância Evolution não configurada');
-            throw new Error('Instância Evolution não configurada para esta empresa');
+        // 1. WhatsApp (via Evolution API)
+        if (!channel_type || channel_type === 'whatsapp') {
+            // Buscar dados da instância (compatibilidade com tabela antiga evolution_settings ou nova channels)
+            let instanceName;
+            let evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY')!; // Default env key
+
+            // Tenta buscar no channels primeiro (novo modelo)
+            if (conversation.channel_id) {
+                const { data: channel } = await supabase
+                    .from('channels')
+                    .select('credentials')
+                    .eq('id', conversation.channel_id)
+                    .single();
+                if (channel?.credentials?.instance_name) {
+                    instanceName = channel.credentials.instance_name;
+                    // Se tiver api_key especifica no canal, use-a
+                    if (channel.credentials.api_key) evolutionApiKey = channel.credentials.api_key;
+                }
+            }
+
+            // Fallback para evolution_settings (modelo antigo)
+            if (!instanceName) {
+                const { data: settings } = await supabase
+                    .from('evolution_settings')
+                    .select('instance_name')
+                    .eq('company_id', conversation.company_id)
+                    .single();
+                instanceName = settings?.instance_name;
+            }
+
+            if (!instanceName) {
+                throw new Error('Instância WhatsApp não configurada');
+            }
+
+            let endpoint = '/message/sendText/';
+            let body: any = { number: recipientId };
+
+            switch (messageType) {
+                case 'text':
+                    endpoint = '/message/sendText/';
+                    body.text = content;
+                    break;
+                case 'media':
+                    endpoint = '/message/sendMedia/';
+                    body.mediatype = fileType;
+                    body.media = media;
+                    body.caption = caption;
+                    body.fileName = content;
+                    break;
+                case 'audio':
+                    endpoint = '/message/sendWhatsAppAudio/';
+                    body.audio = audio;
+                    break;
+                default:
+                    throw new Error(`Tipo de mensagem não suportado para WhatsApp`);
+            }
+
+            const response = await fetch(`${Deno.env.get('EVOLUTION_API_URL')!}${endpoint}${instanceName}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Evolution API error: ${errorText}`);
+            }
+            return new Response(JSON.stringify({ success: true, data: await response.json() }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
 
-        const phone = conversation.contact_number;
-        let endpoint = '/message/sendText/';
-        let body: any = { number: phone };
+        // 2. Meta (Instagram / Messenger)
+        if (channel_type === 'instagram' || channel_type === 'messenger') {
+            if (!content && messageType === 'text') throw new Error('Conteúdo da mensagem vazio');
 
-        switch (messageType) {
-            case 'text':
-                endpoint = '/message/sendText/';
-                body.text = content;
-                break;
-            case 'media':
-                endpoint = '/message/sendMedia/';
-                body.mediatype = fileType; // image, video, document
-                body.media = media; // base64
-                body.caption = caption;
-                body.fileName = content; // Usando content como nome do arquivo se disponível
-                break;
-            case 'audio':
-                endpoint = '/message/sendWhatsAppAudio/';
-                body.audio = audio; // base64
-                break;
-            default:
-                throw new Error(`Tipo de mensagem não suportado: ${messageType}`);
+            // Buscar credenciais do canal
+            const { data: channel } = await supabase
+                .from('channels')
+                .select('credentials')
+                .eq('id', conversation.channel_id)
+                .single();
+
+            if (!channel?.credentials?.page_access_token) {
+                throw new Error(`Credenciais do canal ${channel_type} não encontradas`);
+            }
+
+            const accessToken = channel.credentials.page_access_token;
+            const graphUrl = `https://graph.facebook.com/v18.0/me/messages?access_token=${accessToken}`;
+
+            let body: any = {
+                recipient: { id: recipientId },
+                messaging_type: 'RESPONSE'
+            };
+
+            if (messageType === 'text') {
+                body.message = { text: content };
+            } else if (messageType === 'media' && media) {
+                // Upload media logic is complex for Meta (requires attachment_id or URL). 
+                // Assuming URL is passed in 'media' if it's not base64, or simplified attachment flow.
+                // For now, text only support or simplified URL attachment.
+                if (media.startsWith('http')) {
+                    // It's a URL
+                    const type = fileType === 'image' ? 'image' : 'file';
+                    body.message = {
+                        attachment: {
+                            type: type,
+                            payload: { url: media, is_reusable: true }
+                        }
+                    };
+                } else {
+                    throw new Error('Envio de mídia BLOB/Base64 para Meta não implementado neste endpoint (use URL)');
+                }
+            }
+
+            const response = await fetch(graphUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            const result = await response.json();
+            if (result.error) {
+                throw new Error(`Meta API Error: ${result.error.message}`);
+            }
+
+            return new Response(JSON.stringify({ success: true, data: result }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
 
-        // Enviar mensagem via Evolution API
-        const response = await fetch(`${evolutionApiUrl}${endpoint}${instanceName}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionApiKey,
-            },
-            body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Evolution API error: ${errorText}`);
-        }
-
-        const result = await response.json();
-
-        return new Response(
-            JSON.stringify({ success: true, data: result }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        throw new Error(`Canal não suportado: ${channel_type}`);
 
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
         return new Response(
             JSON.stringify({ success: false, error: (error as Error).message }),
             {
-                status: 200, // Return 200 so the client can parse the error message
+                status: 200,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             }
         );

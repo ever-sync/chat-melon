@@ -17,6 +17,7 @@ import { useState, useEffect, useCallback, ReactNode } from "react";
 import { LabelBadge } from "./LabelBadge";
 import { SatisfactionBadge } from "./SatisfactionBadge";
 import { useCompany } from "@/contexts/CompanyContext";
+import { ChannelIcon } from "@/components/chat/ChannelIcon";
 
 type ConversationListProps = {
   conversations: Conversation[];
@@ -352,10 +353,18 @@ const ConversationList = ({
                   />
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold truncate">
-                        {conversation.contact_name}
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-2">
+                      <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                        <span className="font-semibold truncate">
+                          {conversation.contact_name}
+                        </span>
+                        {/* Exibir ícone do canal se disponível */}
+                        <ChannelIcon
+                          type={(conversation.channel_type as any) || 'whatsapp'}
+                          size="xs"
+                          className="opacity-70 flex-shrink-0"
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
                         {formatTime(conversation.last_message_time)}
                       </span>
                     </div>

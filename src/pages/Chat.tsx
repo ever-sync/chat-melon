@@ -29,6 +29,7 @@ export type Conversation = {
   tags?: string[];
   opted_in?: boolean;
   is_online?: boolean;
+  channel_type?: 'whatsapp' | 'instagram' | 'messenger' | 'telegram' | 'widget' | 'email';
 };
 
 const Chat = () => {
