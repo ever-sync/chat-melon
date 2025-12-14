@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, Send, Info, RotateCcw, Tag, ArrowRightLeft, EyeOff, Bot } from "lucide-react";
+import { ArrowLeft, Send, Info, RotateCcw, Tag, ArrowRightLeft, EyeOff, Bot, AlarmClock, HelpCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,10 @@ import { MessageBubble } from "./MessageBubble";
 import { ChatLegend } from "./ChatLegend";
 import { useSendTextMessage } from "@/hooks/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
+import { ShortcutSuggestions } from "./ShortcutSuggestions";
+import { ShortcutHelpModal } from "./ShortcutHelpModal";
+import { SnoozeMenu } from "./SnoozeMenu";
+import { useQuickResponses, useShortcutNavigation } from "@/hooks/useQuickResponses";
 
 type Message = {
   id: string;
@@ -72,7 +76,25 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showInternalNotes, setShowInternalNotes] = useState(true);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Quick responses hook for /shortcuts
+  const {
+    isShortcutMode,
+    suggestions,
+    selectSuggestion,
+    resetShortcutMode,
+    setInputValue: setQuickResponseInput,
+  } = useQuickResponses();
+
+  const {
+    selectedIndex,
+    setSelectedIndex,
+    handleKeyDown: handleShortcutKeyDown,
+    resetSelection,
+  } = useShortcutNavigation(suggestions.length);
 
   // Hook de presença (digitando/gravando)
   const { startTyping, startRecording, stopPresence } = useSendPresence(conversation?.id || "");
@@ -462,6 +484,19 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           >
             <ArrowRightLeft className="w-5 h-5" />
           </Button>
+          <SnoozeMenu
+            conversationId={conversation.id}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-primary/10"
+                title="Adiar conversa"
+              >
+                <AlarmClock className="w-5 h-5" />
+              </Button>
+            }
+          />
           <Button
             variant={showInternalNotes ? "default" : "ghost"}
             size="icon"
@@ -587,21 +622,65 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                 </Button>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 relative">
+                {/* Shortcut suggestions popup */}
+                {isShortcutMode && suggestions.length > 0 && (
+                  <ShortcutSuggestions
+                    suggestions={suggestions}
+                    selectedIndex={selectedIndex}
+                    onSelect={(suggestion) => {
+                      const newContent = selectSuggestion(suggestion);
+                      setNewMessage(newContent);
+                      resetShortcutMode();
+                      resetSelection();
+                      inputRef.current?.focus();
+                    }}
+                    onHover={setSelectedIndex}
+                  />
+                )}
+
                 <Input
+                  ref={inputRef}
                   value={newMessage}
                   onChange={(e) => {
-                    setNewMessage(e.target.value);
+                    const value = e.target.value;
+                    setNewMessage(value);
+                    setQuickResponseInput(value);
                     startTyping();
                   }}
+                  onKeyDown={(e) => {
+                    if (isShortcutMode && suggestions.length > 0) {
+                      const action = handleShortcutKeyDown(e);
+                      if (action === 'select' && selectedIndex >= 0) {
+                        const newContent = selectSuggestion(suggestions[selectedIndex]);
+                        setNewMessage(newContent);
+                        resetShortcutMode();
+                        resetSelection();
+                        e.preventDefault();
+                      } else if (e.key === 'Escape') {
+                        resetShortcutMode();
+                        resetSelection();
+                      }
+                    }
+                  }}
                   onBlur={stopPresence}
-                  placeholder={isInternalNote ? "Escreva uma nota interna (só a equipe verá)..." : "Digite uma mensagem... Use {{nome}}, {{empresa}}"}
+                  placeholder={isInternalNote ? "Escreva uma nota interna (só a equipe verá)..." : "Digite / para atalhos ou sua mensagem..."}
                   className={cn(
                     "flex-1 rounded-full",
                     isInternalNote && "bg-yellow-50 dark:bg-yellow-950 border-yellow-300 dark:border-yellow-700"
                   )}
                   disabled={isSending}
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowShortcutHelp(true)}
+                  title="Ajuda de atalhos"
+                  className="rounded-full"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                </Button>
                 <Button
                   type="submit"
                   size="icon"
@@ -634,6 +713,11 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           conversationId={conversation.id}
           currentAssignedTo={conversation.assigned_to}
           onSuccess={loadMessages}
+        />
+
+        <ShortcutHelpModal
+          open={showShortcutHelp}
+          onOpenChange={setShowShortcutHelp}
         />
       </div>
 

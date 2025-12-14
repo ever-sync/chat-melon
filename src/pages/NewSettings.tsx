@@ -23,9 +23,12 @@ import { InstanceSettingsForm } from "@/components/settings/InstanceSettingsForm
 import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
 import { EmailSettings } from "@/components/settings/EmailSettings";
 import { PWASettings } from "@/components/pwa/PWASettings";
+import { WidgetSettings } from "@/components/settings/WidgetSettings";
+import { ApiKeyManager } from "@/components/settings/ApiKeyManager";
+import { WebhookManager } from "@/components/settings/WebhookManager";
 import UsersPage from "@/pages/settings/UsersPage";
 import AISettingsPage from "@/pages/settings/AISettingsPage";
-import { Copy, Smartphone, Bot, Users } from "lucide-react";
+import { Smartphone, Bot, Users, MessageCircle, Key, Webhook } from "lucide-react";
 
 export default function NewSettings() {
   const { currentCompany } = useCompany();
@@ -194,11 +197,39 @@ export default function NewSettings() {
               >
                 Lead Scoring
               </TabsTrigger>
-              <TabsTrigger 
-                value="notifications" 
+              <TabsTrigger
+                value="notifications"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Notificações
+              </TabsTrigger>
+
+              <div className="border-t border-border my-2 pt-2">
+                <p className="text-xs text-muted-foreground px-4 py-2 font-medium uppercase tracking-wider">
+                  Integrações
+                </p>
+              </div>
+
+              <TabsTrigger
+                value="widget"
+                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Widget de Chat
+              </TabsTrigger>
+              <TabsTrigger
+                value="api-keys"
+                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+              >
+                <Key className="h-4 w-4 mr-2" />
+                API Keys
+              </TabsTrigger>
+              <TabsTrigger
+                value="webhooks"
+                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+              >
+                <Webhook className="h-4 w-4 mr-2" />
+                Webhooks
               </TabsTrigger>
             </TabsList>
           </div>
@@ -343,6 +374,18 @@ export default function NewSettings() {
 
             <TabsContent value="notifications" className="m-0">
               <NotificationSettings />
+            </TabsContent>
+
+            <TabsContent value="widget" className="m-0">
+              <WidgetSettings />
+            </TabsContent>
+
+            <TabsContent value="api-keys" className="m-0">
+              <ApiKeyManager />
+            </TabsContent>
+
+            <TabsContent value="webhooks" className="m-0">
+              <WebhookManager />
             </TabsContent>
           </div>
         </Tabs>
