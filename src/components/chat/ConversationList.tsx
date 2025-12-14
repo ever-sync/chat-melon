@@ -1,9 +1,10 @@
-import { MessageSquarePlus } from "lucide-react";
+import { MessageSquarePlus, CheckSquare, Square, CheckCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ContactAvatar } from "@/components/ContactAvatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Conversation } from "@/pages/Chat";
@@ -12,7 +13,7 @@ import SearchBar from "./SearchBar";
 import { AdvancedFiltersDialog } from "./AdvancedFiltersDialog";
 import { ChatFilters } from "@/types/chatFilters";
 import { ChatFiltersBar } from "./ChatFiltersBar";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, ReactNode } from "react";
 import { LabelBadge } from "./LabelBadge";
 import { SatisfactionBadge } from "./SatisfactionBadge";
 import { useCompany } from "@/contexts/CompanyContext";
@@ -41,6 +42,13 @@ type ConversationListProps = {
     closed: number;
   };
   onSelectConversationFromNotification?: (conversationId: string) => void;
+  // Selection mode props
+  isSelectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
+  onToggleSelection?: (conversationId: string) => void;
+  isSelected?: (conversationId: string) => boolean;
+  onSelectAll?: () => void;
+  snoozedBadge?: ReactNode;
 };
 
 const ConversationList = ({
@@ -59,6 +67,12 @@ const ConversationList = ({
   onClearAllFilters,
   conversationCounts,
   onSelectConversationFromNotification,
+  isSelectionMode = false,
+  onToggleSelectionMode,
+  onToggleSelection,
+  isSelected,
+  onSelectAll,
+  snoozedBadge,
 }: ConversationListProps) => {
   const { currentCompany } = useCompany();
   const [showNewConversation, setShowNewConversation] = useState(false);
@@ -207,15 +221,46 @@ const ConversationList = ({
             </div>
             <h1 className="text-xl font-bold">Conversas</h1>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowNewConversation(true)}
-            className="hover:bg-primary/10"
-          >
-            <MessageSquarePlus className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {snoozedBadge}
+            {onToggleSelectionMode && (
+              <Button
+                variant={isSelectionMode ? "secondary" : "ghost"}
+                size="icon"
+                onClick={onToggleSelectionMode}
+                className="hover:bg-primary/10"
+                title={isSelectionMode ? "Sair do modo de seleção" : "Selecionar múltiplas conversas"}
+              >
+                {isSelectionMode ? <CheckCheck className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowNewConversation(true)}
+              className="hover:bg-primary/10"
+            >
+              <MessageSquarePlus className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
+
+        {/* Selection mode header */}
+        {isSelectionMode && onSelectAll && (
+          <div className="px-4 py-2 border-b border-border bg-muted/50 flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              Modo de seleção ativo
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSelectAll}
+              className="text-xs"
+            >
+              Selecionar todas
+            </Button>
+          </div>
+        )}
 
         <SearchBar
           onSearch={onSearch}
@@ -273,13 +318,29 @@ const ConversationList = ({
               {conversations.map((conversation) => (
                 <button
                   key={conversation.id}
-                  onClick={() => onSelectConversation(conversation)}
+                  onClick={() => {
+                    if (isSelectionMode && onToggleSelection) {
+                      onToggleSelection(conversation.id);
+                    } else {
+                      onSelectConversation(conversation);
+                    }
+                  }}
                   className={cn(
                     "w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-chat-hover",
                     selectedConversation?.id === conversation.id &&
-                    "bg-primary/10 border-l-4 border-primary"
+                    "bg-primary/10 border-l-4 border-primary",
+                    isSelectionMode && isSelected?.(conversation.id) && "bg-primary/20"
                   )}
                 >
+                  {isSelectionMode && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected?.(conversation.id) || false}
+                        onCheckedChange={() => onToggleSelection?.(conversation.id)}
+                        className="h-5 w-5"
+                      />
+                    </div>
+                  )}
                   <ContactAvatar
                     phoneNumber={conversation.contact_number}
                     name={conversation.contact_name}

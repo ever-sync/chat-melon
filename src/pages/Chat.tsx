@@ -5,11 +5,14 @@ import ConversationList from "@/components/chat/ConversationList";
 import MessageArea from "@/components/chat/MessageArea";
 import ContactDetailPanel from "@/components/chat/ContactDetailPanel";
 import { AIControlPanel } from "@/components/chat/AIControlPanel";
+import { BulkActionsToolbar } from "@/components/chat/BulkActionsToolbar";
+import { SnoozedConversationsBadge } from "@/components/chat/SnoozedConversationsBadge";
 
 import { toast } from "sonner";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useCompanyQuery } from "@/hooks/useCompanyQuery";
 import { ChatFilters, getDefaultFilters } from "@/types/chatFilters";
+import { useBulkConversationActions } from "@/hooks/useBulkConversationActions";
 
 export type Conversation = {
   id: string;
@@ -46,6 +49,17 @@ const Chat = () => {
     const saved = localStorage.getItem('chat-filters');
     return saved ? JSON.parse(saved) : getDefaultFilters();
   });
+
+  // Bulk actions hook
+  const {
+    selectedIds,
+    isSelectionMode,
+    toggleSelectionMode,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    isSelected,
+  } = useBulkConversationActions();
 
   // Salva filtros no localStorage quando mudam
   useEffect(() => {
@@ -409,9 +423,27 @@ const Chat = () => {
     }
   };
 
+  // Get available labels for bulk actions
+  const availableLabels = useMemo(() => {
+    const labels = new Set<string>();
+    conversations.forEach(c => {
+      c.tags?.forEach(tag => labels.add(tag));
+    });
+    return Array.from(labels);
+  }, [conversations]);
+
   return (
     <MainLayout>
       <div className="flex flex-col h-[calc(100vh-5rem)]">
+        {/* Bulk Actions Toolbar - appears when conversations are selected */}
+        {selectedIds.size > 0 && (
+          <BulkActionsToolbar
+            selectedIds={selectedIds}
+            onClearSelection={clearSelection}
+            availableLabels={availableLabels}
+          />
+        )}
+
         <div className="flex flex-1 overflow-hidden">
           <ConversationList
             conversations={filteredConversations}
@@ -429,6 +461,16 @@ const Chat = () => {
             onClearAllFilters={handleClearFilters}
             conversationCounts={conversationCounts}
             onSelectConversationFromNotification={handleSelectFromNotification}
+            isSelectionMode={isSelectionMode}
+            onToggleSelectionMode={toggleSelectionMode}
+            onToggleSelection={toggleSelection}
+            isSelected={isSelected}
+            onSelectAll={() => selectAll(filteredConversations.map(c => c.id))}
+            snoozedBadge={
+              <SnoozedConversationsBadge
+                onSelectConversation={handleSelectFromNotification}
+              />
+            }
           />
           <MessageArea
             conversation={selectedConversation}
