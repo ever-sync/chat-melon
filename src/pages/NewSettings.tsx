@@ -23,9 +23,10 @@ import { InstanceSettingsForm } from "@/components/settings/InstanceSettingsForm
 import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
 import { EmailSettings } from "@/components/settings/EmailSettings";
 import { PWASettings } from "@/components/pwa/PWASettings";
+import { TranscriptionSettings } from "@/components/settings/TranscriptionSettings";
 import UsersPage from "@/pages/settings/UsersPage";
 import AISettingsPage from "@/pages/settings/AISettingsPage";
-import { Copy, Smartphone, Bot, Users } from "lucide-react";
+import { Copy, Smartphone, Bot, Users, FileAudio } from "lucide-react";
 
 export default function NewSettings() {
   const { currentCompany } = useCompany();
@@ -188,14 +189,21 @@ export default function NewSettings() {
               >
                 CSAT/NPS
               </TabsTrigger>
-              <TabsTrigger 
-                value="scoring" 
+              <TabsTrigger
+                value="scoring"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Lead Scoring
               </TabsTrigger>
-              <TabsTrigger 
-                value="notifications" 
+              <TabsTrigger
+                value="transcription"
+                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+              >
+                <FileAudio className="h-4 w-4 mr-2" />
+                Transcrição de Áudios
+              </TabsTrigger>
+              <TabsTrigger
+                value="notifications"
                 className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               >
                 Notificações
@@ -339,6 +347,10 @@ export default function NewSettings() {
 
             <TabsContent value="pwa" className="m-0">
               <PWASettings />
+            </TabsContent>
+
+            <TabsContent value="transcription" className="m-0">
+              <TranscriptionSettings />
             </TabsContent>
 
             <TabsContent value="notifications" className="m-0">

@@ -2673,6 +2673,12 @@ export type Database = {
         ai_sentiment: string | null
         ai_suggested_response: string | null
         ai_was_edited: boolean | null
+        audio_transcription: string | null
+        transcription_status: string | null
+        transcription_language: string | null
+        transcription_confidence: number | null
+        transcription_duration: number | null
+        transcription_provider: string | null
         company_id: string | null
         contact_data: Json | null
         content: string
@@ -2707,6 +2713,12 @@ export type Database = {
         ai_sentiment?: string | null
         ai_suggested_response?: string | null
         ai_was_edited?: boolean | null
+        audio_transcription?: string | null
+        transcription_status?: string | null
+        transcription_language?: string | null
+        transcription_confidence?: number | null
+        transcription_duration?: number | null
+        transcription_provider?: string | null
         company_id?: string | null
         contact_data?: Json | null
         content: string
@@ -2741,6 +2753,12 @@ export type Database = {
         ai_sentiment?: string | null
         ai_suggested_response?: string | null
         ai_was_edited?: boolean | null
+        audio_transcription?: string | null
+        transcription_status?: string | null
+        transcription_language?: string | null
+        transcription_confidence?: number | null
+        transcription_duration?: number | null
+        transcription_provider?: string | null
         company_id?: string | null
         contact_data?: Json | null
         content?: string
@@ -4294,6 +4312,50 @@ export type Database = {
           referencedRelation: "deals"
           referencedColumns: ["id"]
         },
+      ]
+    }
+    transcription_configs: {
+      Row: {
+        id: string
+        company_id: string
+        provider: string
+        auto_transcribe: boolean
+        language: string
+        model: string
+        api_key: string | null
+        created_at: string
+        updated_at: string
+      }
+      Insert: {
+        id?: string
+        company_id: string
+        provider?: string
+        auto_transcribe?: boolean
+        language?: string
+        model?: string
+        api_key?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Update: {
+        id?: string
+        company_id?: string
+        provider?: string
+        auto_transcribe?: boolean
+        language?: string
+        model?: string
+        api_key?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Relationships: [
+        {
+          foreignKeyName: "transcription_configs_company_id_fkey"
+          columns: ["company_id"]
+          isOneToOne: true
+          referencedRelation: "companies"
+          referencedColumns: ["id"]
+        }
       ]
     }
     teams: {

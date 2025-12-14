@@ -8,6 +8,7 @@ import { ptBR } from 'date-fns/locale';
 import { MessageActions } from './MessageActions';
 import { ContactAvatar } from '@/components/ContactAvatar';
 import { useCompany } from '@/contexts/CompanyContext';
+import { AudioTranscription } from './AudioTranscription';
 
 interface MessageBubbleProps {
   message: {
@@ -32,6 +33,10 @@ interface MessageBubbleProps {
     list_data?: any;
     location_data?: any;
     contact_data?: any;
+    audio_transcription?: string;
+    transcription_status?: 'pending' | 'processing' | 'completed' | 'failed';
+    transcription_language?: string;
+    transcription_confidence?: number;
     sender?: {
       name: string;
       avatar_url?: string;
@@ -211,7 +216,17 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
                   />
                 )}
                 {message.media_type?.startsWith('audio/') && (
-                  <audio src={message.media_url} controls className="max-w-full" />
+                  <>
+                    <audio src={message.media_url} controls className="max-w-full" />
+                    <AudioTranscription
+                      messageId={message.id}
+                      transcription={message.audio_transcription}
+                      status={message.transcription_status}
+                      language={message.transcription_language}
+                      confidence={message.transcription_confidence}
+                      onTranscribe={onUpdated}
+                    />
+                  </>
                 )}
                 {!message.media_type?.startsWith('image/') &&
                   !message.media_type?.startsWith('video/') &&
