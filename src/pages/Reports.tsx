@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DollarSign, Target, TrendingUp, Clock, Calendar, ArrowUpRight, ArrowDownRight, MoreHorizontal, User } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { usePipelines } from "@/hooks/usePipelines";
+import { usePipelines } from "@/hooks/crm/usePipelines";
 import { useAuth } from "@/hooks/useAuth";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from "recharts";
 import { format } from "date-fns";

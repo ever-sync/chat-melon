@@ -3,9 +3,9 @@ import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/crm/DealCard";
 import { DealModal } from "@/components/crm/DealModal";
-import { usePipelines } from "@/hooks/usePipelines";
-import { useDeals } from "@/hooks/useDeals";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { usePipelines } from "@/hooks/crm/usePipelines";
+import { useDeals } from "@/hooks/crm/useDeals";
+import { useIsMobile } from "@/hooks/ui/use-mobile";
 import { cn } from "@/lib/utils";
 
 export const MobilePipelineLayout = () => {

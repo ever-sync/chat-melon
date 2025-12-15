@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Flame, Snowflake, ThermometerSun, FileText, Mail, MessageCircle } from "lucide-react";
-import type { Deal } from "@/hooks/useDeals";
+import type { Deal } from "@/hooks/crm/useDeals";
 import { ProposalBuilder } from "@/components/proposals/ProposalBuilder";
 import { EmailComposer } from "./EmailComposer";
 import { supabase } from "@/integrations/supabase/client";

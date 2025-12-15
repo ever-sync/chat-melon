@@ -13,7 +13,7 @@ import { Plus, Webhook, Trash2, RefreshCw, CheckCircle2, XCircle, Eye, EyeOff, C
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 
 interface WebhookConfig {
     id: string;

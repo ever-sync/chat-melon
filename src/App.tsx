@@ -54,6 +54,14 @@ const APIDocumentation = lazy(() => import("./pages/APIDocumentation"));
 const WebhooksSettings = lazy(() => import("./pages/WebhooksSettings"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const ChatbotsPage = lazy(() => import("./pages/ChatbotsPage"));
+const ChatbotBuilder = lazy(() => import("./pages/ChatbotBuilder"));
+const Cadences = lazy(() => import("./pages/Cadences"));
+const Orders = lazy(() => import("./pages/Orders"));
+const Integrations = lazy(() => import("./pages/Integrations"));
+const Security = lazy(() => import("./pages/Security"));
+const Channels = lazy(() => import("./pages/Channels"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -124,6 +132,14 @@ const App = () => {
                     <Route path="/settings/webhooks" element={<WebhooksSettings />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms-of-service" element={<TermsOfService />} />
+                    <Route path="/knowledge-base" element={<KnowledgeBase />} />
+                    <Route path="/chatbots" element={<ChatbotsPage />} />
+                    <Route path="/chatbots/:id" element={<ChatbotBuilder />} />
+                    <Route path="/cadences" element={<Cadences />} />
+                    <Route path="/orders" element={<Orders />} />
+                    <Route path="/integrations" element={<Integrations />} />
+                    <Route path="/security" element={<Security />} />
+                    <Route path="/channels" element={<Channels />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

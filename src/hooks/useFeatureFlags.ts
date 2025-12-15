@@ -28,7 +28,14 @@ export type FeatureKey =
   | "segments"
   | "duplicates"
   | "ai_assistant"
-  | "documents";
+  | "documents"
+  | "knowledge_base"
+  | "chatbots"
+  | "cadences"
+  | "orders"
+  | "integrations"
+  | "security"
+  | "channels";
 
 
 interface PlatformFeature {

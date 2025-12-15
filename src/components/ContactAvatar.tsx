@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useContactProfilePicture } from '@/hooks/useEvolutionApi';
+import { useContactProfilePicture } from '@/hooks/api/useEvolutionApi';
 import { cn } from '@/lib/utils';
 import { User } from 'lucide-react';
 

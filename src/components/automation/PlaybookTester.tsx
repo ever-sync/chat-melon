@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useContacts } from "@/hooks/useContacts";
+import { useContacts } from "@/hooks/crm/useContacts";
 import { Node, Edge } from "reactflow";
 import { Play, CheckCircle, XCircle, Clock } from "lucide-react";
 

@@ -63,7 +63,7 @@ import {
   XCircle,
   Clock,
 } from 'lucide-react';
-import { useWebhooks, WEBHOOK_EVENTS, type WebhookEndpoint } from '@/hooks/useWebhooks';
+import { useWebhooks, WEBHOOK_EVENTS, type WebhookEndpoint } from '@/hooks/api/useWebhooks';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';

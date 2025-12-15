@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Select,

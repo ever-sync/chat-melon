@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useSendAudioMessage } from "@/hooks/useEvolutionApi";
+import { useSendAudioMessage } from "@/hooks/api/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
 
 interface AudioRecorderProps {

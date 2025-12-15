@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { HelpCircle, Search, MessageSquare } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 
 interface FAQSelectorProps {
     onSelect: (answer: string) => void;

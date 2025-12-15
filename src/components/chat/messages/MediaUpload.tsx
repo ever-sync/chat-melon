@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useSendMediaMessage } from "@/hooks/useEvolutionApi";
+import { useSendMediaMessage } from "@/hooks/api/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
 
 interface MediaUploadProps {

@@ -9,7 +9,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AlarmClock, Clock, X } from 'lucide-react';
-import { useSnooze } from '@/hooks/useSnooze';
+import { useSnooze } from '@/hooks/chat/useSnooze';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';

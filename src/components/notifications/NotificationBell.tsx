@@ -6,7 +6,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { NotificationCenter } from "./NotificationCenter";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications } from "@/hooks/ui/useNotifications";
 
 export const NotificationBell = () => {
   const { unreadCount } = useNotifications();

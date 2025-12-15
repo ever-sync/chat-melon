@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Trash2 } from "lucide-react";
 import { Node } from "reactflow";
-import { usePipelines } from "@/hooks/usePipelines";
+import { usePipelines } from "@/hooks/crm/usePipelines";
 import { Badge } from "@/components/ui/badge";
 
 export const NodeConfigPanel = ({

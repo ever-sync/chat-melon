@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import { EvolutionInstanceManager } from "@/components/evolution/EvolutionInstanceManager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

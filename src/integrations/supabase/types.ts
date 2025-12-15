@@ -3390,36 +3390,48 @@ export type Database = {
       Row: {
         avatar_url: string | null
         created_at: string
+        email: string | null
+        first_name: string | null
         full_name: string
         google_calendar_connected: boolean | null
         google_calendar_email: string | null
         google_calendar_refresh_token: string | null
         google_calendar_token: Json | null
         id: string
+        last_name: string | null
+        nickname: string | null
         phone: string | null
         updated_at: string
       }
       Insert: {
         avatar_url?: string | null
         created_at?: string
+        email?: string | null
+        first_name?: string | null
         full_name: string
         google_calendar_connected?: boolean | null
         google_calendar_email?: string | null
         google_calendar_refresh_token?: string | null
         google_calendar_token?: Json | null
         id: string
+        last_name?: string | null
+        nickname?: string | null
         phone?: string | null
         updated_at?: string
       }
       Update: {
         avatar_url?: string | null
         created_at?: string
+        email?: string | null
+        first_name?: string | null
         full_name?: string
         google_calendar_connected?: boolean | null
         google_calendar_email?: string | null
         google_calendar_refresh_token?: string | null
         google_calendar_token?: Json | null
         id?: string
+        last_name?: string | null
+        nickname?: string | null
         phone?: string | null
         updated_at?: string
       }
@@ -4527,6 +4539,125 @@ export type Database = {
         },
       ]
     }
+    widget_settings: {
+      Row: {
+        allowed_domains: string[] | null
+        auto_open_delay: number | null
+        border_radius: number | null
+        business_hours: Json | null
+        business_hours_only: boolean | null
+        button_icon: string | null
+        button_size: string | null
+        company_id: string
+        company_name: string | null
+        created_at: string | null
+        custom_fields: Json | null
+        enabled: boolean | null
+        greeting_message: string | null
+        greeting_title: string | null
+        id: string
+        input_placeholder: string | null
+        logo_url: string | null
+        offline_message: string | null
+        play_sound: boolean | null
+        position: string | null
+        primary_color: string | null
+        require_email: boolean | null
+        require_name: boolean | null
+        require_phone: boolean | null
+        secondary_color: string | null
+        show_agent_name: boolean | null
+        show_agent_photo: boolean | null
+        show_branding: boolean | null
+        show_typing_indicator: boolean | null
+        timezone: string | null
+        total_conversations: number | null
+        total_messages: number | null
+        triggers: Json | null
+        updated_at: string | null
+      }
+      Insert: {
+        allowed_domains?: string[] | null
+        auto_open_delay?: number | null
+        border_radius?: number | null
+        business_hours?: Json | null
+        business_hours_only?: boolean | null
+        button_icon?: string | null
+        button_size?: string | null
+        company_id: string
+        company_name?: string | null
+        created_at?: string | null
+        custom_fields?: Json | null
+        enabled?: boolean | null
+        greeting_message?: string | null
+        greeting_title?: string | null
+        id?: string
+        input_placeholder?: string | null
+        logo_url?: string | null
+        offline_message?: string | null
+        play_sound?: boolean | null
+        position?: string | null
+        primary_color?: string | null
+        require_email?: boolean | null
+        require_name?: boolean | null
+        require_phone?: boolean | null
+        secondary_color?: string | null
+        show_agent_name?: boolean | null
+        show_agent_photo?: boolean | null
+        show_branding?: boolean | null
+        show_typing_indicator?: boolean | null
+        timezone?: string | null
+        total_conversations?: number | null
+        total_messages?: number | null
+        triggers?: Json | null
+        updated_at?: string | null
+      }
+      Update: {
+        allowed_domains?: string[] | null
+        auto_open_delay?: number | null
+        border_radius?: number | null
+        business_hours?: Json | null
+        business_hours_only?: boolean | null
+        button_icon?: string | null
+        button_size?: string | null
+        company_id?: string
+        company_name?: string | null
+        created_at?: string | null
+        custom_fields?: Json | null
+        enabled?: boolean | null
+        greeting_message?: string | null
+        greeting_title?: string | null
+        id?: string
+        input_placeholder?: string | null
+        logo_url?: string | null
+        offline_message?: string | null
+        play_sound?: boolean | null
+        position?: string | null
+        primary_color?: string | null
+        require_email?: boolean | null
+        require_name?: boolean | null
+        require_phone?: boolean | null
+        secondary_color?: string | null
+        show_agent_name?: boolean | null
+        show_agent_photo?: boolean | null
+        show_branding?: boolean | null
+        show_typing_indicator?: boolean | null
+        timezone?: string | null
+        total_conversations?: number | null
+        total_messages?: number | null
+        triggers?: Json | null
+        updated_at?: string | null
+      }
+      Relationships: [
+        {
+          foreignKeyName: "widget_settings_company_id_fkey"
+          columns: ["company_id"]
+          isOneToOne: true
+          referencedRelation: "companies"
+          referencedColumns: ["id"]
+        }
+      ]
+    }
   }
   Views: {
     [_ in never]: never
@@ -4632,7 +4763,7 @@ export type Database = {
     [_ in never]: never
   }
 }
-}
+
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 

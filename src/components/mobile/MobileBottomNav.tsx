@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { MessageSquare, Kanban, CheckSquare, Menu, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useTasks } from "@/hooks/useTasks";
+import { useNotifications } from "@/hooks/ui/useNotifications";
+import { useTasks } from "@/hooks/crm/useTasks";
 import { cn } from "@/lib/utils";
 
 export const MobileBottomNav = () => {

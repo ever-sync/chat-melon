@@ -8,7 +8,7 @@ import {
   Camera, Film, Gamepad2, Headphones, Laptop, Smartphone, Watch, Car, Home, Plane
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts } from "@/hooks/crm/useProducts";
 import { useProductSettings } from "@/hooks/useProductSettings";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";

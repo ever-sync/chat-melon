@@ -1,18 +1,18 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { MainLayout } from "@/components/MainLayout";
 import { supabase } from "@/integrations/supabase/client";
-import ConversationList from "@/components/chat/ConversationList";
-import MessageArea from "@/components/chat/MessageArea";
+import ConversationList from "@/components/chat/sidebar/ConversationList";
+import MessageArea from "@/components/chat/messages/MessageArea";
 import ContactDetailPanel from "@/components/chat/ContactDetailPanel";
 import { AIControlPanel } from "@/components/chat/AIControlPanel";
 import { BulkActionsToolbar } from "@/components/chat/BulkActionsToolbar";
-import { SnoozedConversationsBadge } from "@/components/chat/SnoozedConversationsBadge";
+import { SnoozedConversationsBadge } from "@/components/chat/sidebar/SnoozedConversationsBadge";
 
 import { toast } from "sonner";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useNotifications } from "@/hooks/ui/useNotifications";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import { ChatFilters, getDefaultFilters } from "@/types/chatFilters";
-import { useBulkConversationActions } from "@/hooks/useBulkConversationActions";
+import { useBulkConversationActions } from "@/hooks/chat/useBulkConversationActions";
 
 export type Conversation = {
   id: string;

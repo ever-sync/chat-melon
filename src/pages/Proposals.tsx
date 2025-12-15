@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useDeals } from "@/hooks/useDeals";
+import { useDeals } from "@/hooks/crm/useDeals";
 
 export default function Proposals() {
   const [showDealSelector, setShowDealSelector] = useState(false);

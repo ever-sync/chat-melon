@@ -36,8 +36,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { useChatbots, useChatbotTemplates } from '@/hooks/useChatbots';
+import { useToast } from '@/hooks/ui/use-toast';
+import { useChatbots, useChatbotTemplates } from '@/hooks/chat/useChatbots';
 import type { Chatbot, ChatbotTemplate } from '@/types/chatbot';
 
 export default function ChatbotsPage() {

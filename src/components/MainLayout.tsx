@@ -6,7 +6,7 @@ import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/ui/use-mobile";
 
 interface MainLayoutProps {
   children: React.ReactNode;

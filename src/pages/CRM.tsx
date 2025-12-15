@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/MainLayout";
 import { PipelineBoard } from "@/components/crm/PipelineBoard";
-import { usePipelines } from "@/hooks/usePipelines";
+import { usePipelines } from "@/hooks/crm/usePipelines";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

@@ -56,7 +56,7 @@ import {
   Check,
   AlertTriangle,
 } from 'lucide-react';
-import { useApiKeys, API_PERMISSIONS, API_SCOPES, type ApiKeyWithSecret } from '@/hooks/useApiKeys';
+import { useApiKeys, API_PERMISSIONS, API_SCOPES, type ApiKeyWithSecret } from '@/hooks/api/useApiKeys';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';

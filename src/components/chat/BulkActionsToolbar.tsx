@@ -37,10 +37,10 @@ import {
   Archive,
   Loader2,
 } from 'lucide-react';
-import { useBulkConversationActions } from '@/hooks/useBulkConversationActions';
+import { useBulkConversationActions } from '@/hooks/chat/useBulkConversationActions';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useCompanyQuery } from '@/hooks/useCompanyQuery';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 import { cn } from '@/lib/utils';
 
 interface BulkActionsToolbarProps {

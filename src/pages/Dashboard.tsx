@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare, DollarSign, TrendingUp, CheckSquare, ArrowUpRight, ArrowDownRight, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { RevenueChart } from "@/components/analytics/RevenueChart";

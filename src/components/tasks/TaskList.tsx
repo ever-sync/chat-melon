@@ -12,7 +12,7 @@ import {
 import { Plus, Search, AlertCircle } from "lucide-react";
 import { TaskCard } from "./TaskCard";
 import { TaskModal } from "./TaskModal";
-import { useTasks } from "@/hooks/useTasks";
+import { useTasks } from "@/hooks/crm/useTasks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { TablesInsert } from "@/integrations/supabase/types";

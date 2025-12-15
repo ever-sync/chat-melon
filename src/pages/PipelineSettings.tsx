@@ -3,14 +3,14 @@ import { MainLayout } from "@/components/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Plus, Settings2, Trash2, Edit } from "lucide-react";
-import { usePipelines } from "@/hooks/usePipelines";
+import { usePipelines } from "@/hooks/crm/usePipelines";
 import { PipelineModal } from "@/components/settings/PipelineModal";
 import { StagesManager } from "@/components/settings/StagesManager";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 
 export default function PipelineSettings() {
   const { pipelines, isLoading } = usePipelines();

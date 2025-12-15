@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQueueMembers } from "@/hooks/useQueues";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import {
   Dialog,
   DialogContent,

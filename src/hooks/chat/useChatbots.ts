@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type {
   Chatbot,
@@ -524,9 +524,9 @@ export function useChatbotAnalytics(chatbotId: string | undefined, days = 30) {
       );
       const avgDurationMs = completedWithDuration.length > 0
         ? completedWithDuration.reduce((sum, e) => {
-            const duration = new Date(e.completed_at!).getTime() - new Date(e.started_at).getTime();
-            return sum + duration;
-          }, 0) / completedWithDuration.length
+          const duration = new Date(e.completed_at!).getTime() - new Date(e.started_at).getTime();
+          return sum + duration;
+        }, 0) / completedWithDuration.length
         : 0;
 
       // Messages per execution

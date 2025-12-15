@@ -23,15 +23,15 @@ import { AIAssistant } from "./AIAssistant";
 import { ProductSelector } from "./ProductSelector";
 import { MessageStatus } from "./MessageStatus";
 import { useSendPresence } from "@/hooks/useSendPresence";
-import { useMarkAsRead } from "@/hooks/useMarkAsRead";
+import { useMarkAsRead } from "@/hooks/chat/useMarkAsRead";
 import { MessageBubble } from "./MessageBubble";
 import { ChatLegend } from "./ChatLegend";
-import { useSendTextMessage } from "@/hooks/useEvolutionApi";
+import { useSendTextMessage } from "@/hooks/api/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
 import { ShortcutSuggestions } from "./ShortcutSuggestions";
 import { ShortcutHelpModal } from "./ShortcutHelpModal";
 import { SnoozeMenu } from "./SnoozeMenu";
-import { useQuickResponses, useShortcutNavigation } from "@/hooks/useQuickResponses";
+import { useQuickResponses, useShortcutNavigation } from "@/hooks/chat/useQuickResponses";
 
 type Message = {
   id: string;

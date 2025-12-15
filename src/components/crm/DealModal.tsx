@@ -22,10 +22,10 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import { Calendar } from "lucide-react";
 import { toast } from "sonner";
-import type { Deal } from "@/hooks/useDeals";
+import type { Deal } from "@/hooks/crm/useDeals";
 import type { TablesInsert } from "@/integrations/supabase/types";
 
 interface DealModalProps {

@@ -10,7 +10,7 @@ import { Upload, FileText, AlertTriangle, CheckCircle2, ArrowRight, ArrowLeft } 
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { useCustomFields } from "@/hooks/useCustomFields";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 

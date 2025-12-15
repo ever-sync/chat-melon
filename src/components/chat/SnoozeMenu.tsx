@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Clock, AlarmClock, CalendarIcon } from 'lucide-react';
-import { useSnooze, SNOOZE_OPTIONS } from '@/hooks/useSnooze';
+import { useSnooze, SNOOZE_OPTIONS } from '@/hooks/chat/useSnooze';
 import { format, setHours, setMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';

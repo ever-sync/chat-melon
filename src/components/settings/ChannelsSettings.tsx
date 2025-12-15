@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompany } from '@/contexts/CompanyContext';
-import { useChannels, useChannelHealth } from '@/hooks/useChannels';
+import { useChannels, useChannelHealth } from '@/hooks/chat/useChannels';
 import { ChannelIcon, getChannelLabel } from '@/components/chat/ChannelIcon';
 import type { Channel, ChannelType, ChannelStatus, CHANNEL_INFO } from '@/types/channels';
 import { cn } from '@/lib/utils';

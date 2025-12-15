@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import type { Task } from "@/hooks/useTasks";
+import type { Task } from "@/hooks/crm/useTasks";
 
 interface TaskCardProps {
   task: Task;

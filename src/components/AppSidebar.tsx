@@ -1,4 +1,4 @@
-import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut, FileText, HelpCircle, User, Briefcase, Star, Heart, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut, FileText, HelpCircle, User, Briefcase, Star, Heart, ShoppingBag, Bot, BookOpen } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useInsights } from "@/hooks/useInsights";
@@ -100,6 +100,41 @@ export function AppSidebar() {
     url: "/documents",
     icon: FileText,
     featureKey: "documents"
+  }, {
+    title: "Knowledge Base",
+    url: "/knowledge-base",
+    icon: BookOpen,
+    featureKey: "knowledge_base"
+  }, {
+    title: "Chatbots",
+    url: "/chatbots",
+    icon: Bot,
+    featureKey: "chatbots"
+  }, {
+    title: "Cadences",
+    url: "/cadences",
+    icon: GitMerge,
+    featureKey: "cadences"
+  }, {
+    title: "Pedidos",
+    url: "/orders",
+    icon: ShoppingBag,
+    featureKey: "orders"
+  }, {
+    title: "Integrações",
+    url: "/integrations",
+    icon: Zap,
+    featureKey: "integrations"
+  }, {
+    title: "Segurança",
+    url: "/security",
+    icon: Shield,
+    featureKey: "security"
+  }, {
+    title: "Canais",
+    url: "/channels",
+    icon: MessageCircle,
+    featureKey: "channels"
   }];
 
   const handleLogout = async () => {

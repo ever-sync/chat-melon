@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, ExternalLink, CheckCircle2 } from "lucide-react";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
-import { useTasks } from "@/hooks/useTasks";
+import { useTasks } from "@/hooks/crm/useTasks";
 import { Button } from "@/components/ui/button";
 import { format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";

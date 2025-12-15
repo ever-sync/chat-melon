@@ -129,11 +129,21 @@ CREATE INDEX IF NOT EXISTS idx_chatbot_executions_conversation ON chatbot_execut
 CREATE INDEX IF NOT EXISTS idx_chatbot_executions_status ON chatbot_executions(status) WHERE status IN ('running', 'waiting_input');
 CREATE INDEX IF NOT EXISTS idx_chatbot_executions_timeout ON chatbot_executions(last_interaction_at) WHERE status = 'waiting_input';
 
+-- Função genérica para updated_at (criar se não existir)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Trigger para updated_at
+DROP TRIGGER IF EXISTS trigger_chatbots_updated_at ON chatbots;
 CREATE TRIGGER trigger_chatbots_updated_at
   BEFORE UPDATE ON chatbots
   FOR EACH ROW
-  EXECUTE FUNCTION update_channels_updated_at();
+  EXECUTE FUNCTION update_updated_at_column();
 
 -- =====================================================
 -- Chatbot Templates (pré-configurados)

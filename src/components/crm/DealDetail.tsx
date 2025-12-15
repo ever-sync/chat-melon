@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Flame, Snowflake, ThermometerSun, Phone, Mail } from "lucide-react";
-import type { Deal } from "@/hooks/useDeals";
+import type { Deal } from "@/hooks/crm/useDeals";
 import { DealTimeline } from "./DealTimeline";
 
 interface DealDetailProps {

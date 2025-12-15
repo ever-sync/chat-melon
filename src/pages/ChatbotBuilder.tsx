@@ -46,8 +46,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useChatbot, useChatbotVersions } from '@/hooks/useChatbots';
+import { useToast } from '@/hooks/ui/use-toast';
+import { useChatbot, useChatbotVersions } from '@/hooks/chat/useChatbots';
 import { nodeTypes } from '@/components/chatbot/nodes/BaseNode';
 import { NodePalette } from '@/components/chatbot/NodePalette';
 import { NodeEditor } from '@/components/chatbot/NodeEditor';

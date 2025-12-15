@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ListOrdered, BarChart3, MapPin, Contact } from "lucide-react";
-import { useSendPollMessage, useSendListMessage, useSendLocationMessage, useSendContactMessage } from "@/hooks/useEvolutionApi";
+import { useSendPollMessage, useSendListMessage, useSendLocationMessage, useSendContactMessage } from "@/hooks/api/useEvolutionApi";
 import { useCompany } from "@/contexts/CompanyContext";
 
 interface InteractiveMessageSenderProps {

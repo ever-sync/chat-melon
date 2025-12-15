@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Proposal, ProposalItem } from "@/hooks/useProposals";
+import { Proposal, ProposalItem } from "@/hooks/chat/useProposals";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Edit } from "lucide-react";
 

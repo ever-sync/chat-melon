@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/useCompanyQuery";
-import type { Task } from "@/hooks/useTasks";
+import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
+import type { Task } from "@/hooks/crm/useTasks";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Calendar } from "lucide-react";
