@@ -234,6 +234,223 @@ async function handleMessageUpsert(supabase: any, instance: string, data: any) {
     .eq("id", conversation.id);
 
   console.log("Message saved successfully");
+
+  // If incoming message (not from me), check for cadence replies and chatbot triggers
+  if (!fromMe) {
+    // Check and handle cadence replies
+    await handleCadenceReply(supabase, contact.id, companyId);
+
+    // Check and execute active chatbot
+    await handleChatbotTrigger(supabase, companyId, conversation.id, contact.id, content, !existingContact);
+  }
+}
+
+// Handle cadence reply detection
+async function handleCadenceReply(supabase: any, contactId: string, companyId: string) {
+  try {
+    // Find active enrollments for this contact
+    const { data: enrollments, error } = await supabase
+      .from("cadence_enrollments")
+      .select(`
+        id,
+        cadence_id,
+        cadences (name, company_id)
+      `)
+      .eq("contact_id", contactId)
+      .eq("status", "active");
+
+    if (error || !enrollments || enrollments.length === 0) {
+      return;
+    }
+
+    // Update each enrollment
+    for (const enrollment of enrollments) {
+      // Verify cadence belongs to this company
+      if (enrollment.cadences?.company_id !== companyId) {
+        continue;
+      }
+
+      console.log(`Cadence reply detected for enrollment ${enrollment.id}`);
+
+      // Update enrollment status to replied
+      await supabase
+        .from("cadence_enrollments")
+        .update({
+          status: "replied",
+          replied_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", enrollment.id);
+
+      // Increment cadence total_replied
+      await supabase
+        .from("cadences")
+        .update({
+          total_replied: supabase.rpc("increment_field", { row_id: enrollment.cadence_id, field: "total_replied" }),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", enrollment.cadence_id);
+
+      console.log(`Enrollment ${enrollment.id} marked as replied`);
+    }
+  } catch (error) {
+    console.error("Error handling cadence reply:", error);
+  }
+}
+
+// Handle chatbot trigger
+async function handleChatbotTrigger(
+  supabase: any,
+  companyId: string,
+  conversationId: string,
+  contactId: string,
+  messageContent: string,
+  isNewContact: boolean
+) {
+  try {
+    // Check if there's an active chatbot execution for this conversation
+    const { data: activeExecution } = await supabase
+      .from("chatbot_executions")
+      .select("id, chatbot_id, current_node_id, status")
+      .eq("conversation_id", conversationId)
+      .in("status", ["running", "waiting_input"])
+      .maybeSingle();
+
+    if (activeExecution) {
+      // Continue existing chatbot execution
+      console.log(`Continuing chatbot execution ${activeExecution.id}`);
+      await executeChatbot(supabase, companyId, activeExecution.id, messageContent);
+      return;
+    }
+
+    // Check for chatbot triggers
+    let triggerType: string | null = null;
+    let triggerValue: string | null = null;
+
+    // Check keyword triggers
+    const messageLower = messageContent.toLowerCase();
+
+    // Get active chatbots for this company
+    const { data: chatbots } = await supabase
+      .from("chatbots")
+      .select("id, triggers, active_channels")
+      .eq("company_id", companyId)
+      .eq("status", "active");
+
+    if (!chatbots || chatbots.length === 0) {
+      return;
+    }
+
+    let matchedChatbot = null;
+
+    for (const chatbot of chatbots) {
+      // Check if chatbot is active for WhatsApp
+      if (!chatbot.active_channels?.includes("whatsapp") && !chatbot.active_channels?.includes("*")) {
+        continue;
+      }
+
+      const triggers = chatbot.triggers || [];
+
+      for (const trigger of triggers) {
+        // Check first_message trigger for new contacts
+        if (trigger.type === "first_message" && isNewContact) {
+          matchedChatbot = chatbot;
+          triggerType = "first_message";
+          break;
+        }
+
+        // Check keyword trigger
+        if (trigger.type === "keyword") {
+          const keywords = Array.isArray(trigger.value)
+            ? trigger.value
+            : [trigger.value];
+
+          for (const keyword of keywords) {
+            if (messageLower.includes(keyword.toLowerCase())) {
+              matchedChatbot = chatbot;
+              triggerType = "keyword";
+              triggerValue = keyword;
+              break;
+            }
+          }
+        }
+
+        if (matchedChatbot) break;
+      }
+
+      if (matchedChatbot) break;
+    }
+
+    if (!matchedChatbot) {
+      return;
+    }
+
+    console.log(`Chatbot triggered: ${matchedChatbot.id}, trigger: ${triggerType}`);
+
+    // Create new chatbot execution
+    const { data: newExecution, error: execError } = await supabase
+      .from("chatbot_executions")
+      .insert({
+        chatbot_id: matchedChatbot.id,
+        chatbot_version: 1, // TODO: Get current version
+        conversation_id: conversationId,
+        contact_id: contactId,
+        status: "running",
+        trigger_type: triggerType,
+        trigger_value: triggerValue,
+        channel_type: "whatsapp",
+        session_variables: {},
+        execution_log: [],
+      })
+      .select()
+      .single();
+
+    if (execError) {
+      console.error("Error creating chatbot execution:", execError);
+      return;
+    }
+
+    // Update chatbot execution count
+    await supabase
+      .from("chatbots")
+      .update({
+        total_executions: supabase.rpc("increment_field", { row_id: matchedChatbot.id, field: "total_executions" }),
+      })
+      .eq("id", matchedChatbot.id);
+
+    // Execute chatbot
+    await executeChatbot(supabase, companyId, newExecution.id, messageContent);
+
+  } catch (error) {
+    console.error("Error handling chatbot trigger:", error);
+  }
+}
+
+// Execute chatbot step
+async function executeChatbot(supabase: any, companyId: string, executionId: string, userMessage: string) {
+  try {
+    // Call execute-chatbot edge function
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/execute-chatbot`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({
+        executionId,
+        userMessage,
+        companyId,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Error calling execute-chatbot:", await response.text());
+    }
+  } catch (error) {
+    console.error("Error executing chatbot:", error);
+  }
 }
 
 async function handleMessageUpdate(supabase: any, instance: string, data: any) {

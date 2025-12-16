@@ -124,7 +124,8 @@ export function AppSidebar() {
     title: "Integrações",
     url: "/integrations",
     icon: Zap,
-    featureKey: "integrations"
+    featureKey: "integrations",
+    comingSoon: true
   }, {
     title: "Segurança",
     url: "/security",
@@ -134,7 +135,8 @@ export function AppSidebar() {
     title: "Canais",
     url: "/channels",
     icon: MessageCircle,
-    featureKey: "channels"
+    featureKey: "channels",
+    comingSoon: true
   }];
 
   const handleLogout = async () => {
@@ -218,6 +220,11 @@ export function AppSidebar() {
                           {item.url === "/reports" && unreadCount > 0 && (
                             <Badge className="ml-auto bg-indigo-500 text-white px-2 py-0.5 text-[10px] rounded-full">
                               {unreadCount}
+                            </Badge>
+                          )}
+                          {item.comingSoon && (
+                            <Badge variant="outline" className="ml-auto text-amber-400 border-amber-400/50 px-1.5 py-0 text-[9px] rounded-full">
+                              Em Breve
                             </Badge>
                           )}
                         </span>
