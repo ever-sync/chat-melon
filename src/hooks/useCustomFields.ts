@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
+import { useCompanyQuery } from "./crm/useCompanyQuery";
 import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 

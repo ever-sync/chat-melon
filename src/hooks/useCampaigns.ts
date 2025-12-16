@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
+import { useCompanyQuery } from "./crm/useCompanyQuery";
 import { toast } from "sonner";
 
 export interface Campaign {
@@ -198,7 +198,7 @@ export const useCampaigns = () => {
       // Update status to pending to retry
       const { error: updateError } = await supabase
         .from('campaign_contacts')
-        .update({ 
+        .update({
           status: 'pending',
           error_message: null,
           sent_at: null,

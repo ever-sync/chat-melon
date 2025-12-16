@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
+import { useCompanyQuery } from "./crm/useCompanyQuery";
 import { startOfDay, endOfDay } from "date-fns";
 
 interface ActivityFilters {

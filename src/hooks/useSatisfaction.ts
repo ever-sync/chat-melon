@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
+import { useCompanyQuery } from "./crm/useCompanyQuery";
 
 export interface SatisfactionSurvey {
   id: string;
@@ -56,7 +56,7 @@ export const useSatisfaction = () => {
   const loadSurveys = async () => {
     try {
       const companyId = getCompanyId();
-      
+
       const { data, error } = await supabase
         .from('satisfaction_surveys')
         .select('*')
@@ -141,17 +141,17 @@ export const useSatisfaction = () => {
     const answered = surveys.filter(s => s.status === 'answered' && s.score !== null);
     const grouped = answered.reduce((acc, survey) => {
       if (!survey.assigned_to) return acc;
-      
+
       if (!acc[survey.assigned_to]) {
         acc[survey.assigned_to] = {
           scores: [],
           count: 0,
         };
       }
-      
+
       acc[survey.assigned_to].scores.push(survey.score || 0);
       acc[survey.assigned_to].count++;
-      
+
       return acc;
     }, {} as Record<string, { scores: number[], count: number }>);
 

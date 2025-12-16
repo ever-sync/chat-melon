@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
+import { useCompanyQuery } from "./crm/useCompanyQuery";
 import { toast } from "sonner";
 
 export interface EmailTemplate {
@@ -41,7 +41,7 @@ export const useEmailTemplates = () => {
     queryKey: ["email-templates", companyId],
     queryFn: async () => {
       if (!companyId) return [];
-      
+
       const { data, error } = await supabase
         .from("email_templates")
         .select("*")
@@ -57,7 +57,7 @@ export const useEmailTemplates = () => {
   const createTemplate = useMutation({
     mutationFn: async (template: Partial<EmailTemplate>) => {
       if (!companyId) throw new Error("Company ID não encontrado");
-      
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
@@ -179,7 +179,7 @@ export const useEmailLogs = (dealId?: string, contactId?: string) => {
     queryKey: ["email-logs", companyId, dealId, contactId],
     queryFn: async () => {
       if (!companyId) return [];
-      
+
       let query = supabase
         .from("email_logs")
         .select("*")

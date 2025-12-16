@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
+import { useCompanyQuery } from "./crm/useCompanyQuery";
 import { startOfMonth, endOfMonth, subMonths, differenceInDays, format } from "date-fns";
 
 interface ExecutiveMetrics {
@@ -109,8 +109,8 @@ export const useExecutiveReport = (period: 'current_month' | 'last_month' | 'las
 
       const currentRevenueTotal = currentRevenue?.reduce((sum, d) => sum + (d.value || 0), 0) || 0;
       const previousRevenueTotal = previousRevenue?.reduce((sum, d) => sum + (d.value || 0), 0) || 0;
-      const revenueGrowth = previousRevenueTotal > 0 
-        ? ((currentRevenueTotal - previousRevenueTotal) / previousRevenueTotal) * 100 
+      const revenueGrowth = previousRevenueTotal > 0
+        ? ((currentRevenueTotal - previousRevenueTotal) / previousRevenueTotal) * 100
         : 0;
 
       // Pipeline aberto
@@ -221,15 +221,15 @@ export const useExecutiveReport = (period: 'current_month' | 'last_month' | 'las
         .lte("won_at", endDate.toISOString());
 
       const sellerMap = new Map<string, { name: string; revenue: number; deals: number }>();
-      
+
       dealsByUser?.forEach(deal => {
         const userId = deal.assigned_to || "unassigned";
         const userName = deal.profiles?.full_name || "Não atribuído";
-        
+
         if (!sellerMap.has(userId)) {
           sellerMap.set(userId, { name: userName, revenue: 0, deals: 0 });
         }
-        
+
         const seller = sellerMap.get(userId)!;
         seller.revenue += deal.value || 0;
         seller.deals += 1;

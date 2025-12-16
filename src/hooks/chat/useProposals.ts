@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
+import { useCompanyQuery } from "../crm/useCompanyQuery";
 import { toast } from "sonner";
 
 export interface ProposalItem {
@@ -125,7 +125,7 @@ export const useProposals = (dealId?: string) => {
       if (updates.items) {
         updateData.items = updates.items as any;
       }
-      
+
       const { data, error } = await supabase
         .from("proposals")
         .update(updateData)
@@ -149,7 +149,7 @@ export const useProposals = (dealId?: string) => {
   const generatePublicLink = useMutation({
     mutationFn: async (proposalId: string) => {
       const publicSlug = crypto.randomUUID();
-      
+
       const { data, error } = await supabase
         .from("proposals")
         .update({
@@ -256,7 +256,7 @@ export const useProposals = (dealId?: string) => {
         .single();
 
       let publicLink = proposal?.public_link;
-      
+
       if (!publicLink) {
         const updated = await generatePublicLink.mutateAsync(proposalId);
         publicLink = updated.public_link;
