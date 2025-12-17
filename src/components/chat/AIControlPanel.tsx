@@ -206,7 +206,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
     setIsUpdating(false);
   };
 
-  const useSuggestion = async (suggestion: AISuggestion) => {
+  const handleApplySuggestion = async (suggestion: AISuggestion) => {
     // Copiar para clipboard
     await navigator.clipboard.writeText(suggestion.content);
 
@@ -539,7 +539,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
                       <Button
                         size="sm"
                         className="flex-1"
-                        onClick={() => useSuggestion(suggestion)}
+                        onClick={() => handleApplySuggestion(suggestion)}
                       >
                         Usar
                       </Button>
