@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyQuery } from './useCompanyQuery';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { executeAutomations, type AutomationRule } from '@/lib/automations';
 
 export type Deal = Tables<'deals'> & {
   contacts: Tables<'contacts'> | null;
@@ -136,10 +138,10 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
 
       if (error) throw error;
 
-      // Get stage info for activity log
+      // Get stage info for activity log and automation rules
       const { data: newStage } = await supabase
         .from('pipeline_stages')
-        .select('name')
+        .select('name, automation_rules')
         .eq('id', targetStageId)
         .single();
 
@@ -149,6 +151,13 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
         activity_type: 'stage_change',
         description: `Movido para "${newStage?.name}"`,
       });
+
+      // Execute automation rules if any
+      if (newStage?.automation_rules) {
+        executeAutomations(dealId, newStage.automation_rules as AutomationRule[]).catch((err) => {
+          console.error('Erro ao executar automações:', err);
+        });
+      }
 
       return data;
     },
@@ -174,6 +183,33 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
       toast.error('Erro ao excluir negócio: ' + error.message);
     },
   });
+
+  // Real-time subscription para deals
+  useEffect(() => {
+    if (!companyId) return;
+
+    const channel = supabase
+      .channel('deals-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deals',
+          filter: `company_id=eq.${companyId}`,
+        },
+        (payload) => {
+          console.log('Deal change detected:', payload);
+          // Invalidar queries para recarregar dados
+          queryClient.invalidateQueries({ queryKey: ['deals', companyId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [companyId, queryClient]);
 
   return {
     deals,
