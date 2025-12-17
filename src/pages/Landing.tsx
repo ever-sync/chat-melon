@@ -35,10 +35,10 @@ const Landing = () => {
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
-              <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-4 h-4 rounded-full border-2 border-white"></div>
             </div>
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
           </div>
 
           {/* Navigation */}
@@ -287,7 +287,7 @@ const Landing = () => {
                 Never quits, and always improves. Scale to meet any demand.
               </p>
               <Link to="#" className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group">
-                More about clara
+                More about Nucleus
                 <ArrowRight className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" />
               </Link>
             </div>
@@ -458,27 +458,27 @@ const Landing = () => {
           <div className="lg:w-2/3">
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">How is Clara different from other CRMs?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">How is Nucleus different from other CRMs?</AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Clara doesn't just store data—it understands it. From summarizing customer interactions to suggesting next steps, Clara is like a co-pilot that helps you move faster with more confidence.
+                  Nucleus doesn't just store data—it understands it. From summarizing customer interactions to suggesting next steps, Nucleus is like a co-pilot that helps you move faster with more confidence.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">Can Clara help my team save time?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">Can Nucleus help my team save time?</AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Absolutely. Clara automates routine tasks, schedules follow-ups, and provides instant summaries of meetings, allowing your team to focus on high-value interactions.
+                  Absolutely. Nucleus automates routine tasks, schedules follow-ups, and provides instant summaries of meetings, allowing your team to focus on high-value interactions.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">Is Clara hard to set up?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">Is Nucleus hard to set up?</AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
                   Not at all. We offer a seamless onboarding process, and our support team is available to help migrate your data and configure your workflows in just a few clicks.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-4">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">What tools does Clara integrate with?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">What tools does Nucleus integrate with?</AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Clara integrates with popular tools like Google Workspace, Slack, Zoom, and various marketing automation platforms to keep your data synchronized across your stack.
+                  Nucleus integrates with popular tools like Google Workspace, Slack, Zoom, and various marketing automation platforms to keep your data synchronized across your stack.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -519,10 +519,10 @@ const Landing = () => {
               {/* Brand */}
               <div className="col-span-1 md:col-span-1">
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
-                    <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
+                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                   </div>
-                  <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
                 </div>
                 <h3 className="text-3xl font-bold text-slate-400 leading-tight">
                   Every Customer Insights, <span className="text-slate-900">Intelligently Handled</span>
@@ -533,11 +533,11 @@ const Landing = () => {
               <div>
                 <h4 className="font-bold mb-6">Features</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600">Clara feed</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Nucleus feed</a></li>
                   <li><a href="#" className="hover:text-indigo-600">Smart summary</a></li>
                   <li><a href="#" className="hover:text-indigo-600">Pulse Score</a></li>
                   <li><a href="#" className="hover:text-indigo-600">Touchpoint Reminder</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Clara Snapshot</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Nucleus Snapshot</a></li>
                 </ul>
               </div>
 
@@ -563,7 +563,7 @@ const Landing = () => {
             </div>
 
             <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
-              <p>Copyright 2025, All right reserved by Clara</p>
+              <p>Copyright 2025, All right reserved by Nucleus</p>
               <div className="flex gap-6">
                 <a href="#" className="hover:text-indigo-600">Privacy policy</a>
                 <a href="#" className="hover:text-indigo-600">Terms and condition</a>

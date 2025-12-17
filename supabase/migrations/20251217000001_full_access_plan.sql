@@ -103,7 +103,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- =====================================================
 -- This uses a dynamic INSERT based on what exists in platform_features
 INSERT INTO plan_features (plan_id, feature_id, is_enabled, config)
-SELECT 
+SELECT
   '44444444-4444-4444-4444-444444444444'::uuid,
   id,
   true,
@@ -111,8 +111,7 @@ SELECT
 FROM platform_features
 WHERE is_global_enabled = true
 ON CONFLICT (plan_id, feature_id) DO UPDATE SET
-  is_enabled = true,
-  updated_at = NOW();
+  is_enabled = true;
 
 -- =====================================================
 -- Success Message

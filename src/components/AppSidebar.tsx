@@ -169,21 +169,18 @@ export function AppSidebar() {
       <div className="flex items-center justify-center h-20 mb-2">
         {state === "expanded" ? (
           <div className="flex items-center gap-3 px-4 w-full">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full opacity-25 group-hover:opacity-50 blur transition duration-200" />
-              <img src="/icon-512.png" alt="Logo" className="relative w-9 h-9" />
+            <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">
+              <div className="w-4 h-4 rounded-full border-2 border-white"></div>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 tracking-tight">
-              CamalaChat
-            </span>
+            <span className="text-xl font-bold text-white tracking-tight">Nucleus</span>
           </div>
         ) : (
-          <div className="relative group p-2">
-            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full opacity-25 group-hover:opacity-50 blur transition duration-200" />
-            <img src="/icon-512.png" alt="Logo" className="relative w-9 h-9" />
+          <div className="w-9 h-9 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">
+            <div className="w-4 h-4 rounded-full border-2 border-white"></div>
           </div>
         )}
       </div>
+
 
       <SidebarContent className="px-3 pb-4 scrollbar-none gap-6">
         <SidebarGroup className="p-0">
