@@ -26,7 +26,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useTemplates } from "@/hooks/useTemplates";
-import { TemplateModal } from "./TemplateModal";
+import { TemplateModal } from "./dialogs/TemplateModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { toast } from "sonner";
