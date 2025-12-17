@@ -14,23 +14,7 @@ import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
 import { ChatFilters, getDefaultFilters } from "@/types/chatFilters";
 import { useBulkConversationActions } from "@/hooks/chat/useBulkConversationActions";
 
-export type Conversation = {
-  id: string;
-  contact_id?: string;
-  contact_name: string;
-  contact_number: string;
-  profile_pic_url?: string;
-  last_message?: string;
-  last_message_time?: string;
-  unread_count: number;
-  status?: string;
-  sector_id?: string;
-  assigned_to?: string;
-  tags?: string[];
-  opted_in?: boolean;
-  is_online?: boolean;
-  channel_type?: 'whatsapp' | 'instagram' | 'messenger' | 'telegram' | 'widget' | 'email';
-};
+import type { Conversation } from "@/types/chat";
 
 const Chat = () => {
   const { withCompanyFilter, companyId } = useCompanyQuery();

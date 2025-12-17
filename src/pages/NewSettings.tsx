@@ -30,7 +30,31 @@ import { WebhookManager } from "@/components/settings/WebhookManager";
 import { ChannelsSettings } from "@/components/settings/ChannelsSettings";
 import UsersPage from "@/pages/settings/UsersPage";
 import AISettingsPage from "@/pages/settings/AISettingsPage";
-import { Copy, Smartphone, Bot, Users, FileAudio, MessageCircle, Key, Webhook, Share2 } from "lucide-react";
+import {
+  Settings,
+  User,
+  Building2,
+  Users,
+  Bot,
+  Share2,
+  MessageSquare,
+  Activity,
+  Calendar,
+  Mail,
+  Smartphone,
+  Shield,
+  UserX,
+  Sliders,
+  Star,
+  Target,
+  FileAudio,
+  Bell,
+  MessageCircle,
+  Key,
+  Webhook,
+  Package,
+  Sparkles
+} from "lucide-react";
 
 export default function NewSettings() {
   const { currentCompany } = useCompany();
@@ -92,246 +116,347 @@ export default function NewSettings() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary">w</span>
+      <div className="space-y-8 p-6">
+        {/* Header Section */}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-sm">
+                <Settings className="h-7 w-7 text-indigo-600" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Configurações
+                </h1>
+                <p className="text-gray-500 mt-1 text-base">
+                  Personalize e gerencie suas preferências do sistema
+                </p>
+              </div>
             </div>
-            <span className="text-2xl font-bold text-foreground">Chat</span>
-          </div>
-          <div className="h-10 w-px bg-border mx-2"></div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-            <p className="text-muted-foreground">
-              Gerencie suas preferências e configurações do sistema
-            </p>
           </div>
         </div>
 
-        <Tabs defaultValue="profile" className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-          <div className="space-y-2">
-            <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1">
+        <Tabs defaultValue="profile" className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
+          {/* Sidebar Navigation */}
+          <div className="space-y-4">
+            <TabsList className="flex flex-col h-auto bg-white rounded-3xl shadow-sm border border-gray-100 p-3 space-y-1.5">
+              {/* Conta & Perfil */}
+              <div className="w-full px-3 py-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Conta & Perfil
+                </p>
+              </div>
+
               <TabsTrigger
                 value="profile"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
               >
-                Perfil
-              </TabsTrigger>
-              <TabsTrigger
-                value="company"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Empresa
-              </TabsTrigger>
-              <TabsTrigger
-                value="users"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Usuários
-              </TabsTrigger>
-              <TabsTrigger
-                value="ai"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                <Bot className="h-4 w-4 mr-2" />
-                Assistente de IA
-              </TabsTrigger>
-              <TabsTrigger
-                value="channels"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Canais de Comunicação
-              </TabsTrigger>
-              <TabsTrigger
-                value="evolution"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Instância WhatsApp
-              </TabsTrigger>
-              <TabsTrigger
-                value="health"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Saúde do Sistema
-              </TabsTrigger>
-              <TabsTrigger
-                value="calendar"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Google Calendar
-              </TabsTrigger>
-              <TabsTrigger
-                value="email"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Configurações de Email
-              </TabsTrigger>
-              <TabsTrigger
-                value="pwa"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                <Smartphone className="h-4 w-4 mr-2" />
-                PWA & Mobile
-              </TabsTrigger>
-              <TabsTrigger
-                value="privacy"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Privacidade
-              </TabsTrigger>
-              <TabsTrigger
-                value="blocked"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Contatos Bloqueados
-              </TabsTrigger>
-              <TabsTrigger
-                value="custom-fields"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Campos Personalizados
-              </TabsTrigger>
-              <TabsTrigger
-                value="satisfaction"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                CSAT/NPS
-              </TabsTrigger>
-              <TabsTrigger
-                value="scoring"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Lead Scoring
-              </TabsTrigger>
-              <TabsTrigger
-                value="transcription"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                <FileAudio className="h-4 w-4 mr-2" />
-                Transcrição de Áudios
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                Notificações
+                <User className="h-4 w-4" />
+                <span className="font-medium">Meu Perfil</span>
               </TabsTrigger>
 
-              <div className="border-t border-border my-2 pt-2">
-                <p className="text-xs text-muted-foreground px-4 py-2 font-medium uppercase tracking-wider">
+              <TabsTrigger
+                value="company"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Building2 className="h-4 w-4" />
+                <span className="font-medium">Empresa</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="users"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Users className="h-4 w-4" />
+                <span className="font-medium">Usuários</span>
+              </TabsTrigger>
+
+              <Separator className="my-3" />
+
+              {/* Automação & IA */}
+              <div className="w-full px-3 py-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Automação & IA
+                </p>
+              </div>
+
+              <TabsTrigger
+                value="ai"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="font-medium">Assistente de IA</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="transcription"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <FileAudio className="h-4 w-4" />
+                <span className="font-medium">Transcrição</span>
+              </TabsTrigger>
+
+              <Separator className="my-3" />
+
+              {/* Comunicação */}
+              <div className="w-full px-3 py-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Comunicação
+                </p>
+              </div>
+
+              <TabsTrigger
+                value="channels"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Share2 className="h-4 w-4" />
+                <span className="font-medium">Canais</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="evolution"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span className="font-medium">WhatsApp</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="notifications"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="font-medium">Notificações</span>
+              </TabsTrigger>
+
+              <Separator className="my-3" />
+
+              {/* Sistema & Privacidade */}
+              <div className="w-full px-3 py-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Sistema & Privacidade
+                </p>
+              </div>
+
+              <TabsTrigger
+                value="health"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Activity className="h-4 w-4" />
+                <span className="font-medium">Saúde do Sistema</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="privacy"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Shield className="h-4 w-4" />
+                <span className="font-medium">Privacidade</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="blocked"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <UserX className="h-4 w-4" />
+                <span className="font-medium">Bloqueados</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="pwa"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Smartphone className="h-4 w-4" />
+                <span className="font-medium">PWA & Mobile</span>
+              </TabsTrigger>
+
+              <Separator className="my-3" />
+
+              {/* Personalização */}
+              <div className="w-full px-3 py-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Personalização
+                </p>
+              </div>
+
+              <TabsTrigger
+                value="custom-fields"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Sliders className="h-4 w-4" />
+                <span className="font-medium">Campos Custom</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="satisfaction"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Star className="h-4 w-4" />
+                <span className="font-medium">CSAT/NPS</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="scoring"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Target className="h-4 w-4" />
+                <span className="font-medium">Lead Scoring</span>
+              </TabsTrigger>
+
+              <Separator className="my-3" />
+
+              {/* Integrações */}
+              <div className="w-full px-3 py-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   Integrações
                 </p>
               </div>
 
               <TabsTrigger
-                value="widget"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                value="calendar"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
               >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Widget de Chat
+                <Calendar className="h-4 w-4" />
+                <span className="font-medium">Google Calendar</span>
               </TabsTrigger>
+
+              <TabsTrigger
+                value="email"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Mail className="h-4 w-4" />
+                <span className="font-medium">Email</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="widget"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="font-medium">Widget de Chat</span>
+              </TabsTrigger>
+
               <TabsTrigger
                 value="api-keys"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
               >
-                <Key className="h-4 w-4 mr-2" />
-                API Keys
+                <Key className="h-4 w-4" />
+                <span className="font-medium">API Keys</span>
               </TabsTrigger>
+
               <TabsTrigger
                 value="webhooks"
-                className="w-full justify-start px-4 py-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground data-[state=active]:shadow-md rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
               >
-                <Webhook className="h-4 w-4 mr-2" />
-                Webhooks
+                <Webhook className="h-4 w-4" />
+                <span className="font-medium">Webhooks</span>
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <div className="space-y-4">
+          {/* Content Area */}
+          <div className="space-y-6">
             <TabsContent value="profile" className="m-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informações do Perfil</CardTitle>
-                  <CardDescription>
-                    Atualize suas informações pessoais
-                  </CardDescription>
+              <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white">
+                <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-white shadow-sm">
+                      <User className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl">Informações do Perfil</CardTitle>
+                      <CardDescription className="text-base">
+                        Atualize suas informações pessoais
+                      </CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent className="p-8 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="first_name">Primeiro Nome</Label>
+                      <Label htmlFor="first_name" className="text-sm font-semibold">Primeiro Nome</Label>
                       <Input
                         id="first_name"
                         placeholder="João"
                         value={profile.first_name}
                         onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                        className="rounded-xl h-11"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last_name">Sobrenome</Label>
+                      <Label htmlFor="last_name" className="text-sm font-semibold">Sobrenome</Label>
                       <Input
                         id="last_name"
                         placeholder="Silva"
                         value={profile.last_name}
                         onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
+                        className="rounded-xl h-11"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="nickname">Apelido</Label>
+                    <Label htmlFor="nickname" className="text-sm font-semibold">Apelido</Label>
                     <Input
                       id="nickname"
                       placeholder="Como você quer ser chamado no sistema"
                       value={profile.nickname}
                       onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
+                      className="rounded-xl h-11"
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-gray-500">
                       Este nome aparecerá nas telas de login e em outras áreas do sistema
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome Completo</Label>
+                    <Label htmlFor="name" className="text-sm font-semibold">Nome Completo</Label>
                     <Input
                       id="name"
                       placeholder="João da Silva"
                       value={profile.full_name}
                       onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                      className="rounded-xl h-11"
                     />
                   </div>
 
                   <Separator />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
                       <Input
                         id="email"
                         type="email"
                         placeholder="joao@empresa.com"
                         value={profile.email}
                         onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                        className="rounded-xl h-11"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Telefone</Label>
+                      <Label htmlFor="phone" className="text-sm font-semibold">Telefone</Label>
                       <Input
                         id="phone"
                         placeholder="(11) 99999-9999"
                         value={profile.phone}
                         onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                        className="rounded-xl h-11"
                       />
                     </div>
                   </div>
 
                   <Separator />
-                  <Button onClick={handleSaveProfile} disabled={loading}>
-                    {loading ? "Salvando..." : "Salvar Alterações"}
-                  </Button>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={loading}
+                      className="rounded-xl h-11 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105"
+                    >
+                      {loading ? "Salvando..." : "Salvar Alterações"}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

@@ -34,6 +34,7 @@ interface DealModalProps {
   deal?: Deal;
   stageId?: string;
   pipelineId?: string;
+  defaultContactId?: string;
   onSubmit: (data: TablesInsert<"deals">) => void;
 }
 
@@ -43,10 +44,12 @@ export const DealModal = ({
   deal,
   stageId,
   pipelineId,
+  defaultContactId,
   onSubmit,
 }: DealModalProps) => {
   const { companyId } = useCompanyQuery();
   const { register, handleSubmit, setValue, watch, reset } = useForm<TablesInsert<"deals">>();
+
 
   const { data: contacts = [] } = useQuery({
     queryKey: ["contacts", companyId],
@@ -107,19 +110,26 @@ export const DealModal = ({
       setValue("our_differentials", deal.our_differentials);
       setValue("next_step", deal.next_step);
       setValue("next_step_date", deal.next_step_date);
-    } else if (stageId) {
-      setValue("stage_id", stageId);
+    } else {
+      // Pre-fill for new deal
+      if (stageId) {
+        setValue("stage_id", stageId);
+      }
+      if (defaultContactId) {
+        setValue("contact_id", defaultContactId);
+      }
     }
     if (pipelineId && !deal) {
       setValue("pipeline_id", pipelineId);
     }
-  }, [deal, stageId, pipelineId, setValue]);
+  }, [deal, stageId, pipelineId, defaultContactId, setValue]);
+
 
   const budgetConfirmed = watch("budget_confirmed");
   const timelineConfirmed = watch("timeline_confirmed");
   const hasDecisionMaker = !!watch("decision_maker");
   const hasNeed = !!watch("need_identified");
-  
+
   const bantProgress = [
     budgetConfirmed,
     hasDecisionMaker,
@@ -150,87 +160,87 @@ export const DealModal = ({
             </TabsList>
 
             <TabsContent value="geral" className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Título *</Label>
-            <Input
-              id="title"
-              {...register("title", { required: true })}
-              placeholder="Ex: Proposta para Cliente X"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Título *</Label>
+                <Input
+                  id="title"
+                  {...register("title", { required: true })}
+                  placeholder="Ex: Proposta para Cliente X"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="contact_id">Contato *</Label>
-            <Select
-              value={watch("contact_id") || ""}
-              onValueChange={(value) => setValue("contact_id", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um contato" />
-              </SelectTrigger>
-              <SelectContent>
-                {contacts.map((contact) => (
-                  <SelectItem key={contact.id} value={contact.id}>
-                    {contact.name || contact.phone_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact_id">Contato *</Label>
+                <Select
+                  value={watch("contact_id") || ""}
+                  onValueChange={(value) => setValue("contact_id", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um contato" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contacts.map((contact) => (
+                      <SelectItem key={contact.id} value={contact.id}>
+                        {contact.name || contact.phone_number}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="value">Valor (R$)</Label>
-              <Input
-                id="value"
-                type="number"
-                step="0.01"
-                {...register("value", { valueAsNumber: true })}
-                placeholder="0,00"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="value">Valor (R$)</Label>
+                  <Input
+                    id="value"
+                    type="number"
+                    step="0.01"
+                    {...register("value", { valueAsNumber: true })}
+                    placeholder="0,00"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="expected_close_date">Previsão de Fechamento</Label>
-              <Input
-                id="expected_close_date"
-                type="date"
-                {...register("expected_close_date")}
-              />
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expected_close_date">Previsão de Fechamento</Label>
+                  <Input
+                    id="expected_close_date"
+                    type="date"
+                    {...register("expected_close_date")}
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="probability">Probabilidade (%)</Label>
-              <Input
-                id="probability"
-                type="number"
-                min="0"
-                max="100"
-                {...register("probability", { valueAsNumber: true })}
-                placeholder="50"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="probability">Probabilidade (%)</Label>
+                  <Input
+                    id="probability"
+                    type="number"
+                    min="0"
+                    max="100"
+                    {...register("probability", { valueAsNumber: true })}
+                    placeholder="50"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="priority">Prioridade</Label>
-              <Select
-                value={watch("priority") || "medium"}
-                onValueChange={(value) => setValue("priority", value as any)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Prioridade</Label>
+                  <Select
+                    value={watch("priority") || "medium"}
+                    onValueChange={(value) => setValue("priority", value as any)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -396,9 +406,9 @@ export const DealModal = ({
                 />
               </div>
 
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 className="w-full"
                 onClick={async () => {
                   const nextStep = watch("next_step");

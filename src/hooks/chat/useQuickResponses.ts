@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useTemplates } from './useTemplates';
+import { useTemplates } from '@/hooks/useTemplates';
 import type { ShortcutSuggestion } from '@/types/quickResponses';
 
 interface UseQuickResponsesOptions {

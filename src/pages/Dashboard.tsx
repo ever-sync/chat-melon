@@ -10,11 +10,13 @@ import { RevenueChart } from "@/components/analytics/RevenueChart";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 export default function Dashboard() {
   const { companyId } = useCompanyQuery();
   const navigate = useNavigate();
   const { revenueData, metrics } = useAnalytics(6);
+  const { isFeatureEnabled } = useFeatureFlags();
 
   const [stats, setStats] = useState({
     totalConversations: 0,
@@ -120,7 +122,7 @@ export default function Dashboard() {
     }).format(value);
   };
 
-  const cards = [
+  const allCards = [
     {
       title: "Total de Conversas",
       value: stats.totalConversations,
@@ -129,7 +131,8 @@ export default function Dashboard() {
       bgColor: "bg-indigo-600/10",
       path: "/chat",
       trend: "+12%",
-      trendUp: true
+      trendUp: true,
+      feature: "chat" as const
     },
     {
       title: "Receita Total",
@@ -139,7 +142,8 @@ export default function Dashboard() {
       bgColor: "bg-emerald-600/10",
       path: "/crm",
       trend: "+8%",
-      trendUp: true
+      trendUp: true,
+      feature: "deals_pipeline" as const
     },
     {
       title: "Negócios Abertos",
@@ -149,7 +153,8 @@ export default function Dashboard() {
       bgColor: "bg-violet-500/10",
       path: "/crm",
       trend: "-2%",
-      trendUp: false
+      trendUp: false,
+      feature: "deals_pipeline" as const
     },
     {
       title: "Tarefas Pendentes",
@@ -162,6 +167,8 @@ export default function Dashboard() {
       trendUp: true
     },
   ];
+
+  const cards = allCards.filter(card => !card.feature || isFeatureEnabled(card.feature));
 
   return (
     <MainLayout>
@@ -214,72 +221,76 @@ export default function Dashboard() {
         </div>
 
         {/* Gráfico de Receita */}
-        <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between p-8 pb-0">
-            <div>
-              <CardTitle className="text-xl font-bold text-gray-900">Receita</CardTitle>
-              <p className="text-sm text-gray-500 mt-1">Últimos 6 meses</p>
-            </div>
-            <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100">
-              <MoreHorizontal className="h-5 w-5 text-gray-500" />
-            </Button>
-          </CardHeader>
-          <CardContent className="p-8 pt-6">
-            {revenueData && revenueData.length > 0 ? (
-              <RevenueChart data={revenueData} />
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
-                Nenhum dado de receita disponível
+        {isFeatureEnabled('deals_pipeline') && (
+          <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between p-8 pb-0">
+              <div>
+                <CardTitle className="text-xl font-bold text-gray-900">Receita</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">Últimos 6 meses</p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-8 md:grid-cols-2">
-          <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden h-full">
-            <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">
-              <CardTitle className="text-xl font-bold text-gray-900">Conversas Recentes</CardTitle>
-              <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
-                Ver todas
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100">
+                <MoreHorizontal className="h-5 w-5 text-gray-500" />
               </Button>
             </CardHeader>
-            <CardContent className="p-8 pt-0">
-              {recentConversations.length === 0 ? (
-                <div className="h-[200px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
-                  Nenhuma conversa recente
-                </div>
+            <CardContent className="p-8 pt-6">
+              {revenueData && revenueData.length > 0 ? (
+                <RevenueChart data={revenueData} />
               ) : (
-                <div className="space-y-3">
-                  {recentConversations.map((conv) => (
-                    <div
-                      key={conv.id}
-                      className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group border border-transparent hover:border-gray-100"
-                      onClick={() => navigate('/chat')}
-                    >
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-lg">
-                          {conv.contact_name?.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
-                            {conv.contact_name}
-                          </p>
-                          <p className="text-sm text-gray-500 truncate mt-0.5">
-                            {conv.last_message}
-                          </p>
-                        </div>
-                      </div>
-                      {conv.unread_count > 0 && (
-                        <span className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-rose-500/30">
-                          {conv.unread_count}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                <div className="h-[300px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
+                  Nenhum dado de receita disponível
                 </div>
               )}
             </CardContent>
           </Card>
+        )}
+
+        <div className="grid gap-8 md:grid-cols-2">
+          {isFeatureEnabled('chat') && (
+            <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden h-full">
+              <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">
+                <CardTitle className="text-xl font-bold text-gray-900">Conversas Recentes</CardTitle>
+                <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
+                  Ver todas
+                </Button>
+              </CardHeader>
+              <CardContent className="p-8 pt-0">
+                {recentConversations.length === 0 ? (
+                  <div className="h-[200px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
+                    Nenhuma conversa recente
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentConversations.map((conv) => (
+                      <div
+                        key={conv.id}
+                        className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group border border-transparent hover:border-gray-100"
+                        onClick={() => navigate('/chat')}
+                      >
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-lg">
+                            {conv.contact_name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
+                              {conv.contact_name}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate mt-0.5">
+                              {conv.last_message}
+                            </p>
+                          </div>
+                        </div>
+                        {conv.unread_count > 0 && (
+                          <span className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-rose-500/30">
+                            {conv.unread_count}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden h-full">
             <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">

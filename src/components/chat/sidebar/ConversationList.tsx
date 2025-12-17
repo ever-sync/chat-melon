@@ -3,19 +3,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ContactAvatar } from "@/components/ContactAvatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import type { Conversation } from "@/pages/Chat";
-import NewConversationDialog from "./NewConversationDialog";
+import type { Conversation } from "@/types/chat";
+import NewConversationDialog from "@/components/chat/dialogs/NewConversationDialog";
 import SearchBar from "./SearchBar";
-import { AdvancedFiltersDialog } from "./AdvancedFiltersDialog";
+import { AdvancedFiltersDialog } from "@/components/chat/dialogs/AdvancedFiltersDialog";
 import { ChatFilters } from "@/types/chatFilters";
 import { ChatFiltersBar } from "./ChatFiltersBar";
 import { useState, useEffect, useCallback, ReactNode } from "react";
-import { LabelBadge } from "./LabelBadge";
-import { SatisfactionBadge } from "./SatisfactionBadge";
+import { LabelBadge } from "@/components/chat/LabelBadge";
+import { SatisfactionBadge } from "@/components/chat/SatisfactionBadge";
 import { useCompany } from "@/contexts/CompanyContext";
 import { ChannelIcon } from "@/components/chat/ChannelIcon";
 
@@ -292,7 +292,7 @@ const ConversationList = ({
           labels={labels}
         />
 
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {isLoading ? (
             <div className="p-4 space-y-4">
               {[1, 2, 3].map((i) => (
@@ -406,7 +406,7 @@ const ConversationList = ({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </div>
 
       <NewConversationDialog

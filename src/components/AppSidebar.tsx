@@ -161,117 +161,119 @@ export function AppSidebar() {
   });
 
   return (
-    <Sidebar side="left" collapsible="icon" className="border-none bg-[#111111] text-gray-400 data-[state=collapsed]:w-[80px]">
-      <div className="flex items-center justify-center h-20 bg-[#111111]">
+    <Sidebar
+      side="left"
+      collapsible="icon"
+      className="border-r border-white/5 bg-[#0A0A0A] text-gray-400 data-[state=collapsed]:w-[80px] transition-all duration-300"
+    >
+      <div className="flex items-center justify-center h-20 mb-2">
         {state === "expanded" ? (
-          <div className="flex items-center gap-3">
-            <div>
-              <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
+          <div className="flex items-center gap-3 px-4 w-full">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full opacity-25 group-hover:opacity-50 blur transition duration-200" />
+              <img src="/icon-512.png" alt="Logo" className="relative w-9 h-9" />
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">CamalaChat</span>
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 tracking-tight">
+              CamalaChat
+            </span>
           </div>
         ) : (
-          <div>
-            <img src="/icon-512.png" alt="Logo" className="w-8 h-8" />
+          <div className="relative group p-2">
+            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full opacity-25 group-hover:opacity-50 blur transition duration-200" />
+            <img src="/icon-512.png" alt="Logo" className="relative w-9 h-9" />
           </div>
         )}
       </div>
 
-      <SidebarContent className="px-3 py-4 bg-[#111111] scrollbar-none">
-        <SidebarGroup className="mx-0 px-0">
-          <SidebarGroupLabel className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-4 mb-4 group-data-[collapsible=icon]:hidden">
+      <SidebarContent className="px-3 pb-4 scrollbar-none gap-6">
+        <SidebarGroup className="p-0">
+          <SidebarGroupLabel className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-2 group-data-[collapsible=icon]:hidden">
             Menu Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
-              {visibleMenuItems.map(item => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={state === "collapsed" ? item.title : undefined}
-                    className="
-                      h-11
-                      data-[active=true]:bg-white/10 
-                      data-[active=true]:text-white 
-                      data-[active=true]:font-medium 
-                      hover:bg-white/5 
-                      hover:text-white 
-                      text-gray-400
-                      rounded-2xl 
-                      transition-all 
-                      duration-300
-                      group
-                    "
-                  >
-                    <NavLink
-                      to={item.url}
-                      className={`flex items-center ${state === 'expanded' ? 'gap-4 px-3' : 'justify-center'}`}
+            <SidebarMenu className="space-y-1.5">
+              {visibleMenuItems.map(item => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={state === "collapsed" ? item.title : undefined}
+                      className={`
+                        h-10 relative overflow-hidden group
+                        transition-all duration-300 ease-out
+                        hover:bg-white/5
+                        ${active
+                          ? 'bg-gradient-to-r from-indigo-500/10 to-transparent text-white font-medium shadow-[inset_3px_0_0_0_#6366f1]'
+                          : 'text-gray-400 hover:text-gray-200'
+                        }
+                        rounded-lg
+                        mx-1
+                      `}
                     >
-                      <div className={`
-                        p-1.5 rounded-lg transition-all duration-300
-                        ${isActive(item.url) ? 'bg-white/10 text-indigo-400' : 'group-hover:text-indigo-400'}
-                      `}>
-                        <item.icon className="h-5 w-5" />
-                      </div>
-                      {state === "expanded" && (
-                        <span className="flex items-center gap-2 flex-1 text-[14px]">
-                          {item.title}
-                          {item.url === "/reports" && unreadCount > 0 && (
-                            <Badge className="ml-auto bg-indigo-500 text-white px-2 py-0.5 text-[10px] rounded-full">
-                              {unreadCount}
-                            </Badge>
-                          )}
-                          {item.comingSoon && (
-                            <Badge variant="outline" className="ml-auto text-amber-400 border-amber-400/50 px-1.5 py-0 text-[9px] rounded-full">
-                              Em Breve
-                            </Badge>
-                          )}
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <NavLink
+                        to={item.url}
+                        className={`flex items-center w-full ${state === "expanded" ? "gap-3 px-3" : "justify-center"}`}
+                      >
+                        <item.icon
+                          className={`
+                            h-[18px] w-[18px] transition-colors duration-300
+                            ${active ? 'text-indigo-400' : 'text-gray-500 group-hover:text-gray-300'}
+                          `}
+                        />
+                        {state === "expanded" && (
+                          <span className="flex items-center flex-1 text-[13.5px] tracking-wide">
+                            {item.title}
+                            {item.url === "/reports" && unreadCount > 0 && (
+                              <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                            )}
+                            {item.comingSoon && (
+                              <Badge variant="outline" className="ml-auto border-amber-500/30 text-amber-500 px-1.5 py-0 text-[9px] h-4 leading-none rounded-md bg-amber-500/5">
+                                SOON
+                              </Badge>
+                            )}
+                          </span>
+                        )}
+                        {/* Active glow effect */}
+                        {active && (
+                          <div className="absolute inset-0 bg-indigo-500/5 pointer-events-none" />
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {isPlatformAdmin && (
-          <SidebarGroup className="mx-0 px-0 mt-6">
-            <SidebarGroupLabel className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-4 mb-4 group-data-[collapsible=icon]:hidden">
-              Administração
+          <SidebarGroup className="p-0">
+            <SidebarGroupLabel className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-2 group-data-[collapsible=icon]:hidden">
+              Sistema
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
+              <SidebarMenu className="space-y-1.5">
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
                     isActive={isActive("/super-admin")}
                     tooltip={state === "collapsed" ? "Painel Admin" : undefined}
-                    className="
-                      h-11
-                      data-[active=true]:bg-white/10 
-                      data-[active=true]:text-white 
-                      data-[active=true]:font-medium 
-                      hover:bg-white/5 
-                      hover:text-white 
-                      text-gray-400
-                      rounded-2xl 
-                      transition-all 
-                      duration-300
-                    "
+                    className={`
+                      h-10 mx-1 rounded-lg transition-all duration-300
+                      ${isActive("/super-admin")
+                        ? 'bg-gradient-to-r from-purple-500/10 to-transparent text-white shadow-[inset_3px_0_0_0_#a855f7]'
+                        : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                      }
+                    `}
                   >
                     <NavLink
                       to="/super-admin"
-                      className={`flex items-center ${state === 'expanded' ? 'gap-4 px-3' : 'justify-center'}`}
+                      className={`flex items-center w-full ${state === "expanded" ? "gap-3 px-3" : "justify-center"}`}
                     >
-                      <div className="p-1.5 rounded-lg group-hover:text-indigo-400 transition-colors">
-                        <Shield className="h-5 w-5" />
-                      </div>
-                      {state === "expanded" && (
-                        <span className="text-[14px]">Painel Admin</span>
-                      )}
+                      <Shield className={`h-[18px] w-[18px] ${isActive("/super-admin") ? "text-purple-400" : "text-gray-500"}`} />
+                      {state === "expanded" && <span className="text-[13.5px]">Painel Admin</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -281,33 +283,17 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="bg-[#111111] p-4 group-data-[collapsible=icon]:p-2">
-        <div className={`
-          rounded-2xl transition-all duration-300
-          ${state === 'expanded' ? 'bg-white/5 p-2 space-y-1' : 'bg-transparent p-0 space-y-2'}
-        `}>
+      <SidebarFooter className="p-3 bg-black/20 backdrop-blur-sm border-t border-white/5">
+        <div className="flex flex-col gap-1">
           <SidebarMenuButton
             asChild
             isActive={isActive("/companies")}
             tooltip={state === "collapsed" ? "Empresas" : undefined}
-            className="
-              h-10
-              hover:bg-white/10 
-              hover:text-white 
-              text-gray-400
-              rounded-xl
-              transition-all 
-              duration-200
-              data-[state=open]:bg-white/10
-              data-[state=open]:text-white
-            "
+            className="h-9 rounded-md hover:bg-white/5 text-gray-400 hover:text-gray-200 transition-colors"
           >
-            <NavLink
-              to="/companies"
-              className={`flex items-center ${state === 'expanded' ? 'gap-3 px-2' : 'justify-center w-full'}`}
-            >
-              <Building2 className="h-4 w-4" />
-              {state === "expanded" && <span className="text-sm">Empresas</span>}
+            <NavLink to="/companies" className={`flex items-center w-full ${state === "expanded" ? "gap-3 px-2" : "justify-center"}`}>
+              <Building2 className="h-4 w-4 opacity-70" />
+              {state === "expanded" && <span className="text-xs font-medium">Empresas</span>}
             </NavLink>
           </SidebarMenuButton>
 
@@ -315,43 +301,22 @@ export function AppSidebar() {
             asChild
             isActive={isActive("/settings")}
             tooltip={state === "collapsed" ? "Configurações" : undefined}
-            className="
-              h-10
-              hover:bg-white/10 
-              hover:text-white 
-              text-gray-400
-              rounded-xl
-              transition-all 
-              duration-200
-              data-[state=open]:bg-white/10
-              data-[state=open]:text-white
-            "
+            className="h-9 rounded-md hover:bg-white/5 text-gray-400 hover:text-gray-200 transition-colors"
           >
-            <NavLink
-              to="/settings"
-              className={`flex items-center ${state === 'expanded' ? 'gap-3 px-2' : 'justify-center w-full'}`}
-            >
-              <Settings className="h-4 w-4" />
-              {state === "expanded" && <span className="text-sm">Configurações</span>}
+            <NavLink to="/settings" className={`flex items-center w-full ${state === "expanded" ? "gap-3 px-2" : "justify-center"}`}>
+              <Settings className="h-4 w-4 opacity-70" />
+              {state === "expanded" && <span className="text-xs font-medium">Configurações</span>}
             </NavLink>
           </SidebarMenuButton>
 
           <SidebarMenuButton
             onClick={handleLogout}
             tooltip={state === "collapsed" ? "Sair" : undefined}
-            className="
-              h-10
-              hover:bg-red-500/10 
-              hover:text-red-400 
-              text-gray-400
-              rounded-xl
-              transition-all 
-              duration-200
-            "
+            className="h-9 rounded-md hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors mt-1"
           >
-            <div className={`flex items-center ${state === 'expanded' ? 'gap-3 px-2 w-full' : 'justify-center w-full'}`}>
-              <LogOut className="h-4 w-4" />
-              {state === "expanded" && <span className="text-sm">Sair</span>}
+            <div className={`flex items-center w-full ${state === "expanded" ? "gap-3 px-2" : "justify-center"}`}>
+              <LogOut className="h-4 w-4 opacity-70" />
+              {state === "expanded" && <span className="text-xs font-medium">Sair</span>}
             </div>
           </SidebarMenuButton>
         </div>

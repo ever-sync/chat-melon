@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChatFilters } from '@/types/chatFilters';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompany } from '@/contexts/CompanyContext';
-import { LabelBadge } from './LabelBadge';
+import { LabelBadge } from "@/components/chat/LabelBadge";
 import { toast } from 'sonner';
 import { useSavedFilters } from '@/hooks/useSavedFilters';
 import { NotificationHistoryDialog } from './NotificationHistoryDialog';
@@ -83,7 +83,7 @@ export const AdvancedFiltersDialog = ({
 
   const loadLabels = async () => {
     if (!currentCompany?.id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("labels")
@@ -100,7 +100,7 @@ export const AdvancedFiltersDialog = ({
 
   const loadSectors = async () => {
     if (!currentCompany?.id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("sectors")
@@ -205,7 +205,7 @@ export const AdvancedFiltersDialog = ({
     setIsDefault(false);
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     filters.status.length > 0 ||
     filters.labels.length > 0 ||
     filters.hasUnread ||
@@ -229,7 +229,7 @@ export const AdvancedFiltersDialog = ({
           <DialogHeader>
             <DialogTitle>Filtros e Configurações</DialogTitle>
           </DialogHeader>
-          
+
           <Tabs defaultValue="filters" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="filters">Filtros</TabsTrigger>
@@ -241,12 +241,12 @@ export const AdvancedFiltersDialog = ({
               {/* Filtros Básicos */}
               <div className="space-y-4 pb-4 border-b">
                 <h3 className="text-sm font-semibold text-foreground">Filtros Básicos</h3>
-                
+
                 {/* Atribuído */}
                 <div className="space-y-2">
                   <Label>Atribuído</Label>
-                  <Select 
-                    value={filters.assignedTo} 
+                  <Select
+                    value={filters.assignedTo}
                     onValueChange={(value) => onFiltersChange({ assignedTo: value })}
                   >
                     <SelectTrigger>
@@ -269,8 +269,8 @@ export const AdvancedFiltersDialog = ({
                 {/* Setor */}
                 <div className="space-y-2">
                   <Label>Setor</Label>
-                  <Select 
-                    value={filters.sector || "all"} 
+                  <Select
+                    value={filters.sector || "all"}
                     onValueChange={(value) => onFiltersChange({ sector: value === "all" ? null : value })}
                   >
                     <SelectTrigger>
@@ -298,8 +298,8 @@ export const AdvancedFiltersDialog = ({
                 {/* Labels */}
                 <div className="space-y-2">
                   <Label>Labels</Label>
-                  <Select 
-                    value={filters.labels.length > 0 ? filters.labels[0] : "all"} 
+                  <Select
+                    value={filters.labels.length > 0 ? filters.labels[0] : "all"}
                     onValueChange={handleLabelChange}
                   >
                     <SelectTrigger>
@@ -357,7 +357,7 @@ export const AdvancedFiltersDialog = ({
               {/* Filtros Avançados */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-foreground">Filtros Avançados</h3>
-                
+
                 {/* Data da última mensagem */}
                 <div className="space-y-2">
                   <Label>Data da última mensagem</Label>
@@ -463,7 +463,7 @@ export const AdvancedFiltersDialog = ({
 
             <TabsContent value="saved" className="space-y-4 py-4">
               {hasActiveFilters && (
-                <Button 
+                <Button
                   onClick={() => setShowSaveDialog(true)}
                   className="w-full"
                   variant="outline"

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   X, Ban, Archive, Copy, ChevronDown, ChevronRight,
   Plus, Check, Pencil, Save, FileText, Image, FileAudio,
-  DollarSign, CheckSquare, Mail
+  DollarSign, CheckSquare, Mail, Eye, MoreHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { Conversation } from "@/pages/Chat";
+import type { Conversation } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/contexts/CompanyContext";
 import { toast } from "sonner";
@@ -23,6 +23,12 @@ import { EmailComposer } from "@/components/crm/EmailComposer";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+// CRM Integration
+import { useDeals, type Deal } from "@/hooks/crm/useDeals";
+import { usePipelines } from "@/hooks/crm/usePipelines";
+import { DealModal } from "@/components/crm/DealModal";
+import { DealDetail } from "@/components/crm/DealDetail";
+
 
 type ContactDetailPanelProps = {
   conversation: Conversation;
@@ -37,7 +43,6 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [contactData, setContactData] = useState<any>(null);
-  const [deals, setDeals] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
@@ -51,6 +56,16 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
   const [showLabelsManager, setShowLabelsManager] = useState(false);
   const [showEmailComposer, setShowEmailComposer] = useState(false);
 
+  // CRM Integration - useDeals hook instead of manual loading
+  const { pipelines, defaultPipeline } = usePipelines();
+  const { deals, createDeal, isLoading: isDealsLoading } = useDeals(undefined, conversation.contact_id);
+
+  // Deal Modal & Detail states
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [viewingDeal, setViewingDeal] = useState<Deal | null>(null);
+  const [showDealDetail, setShowDealDetail] = useState(false);
+  const [editingDeal, setEditingDeal] = useState<Deal | undefined>();
+
   // Seções colapsáveis
   const [openSections, setOpenSections] = useState({
     deals: true,
@@ -61,10 +76,10 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   const [mediaFilter, setMediaFilter] = useState<"all" | "image" | "document" | "audio">("all");
 
+
   useEffect(() => {
     if (conversation.contact_id) {
       loadContactData();
-      loadDeals();
       loadTasks();
       loadNotes();
       loadMediaFiles();
@@ -72,6 +87,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
       loadLabels();
     }
   }, [conversation.contact_id]);
+
 
   const loadContactData = async () => {
     try {
@@ -88,26 +104,8 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
     }
   };
 
-  const loadDeals = async () => {
-    if (!currentCompany?.id || !conversation.contact_id) return;
+  // loadDeals removed - now using useDeals hook
 
-    try {
-      const { data, error } = await supabase
-        .from("deals")
-        .select(`
-          *,
-          pipeline_stages(name, color)
-        `)
-        .eq("company_id", currentCompany.id)
-        .eq("contact_id", conversation.contact_id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setDeals(data || []);
-    } catch (error) {
-      console.error("Erro ao carregar negócios:", error);
-    }
-  };
 
   const loadTasks = async () => {
     if (!currentCompany?.id || !conversation.contact_id) return;
@@ -628,25 +626,61 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
               {openSections.deals ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
-              {deals.map(deal => (
-                <div key={deal.id} className="p-2 border border-border rounded-lg space-y-1">
-                  <div className="flex items-start justify-between">
-                    <p className="text-sm font-medium">{deal.title}</p>
-                    <Badge style={{ backgroundColor: deal.pipeline_stages?.color }} className="text-xs">
-                      {deal.pipeline_stages?.name}
-                    </Badge>
+              {isDealsLoading ? (
+                <p className="text-xs text-muted-foreground text-center py-2">Carregando...</p>
+              ) : deals.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-2">Nenhum negócio encontrado</p>
+              ) : (
+                deals.map(deal => (
+                  <div
+                    key={deal.id}
+                    className="p-3 border border-border rounded-xl space-y-2 cursor-pointer hover:bg-muted/50 transition-colors group"
+                    onClick={() => {
+                      setViewingDeal(deal);
+                      setShowDealDetail(true);
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <p className="text-sm font-medium group-hover:text-primary transition-colors">{deal.title}</p>
+                      <Badge
+                        style={{ backgroundColor: deal.pipeline_stages?.color }}
+                        className="text-xs text-white"
+                      >
+                        {deal.pipeline_stages?.name}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-green-600 font-bold">
+                        {formatCurrency(deal.value || 0)}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewingDeal(deal);
+                          setShowDealDetail(true);
+                        }}
+                      >
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-xs text-green-600 font-medium">
-                    {formatCurrency(deal.value || 0)}
-                  </p>
-                </div>
-              ))}
-              <Button variant="outline" size="sm" className="w-full">
+                ))
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setShowDealModal(true)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Negócio
               </Button>
             </CollapsibleContent>
           </Collapsible>
+
 
           <Separator />
 
@@ -817,7 +851,32 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           contactName={conversation.contact_name}
         />
       )}
+
+      {/* CRM Modals */}
+      <DealModal
+        open={showDealModal}
+        onOpenChange={setShowDealModal}
+        deal={editingDeal}
+        pipelineId={defaultPipeline?.id}
+        defaultContactId={conversation.contact_id}
+        onSubmit={(data) => {
+          createDeal.mutate(data);
+          setShowDealModal(false);
+        }}
+      />
+
+      <DealDetail
+        deal={viewingDeal}
+        open={showDealDetail}
+        onOpenChange={setShowDealDetail}
+        onEdit={(deal) => {
+          setEditingDeal(deal);
+          setShowDealDetail(false);
+          setShowDealModal(true);
+        }}
+      />
     </div>
+
   );
 };
 

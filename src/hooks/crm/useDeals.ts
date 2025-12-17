@@ -10,12 +10,12 @@ export type Deal = Tables<"deals"> & {
   profiles: Tables<"profiles"> | null;
 };
 
-export const useDeals = (pipelineId?: string) => {
+export const useDeals = (pipelineId?: string, contactId?: string) => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
   const { data: deals = [], isLoading } = useQuery({
-    queryKey: ["deals", companyId, pipelineId],
+    queryKey: ["deals", companyId, pipelineId, contactId],
     queryFn: async () => {
       if (!companyId) return [];
 
@@ -35,6 +35,10 @@ export const useDeals = (pipelineId?: string) => {
         query = query.eq("pipeline_id", pipelineId);
       }
 
+      if (contactId) {
+        query = query.eq("contact_id", contactId);
+      }
+
       const { data, error } = await query;
 
       if (error) throw error;
@@ -43,6 +47,7 @@ export const useDeals = (pipelineId?: string) => {
     enabled: !!companyId,
     staleTime: 2 * 60 * 1000, // 2 minutos cache
   });
+
 
   const createDeal = useMutation({
     mutationFn: async (deal: TablesInsert<"deals">) => {

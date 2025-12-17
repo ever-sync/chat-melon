@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChatFilters } from '@/types/chatFilters';
-import { LabelBadge } from './LabelBadge';
+import { LabelBadge } from "@/components/chat/LabelBadge";
 
 interface ChatFiltersBarProps {
   filters: ChatFilters;

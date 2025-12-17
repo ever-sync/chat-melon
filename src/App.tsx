@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { PageLoadingSkeleton } from "@/components/LoadingFallback";
 import { RequireCompany } from "@/components/RequireCompany";
 import Dashboard from "./pages/Dashboard";
+import { FeatureGate } from "@/components/auth/FeatureGate";
 
 // Lazy load de páginas - carregadas apenas quando necessário
 const Landing = lazy(() => import("./pages/Landing"));
@@ -96,29 +97,112 @@ const App = () => {
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/set-password" element={<SetPassword />} />
                     <Route path="/dashboard" element={<ErrorBoundary context="dashboard"><Dashboard /></ErrorBoundary>} />
-                    <Route path="/chat" element={<ErrorBoundary context="chat"><Chat /></ErrorBoundary>} />
-                    <Route path="/groups" element={<ErrorBoundary context="groups"><Groups /></ErrorBoundary>} />
-                    <Route path="/crm" element={<ErrorBoundary context="crm"><CRM /></ErrorBoundary>} />
+                    {/* Update routes */}
+                    <Route path="/chat" element={
+                      <ErrorBoundary context="chat">
+                        <FeatureGate feature="chat">
+                          <Chat />
+                        </FeatureGate>
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/groups" element={
+                      <ErrorBoundary context="groups">
+                        <FeatureGate feature="groups">
+                          <Groups />
+                        </FeatureGate>
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/crm" element={
+                      <ErrorBoundary context="crm">
+                        <FeatureGate feature="deals_pipeline">
+                          <CRM />
+                        </FeatureGate>
+                      </ErrorBoundary>
+                    } />
                     <Route path="/tasks" element={<ErrorBoundary context="tasks"><Tasks /></ErrorBoundary>} />
                     <Route path="/templates" element={<Templates />} />
-                    <Route path="/proposals" element={<Proposals />} />
-                    <Route path="/settings/proposal-templates" element={<ProposalTemplates />} />
-                    <Route path="/automation" element={<ErrorBoundary context="automation"><Automation /></ErrorBoundary>} />
-                    <Route path="/gamification" element={<Gamification />} />
-                    <Route path="/contacts" element={<ErrorBoundary context="contacts"><Contacts /></ErrorBoundary>} />
-                    <Route path="/duplicates" element={<Duplicates />} />
-                    <Route path="/segments" element={<Segments />} />
-                    <Route path="/settings/queues" element={<QueuesSettings />} />
-                    <Route path="/settings/pipelines" element={<PipelineSettings />} />
+                    <Route path="/proposals" element={
+                      <FeatureGate feature="proposals">
+                        <Proposals />
+                      </FeatureGate>
+                    } />
+                    <Route path="/settings/proposal-templates" element={
+                      <FeatureGate feature="proposals">
+                        <ProposalTemplates />
+                      </FeatureGate>
+                    } />
+                    <Route path="/automation" element={
+                      <ErrorBoundary context="automation">
+                        <FeatureGate feature="workflows">
+                          <Automation />
+                        </FeatureGate>
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/gamification" element={
+                      <FeatureGate feature="gamification">
+                        <Gamification />
+                      </FeatureGate>
+                    } />
+                    <Route path="/contacts" element={
+                      <ErrorBoundary context="contacts">
+                        <FeatureGate feature="contacts">
+                          <Contacts />
+                        </FeatureGate>
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/duplicates" element={
+                      <FeatureGate feature="duplicates">
+                        <Duplicates />
+                      </FeatureGate>
+                    } />
+                    <Route path="/segments" element={
+                      <FeatureGate feature="segments">
+                        <Segments />
+                      </FeatureGate>
+                    } />
+                    <Route path="/settings/queues" element={
+                      <FeatureGate feature="queues">
+                        <QueuesSettings />
+                      </FeatureGate>
+                    } />
+                    <Route path="/settings/pipelines" element={
+                      <FeatureGate feature="deals_pipeline">
+                        <PipelineSettings />
+                      </FeatureGate>
+                    } />
                     <Route path="/settings/users" element={<UsersPage />} />
                     <Route path="/settings/ai" element={<AISettingsPage />} />
                     <Route path="/configuracoes/ai" element={<Navigate to="/settings/ai" replace />} />
                     <Route path="/configurações/ai" element={<Navigate to="/settings/ai" replace />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path="/reports" element={<ErrorBoundary context="reports"><Reports /></ErrorBoundary>} />
-                    <Route path="/reports/team" element={<TeamPerformancePage />} />
-                    <Route path="/campaigns" element={<ErrorBoundary context="campaigns"><Campaigns /></ErrorBoundary>} />
-                    <Route path="/campaigns/:id" element={<CampaignDetail />} />
+                    <Route path="/products" element={
+                      <FeatureGate feature="products">
+                        <Products />
+                      </FeatureGate>
+                    } />
+                    <Route path="/reports" element={
+                      <ErrorBoundary context="reports">
+                        <FeatureGate feature="reports_basic">
+                          <Reports />
+                        </FeatureGate>
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/reports/team" element={
+                      <FeatureGate feature="team_performance">
+                        <TeamPerformancePage />
+                      </FeatureGate>
+                    } />
+                    <Route path="/campaigns" element={
+                      <ErrorBoundary context="campaigns">
+                        <FeatureGate feature="campaigns">
+                          <Campaigns />
+                        </FeatureGate>
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/campaigns/:id" element={
+                      <FeatureGate feature="campaigns">
+                        <CampaignDetail />
+                      </FeatureGate>
+                    } />
                     <Route path="/settings" element={<NewSettings />} />
                     <Route path="/instance-setup" element={<InstanceSetup />} />
                     <Route path="/companies" element={<Companies />} />
@@ -126,20 +210,68 @@ const App = () => {
                     <Route path="/upgrade" element={<Upgrade />} />
                     <Route path="/piloto-pro" element={<PilotoPro />} />
                     <Route path="/p/:slug" element={<ProposalPublic />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/documents" element={<Documents />} />
-                    <Route path="/docs/api" element={<APIDocumentation />} />
-                    <Route path="/settings/webhooks" element={<WebhooksSettings />} />
+                    <Route path="/faq" element={
+                      <FeatureGate feature="faq">
+                        <FAQ />
+                      </FeatureGate>
+                    } />
+                    <Route path="/documents" element={
+                      <FeatureGate feature="documents">
+                        <Documents />
+                      </FeatureGate>
+                    } />
+                    <Route path="/docs/api" element={
+                      <FeatureGate feature="api_public">
+                        <APIDocumentation />
+                      </FeatureGate>
+                    } />
+                    <Route path="/settings/webhooks" element={
+                      <FeatureGate feature="webhooks">
+                        <WebhooksSettings />
+                      </FeatureGate>
+                    } />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms-of-service" element={<TermsOfService />} />
-                    <Route path="/knowledge-base" element={<KnowledgeBase />} />
-                    <Route path="/chatbots" element={<ChatbotsPage />} />
-                    <Route path="/chatbots/:id" element={<ChatbotBuilder />} />
-                    <Route path="/cadences" element={<Cadences />} />
-                    <Route path="/orders" element={<Orders />} />
-                    <Route path="/integrations" element={<Integrations />} />
-                    <Route path="/security" element={<Security />} />
-                    <Route path="/channels" element={<Channels />} />
+                    <Route path="/knowledge-base" element={
+                      <FeatureGate feature="knowledge_base">
+                        <KnowledgeBase />
+                      </FeatureGate>
+                    } />
+                    <Route path="/chatbots" element={
+                      <FeatureGate feature="chatbots">
+                        <ChatbotsPage />
+                      </FeatureGate>
+                    } />
+                    <Route path="/chatbots/:id" element={
+                      <FeatureGate feature="chatbots">
+                        <ChatbotBuilder />
+                      </FeatureGate>
+                    } />
+                    <Route path="/cadences" element={
+                      <FeatureGate feature="cadences">
+                        <Cadences />
+                      </FeatureGate>
+                    } />
+                    <Route path="/orders" element={
+                      <FeatureGate feature="orders">
+                        <Orders />
+                      </FeatureGate>
+                    } />
+                    <Route path="/integrations" element={
+                      <FeatureGate feature="integrations">
+                        <Integrations />
+                      </FeatureGate>
+                    } />
+                    <Route path="/security" element={
+                      <FeatureGate feature="security">
+                        <Security />
+                      </FeatureGate>
+                    } />
+                    <Route path="/channels" element={
+                      <FeatureGate feature="channels">
+                        <Channels />
+                      </FeatureGate>
+                    } />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Flame, Snowflake, ThermometerSun, Phone, Mail } from "lucide-react";
+import { Flame, Snowflake, ThermometerSun, Phone, Mail, MessageCircle } from "lucide-react";
 import type { Deal } from "@/hooks/crm/useDeals";
 import { DealTimeline } from "./DealTimeline";
+
 
 interface DealDetailProps {
   deal: Deal | null;
@@ -21,7 +23,9 @@ interface DealDetailProps {
 }
 
 export const DealDetail = ({ deal, open, onOpenChange, onEdit }: DealDetailProps) => {
+  const navigate = useNavigate();
   if (!deal) return null;
+
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "R$ 0,00";
@@ -123,7 +127,21 @@ export const DealDetail = ({ deal, open, onOpenChange, onEdit }: DealDetailProps
                   </div>
                 )}
               </div>
+              {/* CRM to Chat button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate(`/chat?contact=${deal.contact_id}`);
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Abrir Chat
+              </Button>
             </div>
+
 
             {/* Responsável */}
             {deal.profiles && (

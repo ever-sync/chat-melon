@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AdvancedFiltersDialog } from "./AdvancedFiltersDialog";
+import { AdvancedFiltersDialog } from "@/components/chat/dialogs/AdvancedFiltersDialog";
 import { ChatFilters } from "@/types/chatFilters";
 
 type SearchBarProps = {
@@ -31,12 +31,12 @@ type SearchBarProps = {
   onSelectConversation?: (conversationId: string) => void;
 };
 
-const SearchBar = ({ 
-  onSearch, 
-  onDateFilter, 
-  searchQuery, 
-  startDate, 
-  endDate, 
+const SearchBar = ({
+  onSearch,
+  onDateFilter,
+  searchQuery,
+  startDate,
+  endDate,
   isSearching,
   filters,
   onFilterChange,
@@ -69,14 +69,14 @@ const SearchBar = ({
 
   const handleSearchChange = (value: string) => {
     setLocalQuery(value);
-    
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
 
     debounceTimer.current = setTimeout(() => {
       onSearch(value);
-      
+
       // Adicionar ao histórico se tiver texto
       if (value.trim()) {
         const newHistory = [value, ...searchHistory.filter(s => s !== value)].slice(0, 10);
