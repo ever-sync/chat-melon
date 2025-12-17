@@ -39,8 +39,8 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
 
   // Get stages for active pipeline
   const activePipeline = pipelines.find((p) => p.id === activePipelineId);
-  const stages = ((activePipeline as any)?.pipeline_stages || []).sort(
-    (a: any, b: any) => a.order_index - b.order_index
+  const stages = (activePipeline?.pipeline_stages || []).sort(
+    (a, b) => a.order_index - b.order_index
   );
 
   const { deals, isLoading: isDealsLoading, createDeal, updateDeal, moveDeal, deleteDeal } = useDeals(activePipelineId);

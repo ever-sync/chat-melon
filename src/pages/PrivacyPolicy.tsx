@@ -62,7 +62,7 @@ const PrivacyPolicy = () => {
 
                     <h3 className="text-2xl font-bold text-slate-800 mt-8">2. Como usamos suas informações</h3>
                     <p>
-                        Apenas retemos as informações coletadas pelo tempo necessário para fornecer o serviço solicitado. Quando armazenamos dados, protegemos dentro de meios comercialmente aceitáveis ​​para evitar perdas e roubos, bem como acesso, divulgação, cópia, uso ou modificação não autorizados.
+                        Apenas retemos as informações coletadas pelo tempo necessário para fornecer o serviço solicitado. Quando armazenamos dados, protegemos dentro de meios comercialmente aceitáveis para evitar perdas e roubos, bem como acesso, divulgação, cópia, uso ou modificação não autorizados.
                     </p>
 
                     <h3 className="text-2xl font-bold text-slate-800 mt-8">3. Compartilhamento de dados</h3>

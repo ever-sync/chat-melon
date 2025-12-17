@@ -4,7 +4,7 @@ import { MainLayout } from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, Zap, Shield, Infinity, ArrowRight } from 'lucide-react';
+import { Check, Sparkles, Zap, Shield, Infinity as InfinityIcon, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ export default function PilotoProPage() {
     }, []);
 
     const benefits = [
-        { icon: Infinity, text: 'Análises de IA ilimitadas' },
+        { icon: InfinityIcon, text: 'Análises de IA ilimitadas' },
         { icon: Zap, text: 'Respostas mais rápidas com GPT-4' },
         { icon: Shield, text: 'Funciona em TODAS suas empresas' },
         { icon: Sparkles, text: 'Script de vendas personalizado' },

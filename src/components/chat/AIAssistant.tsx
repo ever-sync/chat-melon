@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/contexts/CompanyContext";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import type { Conversation } from "@/pages/Chat";
+import type { Conversation } from "@/types/chat";
 
 type Message = {
   id: string;
@@ -66,13 +66,7 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
   const [useKnowledgeBase, setUseKnowledgeBase] = useState(false);
   const [kbResult, setKbResult] = useState<KBResponse | null>(null);
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      analyzeConversation();
-    }
-  }, [messages]);
-
-  const analyzeConversation = async () => {
+  const analyzeConversation = useCallback(async () => {
     if (messages.length === 0) return;
 
     setIsLoading(true);
@@ -121,10 +115,10 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
           console.log('AI Settings fetched:', { settings, error: settingsError });
 
           if (settings) {
-            salesScript = (settings as any)?.copilot_script || "";
-            geminiApiKey = (settings as any)?.gemini_api_key || "";
-            openaiApiKey = (settings as any)?.openai_api_key || "";
-            groqApiKey = (settings as any)?.groq_api_key || "";
+            salesScript = settings.copilot_script || "";
+            geminiApiKey = settings.gemini_api_key || "";
+            openaiApiKey = settings.openai_api_key || "";
+            groqApiKey = settings.groq_api_key || "";
             console.log('API Keys:', {
               hasGemini: !!geminiApiKey,
               hasOpenAI: !!openaiApiKey,
@@ -163,9 +157,14 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
       console.error('Error analyzing conversation:', error);
       toast.error("Não foi possível analisar a conversa");
     } finally {
-      setIsLoading(false);
     }
-  };
+  }, [messages, conversation, currentCompany, tone, useKnowledgeBase]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      analyzeConversation();
+    }
+  }, [messages, analyzeConversation]);
 
   const handleToneChange = (newTone: ToneType) => {
     setTone(newTone);

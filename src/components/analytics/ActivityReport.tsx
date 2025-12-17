@@ -30,9 +30,10 @@ export const ActivityReport = () => {
     switch (period) {
       case "today":
         return { startDate: now, endDate: now };
-      case "yesterday":
+      case "yesterday": {
         const yesterday = subDays(now, 1);
         return { startDate: yesterday, endDate: yesterday };
+      }
       case "week":
         return { startDate: subDays(now, 7), endDate: now };
       case "month":

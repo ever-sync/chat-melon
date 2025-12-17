@@ -74,7 +74,7 @@ export const useSatisfaction = () => {
 
   const getMetrics = (period: 'week' | 'month' | 'quarter' = 'month'): SatisfactionMetrics => {
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
 
     switch (period) {
       case 'week':

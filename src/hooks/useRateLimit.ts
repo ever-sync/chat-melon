@@ -80,7 +80,6 @@ interface UseRateLimitResult {
  *   return (
  *     <form onSubmit={handleLogin}>
  *       <p>Tentativas restantes: {remaining()}</p>
- *       {/* ... */}
  *     </form>
  *   );
  * }

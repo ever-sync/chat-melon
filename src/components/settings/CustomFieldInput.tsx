@@ -120,7 +120,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           </Select>
         );
 
-      case "multiselect":
+      case "multiselect": {
         const selectedValues = value ? value.split(",") : [];
         return (
           <div className="space-y-2">
@@ -140,6 +140,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
             ))}
           </div>
         );
+      }
 
       default:
         return null;

@@ -1,5 +1,6 @@
 import { LayoutDashboard, MessageSquare, Users, Contact, BarChart3, Settings, MessageCircle, Building2, UsersRound, FileBarChart, Zap, Trophy, Package, GitMerge, Filter, Send, Shield, LogOut, FileText, HelpCircle, User, Briefcase, Star, Heart, ShoppingBag, Bot, BookOpen } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useInsights } from "@/hooks/useInsights";
 import { usePlatformAdmin } from "@/hooks/usePlatformAdmin";
@@ -23,7 +24,7 @@ export function AppSidebar() {
   const { settings: contactSettings } = useContactSettings();
   const { settings: productSettings } = useProductSettings();
 
-  const getIcon = (iconName: string, DefaultIcon: any) => {
+  const getIcon = (iconName: string, DefaultIcon: React.ElementType) => {
     switch (iconName) {
       case 'User': return User;
       case 'Briefcase': return Briefcase;

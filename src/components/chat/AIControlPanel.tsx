@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -95,6 +95,68 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   const [isUpdating, setIsUpdating] = useState(false);
   const [agentName, setAgentName] = useState("Copiloto");
 
+  const loadAgentName = useCallback(async () => {
+    const { data } = await supabase
+      .from('ai_settings')
+      .select('*')
+      .eq('company_id', companyId)
+      .maybeSingle();
+    if (data && 'agent_name' in data) {
+      setAgentName((data as { agent_name: string }).agent_name);
+    }
+  }, [companyId]);
+
+  const loadConversation = useCallback(async () => {
+    const { data } = await supabase
+      .from('conversations')
+      .select('ai_enabled, ai_mode, ai_paused_at, ai_messages_count, ai_summary, ai_next_step_suggestion')
+      .eq('id', conversationId)
+      .maybeSingle();
+    setConversation(data);
+  }, [conversationId]);
+
+  const loadInsights = useCallback(async () => {
+    const { data } = await supabase
+      .from('lead_insights')
+      .select('*')
+      .eq('contact_id', contactId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setInsights(data || []);
+  }, [contactId]);
+
+  const loadQualification = useCallback(async () => {
+    const { data } = await supabase
+      .from('lead_qualification')
+      .select('*')
+      .eq('contact_id', contactId)
+      .maybeSingle();
+    setQualification(data);
+  }, [contactId]);
+
+  const loadSuggestions = useCallback(async () => {
+    const { data } = await supabase
+      .from('ai_suggestions')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    setSuggestions(data || []);
+  }, [conversationId]);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    await Promise.all([
+      loadConversation(),
+      loadInsights(),
+      loadQualification(),
+      loadSuggestions(),
+      loadAgentName(),
+    ]);
+    setIsLoading(false);
+  }, [loadConversation, loadInsights, loadQualification, loadSuggestions, loadAgentName]);
+
   useEffect(() => {
     loadData();
 
@@ -118,69 +180,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, contactId]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    await Promise.all([
-      loadConversation(),
-      loadInsights(),
-      loadQualification(),
-      loadSuggestions(),
-      loadAgentName(),
-    ]);
-    setIsLoading(false);
-  };
-
-  const loadAgentName = async () => {
-    const { data } = await supabase
-      .from('ai_settings')
-      .select('*')
-      .eq('company_id', companyId)
-      .maybeSingle();
-    if ((data as any)?.agent_name) {
-      setAgentName((data as any).agent_name);
-    }
-  };
-
-  const loadConversation = async () => {
-    const { data } = await supabase
-      .from('conversations')
-      .select('ai_enabled, ai_mode, ai_paused_at, ai_messages_count, ai_summary, ai_next_step_suggestion')
-      .eq('id', conversationId)
-      .maybeSingle();
-    setConversation(data);
-  };
-
-  const loadInsights = async () => {
-    const { data } = await supabase
-      .from('lead_insights')
-      .select('*')
-      .eq('contact_id', contactId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(20);
-    setInsights(data || []);
-  };
-
-  const loadQualification = async () => {
-    const { data } = await supabase
-      .from('lead_qualification')
-      .select('*')
-      .eq('contact_id', contactId)
-      .maybeSingle();
-    setQualification(data);
-  };
-
-  const loadSuggestions = async () => {
-    const { data } = await supabase
-      .from('ai_suggestions')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
-    setSuggestions(data || []);
-  };
+  }, [conversationId, contactId, loadData, loadInsights, loadSuggestions]);
 
   const toggleAI = async () => {
     setIsUpdating(true);
