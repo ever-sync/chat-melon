@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
             }
 
             let endpoint = '/message/sendText/';
-            let body: any = { number: recipientId };
+            const body: any = { number: recipientId };
 
             switch (messageType) {
                 case 'text':
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
             const accessToken = channel.credentials.page_access_token;
             const graphUrl = `https://graph.facebook.com/v18.0/me/messages?access_token=${accessToken}`;
 
-            let body: any = {
+            const body: any = {
                 recipient: { id: recipientId },
                 messaging_type: 'RESPONSE'
             };

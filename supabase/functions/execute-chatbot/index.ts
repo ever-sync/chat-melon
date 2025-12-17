@@ -343,7 +343,7 @@ async function processNode(
         const userInput = userMessage.trim().toLowerCase();
 
         // Find matching option
-        let selectedOption = options.find((opt, idx) => {
+        const selectedOption = options.find((opt, idx) => {
           const optNum = String(idx + 1);
           return (
             userInput === optNum ||

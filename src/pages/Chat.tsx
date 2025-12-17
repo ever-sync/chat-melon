@@ -226,7 +226,7 @@ const Chat = () => {
     // Filtro por data da última mensagem
     if (filters.lastMessageDate) {
       const now = new Date();
-      let cutoffDate = now;
+      const cutoffDate = now;
 
       switch (filters.lastMessageDate) {
         case 'today':

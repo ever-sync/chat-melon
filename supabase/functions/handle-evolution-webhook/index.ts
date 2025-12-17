@@ -162,7 +162,7 @@ async function handleMessageUpsert(supabase: any, instance: string, data: any) {
 
   // Extract message content
   let content = "";
-  let mediaUrl = null;
+  const mediaUrl = null;
   let mediaType = null;
   let messageType = "text";
 

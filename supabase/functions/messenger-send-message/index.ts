@@ -91,7 +91,7 @@ serve(async (req) => {
         }
 
         // Build message payload
-        let messagePayload: any = {
+        const messagePayload: any = {
             recipient: { id: recipientId },
             messaging_type: "RESPONSE",
         };
