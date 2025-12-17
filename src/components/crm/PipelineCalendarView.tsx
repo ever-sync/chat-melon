@@ -11,7 +11,7 @@ import {
     HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
 interface PipelineCalendarViewProps {
@@ -128,7 +128,6 @@ export const PipelineCalendarView = ({ deals, onView, onEdit }: PipelineCalendar
                                     <HoverCard key={deal.id}>
                                         <HoverCardTrigger asChild>
                                             <button
-                                                align="left"
                                                 onClick={() => onView(deal)}
                                                 className="w-full text-left bg-white border border-l-4 rounded shadow-sm p-1.5 hover:shadow-md transition-all text-xs group/item"
                                                 style={{ borderLeftColor: deal.pipeline_stages?.color || '#ccc' }}

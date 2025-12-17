@@ -163,7 +163,7 @@ Status: ✅ Integrado em ContactDetailPanel.tsx
 ### Migrations
 - **Total criadas:** 12
 - **Aplicadas no banco:** 7 ✅
-- **Pendentes:** 4 ⏳ (000009, 000010, 000011, 000012)
+- **Pendentes:** 7 ⏳ (000009, ..., 000013, 000014, 000015)
 - **Falhadas:** 1 ❌ (000008 - substituída por 000009)
 
 ### Arquivos Não Commitados
@@ -187,6 +187,7 @@ M  src/pages/Landing.tsx
   - Gestão de empresas
   - Dashboard de Vendas (Novo)
   - Visualização em Lista/Calendário no CRM (Novo)
+  - Base de Conhecimento (Frontend pronto, Backend deployado, pendente migration 000013)
 
 - **Parciais:** 1 ⚠️
   - Sistema multi-channel (ENUM criado, coluna ainda VARCHAR)

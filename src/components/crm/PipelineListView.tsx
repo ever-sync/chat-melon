@@ -20,7 +20,7 @@ import { MoreVertical, ArrowUpDown, Calendar, DollarSign, User, Tag } from "luci
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Deal } from "@/hooks/crm/useDeals";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 

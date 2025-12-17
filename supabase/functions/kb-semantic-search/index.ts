@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,7 +73,8 @@ serve(async (req) => {
 
     // Check cache first
     if (useCache && config.use_cache) {
-      const queryHash = generateQueryHash(query, companyId);
+      // Use SHA-256 for caching
+      const queryHash = await generateQueryHash(query, companyId);
       const cachedResult = await checkCache(supabase, queryHash);
 
       if (cachedResult) {
@@ -194,11 +194,14 @@ async function generateOpenAIEmbedding(text: string): Promise<number[]> {
   return result.data[0].embedding;
 }
 
-function generateQueryHash(query: string, companyId: string): string {
+// Replaced deprecated createHash with native Web Crypto API
+async function generateQueryHash(query: string, companyId: string): Promise<string> {
   const normalized = query.toLowerCase().trim();
-  const hash = createHash("md5");
-  hash.update(`${companyId}:${normalized}`);
-  return hash.toString();
+  const data = new TextEncoder().encode(`${companyId}:${normalized}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
 }
 
 async function checkCache(supabase: any, queryHash: string) {
