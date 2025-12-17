@@ -6,27 +6,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Flame, Snowflake, ThermometerSun, FileText, Mail, MessageCircle } from "lucide-react";
+import { MoreVertical, FileText, Mail, MessageCircle, CheckSquare, StickyNote, Paperclip, Calendar } from "lucide-react";
 import type { Deal } from "@/hooks/crm/useDeals";
 import { ProposalBuilder } from "@/components/proposals/ProposalBuilder";
 import { EmailComposer } from "./EmailComposer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DealTemperatureIcon } from "./DealTemperatureIndicator";
+import { useDealNotes } from "@/hooks/crm/useDealNotes";
+import { useDealTasks } from "@/hooks/crm/useDealTasks";
+import { useDealFiles } from "@/hooks/crm/useDealFiles";
 
 interface DealCardProps {
   deal: Deal;
   onEdit: (deal: Deal) => void;
   onDelete: () => void;
   onView: (deal: Deal) => void;
+  isSelected?: boolean;
+  onSelect?: (dealId: string, selected: boolean) => void;
 }
 
-export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
+export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect }: DealCardProps) => {
   const [showProposal, setShowProposal] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
   const navigate = useNavigate();
@@ -38,6 +45,18 @@ export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
     transition,
     isDragging,
   } = useSortable({ id: deal.id });
+
+  // Fetch counters
+  const { notes } = useDealNotes(deal.id);
+  const { pendingTasks } = useDealTasks(deal.id);
+  const { files } = useDealFiles(deal.id);
+
+  const handleCheckboxChange = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSelect) {
+      onSelect(deal.id, !isSelected);
+    }
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -53,23 +72,33 @@ export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
     }).format(value);
   };
 
-  const getPriorityColor = (priority: string | null) => {
+  const getPriorityConfig = (priority: string | null) => {
     switch (priority) {
       case "urgent":
-        return "destructive";
+        return {
+          variant: "destructive" as const,
+          label: "Urgente",
+          className: "bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-400"
+        };
       case "high":
-        return "default";
+        return {
+          variant: "default" as const,
+          label: "Alta",
+          className: "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400"
+        };
       case "medium":
-        return "secondary";
+        return {
+          variant: "secondary" as const,
+          label: "Média",
+          className: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400"
+        };
       default:
-        return "outline";
+        return {
+          variant: "outline" as const,
+          label: "Baixa",
+          className: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800/30 dark:text-gray-400"
+        };
     }
-  };
-
-  const getTemperatureIcon = (temp: string | null) => {
-    if (!temp || temp === "warm") return <ThermometerSun className="h-4 w-4 text-yellow-500" />;
-    if (temp === "hot") return <Flame className="h-4 w-4 text-orange-500" />;
-    return <Snowflake className="h-4 w-4 text-blue-500" />;
   };
 
   const getBantProgress = () => {
@@ -89,7 +118,7 @@ export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
 
   const handleOpenWhatsApp = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (!deal.contacts?.phone_number) {
       toast.error("Contato não possui número de telefone");
       return;
@@ -128,12 +157,21 @@ export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-move hover:shadow-md transition-shadow"
+      className={`cursor-move hover:shadow-md transition-all ${isSelected ? "ring-2 ring-indigo-500 shadow-lg" : ""}`}
       onClick={() => onView(deal)}
     >
       <CardContent className="p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
+            {/* Checkbox para seleção múltipla */}
+            {onSelect && (
+              <div onClick={handleCheckboxChange}>
+                <Checkbox
+                  checked={isSelected}
+                  className="mt-1"
+                />
+              </div>
+            )}
             <Avatar className="h-8 w-8 flex-shrink-0">
               <AvatarImage src={deal.contacts?.profile_pic_url || undefined} />
               <AvatarFallback>
@@ -171,7 +209,7 @@ export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-lg font-bold">{formatCurrency(deal.value)}</p>
-            
+
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -193,23 +231,58 @@ export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
               </Button>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={getPriorityColor(deal.priority)} className="text-xs">
-              {deal.priority || "medium"}
-            </Badge>
+            {(() => {
+              const priorityConfig = getPriorityConfig(deal.priority);
+              return (
+                <Badge variant={priorityConfig.variant} className={`text-xs ${priorityConfig.className}`}>
+                  {priorityConfig.label}
+                </Badge>
+              );
+            })()}
             {deal.probability !== null && (
               <Badge variant="outline" className="text-xs">
                 {deal.probability}%
               </Badge>
             )}
-            {getTemperatureIcon(deal.temperature)}
+            <DealTemperatureIcon temperature={deal.temperature} />
             {getBantProgress() > 0 && (
               <Badge variant="outline" className="text-xs">
                 BANT {getBantProgress()}%
               </Badge>
             )}
           </div>
+
+          {/* Counters */}
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {(pendingTasks?.length ?? 0) > 0 && (
+              <div className="flex items-center gap-1" title={`${pendingTasks?.length} tarefas pendentes`}>
+                <CheckSquare className="h-3.5 w-3.5" />
+                <span>{pendingTasks?.length}</span>
+              </div>
+            )}
+            {(notes?.length ?? 0) > 0 && (
+              <div className="flex items-center gap-1" title={`${notes?.length} notas`}>
+                <StickyNote className="h-3.5 w-3.5" />
+                <span>{notes?.length}</span>
+              </div>
+            )}
+            {(files?.length ?? 0) > 0 && (
+              <div className="flex items-center gap-1" title={`${files?.length} arquivos`}>
+                <Paperclip className="h-3.5 w-3.5" />
+                <span>{files?.length}</span>
+              </div>
+            )}
+          </div>
+
+          {deal.expected_close_date && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 p-1.5 rounded" title="Previsão de fechamento">
+              <Calendar className="w-3 h-3" />
+              <span className="font-medium">Fechamento:</span>
+              <span>{formatDate(deal.expected_close_date)}</span>
+            </div>
+          )}
 
           {deal.next_step && (
             <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
@@ -247,8 +320,8 @@ export const DealCard = ({ deal, onEdit, onDelete, onView }: DealCardProps) => {
           open={showEmail}
           onOpenChange={setShowEmail}
           toEmail={
-            (deal.contacts.enrichment_data as any)?.email || 
-            deal.contacts.name || 
+            (deal.contacts.enrichment_data as any)?.email ||
+            deal.contacts.name ||
             deal.contacts.phone_number
           }
           contactId={deal.contact_id}

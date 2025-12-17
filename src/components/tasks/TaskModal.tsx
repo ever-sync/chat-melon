@@ -31,6 +31,7 @@ interface TaskModalProps {
   onOpenChange: (open: boolean) => void;
   task?: Task;
   onSubmit: (data: TablesInsert<"tasks">) => Promise<Task>;
+  defaultDealId?: string; // Pre-select a deal (for use in DealTasksSection)
 }
 
 export const TaskModal = ({
@@ -38,6 +39,7 @@ export const TaskModal = ({
   onOpenChange,
   task,
   onSubmit,
+  defaultDealId,
 }: TaskModalProps) => {
   const { companyId } = useCompanyQuery();
   const { connectionStatus, createCalendarEvent } = useGoogleCalendar();
@@ -99,8 +101,13 @@ export const TaskModal = ({
       setValue("due_date", tomorrow.toISOString().slice(0, 16));
       setValue("priority", "medium");
       setValue("task_type", "follow_up");
+
+      // Pre-select deal if provided
+      if (defaultDealId) {
+        setValue("deal_id", defaultDealId);
+      }
     }
-  }, [task, setValue]);
+  }, [task, setValue, defaultDealId]);
 
   const handleFormSubmit = async (data: TablesInsert<"tasks">) => {
     // Cria a tarefa primeiro

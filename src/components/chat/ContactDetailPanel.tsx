@@ -28,6 +28,7 @@ import { useDeals, type Deal } from "@/hooks/crm/useDeals";
 import { usePipelines } from "@/hooks/crm/usePipelines";
 import { DealModal } from "@/components/crm/DealModal";
 import { DealDetail } from "@/components/crm/DealDetail";
+import { useContactCRMData } from "@/hooks/crm/useContactCRMData";
 
 
 type ContactDetailPanelProps = {
@@ -47,11 +48,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
   const [mediaFiles, setMediaFiles] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    firstMessage: null as string | null,
-    totalConversations: 0,
-    totalSpent: 0
-  });
+
+  // CRM Integration Hook
+  const { data: crmMetrics } = useContactCRMData(conversation.contact_id);
   const [labels, setLabels] = useState<any[]>([]);
   const [showLabelsManager, setShowLabelsManager] = useState(false);
   const [showEmailComposer, setShowEmailComposer] = useState(false);
@@ -83,7 +82,6 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
       loadTasks();
       loadNotes();
       loadMediaFiles();
-      loadStats();
       loadLabels();
     }
   }, [conversation.contact_id]);
@@ -166,45 +164,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
     }
   };
 
-  const loadStats = async () => {
-    if (!currentCompany?.id || !conversation.contact_id) return;
 
-    try {
-      // Primeira mensagem
-      const { data: firstMsg } = await supabase
-        .from("messages")
-        .select("timestamp")
-        .eq("conversation_id", conversation.id)
-        .order("timestamp", { ascending: true })
-        .limit(1)
-        .single();
-
-      // Total de conversas
-      const { count } = await supabase
-        .from("conversations")
-        .select("*", { count: "exact", head: true })
-        .eq("company_id", currentCompany.id)
-        .eq("contact_id", conversation.contact_id);
-
-      // Total gasto (deals ganhos)
-      const { data: wonDeals } = await supabase
-        .from("deals")
-        .select("value")
-        .eq("company_id", currentCompany.id)
-        .eq("contact_id", conversation.contact_id)
-        .eq("status", "won");
-
-      const totalSpent = wonDeals?.reduce((sum, deal) => sum + (deal.value || 0), 0) || 0;
-
-      setStats({
-        firstMessage: firstMsg?.timestamp || null,
-        totalConversations: count || 0,
-        totalSpent
-      });
-    } catch (error) {
-      console.error("Erro ao carregar estatísticas:", error);
-    }
-  };
 
   const loadLabels = async () => {
     try {
@@ -436,11 +396,11 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
             {/* Informações automáticas */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              {stats.firstMessage && (
+              {contactData?.created_at && (
                 <div>
                   <span className="text-muted-foreground">Cliente desde:</span>
                   <p className="font-medium">
-                    {format(new Date(stats.firstMessage), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(contactData.created_at), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
               )}
@@ -454,11 +414,11 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
               )}
               <div>
                 <span className="text-muted-foreground">Total conversas:</span>
-                <p className="font-medium">{stats.totalConversations}</p>
+                <p className="font-medium">{crmMetrics?.total_conversations || 0}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total gasto:</span>
-                <p className="font-medium text-green-600">{formatCurrency(stats.totalSpent)}</p>
+                <p className="font-medium text-green-600">{formatCurrency(Number(crmMetrics?.total_spent || 0))}</p>
               </div>
             </div>
           </div>
@@ -672,11 +632,14 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full"
-                onClick={() => setShowDealModal(true)}
+                className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 dark:text-indigo-400 dark:border-indigo-800 dark:hover:bg-indigo-950"
+                onClick={() => {
+                  setEditingDeal(undefined); // Reset editing mode
+                  setShowDealModal(true);
+                }}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Novo Negócio
+                Criar Negócio deste Chat
               </Button>
             </CollapsibleContent>
           </Collapsible>
@@ -860,7 +823,11 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         pipelineId={defaultPipeline?.id}
         defaultContactId={conversation.contact_id}
         onSubmit={(data) => {
-          createDeal.mutate(data);
+          createDeal.mutate({
+            ...data,
+            created_from_conversation_id: conversation.id,
+            source: 'chat'
+          } as any);
           setShowDealModal(false);
         }}
       />

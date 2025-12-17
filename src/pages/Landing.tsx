@@ -10,7 +10,14 @@ import {
   BarChart3,
   Phone,
   Search,
-  Check
+  Check,
+  Zap,
+  Shield,
+  Globe,
+  Users,
+  Layout,
+  GitBranch,
+  Headphones
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -24,6 +31,14 @@ import { useState } from "react";
 
 const Landing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+
+  const navItems = [
+    { label: 'Início', href: '#' },
+    { label: 'Funcionalidades', href: '#features' },
+    { label: 'Soluções', href: '#solutions' },
+    { label: 'Recursos', href: '#resources' },
+    { label: 'Preços', href: '#pricing' },
+  ];
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-indigo-100">
@@ -43,16 +58,13 @@ const Landing = () => {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center bg-gray-50/80 px-2 py-1.5 rounded-full border border-gray-100 shadow-sm">
-            {['Home', 'Features', 'Solutions', 'Resources', 'Pricing'].map((item) => (
+            {navItems.map((item) => (
               <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                className={`px-5 py-2 text-sm font-medium rounded-full transition-all ${item === 'Home'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-indigo-600'
-                  }`}
+                key={item.label}
+                href={item.href}
+                className={`px-5 py-2 text-sm font-medium rounded-full transition-all hover:text-indigo-600 text-slate-500`}
               >
-                {item}
+                {item.label}
               </a>
             ))}
           </nav>
@@ -61,12 +73,12 @@ const Landing = () => {
           <div className="flex items-center gap-4">
             <Link to="/auth">
               <Button variant="ghost" className="font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50">
-                Log In
+                Entrar
               </Button>
             </Link>
             <Link to="/signup">
               <Button className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-semibold rounded-xl px-6 py-5 shadow-lg shadow-indigo-200 transition-all hover:shadow-indigo-300 hover:scale-[1.02]">
-                Schedule A Demo
+                Começar Grátis
               </Button>
             </Link>
           </div>
@@ -81,38 +93,37 @@ const Landing = () => {
           <div className="inline-flex items-center justify-center mb-8">
             <div className="px-5 py-2 rounded-full border border-indigo-100 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-default">
               <span className="bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent font-semibold text-sm">
-                Instant Crm Ai Tools
+                Ferramentas de IA para CRM Instantâneas
               </span>
             </div>
           </div>
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-slate-900 leading-[1.1]">
-            Every Customer Insights,
+            Insights de Cada Cliente,
             <br />
             <span className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent pb-2">
-              Intelligently Handled
+              Gerenciados com Inteligência
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
-            Give your team the clarity, context, and speed they need to deliver
-            extraordinary experiences — at every touchpoint
+            Dê à sua equipe a clareza, contexto e velocidade que eles precisam para entregar
+            experiências extraordinárias — em cada ponto de contato.
           </p>
 
           {/* CTA */}
           <div className="flex justify-center mb-24">
             <Link to="/signup">
               <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-indigo-200 transition-all hover:scale-105 font-semibold">
-                Get Started
+                Começar Agora
               </Button>
             </Link>
           </div>
 
-          {/* Interactive Flow Visual */}
+          {/* Interactive Flow Visual (Kept visual, translated content inside) */}
           <div className="relative mx-auto max-w-6xl h-[600px] hidden md:block select-none text-left">
-            {/* Connecting Lines (SVG overlay) */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
               <path d="M300,180 C300,250 500,250 500,320" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
               <path d="M850,230 C850,280 650,280 650,320" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
@@ -120,27 +131,27 @@ const Landing = () => {
               <path d="M850,380 C850,450 750,450 750,480" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
             </svg>
 
-            {/* Card 1: Schedule */}
+            {/* Card 1 */}
             <div className="absolute top-20 left-20 z-10 animate-fade-in-up [animation-delay:200ms]">
               <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
-                <Calendar className="w-4 h-4" /> Schedule
+                <Calendar className="w-4 h-4" /> Agendamento
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-64 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-bold text-slate-800">Shortcall Demo</h4>
+                  <h4 className="font-bold text-slate-800">Demo Rápida</h4>
                 </div>
-                <div className="text-xs text-slate-400 mb-4">May 12, 14.30 - 15.30 PM</div>
+                <div className="text-xs text-slate-400 mb-4">12 de Maio, 14:30 - 15:30</div>
                 <Button size="sm" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg h-9 text-xs font-semibold gap-2">
                   <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                  meet/sdk-889-000
+                  Reunião Iniciada
                 </Button>
               </div>
             </div>
 
-            {/* Card 2: Sales Outreach */}
+            {/* Card 2 */}
             <div className="absolute top-24 right-20 z-10 animate-fade-in-up [animation-delay:400ms]">
               <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
-                <BarChart3 className="w-4 h-4" /> Sales Outreach
+                <BarChart3 className="w-4 h-4" /> CRM de Vendas
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-80 relative group hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
@@ -148,27 +159,17 @@ const Landing = () => {
                     <Phone className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800">Step 2 Phone Call Attempt</h4>
+                    <h4 className="font-bold text-slate-800">Passo 2: Tentativa de Contato</h4>
                   </div>
                 </div>
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex gap-1">
                   <div className="h-full w-1/3 bg-indigo-600 rounded-full"></div>
                   <div className="h-full w-1/4 bg-slate-200 rounded-full"></div>
-                  <div className="h-full w-1/4 bg-slate-200 rounded-full"></div>
-                </div>
-                {/* Simulated Cursor */}
-                <div className="absolute -bottom-4 -right-4 flex flex-col items-center">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg transform translate-y-1">
-                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19179L17.9036 8.97152L10.374 8.97152C10.05 8.97152 9.76159 9.14151 9.61042 9.42173L5.65376 12.3673Z" fill="black" />
-                  </svg>
-                  <div className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
-                    AI Assistant
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Center Main Card: Profile */}
+            {/* Center Main Card */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 animate-fade-in-up [animation-delay:0ms]">
               <div className="bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgb(0,0,0,0.1)] border border-indigo-100 w-[420px]">
                 <div className="flex items-center justify-between mb-6">
@@ -179,8 +180,8 @@ const Landing = () => {
                       className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover"
                     />
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">Lucas Graham</h3>
-                      <p className="text-sm text-slate-400">Head of IT Everafter.io</p>
+                      <h3 className="text-lg font-bold text-slate-900">Lucas Santos</h3>
+                      <p className="text-sm text-slate-400">Diretor de Tecnologia</p>
                     </div>
                   </div>
                   <Button size="icon" variant="ghost" className="text-slate-300">
@@ -189,83 +190,41 @@ const Landing = () => {
                 </div>
                 <div className="flex gap-2 mb-6">
                   <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10 shadow-lg shadow-indigo-200">
-                    <Mail className="w-4 h-4 mr-2" /> Compose Email
+                    <Mail className="w-4 h-4 mr-2" /> Enviar Email
                   </Button>
                   <Button variant="outline" size="icon" className="rounded-xl border-slate-200">
                     <Calendar className="w-4 h-4 text-slate-500" />
                   </Button>
-                  <Button variant="outline" size="icon" className="rounded-xl border-slate-200">
-                    <Plus className="w-4 h-4 text-slate-500" />
-                  </Button>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Summary</span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Resumo IA</span>
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Lucas Graham, the head of IT Everafter.io planning to be increase their team efficiency through modern...
+                    Lucas Santos está planejando aumentar a eficiência da equipe através de ferramentas modernas...
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Card 3: Company */}
+            {/* Card 3 */}
             <div className="absolute bottom-20 left-48 z-10 animate-fade-in-up [animation-delay:600ms]">
               <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
-                <Bot className="w-4 h-4" /> Company
+                <Bot className="w-4 h-4" /> Empresa
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-56 hover:shadow-lg transition-shadow relative">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">N</span>
+                    <span className="text-white font-bold text-lg">E</span>
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
-                      <h4 className="font-bold text-slate-800">Everafter.io</h4>
+                      <h4 className="font-bold text-slate-800">Empresa Tech</h4>
                       <Link to="#" className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 hover:bg-indigo-200">
                         <ArrowRight className="w-3 h-3 -rotate-45" />
                       </Link>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">Venezia, Italy</p>
-                  </div>
-                </div>
-                {/* Simulated Cursor */}
-                <div className="absolute -bottom-6 -right-8 flex flex-col items-center z-50">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg transform translate-y-1">
-                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19179L17.9036 8.97152L10.374 8.97152C10.05 8.97152 9.76159 9.14151 9.61042 9.42173L5.65376 12.3673Z" fill="black" />
-                  </svg>
-                  <div className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">
-                    AI Assistant
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 4: Activity */}
-            <div className="absolute bottom-24 right-40 z-10 animate-fade-in-up [animation-delay:800ms]">
-              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
-                <Search className="w-4 h-4" /> Activity
-              </div>
-              <div className="bg-white rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-72 hover:shadow-lg transition-shadow">
-                <div className="space-y-4">
-                  <div className="flex gap-3 relative">
-                    <div className="absolute left-[11px] top-6 w-0.5 h-6 bg-slate-100"></div>
-                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0 z-10">
-                      <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-                    </div>
-                    <div className="text-sm">
-                      <p className="font-medium text-slate-800"><span className="font-bold">Andrew</span> Reaching out lucas</p>
-                      <p className="text-xs text-slate-400">Yesterday, 11.30am</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 z-10">
-                      <Calendar className="w-3 h-3 text-indigo-600" />
-                    </div>
-                    <div className="text-sm">
-                      <p className="font-medium text-slate-800"><span className="font-bold">Billy</span> Scheduling meeting</p>
-                      <p className="text-xs text-slate-400">Today, 09.20am</p>
-                    </div>
+                    <p className="text-xs text-slate-400 mt-1">São Paulo, SP</p>
                   </div>
                 </div>
               </div>
@@ -274,29 +233,147 @@ const Landing = () => {
         </div>
       </main>
 
-      {/* AI Workforce Section */}
-      <section className="py-24 bg-white border-y border-slate-100 overflow-hidden">
+      {/* Features Section */}
+      <section id="features" className="py-24 bg-slate-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Tudo que você precisa em um só lugar</h2>
+            <p className="text-lg text-slate-500">
+              O Nucleus unifica suas ferramentas de comunicação, vendas e gestão para que você possa focar no que importa: crescer.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 text-indigo-600">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Chat Omnicanal</h3>
+              <p className="text-slate-500 leading-relaxed">
+                Centralize WhatsApp, Instagram e Messenger em uma única caixa de entrada inteligente e colaborativa.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6 text-purple-600">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">CRM Completo</h3>
+              <p className="text-slate-500 leading-relaxed">
+                Gerencie pipelines, negócios e contatos sem sair da plataforma. Acompanhe cada etapa da venda.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-6 text-emerald-600">
+                <Bot className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Automação & IA</h3>
+              <p className="text-slate-500 leading-relaxed">
+                Crie fluxos de cadência, chatbots inteligentes e deixe a IA resumir conversas e sugerir respostas.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-6 text-amber-600">
+                <Zap className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Campanhas em Massa</h3>
+              <p className="text-slate-500 leading-relaxed">
+                Dispare campanhas de marketing para milhares de contatos com segurança e alta taxa de entrega.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center mb-6 text-rose-600">
+                <BarChart3 className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Analytics Detalhado</h3>
+              <p className="text-slate-500 leading-relaxed">
+                Métricas em tempo real sobre atendimento, conversão de vendas e performance da equipe.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6 text-blue-600">
+                <Globe className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Integrações</h3>
+              <p className="text-slate-500 leading-relaxed">
+                Conecte-se com suas ferramentas favoritas via Webhooks, API e integrações nativas.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Solutions Section */}
+      <section id="solutions" className="py-24 bg-white border-y border-slate-100">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Soluções para cada time</h2>
+            <p className="text-lg text-slate-500">
+              O Nucleus se adapta ao fluxo de trabalho da sua empresa.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="group relative overflow-hidden rounded-3xl bg-slate-900 p-8 text-white">
+              <div className="absolute top-0 right-0 -m-8 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <Users className="w-6 h-6 text-indigo-400" /> Vendas
+              </h3>
+              <ul className="space-y-3 text-slate-300">
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-indigo-400 shrink-0" /> Pipeline Visual</li>
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-indigo-400 shrink-0" /> Automação de Follow-up</li>
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-indigo-400 shrink-0" /> Lead Scoring</li>
+              </ul>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-3xl bg-slate-900 p-8 text-white">
+              <div className="absolute top-0 right-0 -m-8 w-32 h-32 bg-emerald-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <Headphones className="w-6 h-6 text-emerald-400" /> Suporte
+              </h3>
+              <ul className="space-y-3 text-slate-300">
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> Chatbot 24/7</li>
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> Respostas Rápidas</li>
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> Central de Conhecimento</li>
+              </ul>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-3xl bg-slate-900 p-8 text-white">
+              <div className="absolute top-0 right-0 -m-8 w-32 h-32 bg-rose-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <Zap className="w-6 h-6 text-rose-400" /> Marketing
+              </h3>
+              <ul className="space-y-3 text-slate-300">
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-rose-400 shrink-0" /> Disparo em Massa</li>
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-rose-400 shrink-0" /> Segmentação de Leads</li>
+                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-rose-400 shrink-0" /> Análise de Campanhas</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Workforce Section (Translated) */}
+      <section className="py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row shadow-2xl rounded-3xl overflow-hidden border border-slate-100">
             {/* Left Content */}
             <div className="w-full md:w-1/2 p-12 md:p-20 bg-white flex flex-col justify-center">
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8 leading-tight">
-                The AI Workforce humans can lean on.
+                A Força de Trabalho IA com quem você pode contar.
               </h2>
               <p className="text-xl text-slate-500 mb-12 leading-relaxed">
-                Never quits, and always improves. Scale to meet any demand.
+                Nunca para, sempre melhora. Escale seu atendimento para atender qualquer demanda sem perder qualidade.
               </p>
               <Link to="#" className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group">
-                More about Nucleus
+                Mais sobre o Nucleus
                 <ArrowRight className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" />
               </Link>
             </div>
             {/* Right Visual */}
             <div className="w-full md:w-1/2 bg-indigo-600 relative min-h-[400px]">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-700 opacity-90"></div>
-              {/* Background Text Overlay */}
               <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-                <span className="text-[20rem] font-bold text-white opacity-10 select-none">AI</span>
+                <span className="text-[20rem] font-bold text-white opacity-10 select-none">IA</span>
               </div>
               <img
                 src="https://images.unsplash.com/photo-1573497620053-ea5300f94f21?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
@@ -308,25 +385,25 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Pricing Section (Translated) */}
       <section id="pricing" className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-medium text-slate-600 mb-6">
-              <div className="w-2 h-2 rounded-full bg-indigo-500"></div> Pricing
+              <div className="w-2 h-2 rounded-full bg-indigo-500"></div> Preços
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-              5M+ users and still counting
+              Comece pequeno, cresça rápido
             </h2>
             <p className="text-lg text-slate-500 mb-10">
-              Start free and upgrade anytime as your team and projects grow
+              Comece gratuitamente e faça o upgrade conforme sua equipe cresce.
             </p>
 
             {/* Toggle */}
             <div className="flex items-center justify-center gap-4 text-sm font-medium">
-              <span className={!isAnnual ? "text-slate-900" : "text-slate-500"}>Monthly</span>
+              <span className={!isAnnual ? "text-slate-900" : "text-slate-500"}>Mensal</span>
               <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
-              <span className={isAnnual ? "text-slate-900" : "text-slate-500"}>Annual</span>
+              <span className={isAnnual ? "text-slate-900" : "text-slate-500"}>Anual (-20%)</span>
             </div>
           </div>
 
@@ -335,81 +412,75 @@ const Landing = () => {
             <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
               <h3 className="font-bold text-lg mb-2">Starter</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold tracking-tight">$0</span>
-                <span className="text-slate-500 text-sm">/ {isAnnual ? "year" : "month"}</span>
+                <span className="text-4xl font-bold tracking-tight">R$0</span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? "ano" : "mês"}</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For personal</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para uso pessoal</p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> 2 User Seat Only
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> 2 Usuários
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Basic Activity Feed
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Feed de Atividade Básico
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> AI Smart Summary
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Basic Email Tracking
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Resumo Inteligente IA
                 </li>
               </ul>
-              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Free Access</Button>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Acesso Grátis</Button>
             </div>
 
             {/* Growth */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
               <h3 className="font-bold text-lg mb-2">Growth</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold tracking-tight">${isAnnual ? "29" : "35"}</span>
-                <span className="text-slate-500 text-sm">/ {isAnnual ? "year" : "month"}</span>
+                <span className="text-4xl font-bold tracking-tight">R${isAnnual ? "129" : "149"}</span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? "ano" : "mês"}</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For growing teams</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para times em crescimento</p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Up To 10 Users
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Até 10 Usuários
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Smart Summary + Score
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Pontuação de Leads
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Touchpoint Reminder
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Outreach Sequence
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Sequências de Email
                 </li>
               </ul>
-              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Get Started</Button>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Começar Agora</Button>
             </div>
 
-            {/* Pro - Highlighted */}
+            {/* Pro */}
             <div className="bg-white rounded-2xl p-6 border-2 border-indigo-500 shadow-2xl shadow-indigo-200/50 relative transform md:-translate-y-4">
               <div className="absolute top-0 left-0 w-full h-8 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider flex items-center justify-center rounded-t-lg -mt-[2px]">
-                Users best choice !
+                Mais Popular
               </div>
               <h3 className="font-bold text-lg mb-2 mt-6">Pro</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold tracking-tight">${isAnnual ? "45" : "55"}</span>
-                <span className="text-slate-500 text-sm">/ {isAnnual ? "year" : "month"}</span>
+                <span className="text-4xl font-bold tracking-tight">R${isAnnual ? "249" : "299"}</span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? "ano" : "mês"}</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For multi-user teams</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para times profissionais</p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Unlimited Users
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Usuários Ilimitados
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Clara Snapshot
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Chatbots Avançados
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> AI Suggestion Engine
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Sugestões de IA
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Advanced Scheduling
+                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Múltiplos Canais
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl h-11 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-200">Get Started</Button>
+              <Button className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl h-11 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-200">Começar Teste Grátis</Button>
             </div>
 
             {/* Enterprise */}
@@ -417,26 +488,52 @@ const Landing = () => {
               <h3 className="font-bold text-lg mb-2">Enterprise</h3>
               <div className="mb-4">
                 <span className="text-4xl font-bold tracking-tight text-indigo-500">Custom</span>
-                <span className="text-slate-500 text-sm block">More flexible</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">For large teams</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para grandes corporações</p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Fields & Data Model
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Campos & Dados Customizados
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Various Integrations
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> API Dedicada
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Custom Insight AI
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> SLA, Onboarding
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> SLA de Suporte
                 </li>
               </ul>
-              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Talk to sales</Button>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Falar com Vendas</Button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Resources & Help */}
+      <section id="resources" className="py-24 bg-indigo-900 text-white">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold mb-8">Recursos para você ir além</h2>
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <a href="#" className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <Layout className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Blog do Nucleus</h3>
+              <p className="text-indigo-200 text-sm">Dicas de vendas, atendimento e novidades do produto.</p>
+            </a>
+            <a href="#" className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <GitBranch className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Documentação API</h3>
+              <p className="text-indigo-200 text-sm">Guia completo para desenvolvedores integrarem com o Nucleus.</p>
+            </a>
+            <a href="#" className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <Headphones className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Central de Ajuda</h3>
+              <p className="text-indigo-200 text-sm">Tutoriais em vídeo e artigos para tirar suas dúvidas.</p>
+            </a>
           </div>
         </div>
       </section>
@@ -449,36 +546,30 @@ const Landing = () => {
               <MessageSquare className="w-3 h-3 text-indigo-500" /> FAQ
             </div>
             <h2 className="text-4xl font-bold text-slate-900 mb-6">
-              Everything You're Wondering, Answered.
+              Dúvidas Frequentes
             </h2>
             <p className="text-slate-500 mb-4">
-              Couldn't Find Something ? <a href="#" className="text-indigo-600 font-semibold hover:underline">Message Us</a>
+              Não encontrou o que procurava? <a href="#" className="text-indigo-600 font-semibold hover:underline">Fale Conosco</a>
             </p>
           </div>
           <div className="lg:w-2/3">
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">How is Nucleus different from other CRMs?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">Como o Nucleus é diferente de outros CRMs?</AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Nucleus doesn't just store data—it understands it. From summarizing customer interactions to suggesting next steps, Nucleus is like a co-pilot that helps you move faster with more confidence.
+                  O Nucleus não apenas armazena dados — ele os entende. Desde resumir interações com clientes até sugerir próximos passos, o Nucleus é como um copiloto que ajuda você a agir mais rápido e com mais confiança.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">Can Nucleus help my team save time?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">O Nucleus ajuda minha equipe a economizar tempo?</AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Absolutely. Nucleus automates routine tasks, schedules follow-ups, and provides instant summaries of meetings, allowing your team to focus on high-value interactions.
+                  Com certeza. O Nucleus automatiza tarefas rotineiras, agenda acompanhamentos e fornece resumos instantâneos de reuniões, permitindo que sua equipe foque em interações de alto valor.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">Is Nucleus hard to set up?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">É difícil configurar o Nucleus?</AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Not at all. We offer a seamless onboarding process, and our support team is available to help migrate your data and configure your workflows in just a few clicks.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">What tools does Nucleus integrate with?</AccordionTrigger>
-                <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Nucleus integrates with popular tools like Google Workspace, Slack, Zoom, and various marketing automation platforms to keep your data synchronized across your stack.
+                  De jeito nenhum. Oferecemos um processo de integração simples, e nossa equipe de suporte está disponível para ajudar a migrar seus dados e configurar seus fluxos de trabalho em poucos cliques.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -486,7 +577,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA & Mega Footer Section */}
+      {/* Mega Footer Section */}
       <footer className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white pt-24 pb-8 overflow-hidden relative">
         {/* Decorative Arcs */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[180%] h-[1000px] bg-white/5 rounded-[100%] blur-3xl pointer-events-none -translate-y-1/2"></div>
@@ -497,17 +588,17 @@ const Landing = () => {
             <div className="w-6 h-6 rotate-45 bg-white shadow-[0_0_20px_rgba(255,255,255,0.5)]"></div>
           </div>
           <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">
-            Know More, Act Faster And <br /> Close Smarter.
+            Saiba Mais, Aja Rápido e <br /> Feche Mais Vendas.
           </h2>
           <p className="text-xl text-indigo-100 mb-10">
-            AI-powered clarity for every stage of your customer journey
+            Clareza impulsionada por IA para cada etapa da jornada do seu cliente
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="bg-white text-indigo-900 border-none hover:bg-slate-100 font-bold h-12 px-8 rounded-lg shadow-lg">
-              Get Started
+              Começar Agora
             </Button>
             <Button variant="outline" className="bg-slate-900/30 text-white border-white/20 hover:bg-slate-900/50 font-bold h-12 px-8 rounded-lg">
-              Schedule A Demo
+              Agendar Demo
             </Button>
           </div>
         </div>
@@ -525,34 +616,32 @@ const Landing = () => {
                   <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
                 </div>
                 <h3 className="text-3xl font-bold text-slate-400 leading-tight">
-                  Every Customer Insights, <span className="text-slate-900">Intelligently Handled</span>
+                  Insights de Clientes, <span className="text-slate-900">Gerenciados Inteligente</span>
                 </h3>
               </div>
 
               {/* Links */}
               <div>
-                <h4 className="font-bold mb-6">Features</h4>
+                <h4 className="font-bold mb-6">Funcionalidades</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600">Nucleus feed</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Smart summary</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Feed Nucleus</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Resumo Inteligente</a></li>
                   <li><a href="#" className="hover:text-indigo-600">Pulse Score</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Touchpoint Reminder</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Nucleus Snapshot</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Lembretes de Touchpoint</a></li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="font-bold mb-6">Company</h4>
+                <h4 className="font-bold mb-6">Empresa</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600">About us</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Careers</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Contact Us</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Feature</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Sobre nós</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Carreiras</a></li>
+                  <li><a href="#" className="hover:text-indigo-600">Contato</a></li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="font-bold mb-6">Stay in touch</h4>
+                <h4 className="font-bold mb-6">Redes Sociais</h4>
                 <ul className="space-y-4 text-slate-500">
                   <li><a href="#" className="hover:text-indigo-600">Instagram</a></li>
                   <li><a href="#" className="hover:text-indigo-600">Facebook</a></li>
@@ -563,10 +652,10 @@ const Landing = () => {
             </div>
 
             <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
-              <p>Copyright 2025, All right reserved by Nucleus</p>
+              <p>Copyright 2025, Todos os direitos reservados por Nucleus</p>
               <div className="flex gap-6">
-                <a href="#" className="hover:text-indigo-600">Privacy policy</a>
-                <a href="#" className="hover:text-indigo-600">Terms and condition</a>
+                <a href="#" className="hover:text-indigo-600">Política de Privacidade</a>
+                <a href="#" className="hover:text-indigo-600">Termos de Uso</a>
               </div>
             </div>
           </div>

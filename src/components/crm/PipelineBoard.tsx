@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DealWinLossModal } from "./DealWinLossModal";
 import { DealDetail } from "./DealDetail";
+import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import {
   DndContext,
   DragOverlay,
@@ -24,12 +25,15 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 import { CelebrationModal } from "@/components/gamification/CelebrationModal";
 import { useCelebration } from "@/hooks/useCelebration";
 import { useGamification } from "@/hooks/useGamification";
+import type { DealFilters } from "@/pages/CRM";
+import { toast } from "sonner";
 
 interface PipelineBoardProps {
   selectedPipelineId?: string;
+  filters?: DealFilters;
 }
 
-export const PipelineBoard = ({ selectedPipelineId }: PipelineBoardProps) => {
+export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProps) => {
   const { pipelines, defaultPipeline, isLoading: isPipelinesLoading } = usePipelines();
   const activePipelineId = selectedPipelineId || defaultPipeline?.id;
 
@@ -40,6 +44,35 @@ export const PipelineBoard = ({ selectedPipelineId }: PipelineBoardProps) => {
   );
 
   const { deals, isLoading: isDealsLoading, createDeal, updateDeal, moveDeal, deleteDeal } = useDeals(activePipelineId);
+
+  // Aplicar filtros aos deals
+  const filteredDeals = useMemo(() => {
+    if (!filters || !deals) return deals;
+
+    return deals.filter((deal) => {
+      // Filtro de busca por título
+      if (filters.search && !deal.title.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+
+      // Filtro de responsável
+      if (filters.assignedTo !== "all" && deal.assigned_to !== filters.assignedTo) {
+        return false;
+      }
+
+      // Filtro de prioridade
+      if (filters.priority !== "all" && deal.priority !== filters.priority) {
+        return false;
+      }
+
+      // Filtro de temperatura
+      if (filters.temperature !== "all" && deal.temperature !== filters.temperature) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [deals, filters]);
   const { celebrate, showModal, setShowModal, celebrationType, celebrationData } = useCelebration();
   const { checkAchievements } = useGamification();
 
@@ -53,6 +86,9 @@ export const PipelineBoard = ({ selectedPipelineId }: PipelineBoardProps) => {
     open: false,
     type: "won",
   });
+
+  // Bulk actions state
+  const [selectedDeals, setSelectedDeals] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -146,6 +182,51 @@ export const PipelineBoard = ({ selectedPipelineId }: PipelineBoardProps) => {
     setSelectedStage(undefined);
   };
 
+  // Bulk actions handlers
+  const handleSelectDeal = (dealId: string, selected: boolean) => {
+    setSelectedDeals((prev) => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(dealId);
+      } else {
+        newSet.delete(dealId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleBulkMove = (stageId: string) => {
+    selectedDeals.forEach((dealId) => {
+      moveDeal.mutate({ dealId, stageId });
+    });
+    toast.success(`${selectedDeals.size} negócio(s) movido(s) com sucesso!`);
+    setSelectedDeals(new Set());
+  };
+
+  const handleBulkAssign = (userId: string) => {
+    selectedDeals.forEach((dealId) => {
+      updateDeal.mutate({ id: dealId, assigned_to: userId });
+    });
+    toast.success(`${selectedDeals.size} negócio(s) atribuído(s) com sucesso!`);
+    setSelectedDeals(new Set());
+  };
+
+  const handleBulkSetPriority = (priority: string) => {
+    selectedDeals.forEach((dealId) => {
+      updateDeal.mutate({ id: dealId, priority: priority as any });
+    });
+    toast.success(`Prioridade alterada para ${selectedDeals.size} negócio(s)!`);
+    setSelectedDeals(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    selectedDeals.forEach((dealId) => {
+      deleteDeal.mutate(dealId);
+    });
+    toast.success(`${selectedDeals.size} negócio(s) excluído(s) com sucesso!`);
+    setSelectedDeals(new Set());
+  };
+
   const handleWinLoss = (data: { reason: string; detail: string }) => {
     if (!winLossModal.dealId) return;
 
@@ -214,7 +295,7 @@ export const PipelineBoard = ({ selectedPipelineId }: PipelineBoardProps) => {
       >
         <div className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory">
           {stages.map((stage) => {
-            const stageDeals = deals.filter((deal) => deal.stage_id === stage.id);
+            const stageDeals = filteredDeals.filter((deal) => deal.stage_id === stage.id);
             return (
               <Card
                 key={stage.id}
@@ -274,6 +355,8 @@ export const PipelineBoard = ({ selectedPipelineId }: PipelineBoardProps) => {
                         onEdit={handleEditDeal}
                         onDelete={() => handleDeleteDeal(deal.id)}
                         onView={handleViewDeal}
+                        isSelected={selectedDeals.has(deal.id)}
+                        onSelect={handleSelectDeal}
                       />
                     ))}
 
@@ -334,6 +417,19 @@ export const PipelineBoard = ({ selectedPipelineId }: PipelineBoardProps) => {
         type={winLossModal.type}
         onSubmit={handleWinLoss}
       />
+
+      {/* Bulk Actions Toolbar */}
+      {selectedDeals.size > 0 && (
+        <BulkActionsToolbar
+          selectedCount={selectedDeals.size}
+          onClear={() => setSelectedDeals(new Set())}
+          onMove={handleBulkMove}
+          onAssign={handleBulkAssign}
+          onSetPriority={handleBulkSetPriority}
+          onDelete={handleBulkDelete}
+          pipelineId={activePipelineId}
+        />
+      )}
     </>
   );
 };

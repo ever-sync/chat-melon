@@ -21,6 +21,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Chat = lazy(() => import("./pages/Chat"));
 
 const CRM = lazy(() => import("./pages/CRM"));
+const CRMDashboard = lazy(() => import("./pages/CRMDashboard"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Templates = lazy(() => import("@/pages/Templates"));
 const Proposals = lazy(() => import("@/pages/Proposals"));
@@ -118,6 +119,11 @@ const App = () => {
                           <CRM />
                         </FeatureGate>
                       </ErrorBoundary>
+                    } />
+                    <Route path="/crm/dashboard" element={
+                      <FeatureGate feature="reports_sales">
+                        <CRMDashboard />
+                      </FeatureGate>
                     } />
                     <Route path="/tasks" element={<ErrorBoundary context="tasks"><Tasks /></ErrorBoundary>} />
                     <Route path="/templates" element={<Templates />} />

@@ -9,7 +9,10 @@
       "Bash(timeout /t 1)",
       "Bash(powershell -ExecutionPolicy Bypass -File:*)",
       "Bash(test -f:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

@@ -40,6 +40,7 @@ VALUES
   -- Analytics & Reports
   ('reports_basic', 'Relatórios Básicos', 'Dashboards e métricas essenciais', 'analytics', true, 'BarChart', 30),
   ('reports_advanced', 'Relatórios Avançados', 'Análises detalhadas e exportação', 'analytics', true, 'LineChart', 31),
+  ('reports_sales', 'Dashboard de Vendas', 'Métricas de pipeline e conversão CRM', 'analytics', true, 'TrendingUp', 33),
   ('team_performance', 'Performance de Time', 'Métricas individuais por agente', 'analytics', true, 'Users', 32),
   
   -- Integrations & API

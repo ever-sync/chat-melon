@@ -35,7 +35,8 @@ export type FeatureKey =
   | "orders"
   | "integrations"
   | "security"
-  | "channels";
+  | "channels"
+  | "reports_sales";
 
 
 interface PlatformFeature {
