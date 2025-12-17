@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./crm/useCompanyQuery";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from './crm/useCompanyQuery';
+import { toast } from 'sonner';
 
 export interface Campaign {
   id: string;
@@ -54,26 +54,30 @@ export const useCampaigns = () => {
     mutationFn: async (campaign: Partial<Campaign>) => {
       if (!companyId) throw new Error('No company selected');
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
         .from('campaigns')
-        .insert([{
-          name: campaign.name!,
-          description: campaign.description,
-          message_content: campaign.message_content!,
-          message_media_url: campaign.message_media_url,
-          message_type: campaign.message_type || 'text',
-          segment_id: campaign.segment_id,
-          contact_filter: campaign.contact_filter,
-          schedule_at: campaign.schedule_at,
-          status: campaign.status || 'draft',
-          sending_rate: campaign.sending_rate || 10,
-          instance_id: campaign.instance_id,
-          company_id: companyId,
-          created_by: user.id,
-        }])
+        .insert([
+          {
+            name: campaign.name!,
+            description: campaign.description,
+            message_content: campaign.message_content!,
+            message_media_url: campaign.message_media_url,
+            message_type: campaign.message_type || 'text',
+            segment_id: campaign.segment_id,
+            contact_filter: campaign.contact_filter,
+            schedule_at: campaign.schedule_at,
+            status: campaign.status || 'draft',
+            sending_rate: campaign.sending_rate || 10,
+            instance_id: campaign.instance_id,
+            company_id: companyId,
+            created_by: user.id,
+          },
+        ])
         .select()
         .single();
 
@@ -114,10 +118,7 @@ export const useCampaigns = () => {
 
   const deleteCampaign = useMutation({
     mutationFn: async (campaignId: string) => {
-      const { error } = await supabase
-        .from('campaigns')
-        .delete()
-        .eq('id', campaignId);
+      const { error } = await supabase.from('campaigns').delete().eq('id', campaignId);
 
       if (error) throw error;
     },

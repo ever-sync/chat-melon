@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Edit2, Trash2, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Edit2, Trash2, MoreVertical } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,14 +18,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface MessageActionsProps {
   messageId: string;
@@ -35,7 +30,13 @@ interface MessageActionsProps {
   onUpdated: () => void;
 }
 
-export function MessageActions({ messageId, content, timestamp, isFromMe, onUpdated }: MessageActionsProps) {
+export function MessageActions({
+  messageId,
+  content,
+  timestamp,
+  isFromMe,
+  onUpdated,
+}: MessageActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editContent, setEditContent] = useState(content);
@@ -54,7 +55,9 @@ export function MessageActions({ messageId, content, timestamp, isFromMe, onUpda
 
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error('Sessão expirada');
 
       const { error } = await supabase.functions.invoke('evolution-edit-message', {
@@ -69,13 +72,13 @@ export function MessageActions({ messageId, content, timestamp, isFromMe, onUpda
 
       if (error) throw error;
 
-      toast.success("Mensagem editada com sucesso");
+      toast.success('Mensagem editada com sucesso');
 
       setShowEditDialog(false);
       onUpdated();
     } catch (error: any) {
       console.error('Erro ao editar mensagem:', error);
-      toast.error(error.message || "Erro ao editar");
+      toast.error(error.message || 'Erro ao editar');
     } finally {
       setLoading(false);
     }
@@ -84,7 +87,9 @@ export function MessageActions({ messageId, content, timestamp, isFromMe, onUpda
   const handleDelete = async (deleteForEveryone: boolean) => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error('Sessão expirada');
 
       const { error } = await supabase.functions.invoke('evolution-delete-message', {
@@ -99,13 +104,13 @@ export function MessageActions({ messageId, content, timestamp, isFromMe, onUpda
 
       if (error) throw error;
 
-      toast.success(deleteForEveryone ? "Mensagem apagada para todos" : "Mensagem apagada");
+      toast.success(deleteForEveryone ? 'Mensagem apagada para todos' : 'Mensagem apagada');
 
       setShowDeleteDialog(false);
       onUpdated();
     } catch (error: any) {
       console.error('Erro ao apagar mensagem:', error);
-      toast.error(error.message || "Erro ao apagar");
+      toast.error(error.message || 'Erro ao apagar');
     } finally {
       setLoading(false);
     }
@@ -150,7 +155,7 @@ export function MessageActions({ messageId, content, timestamp, isFromMe, onUpda
                 Cancelar
               </Button>
               <Button onClick={handleEdit} disabled={loading || !editContent.trim()}>
-                {loading ? "Salvando..." : "Salvar"}
+                {loading ? 'Salvando...' : 'Salvar'}
               </Button>
             </div>
           </div>

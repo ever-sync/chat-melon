@@ -1,19 +1,19 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +23,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { X, Trash2, Move, UserPlus, Flag, MoreHorizontal } from "lucide-react";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+} from '@/components/ui/alert-dialog';
+import { X, Trash2, Move, UserPlus, Flag, MoreHorizontal } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BulkActionsToolbarProps {
   selectedCount: number;
@@ -55,13 +55,13 @@ export const BulkActionsToolbar = ({
 
   // Buscar stages do pipeline
   const { data: pipeline } = useQuery({
-    queryKey: ["pipeline-stages", pipelineId],
+    queryKey: ['pipeline-stages', pipelineId],
     queryFn: async () => {
       if (!pipelineId) return null;
       const { data } = await supabase
-        .from("pipelines")
-        .select("*, pipeline_stages(*)")
-        .eq("id", pipelineId)
+        .from('pipelines')
+        .select('*, pipeline_stages(*)')
+        .eq('id', pipelineId)
         .single();
       return data;
     },
@@ -70,9 +70,9 @@ export const BulkActionsToolbar = ({
 
   // Buscar usuários
   const { data: users = [] } = useQuery({
-    queryKey: ["users"],
+    queryKey: ['users'],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*");
+      const { data } = await supabase.from('profiles').select('*');
       return data || [];
     },
   });
@@ -86,7 +86,7 @@ export const BulkActionsToolbar = ({
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4">
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl px-6 py-4 flex items-center gap-4">
           <Badge variant="secondary" className="text-sm font-semibold px-3">
-            {selectedCount} selecionado{selectedCount > 1 ? "s" : ""}
+            {selectedCount} selecionado{selectedCount > 1 ? 's' : ''}
           </Badge>
 
           <div className="flex items-center gap-2">
@@ -126,11 +126,7 @@ export const BulkActionsToolbar = ({
             {/* Mais Ações */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20"
-                >
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -166,7 +162,7 @@ export const BulkActionsToolbar = ({
             <AlertDialogTitle>Mover para outro stage</AlertDialogTitle>
             <AlertDialogDescription>
               Selecione o stage de destino para {selectedCount} negócio
-              {selectedCount > 1 ? "s" : ""}.
+              {selectedCount > 1 ? 's' : ''}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Select
@@ -199,7 +195,7 @@ export const BulkActionsToolbar = ({
             <AlertDialogTitle>Atribuir responsável</AlertDialogTitle>
             <AlertDialogDescription>
               Selecione o responsável para {selectedCount} negócio
-              {selectedCount > 1 ? "s" : ""}.
+              {selectedCount > 1 ? 's' : ''}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Select
@@ -232,7 +228,7 @@ export const BulkActionsToolbar = ({
             <AlertDialogTitle>Alterar prioridade</AlertDialogTitle>
             <AlertDialogDescription>
               Defina a prioridade para {selectedCount} negócio
-              {selectedCount > 1 ? "s" : ""}.
+              {selectedCount > 1 ? 's' : ''}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Select
@@ -264,7 +260,9 @@ export const BulkActionsToolbar = ({
             <AlertDialogTitle>Excluir negócios?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. {selectedCount} negócio
-              {selectedCount > 1 ? "s serão permanentemente excluídos" : " será permanentemente excluído"}
+              {selectedCount > 1
+                ? 's serão permanentemente excluídos'
+                : ' será permanentemente excluído'}
               , incluindo todas as notas, tarefas e arquivos vinculados.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -277,7 +275,7 @@ export const BulkActionsToolbar = ({
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Excluir {selectedCount} Negócio{selectedCount > 1 ? "s" : ""}
+              Excluir {selectedCount} Negócio{selectedCount > 1 ? 's' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

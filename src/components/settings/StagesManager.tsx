@@ -1,15 +1,35 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Plus, Trash2, GripVertical } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface StagesManagerProps {
   open: boolean;
@@ -27,8 +47,18 @@ interface Stage {
   is_closed_lost: boolean;
 }
 
-function SortableStage({ stage, onUpdate, onDelete }: { stage: Stage; onUpdate: (id: string, data: Partial<Stage>) => void; onDelete: (id: string) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: stage.id });
+function SortableStage({
+  stage,
+  onUpdate,
+  onDelete,
+}: {
+  stage: Stage;
+  onUpdate: (id: string, data: Partial<Stage>) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: stage.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -70,17 +100,14 @@ function SortableStage({ stage, onUpdate, onDelete }: { stage: Stage; onUpdate: 
                 min="0"
                 max="100"
                 value={stage.probability_default}
-                onChange={(e) => onUpdate(stage.id, { probability_default: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  onUpdate(stage.id, { probability_default: parseInt(e.target.value) })
+                }
               />
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(stage.id)}
-            className="mt-6"
-          >
+          <Button variant="ghost" size="icon" onClick={() => onDelete(stage.id)} className="mt-6">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -111,16 +138,16 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
 
     try {
       const { data, error } = await supabase
-        .from("pipeline_stages")
-        .select("*")
-        .eq("pipeline_id", pipelineId)
-        .order("order_index", { ascending: true });
+        .from('pipeline_stages')
+        .select('*')
+        .eq('pipeline_id', pipelineId)
+        .order('order_index', { ascending: true });
 
       if (error) throw error;
       setStages(data || []);
     } catch (error) {
-      console.error("Error loading stages:", error);
-      toast.error("Erro ao carregar etapas");
+      console.error('Error loading stages:', error);
+      toast.error('Erro ao carregar etapas');
     }
   };
 
@@ -137,18 +164,14 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
   };
 
   const handleUpdateStage = (id: string, data: Partial<Stage>) => {
-    setStages((prev) =>
-      prev.map((stage) =>
-        stage.id === id ? { ...stage, ...data } : stage
-      )
-    );
+    setStages((prev) => prev.map((stage) => (stage.id === id ? { ...stage, ...data } : stage)));
   };
 
   const handleAddStage = () => {
     const newStage: Stage = {
       id: `temp-${Date.now()}`,
-      name: "Nova Etapa",
-      color: "#3B82F6",
+      name: 'Nova Etapa',
+      color: '#3B82F6',
       order_index: stages.length,
       probability_default: 50,
       is_closed_won: false,
@@ -168,9 +191,9 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
     try {
       // Delete all existing stages
       const { error: deleteError } = await supabase
-        .from("pipeline_stages")
+        .from('pipeline_stages')
         .delete()
-        .eq("pipeline_id", pipelineId);
+        .eq('pipeline_id', pipelineId);
 
       if (deleteError) throw deleteError;
 
@@ -185,17 +208,15 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
         is_closed_lost: stage.is_closed_lost,
       }));
 
-      const { error: insertError } = await supabase
-        .from("pipeline_stages")
-        .insert(stagesToInsert);
+      const { error: insertError } = await supabase.from('pipeline_stages').insert(stagesToInsert);
 
       if (insertError) throw insertError;
 
-      toast.success("Etapas atualizadas com sucesso!");
+      toast.success('Etapas atualizadas com sucesso!');
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving stages:", error);
-      toast.error("Erro ao salvar etapas");
+      console.error('Error saving stages:', error);
+      toast.error('Erro ao salvar etapas');
     } finally {
       setLoading(false);
     }
@@ -206,9 +227,7 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Gerenciar Etapas</DialogTitle>
-          <DialogDescription>
-            Arraste para reordenar as etapas do pipeline
-          </DialogDescription>
+          <DialogDescription>Arraste para reordenar as etapas do pipeline</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -217,10 +236,7 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext
-              items={stages.map((s) => s.id)}
-              strategy={verticalListSortingStrategy}
-            >
+            <SortableContext items={stages.map((s) => s.id)} strategy={verticalListSortingStrategy}>
               {stages.map((stage) => (
                 <SortableStage
                   key={stage.id}
@@ -232,11 +248,7 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
             </SortableContext>
           </DndContext>
 
-          <Button
-            variant="outline"
-            onClick={handleAddStage}
-            className="w-full"
-          >
+          <Button variant="outline" onClick={handleAddStage} className="w-full">
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Etapa
           </Button>
@@ -246,7 +258,7 @@ export function StagesManager({ open, onOpenChange, pipelineId }: StagesManagerP
               Cancelar
             </Button>
             <Button onClick={handleSave} disabled={loading}>
-              {loading ? "Salvando..." : "Salvar Alterações"}
+              {loading ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>
         </div>

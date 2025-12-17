@@ -1,9 +1,15 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { CustomField } from "@/hooks/useCustomFields";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { CustomField } from '@/hooks/useCustomFields';
 
 interface CustomFieldInputProps {
   field: CustomField;
@@ -11,10 +17,10 @@ interface CustomFieldInputProps {
   onChange: (value: string) => void;
 }
 
-export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInputProps) {
+export function CustomFieldInput({ field, value = '', onChange }: CustomFieldInputProps) {
   const renderInput = () => {
     switch (field.field_type) {
-      case "text":
+      case 'text':
         return (
           <Input
             placeholder={`Digite ${field.field_label.toLowerCase()}...`}
@@ -24,7 +30,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           />
         );
 
-      case "number":
+      case 'number':
         return (
           <Input
             type="number"
@@ -35,7 +41,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           />
         );
 
-      case "currency":
+      case 'currency':
         return (
           <Input
             type="number"
@@ -48,7 +54,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           />
         );
 
-      case "date":
+      case 'date':
         return (
           <Input
             type="date"
@@ -58,7 +64,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           />
         );
 
-      case "url":
+      case 'url':
         return (
           <Input
             type="url"
@@ -69,7 +75,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           />
         );
 
-      case "email":
+      case 'email':
         return (
           <Input
             type="email"
@@ -80,7 +86,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           />
         );
 
-      case "phone":
+      case 'phone':
         return (
           <Input
             type="tel"
@@ -91,27 +97,27 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           />
         );
 
-      case "boolean":
+      case 'boolean':
         return (
           <div className="flex items-center space-x-2">
             <Switch
-              checked={value === "true"}
-              onCheckedChange={(checked) => onChange(checked ? "true" : "false")}
+              checked={value === 'true'}
+              onCheckedChange={(checked) => onChange(checked ? 'true' : 'false')}
             />
             <span className="text-sm text-muted-foreground">
-              {value === "true" ? "Sim" : "Não"}
+              {value === 'true' ? 'Sim' : 'Não'}
             </span>
           </div>
         );
 
-      case "select":
+      case 'select':
         return (
           <Select value={value} onValueChange={onChange} required={field.is_required}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione..." />
             </SelectTrigger>
             <SelectContent>
-              {(field.options as string[] || []).map((option) => (
+              {((field.options as string[]) || []).map((option) => (
                 <SelectItem key={option} value={option}>
                   {option}
                 </SelectItem>
@@ -120,11 +126,11 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
           </Select>
         );
 
-      case "multiselect": {
-        const selectedValues = value ? value.split(",") : [];
+      case 'multiselect': {
+        const selectedValues = value ? value.split(',') : [];
         return (
           <div className="space-y-2">
-            {(field.options as string[] || []).map((option) => (
+            {((field.options as string[]) || []).map((option) => (
               <div key={option} className="flex items-center space-x-2">
                 <Checkbox
                   checked={selectedValues.includes(option)}
@@ -132,7 +138,7 @@ export function CustomFieldInput({ field, value = "", onChange }: CustomFieldInp
                     const newValues = checked
                       ? [...selectedValues, option]
                       : selectedValues.filter((v) => v !== option);
-                    onChange(newValues.join(","));
+                    onChange(newValues.join(','));
                   }}
                 />
                 <label className="text-sm">{option}</label>

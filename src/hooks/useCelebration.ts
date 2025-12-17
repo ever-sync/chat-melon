@@ -1,7 +1,7 @@
-import { useState } from "react";
-import confetti from "canvas-confetti";
+import { useState } from 'react';
+import confetti from 'canvas-confetti';
 
-type CelebrationType = "deal_won" | "goal_achieved" | "achievement";
+type CelebrationType = 'deal_won' | 'goal_achieved' | 'achievement';
 
 type CelebrationData = {
   title: string;
@@ -12,8 +12,8 @@ type CelebrationData = {
 
 export const useCelebration = () => {
   const [showModal, setShowModal] = useState(false);
-  const [celebrationType, setCelebrationType] = useState<CelebrationType>("deal_won");
-  const [celebrationData, setCelebrationData] = useState<CelebrationData>({ title: "" });
+  const [celebrationType, setCelebrationType] = useState<CelebrationType>('deal_won');
+  const [celebrationData, setCelebrationData] = useState<CelebrationData>({ title: '' });
 
   const celebrate = (type: CelebrationType, data: CelebrationData) => {
     setCelebrationType(type);

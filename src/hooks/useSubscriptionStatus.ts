@@ -43,7 +43,8 @@ export function useSubscriptionStatus() {
       // Busca dados da empresa com o plano
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
-        .select(`
+        .select(
+          `
           subscription_status,
           trial_ends_at,
           subscription_started_at,
@@ -55,7 +56,8 @@ export function useSubscriptionStatus() {
             is_free_plan,
             max_companies
           )
-        `)
+        `
+        )
         .eq('id', company.id)
         .single();
 
@@ -108,8 +110,7 @@ export function useSubscriptionStatus() {
     const now = new Date();
 
     // Verifica se trial expirou
-    const isTrialExpired =
-      status === 'trial' && trialEndsAt !== null && trialEndsAt < now;
+    const isTrialExpired = status === 'trial' && trialEndsAt !== null && trialEndsAt < now;
 
     // Calcula dias restantes
     let daysRemaining = 0;
@@ -119,8 +120,7 @@ export function useSubscriptionStatus() {
     }
 
     // Verifica se pode acessar a plataforma
-    const canAccessPlatform =
-      status === 'active' || (status === 'trial' && !isTrialExpired);
+    const canAccessPlatform = status === 'active' || (status === 'trial' && !isTrialExpired);
 
     // Informações do plano
     const plan = data.subscription_plans as any;
@@ -168,13 +168,8 @@ export function useCanAccessPlatform() {
  * Hook helper para pegar badge de status
  */
 export function useSubscriptionBadge() {
-  const {
-    status,
-    daysRemaining,
-    planName,
-    isTrialExpired,
-    isFreeForever,
-  } = useSubscriptionStatus();
+  const { status, daysRemaining, planName, isTrialExpired, isFreeForever } =
+    useSubscriptionStatus();
 
   // Define cor e texto do badge
   let badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';

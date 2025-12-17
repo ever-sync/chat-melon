@@ -108,10 +108,7 @@ export const useChannels = () => {
   // Delete channel
   const deleteChannel = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('channels')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('channels').delete().eq('id', id);
 
       if (error) throw error;
     },

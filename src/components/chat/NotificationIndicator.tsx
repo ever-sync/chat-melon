@@ -1,13 +1,8 @@
-import { Bell, BellOff, Volume2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useState } from "react";
+import { Bell, BellOff, Volume2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState } from 'react';
 
 interface NotificationIndicatorProps {
   unreadCount: number;
@@ -15,23 +10,23 @@ interface NotificationIndicatorProps {
 
 export const NotificationIndicator = ({ unreadCount }: NotificationIndicatorProps) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(
-    Notification.permission === "granted"
+    Notification.permission === 'granted'
   );
 
   const handleToggleNotifications = async () => {
-    if (Notification.permission === "default") {
+    if (Notification.permission === 'default') {
       const permission = await Notification.requestPermission();
-      setNotificationsEnabled(permission === "granted");
+      setNotificationsEnabled(permission === 'granted');
     }
   };
 
   const handleTestSound = () => {
     try {
-      const audio = new Audio("/notification.mp3");
+      const audio = new Audio('/notification.mp3');
       audio.volume = 0.5;
       audio.play().catch(() => {});
     } catch (error) {
-      console.error("Error playing notification sound:", error);
+      console.error('Error playing notification sound:', error);
     }
   };
 
@@ -40,12 +35,7 @@ export const NotificationIndicator = ({ unreadCount }: NotificationIndicatorProp
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleTestSound}
-              className="relative"
-            >
+            <Button variant="ghost" size="icon" onClick={handleTestSound} className="relative">
               <Volume2 className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
@@ -79,9 +69,7 @@ export const NotificationIndicator = ({ unreadCount }: NotificationIndicatorProp
           </TooltipTrigger>
           <TooltipContent>
             <p>
-              {notificationsEnabled
-                ? 'Notificações ativadas'
-                : 'Clique para ativar notificações'}
+              {notificationsEnabled ? 'Notificações ativadas' : 'Clique para ativar notificações'}
             </p>
           </TooltipContent>
         </Tooltip>

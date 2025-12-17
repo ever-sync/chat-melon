@@ -42,7 +42,7 @@ export interface ApiKeyWithSecret extends ApiKey {
 function generateApiKey(): { key: string; prefix: string; hash: string } {
   const prefix = 'mk_live_';
   const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-    .map(b => b.toString(16).padStart(2, '0'))
+    .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
   const key = prefix + randomPart;
 
@@ -56,7 +56,7 @@ async function hashApiKey(key: string): Promise<string> {
   const data = encoder.encode(key);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 export const useApiKeys = () => {
@@ -159,12 +159,20 @@ export const useApiKeys = () => {
       updates,
     }: {
       id: string;
-      updates: Partial<Pick<ApiKey, 'name' | 'description' | 'permissions' | 'scopes' | 'rate_limit_per_minute' | 'rate_limit_per_day' | 'is_active'>>;
+      updates: Partial<
+        Pick<
+          ApiKey,
+          | 'name'
+          | 'description'
+          | 'permissions'
+          | 'scopes'
+          | 'rate_limit_per_minute'
+          | 'rate_limit_per_day'
+          | 'is_active'
+        >
+      >;
     }) => {
-      const { error } = await supabase
-        .from('api_keys')
-        .update(updates)
-        .eq('id', id);
+      const { error } = await supabase.from('api_keys').update(updates).eq('id', id);
 
       if (error) throw error;
     },

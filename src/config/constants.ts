@@ -369,8 +369,7 @@ export const FEATURES = {
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 export type Role = (typeof ROLES)[keyof typeof ROLES];
-export type ConversationStatus =
-  (typeof CONVERSATION_STATUS)[keyof typeof CONVERSATION_STATUS];
+export type ConversationStatus = (typeof CONVERSATION_STATUS)[keyof typeof CONVERSATION_STATUS];
 export type DealStatus = (typeof DEAL_STATUS)[keyof typeof DEAL_STATUS];
 export type CampaignStatus = (typeof CAMPAIGN_STATUS)[keyof typeof CAMPAIGN_STATUS];
 export type MessageStatus = (typeof MESSAGE_STATUS)[keyof typeof MESSAGE_STATUS];

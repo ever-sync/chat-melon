@@ -1,36 +1,68 @@
-import { useState, useEffect } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, Target, TrendingUp, Clock, Calendar, ArrowUpRight, ArrowDownRight, MoreHorizontal, User } from "lucide-react";
-import { useAnalytics } from "@/hooks/useAnalytics";
-import { usePipelines } from "@/hooks/crm/usePipelines";
-import { useAuth } from "@/hooks/useAuth";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie } from "recharts";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  DollarSign,
+  Target,
+  TrendingUp,
+  Clock,
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreHorizontal,
+  User,
+} from 'lucide-react';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { usePipelines } from '@/hooks/crm/usePipelines';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell,
+  PieChart,
+  Pie,
+} from 'recharts';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Reports() {
   const { user } = useAuth();
   const { pipelines } = usePipelines();
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | undefined>(undefined);
-  const { metrics, revenueData, funnelData, rankingData, forecastData, isLoading } = useAnalytics(6, selectedPipelineId);
-  const [greeting, setGreeting] = useState("");
+  const { metrics, revenueData, funnelData, rankingData, forecastData, isLoading } = useAnalytics(
+    6,
+    selectedPipelineId
+  );
+  const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Bom dia");
-    else if (hour < 18) setGreeting("Boa tarde");
-    else setGreeting("Boa noite");
+    if (hour < 12) setGreeting('Bom dia');
+    else if (hour < 18) setGreeting('Boa tarde');
+    else setGreeting('Boa noite');
   }, []);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
       minimumFractionDigits: 0,
     }).format(value);
   };
@@ -40,9 +72,7 @@ export default function Reports() {
       return (
         <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100">
           <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
-          <p className="text-sm font-bold text-emerald-600">
-            {formatCurrency(payload[0].value)}
-          </p>
+          <p className="text-sm font-bold text-emerald-600">{formatCurrency(payload[0].value)}</p>
         </div>
       );
     }
@@ -60,19 +90,18 @@ export default function Reports() {
                 {greeting}, {user?.user_metadata?.full_name?.split(' ')[0] || 'Gestor'} 👋
               </h1>
             </div>
-            <p className="text-gray-500 text-lg">
-              Aqui está o panorama da sua operação hoje
-            </p>
+            <p className="text-gray-500 text-lg">Aqui está o panorama da sua operação hoje</p>
           </div>
 
           <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100">
             {['Hoje', '7 Dias', '30 Dias', '60 Dias'].map((period) => (
               <button
                 key={period}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${period === '30 Dias'
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  period === '30 Dias'
                     ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                }`}
               >
                 {period}
               </button>
@@ -112,7 +141,13 @@ export default function Reports() {
                         <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <Area type="monotone" dataKey="value" stroke="#10B981" strokeWidth={2} fill="url(#colorRevenue)" />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#10B981"
+                      strokeWidth={2}
+                      fill="url(#colorRevenue)"
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -180,7 +215,13 @@ export default function Reports() {
                         <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <Area type="monotone" dataKey="value" stroke="#8B5CF6" strokeWidth={2} fill="url(#colorConversion)" />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#8B5CF6"
+                      strokeWidth={2}
+                      fill="url(#colorConversion)"
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -194,7 +235,8 @@ export default function Reports() {
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-1">Ciclo de Venda</p>
                   <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
-                    {metrics?.avgPipelineTime || 0} <span className="text-lg text-gray-400 font-normal">dias</span>
+                    {metrics?.avgPipelineTime || 0}{' '}
+                    <span className="text-lg text-gray-400 font-normal">dias</span>
                   </h3>
                 </div>
                 <div className="p-3 bg-orange-50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
@@ -210,7 +252,11 @@ export default function Reports() {
               </div>
               <div className="h-16 mt-4 -mx-6 -mb-6 flex items-end justify-between px-6 pb-4">
                 {[40, 35, 55, 45, 30, 45, 35].map((h, i) => (
-                  <div key={i} className="w-2 bg-orange-100 rounded-full" style={{ height: `${h}%` }} />
+                  <div
+                    key={i}
+                    className="w-2 bg-orange-100 rounded-full"
+                    style={{ height: `${h}%` }}
+                  />
                 ))}
               </div>
             </CardContent>
@@ -219,14 +265,15 @@ export default function Reports() {
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           {/* Left Column - Charts */}
           <div className="lg:col-span-2 space-y-8">
             {/* Main Revenue Chart */}
             <Card className="border-0 shadow-sm rounded-[32px] overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between p-8 pb-2">
                 <div>
-                  <CardTitle className="text-2xl font-bold text-gray-900">Análise de Receita</CardTitle>
+                  <CardTitle className="text-2xl font-bold text-gray-900">
+                    Análise de Receita
+                  </CardTitle>
                   <p className="text-gray-500 mt-1">Comparativo mensal de performance</p>
                 </div>
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100">
@@ -236,7 +283,10 @@ export default function Reports() {
               <CardContent className="p-8 pt-4">
                 <div className="h-[350px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueData || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <AreaChart
+                      data={revenueData || []}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >
                       <defs>
                         <linearGradient id="colorRevenueMain" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
@@ -257,7 +307,10 @@ export default function Reports() {
                         tick={{ fill: '#6B7280', fontSize: 12 }}
                         tickFormatter={(value) => `R$ ${value / 1000}k`}
                       />
-                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#10B981', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                      <Tooltip
+                        content={<CustomTooltip />}
+                        cursor={{ stroke: '#10B981', strokeWidth: 1, strokeDasharray: '4 4' }}
+                      />
                       <Area
                         type="monotone"
                         dataKey="value"
@@ -276,8 +329,10 @@ export default function Reports() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Relatórios Detalhados</h2>
               <Select
-                value={selectedPipelineId || "all"}
-                onValueChange={(value) => setSelectedPipelineId(value === "all" ? undefined : value)}
+                value={selectedPipelineId || 'all'}
+                onValueChange={(value) =>
+                  setSelectedPipelineId(value === 'all' ? undefined : value)
+                }
               >
                 <SelectTrigger className="w-[200px] rounded-xl border-gray-200">
                   <SelectValue placeholder="Todos os pipelines" />
@@ -295,10 +350,30 @@ export default function Reports() {
 
             <Tabs defaultValue="overview" className="space-y-6">
               <TabsList className="bg-white p-1 rounded-2xl border border-gray-100 shadow-sm w-full justify-start overflow-x-auto">
-                <TabsTrigger value="overview" className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">Visão Geral</TabsTrigger>
-                <TabsTrigger value="funnel" className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">Funil</TabsTrigger>
-                <TabsTrigger value="ranking" className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">Ranking</TabsTrigger>
-                <TabsTrigger value="forecast" className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">Previsão</TabsTrigger>
+                <TabsTrigger
+                  value="overview"
+                  className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white"
+                >
+                  Visão Geral
+                </TabsTrigger>
+                <TabsTrigger
+                  value="funnel"
+                  className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white"
+                >
+                  Funil
+                </TabsTrigger>
+                <TabsTrigger
+                  value="ranking"
+                  className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white"
+                >
+                  Ranking
+                </TabsTrigger>
+                <TabsTrigger
+                  value="forecast"
+                  className="rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white"
+                >
+                  Previsão
+                </TabsTrigger>
               </TabsList>
               {/* Tabs Content would go here - simplified for this view */}
             </Tabs>
@@ -351,9 +426,7 @@ export default function Reports() {
                   ))}
 
                   {(!rankingData || rankingData.length === 0) && (
-                    <div className="text-center py-8 text-gray-500">
-                      Nenhum dado disponível
-                    </div>
+                    <div className="text-center py-8 text-gray-500">Nenhum dado disponível</div>
                   )}
                 </div>
 

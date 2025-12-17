@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface PresenceIndicatorProps {
   conversationId: string;
@@ -40,7 +40,7 @@ export function PresenceIndicator({ conversationId }: PresenceIndicatorProps) {
           event: 'UPDATE',
           schema: 'public',
           table: 'conversations',
-          filter: `id=eq.${conversationId}`
+          filter: `id=eq.${conversationId}`,
         },
         (payload) => {
           const data = payload.new;
@@ -62,8 +62,12 @@ export function PresenceIndicator({ conversationId }: PresenceIndicatorProps) {
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span className="flex gap-1">
           <span className="animate-bounce">.</span>
-          <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>.</span>
-          <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>.</span>
+          <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>
+            .
+          </span>
+          <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>
+            .
+          </span>
         </span>
         digitando
       </div>

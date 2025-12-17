@@ -1,17 +1,17 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { MessageSquare, Kanban, CheckSquare, Menu, Bell } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useNotifications } from "@/hooks/ui/useNotifications";
-import { useTasks } from "@/hooks/crm/useTasks";
-import { cn } from "@/lib/utils";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { MessageSquare, Kanban, CheckSquare, Menu, Bell } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useNotifications } from '@/hooks/ui/useNotifications';
+import { useTasks } from '@/hooks/crm/useTasks';
+import { cn } from '@/lib/utils';
 
 export const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   const { tasks } = useTasks();
-  
-  const pendingTasks = tasks?.filter(t => t.status === 'pending').length || 0;
+
+  const pendingTasks = tasks?.filter((t) => t.status === 'pending').length || 0;
 
   const navItems = [
     {
@@ -48,18 +48,18 @@ export const MobileBottomNav = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
-          
+
           return (
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 relative transition-colors",
-                active ? "text-primary" : "text-muted-foreground"
+                'flex flex-col items-center justify-center gap-1 relative transition-colors',
+                active ? 'text-primary' : 'text-muted-foreground'
               )}
             >
               <div className="relative">
-                <Icon className={cn("h-5 w-5", active && "scale-110")} />
+                <Icon className={cn('h-5 w-5', active && 'scale-110')} />
                 {item.badge && (
                   <Badge
                     variant="destructive"
@@ -69,10 +69,7 @@ export const MobileBottomNav = () => {
                   </Badge>
                 )}
               </div>
-              <span className={cn(
-                "text-xs font-medium",
-                active && "font-semibold"
-              )}>
+              <span className={cn('text-xs font-medium', active && 'font-semibold')}>
                 {item.label}
               </span>
             </button>

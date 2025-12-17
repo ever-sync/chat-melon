@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   ArrowRight,
   MessageSquare,
@@ -17,17 +17,17 @@ import {
   Users,
   Layout,
   GitBranch,
-  Headphones
-} from "lucide-react";
-import { Link } from "react-router-dom";
+  Headphones,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+} from '@/components/ui/accordion';
+import { Switch } from '@/components/ui/switch';
+import { useState } from 'react';
 
 const Landing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -72,7 +72,10 @@ const Landing = () => {
           {/* Actions */}
           <div className="flex items-center gap-4">
             <Link to="/auth">
-              <Button variant="ghost" className="font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50">
+              <Button
+                variant="ghost"
+                className="font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50"
+              >
                 Entrar
               </Button>
             </Link>
@@ -88,7 +91,6 @@ const Landing = () => {
       {/* Hero Section */}
       <main className="pt-32 pb-20 overflow-hidden text-center">
         <div className="container mx-auto px-4 relative z-10">
-
           {/* Badge */}
           <div className="inline-flex items-center justify-center mb-8">
             <div className="px-5 py-2 rounded-full border border-indigo-100 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-default">
@@ -116,7 +118,10 @@ const Landing = () => {
           {/* CTA */}
           <div className="flex justify-center mb-24">
             <Link to="/signup">
-              <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-indigo-200 transition-all hover:scale-105 font-semibold">
+              <Button
+                size="lg"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-indigo-200 transition-all hover:scale-105 font-semibold"
+              >
                 Começar Agora
               </Button>
             </Link>
@@ -125,10 +130,34 @@ const Landing = () => {
           {/* Interactive Flow Visual (Kept visual, translated content inside) */}
           <div className="relative mx-auto max-w-6xl h-[600px] hidden md:block select-none text-left">
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-              <path d="M300,180 C300,250 500,250 500,320" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
-              <path d="M850,230 C850,280 650,280 650,320" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
-              <path d="M300,380 C300,450 400,450 400,500" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
-              <path d="M850,380 C850,450 750,450 750,480" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="6 6" />
+              <path
+                d="M300,180 C300,250 500,250 500,320"
+                fill="none"
+                stroke="#e2e8f0"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+              />
+              <path
+                d="M850,230 C850,280 650,280 650,320"
+                fill="none"
+                stroke="#e2e8f0"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+              />
+              <path
+                d="M300,380 C300,450 400,450 400,500"
+                fill="none"
+                stroke="#e2e8f0"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+              />
+              <path
+                d="M850,380 C850,450 750,450 750,480"
+                fill="none"
+                stroke="#e2e8f0"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+              />
             </svg>
 
             {/* Card 1 */}
@@ -141,7 +170,10 @@ const Landing = () => {
                   <h4 className="font-bold text-slate-800">Demo Rápida</h4>
                 </div>
                 <div className="text-xs text-slate-400 mb-4">12 de Maio, 14:30 - 15:30</div>
-                <Button size="sm" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg h-9 text-xs font-semibold gap-2">
+                <Button
+                  size="sm"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg h-9 text-xs font-semibold gap-2"
+                >
                   <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                   Reunião Iniciada
                 </Button>
@@ -198,10 +230,13 @@ const Landing = () => {
                 </div>
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Resumo IA</span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Resumo IA
+                    </span>
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Lucas Santos está planejando aumentar a eficiência da equipe através de ferramentas modernas...
+                    Lucas Santos está planejando aumentar a eficiência da equipe através de
+                    ferramentas modernas...
                   </p>
                 </div>
               </div>
@@ -220,7 +255,10 @@ const Landing = () => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <h4 className="font-bold text-slate-800">Empresa Tech</h4>
-                      <Link to="#" className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 hover:bg-indigo-200">
+                      <Link
+                        to="#"
+                        className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 hover:bg-indigo-200"
+                      >
                         <ArrowRight className="w-3 h-3 -rotate-45" />
                       </Link>
                     </div>
@@ -237,9 +275,12 @@ const Landing = () => {
       <section id="features" className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Tudo que você precisa em um só lugar</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Tudo que você precisa em um só lugar
+            </h2>
             <p className="text-lg text-slate-500">
-              O Nucleus unifica suas ferramentas de comunicação, vendas e gestão para que você possa focar no que importa: crescer.
+              O Nucleus unifica suas ferramentas de comunicação, vendas e gestão para que você possa
+              focar no que importa: crescer.
             </p>
           </div>
 
@@ -250,7 +291,8 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Chat Omnicanal</h3>
               <p className="text-slate-500 leading-relaxed">
-                Centralize WhatsApp, Instagram e Messenger em uma única caixa de entrada inteligente e colaborativa.
+                Centralize WhatsApp, Instagram e Messenger em uma única caixa de entrada inteligente
+                e colaborativa.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -259,7 +301,8 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">CRM Completo</h3>
               <p className="text-slate-500 leading-relaxed">
-                Gerencie pipelines, negócios e contatos sem sair da plataforma. Acompanhe cada etapa da venda.
+                Gerencie pipelines, negócios e contatos sem sair da plataforma. Acompanhe cada etapa
+                da venda.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -268,7 +311,8 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Automação & IA</h3>
               <p className="text-slate-500 leading-relaxed">
-                Crie fluxos de cadência, chatbots inteligentes e deixe a IA resumir conversas e sugerir respostas.
+                Crie fluxos de cadência, chatbots inteligentes e deixe a IA resumir conversas e
+                sugerir respostas.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -277,7 +321,8 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Campanhas em Massa</h3>
               <p className="text-slate-500 leading-relaxed">
-                Dispare campanhas de marketing para milhares de contatos com segurança e alta taxa de entrega.
+                Dispare campanhas de marketing para milhares de contatos com segurança e alta taxa
+                de entrega.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -286,7 +331,8 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Analytics Detalhado</h3>
               <p className="text-slate-500 leading-relaxed">
-                Métricas em tempo real sobre atendimento, conversão de vendas e performance da equipe.
+                Métricas em tempo real sobre atendimento, conversão de vendas e performance da
+                equipe.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -306,7 +352,9 @@ const Landing = () => {
       <section id="solutions" className="py-24 bg-white border-y border-slate-100">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Soluções para cada time</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Soluções para cada time
+            </h2>
             <p className="text-lg text-slate-500">
               O Nucleus se adapta ao fluxo de trabalho da sua empresa.
             </p>
@@ -319,9 +367,15 @@ const Landing = () => {
                 <Users className="w-6 h-6 text-indigo-400" /> Vendas
               </h3>
               <ul className="space-y-3 text-slate-300">
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-indigo-400 shrink-0" /> Pipeline Visual</li>
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-indigo-400 shrink-0" /> Automação de Follow-up</li>
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-indigo-400 shrink-0" /> Lead Scoring</li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Pipeline Visual
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Automação de Follow-up
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Lead Scoring
+                </li>
               </ul>
             </div>
 
@@ -331,9 +385,15 @@ const Landing = () => {
                 <Headphones className="w-6 h-6 text-emerald-400" /> Suporte
               </h3>
               <ul className="space-y-3 text-slate-300">
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> Chatbot 24/7</li>
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> Respostas Rápidas</li>
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-emerald-400 shrink-0" /> Central de Conhecimento</li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Chatbot 24/7
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Respostas Rápidas
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Central de Conhecimento
+                </li>
               </ul>
             </div>
 
@@ -343,9 +403,15 @@ const Landing = () => {
                 <Zap className="w-6 h-6 text-rose-400" /> Marketing
               </h3>
               <ul className="space-y-3 text-slate-300">
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-rose-400 shrink-0" /> Disparo em Massa</li>
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-rose-400 shrink-0" /> Segmentação de Leads</li>
-                <li className="flex items-start gap-2"><Check className="w-5 h-5 text-rose-400 shrink-0" /> Análise de Campanhas</li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Disparo em Massa
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Segmentação de Leads
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Análise de Campanhas
+                </li>
               </ul>
             </div>
           </div>
@@ -362,9 +428,13 @@ const Landing = () => {
                 A Força de Trabalho IA com quem você pode contar.
               </h2>
               <p className="text-xl text-slate-500 mb-12 leading-relaxed">
-                Nunca para, sempre melhora. Escale seu atendimento para atender qualquer demanda sem perder qualidade.
+                Nunca para, sempre melhora. Escale seu atendimento para atender qualquer demanda sem
+                perder qualidade.
               </p>
-              <Link to="#" className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group">
+              <Link
+                to="#"
+                className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group"
+              >
                 Mais sobre o Nucleus
                 <ArrowRight className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" />
               </Link>
@@ -401,9 +471,9 @@ const Landing = () => {
 
             {/* Toggle */}
             <div className="flex items-center justify-center gap-4 text-sm font-medium">
-              <span className={!isAnnual ? "text-slate-900" : "text-slate-500"}>Mensal</span>
+              <span className={!isAnnual ? 'text-slate-900' : 'text-slate-500'}>Mensal</span>
               <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
-              <span className={isAnnual ? "text-slate-900" : "text-slate-500"}>Anual (-20%)</span>
+              <span className={isAnnual ? 'text-slate-900' : 'text-slate-500'}>Anual (-20%)</span>
             </div>
           </div>
 
@@ -413,32 +483,42 @@ const Landing = () => {
               <h3 className="font-bold text-lg mb-2">Starter</h3>
               <div className="mb-4">
                 <span className="text-4xl font-bold tracking-tight">R$0</span>
-                <span className="text-slate-500 text-sm">/ {isAnnual ? "ano" : "mês"}</span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? 'ano' : 'mês'}</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para uso pessoal</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
+                Para uso pessoal
+              </p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> 2 Usuários
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Feed de Atividade Básico
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Feed de Atividade
+                  Básico
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Resumo Inteligente IA
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Resumo Inteligente
+                  IA
                 </li>
               </ul>
-              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Acesso Grátis</Button>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">
+                Acesso Grátis
+              </Button>
             </div>
 
             {/* Growth */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
               <h3 className="font-bold text-lg mb-2">Growth</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold tracking-tight">R${isAnnual ? "129" : "149"}</span>
-                <span className="text-slate-500 text-sm">/ {isAnnual ? "ano" : "mês"}</span>
+                <span className="text-4xl font-bold tracking-tight">
+                  R${isAnnual ? '129' : '149'}
+                </span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? 'ano' : 'mês'}</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para times em crescimento</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
+                Para times em crescimento
+              </p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
@@ -451,7 +531,9 @@ const Landing = () => {
                   <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Sequências de Email
                 </li>
               </ul>
-              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Começar Agora</Button>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">
+                Começar Agora
+              </Button>
             </div>
 
             {/* Pro */}
@@ -461,10 +543,14 @@ const Landing = () => {
               </div>
               <h3 className="font-bold text-lg mb-2 mt-6">Pro</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold tracking-tight">R${isAnnual ? "249" : "299"}</span>
-                <span className="text-slate-500 text-sm">/ {isAnnual ? "ano" : "mês"}</span>
+                <span className="text-4xl font-bold tracking-tight">
+                  R${isAnnual ? '249' : '299'}
+                </span>
+                <span className="text-slate-500 text-sm">/ {isAnnual ? 'ano' : 'mês'}</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para times profissionais</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
+                Para times profissionais
+              </p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
@@ -480,7 +566,9 @@ const Landing = () => {
                   <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Múltiplos Canais
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl h-11 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-200">Começar Teste Grátis</Button>
+              <Button className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl h-11 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-200">
+                Começar Teste Grátis
+              </Button>
             </div>
 
             {/* Enterprise */}
@@ -489,11 +577,14 @@ const Landing = () => {
               <div className="mb-4">
                 <span className="text-4xl font-bold tracking-tight text-indigo-500">Custom</span>
               </div>
-              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">Para grandes corporações</p>
+              <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
+                Para grandes corporações
+              </p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Campos & Dados Customizados
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Campos & Dados
+                  Customizados
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> API Dedicada
@@ -502,7 +593,9 @@ const Landing = () => {
                   <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> SLA de Suporte
                 </li>
               </ul>
-              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">Falar com Vendas</Button>
+              <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">
+                Falar com Vendas
+              </Button>
             </div>
           </div>
         </div>
@@ -513,26 +606,41 @@ const Landing = () => {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-8">Recursos para você ir além</h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <a href="#" className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group">
+            <a
+              href="#"
+              className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group"
+            >
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <Layout className="w-6 h-6" />
               </div>
               <h3 className="font-bold text-lg mb-2">Blog do Nucleus</h3>
-              <p className="text-indigo-200 text-sm">Dicas de vendas, atendimento e novidades do produto.</p>
+              <p className="text-indigo-200 text-sm">
+                Dicas de vendas, atendimento e novidades do produto.
+              </p>
             </a>
-            <a href="#" className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group">
+            <a
+              href="#"
+              className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group"
+            >
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <GitBranch className="w-6 h-6" />
               </div>
               <h3 className="font-bold text-lg mb-2">Documentação API</h3>
-              <p className="text-indigo-200 text-sm">Guia completo para desenvolvedores integrarem com o Nucleus.</p>
+              <p className="text-indigo-200 text-sm">
+                Guia completo para desenvolvedores integrarem com o Nucleus.
+              </p>
             </a>
-            <a href="#" className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group">
+            <a
+              href="#"
+              className="bg-white/10 hover:bg-white/20 p-6 rounded-2xl transition-all block group"
+            >
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <Headphones className="w-6 h-6" />
               </div>
               <h3 className="font-bold text-lg mb-2">Central de Ajuda</h3>
-              <p className="text-indigo-200 text-sm">Tutoriais em vídeo e artigos para tirar suas dúvidas.</p>
+              <p className="text-indigo-200 text-sm">
+                Tutoriais em vídeo e artigos para tirar suas dúvidas.
+              </p>
             </a>
           </div>
         </div>
@@ -545,31 +653,44 @@ const Landing = () => {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 shadow-sm text-sm font-medium text-slate-600 mb-6">
               <MessageSquare className="w-3 h-3 text-indigo-500" /> FAQ
             </div>
-            <h2 className="text-4xl font-bold text-slate-900 mb-6">
-              Dúvidas Frequentes
-            </h2>
+            <h2 className="text-4xl font-bold text-slate-900 mb-6">Dúvidas Frequentes</h2>
             <p className="text-slate-500 mb-4">
-              Não encontrou o que procurava? <a href="#" className="text-indigo-600 font-semibold hover:underline">Fale Conosco</a>
+              Não encontrou o que procurava?{' '}
+              <a href="#" className="text-indigo-600 font-semibold hover:underline">
+                Fale Conosco
+              </a>
             </p>
           </div>
           <div className="lg:w-2/3">
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">Como o Nucleus é diferente de outros CRMs?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">
+                  Como o Nucleus é diferente de outros CRMs?
+                </AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  O Nucleus não apenas armazena dados — ele os entende. Desde resumir interações com clientes até sugerir próximos passos, o Nucleus é como um copiloto que ajuda você a agir mais rápido e com mais confiança.
+                  O Nucleus não apenas armazena dados — ele os entende. Desde resumir interações com
+                  clientes até sugerir próximos passos, o Nucleus é como um copiloto que ajuda você
+                  a agir mais rápido e com mais confiança.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">O Nucleus ajuda minha equipe a economizar tempo?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">
+                  O Nucleus ajuda minha equipe a economizar tempo?
+                </AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Com certeza. O Nucleus automatiza tarefas rotineiras, agenda acompanhamentos e fornece resumos instantâneos de reuniões, permitindo que sua equipe foque em interações de alto valor.
+                  Com certeza. O Nucleus automatiza tarefas rotineiras, agenda acompanhamentos e
+                  fornece resumos instantâneos de reuniões, permitindo que sua equipe foque em
+                  interações de alto valor.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3">
-                <AccordionTrigger className="text-lg font-semibold text-slate-800">É difícil configurar o Nucleus?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold text-slate-800">
+                  É difícil configurar o Nucleus?
+                </AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  De jeito nenhum. Oferecemos um processo de integração simples, e nossa equipe de suporte está disponível para ajudar a migrar seus dados e configurar seus fluxos de trabalho em poucos cliques.
+                  De jeito nenhum. Oferecemos um processo de integração simples, e nossa equipe de
+                  suporte está disponível para ajudar a migrar seus dados e configurar seus fluxos
+                  de trabalho em poucos cliques.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -597,7 +718,10 @@ const Landing = () => {
             <Button className="bg-white text-indigo-900 border-none hover:bg-slate-100 font-bold h-12 px-8 rounded-lg shadow-lg">
               Começar Agora
             </Button>
-            <Button variant="outline" className="bg-slate-900/30 text-white border-white/20 hover:bg-slate-900/50 font-bold h-12 px-8 rounded-lg">
+            <Button
+              variant="outline"
+              className="bg-slate-900/30 text-white border-white/20 hover:bg-slate-900/50 font-bold h-12 px-8 rounded-lg"
+            >
               Agendar Demo
             </Button>
           </div>
@@ -616,7 +740,8 @@ const Landing = () => {
                   <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
                 </div>
                 <h3 className="text-3xl font-bold text-slate-400 leading-tight">
-                  Insights de Clientes, <span className="text-slate-900">Gerenciados Inteligente</span>
+                  Insights de Clientes,{' '}
+                  <span className="text-slate-900">Gerenciados Inteligente</span>
                 </h3>
               </div>
 
@@ -624,29 +749,73 @@ const Landing = () => {
               <div>
                 <h4 className="font-bold mb-6">Funcionalidades</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600">Feed Nucleus</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Resumo Inteligente</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Pulse Score</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Lembretes de Touchpoint</a></li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Feed Nucleus
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Resumo Inteligente
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Pulse Score
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Lembretes de Touchpoint
+                    </a>
+                  </li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-bold mb-6">Empresa</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600">Sobre nós</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Carreiras</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Contato</a></li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Sobre nós
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Carreiras
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Contato
+                    </a>
+                  </li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-bold mb-6">Redes Sociais</h4>
                 <ul className="space-y-4 text-slate-500">
-                  <li><a href="#" className="hover:text-indigo-600">Instagram</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Facebook</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Twitter</a></li>
-                  <li><a href="#" className="hover:text-indigo-600">Youtube</a></li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Instagram
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Facebook
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Twitter
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-indigo-600">
+                      Youtube
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -654,8 +823,12 @@ const Landing = () => {
             <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
               <p>Copyright 2025, Todos os direitos reservados por Nucleus</p>
               <div className="flex gap-6">
-                <a href="#" className="hover:text-indigo-600">Política de Privacidade</a>
-                <a href="#" className="hover:text-indigo-600">Termos de Uso</a>
+                <a href="#" className="hover:text-indigo-600">
+                  Política de Privacidade
+                </a>
+                <a href="#" className="hover:text-indigo-600">
+                  Termos de Uso
+                </a>
               </div>
             </div>
           </div>

@@ -1,28 +1,37 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreVertical, FileText, Mail, MessageCircle, CheckSquare, StickyNote, Paperclip, Calendar } from "lucide-react";
-import type { Deal } from "@/hooks/crm/useDeals";
-import { ProposalBuilder } from "@/components/proposals/ProposalBuilder";
-import { EmailComposer } from "./EmailComposer";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { DealTemperatureIcon } from "./DealTemperatureIndicator";
-import { useDealNotes } from "@/hooks/crm/useDealNotes";
-import { useDealTasks } from "@/hooks/crm/useDealTasks";
-import { useDealFiles } from "@/hooks/crm/useDealFiles";
+} from '@/components/ui/dropdown-menu';
+import {
+  MoreVertical,
+  FileText,
+  Mail,
+  MessageCircle,
+  CheckSquare,
+  StickyNote,
+  Paperclip,
+  Calendar,
+} from 'lucide-react';
+import type { Deal } from '@/hooks/crm/useDeals';
+import { ProposalBuilder } from '@/components/proposals/ProposalBuilder';
+import { EmailComposer } from './EmailComposer';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { DealTemperatureIcon } from './DealTemperatureIndicator';
+import { useDealNotes } from '@/hooks/crm/useDealNotes';
+import { useDealTasks } from '@/hooks/crm/useDealTasks';
+import { useDealFiles } from '@/hooks/crm/useDealFiles';
 
 interface DealCardProps {
   deal: Deal;
@@ -33,18 +42,20 @@ interface DealCardProps {
   onSelect?: (dealId: string, selected: boolean) => void;
 }
 
-export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect }: DealCardProps) => {
+export const DealCard = ({
+  deal,
+  onEdit,
+  onDelete,
+  onView,
+  isSelected,
+  onSelect,
+}: DealCardProps) => {
   const [showProposal, setShowProposal] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
   const navigate = useNavigate();
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: deal.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: deal.id,
+  });
 
   // Fetch counters
   const { notes } = useDealNotes(deal.id);
@@ -65,38 +76,41 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
   };
 
   const formatCurrency = (value: number | null) => {
-    if (!value) return "R$ 0,00";
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    if (!value) return 'R$ 0,00';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
   const getPriorityConfig = (priority: string | null) => {
     switch (priority) {
-      case "urgent":
+      case 'urgent':
         return {
-          variant: "destructive" as const,
-          label: "Urgente",
-          className: "bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-400"
+          variant: 'destructive' as const,
+          label: 'Urgente',
+          className: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-400',
         };
-      case "high":
+      case 'high':
         return {
-          variant: "default" as const,
-          label: "Alta",
-          className: "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400"
+          variant: 'default' as const,
+          label: 'Alta',
+          className:
+            'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400',
         };
-      case "medium":
+      case 'medium':
         return {
-          variant: "secondary" as const,
-          label: "Média",
-          className: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400"
+          variant: 'secondary' as const,
+          label: 'Média',
+          className:
+            'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400',
         };
       default:
         return {
-          variant: "outline" as const,
-          label: "Baixa",
-          className: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800/30 dark:text-gray-400"
+          variant: 'outline' as const,
+          label: 'Baixa',
+          className:
+            'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800/30 dark:text-gray-400',
         };
     }
   };
@@ -106,21 +120,23 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
       deal.budget_confirmed,
       !!deal.decision_maker,
       !!deal.need_identified,
-      deal.timeline_confirmed
+      deal.timeline_confirmed,
     ];
     return bant.filter(Boolean).length * 25;
   };
 
   const formatDate = (date: string | null) => {
     if (!date) return null;
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" }).format(new Date(date));
+    return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(
+      new Date(date)
+    );
   };
 
   const handleOpenWhatsApp = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
     if (!deal.contacts?.phone_number) {
-      toast.error("Contato não possui número de telefone");
+      toast.error('Contato não possui número de telefone');
       return;
     }
 
@@ -142,7 +158,7 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
       }
     } catch (error) {
       console.error('Erro ao abrir WhatsApp:', error);
-      toast.error("Não foi possível abrir a conversa");
+      toast.error('Não foi possível abrir a conversa');
     }
   };
 
@@ -157,7 +173,7 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-move hover:shadow-md transition-all ${isSelected ? "ring-2 ring-indigo-500 shadow-lg" : ""}`}
+      className={`cursor-move hover:shadow-md transition-all ${isSelected ? 'ring-2 ring-indigo-500 shadow-lg' : ''}`}
       onClick={() => onView(deal)}
     >
       <CardContent className="p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
@@ -166,10 +182,7 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
             {/* Checkbox para seleção múltipla */}
             {onSelect && (
               <div onClick={handleCheckboxChange}>
-                <Checkbox
-                  checked={isSelected}
-                  className="mt-1"
-                />
+                <Checkbox checked={isSelected} className="mt-1" />
               </div>
             )}
             <Avatar className="h-8 w-8 flex-shrink-0">
@@ -179,7 +192,9 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{deal.contacts?.name || deal.contacts?.phone_number}</p>
+              <p className="font-medium text-sm truncate">
+                {deal.contacts?.name || deal.contacts?.phone_number}
+              </p>
               <p className="text-xs text-muted-foreground truncate">{deal.title}</p>
             </div>
           </div>
@@ -190,16 +205,39 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(deal); }}>Editar</DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setShowProposal(true); }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(deal);
+                }}
+              >
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowProposal(true);
+                }}
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Criar Proposta
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setShowEmail(true); }}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowEmail(true);
+                }}
+              >
                 <Mail className="h-4 w-4 mr-2" />
                 Enviar Email
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-destructive">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className="text-destructive"
+              >
                 Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -236,7 +274,10 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
             {(() => {
               const priorityConfig = getPriorityConfig(deal.priority);
               return (
-                <Badge variant={priorityConfig.variant} className={`text-xs ${priorityConfig.className}`}>
+                <Badge
+                  variant={priorityConfig.variant}
+                  className={`text-xs ${priorityConfig.className}`}
+                >
                   {priorityConfig.label}
                 </Badge>
               );
@@ -257,7 +298,10 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
           {/* Counters */}
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             {(pendingTasks?.length ?? 0) > 0 && (
-              <div className="flex items-center gap-1" title={`${pendingTasks?.length} tarefas pendentes`}>
+              <div
+                className="flex items-center gap-1"
+                title={`${pendingTasks?.length} tarefas pendentes`}
+              >
                 <CheckSquare className="h-3.5 w-3.5" />
                 <span>{pendingTasks?.length}</span>
               </div>
@@ -277,7 +321,10 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
           </div>
 
           {deal.expected_close_date && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 p-1.5 rounded" title="Previsão de fechamento">
+            <div
+              className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 p-1.5 rounded"
+              title="Previsão de fechamento"
+            >
               <Calendar className="w-3 h-3" />
               <span className="font-medium">Fechamento:</span>
               <span>{formatDate(deal.expected_close_date)}</span>
@@ -298,9 +345,7 @@ export const DealCard = ({ deal, onEdit, onDelete, onView, isSelected, onSelect 
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Avatar className="h-5 w-5">
                 <AvatarImage src={deal.profiles.avatar_url || undefined} />
-                <AvatarFallback className="text-xs">
-                  {deal.profiles.full_name[0]}
-                </AvatarFallback>
+                <AvatarFallback className="text-xs">{deal.profiles.full_name[0]}</AvatarFallback>
               </Avatar>
               <span className="truncate">{deal.profiles.full_name}</span>
             </div>

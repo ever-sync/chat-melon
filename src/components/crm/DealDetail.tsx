@@ -1,16 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import {
   Phone,
   Mail,
@@ -25,16 +20,16 @@ import {
   XCircle,
   Copy,
   Trash2,
-} from "lucide-react";
-import type { Deal } from "@/hooks/crm/useDeals";
-import { useDeals } from "@/hooks/crm/useDeals";
+} from 'lucide-react';
+import type { Deal } from '@/hooks/crm/useDeals';
+import { useDeals } from '@/hooks/crm/useDeals';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,18 +39,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
+} from '@/components/ui/alert-dialog';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 // Importar novos componentes
-import { DealNotesSection } from "./DealNotesSection";
-import { DealTasksSection } from "./DealTasksSection";
-import { DealFilesSection } from "./DealFilesSection";
-import { DealActivityTimeline } from "./DealActivityTimeline";
-import { DealTemperatureIndicator } from "./DealTemperatureIndicator";
-import { DealWinLossModal } from "./DealWinLossModal";
+import { DealNotesSection } from './DealNotesSection';
+import { DealTasksSection } from './DealTasksSection';
+import { DealFilesSection } from './DealFilesSection';
+import { DealActivityTimeline } from './DealActivityTimeline';
+import { DealTemperatureIndicator } from './DealTemperatureIndicator';
+import { DealWinLossModal } from './DealWinLossModal';
 
 interface DealDetailProps {
   deal: Deal | null;
@@ -64,46 +59,41 @@ interface DealDetailProps {
   onEdit: (deal: Deal) => void;
 }
 
-export const DealDetail = ({
-  deal,
-  open,
-  onOpenChange,
-  onEdit,
-}: DealDetailProps) => {
+export const DealDetail = ({ deal, open, onOpenChange, onEdit }: DealDetailProps) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState('overview');
   const { updateDeal, deleteDeal, createDeal } = useDeals(deal?.pipeline_id);
 
   // Estados para modais
   const [winLossModal, setWinLossModal] = useState<{
     open: boolean;
-    type: "won" | "lost";
+    type: 'won' | 'lost';
   }>({
     open: false,
-    type: "won",
+    type: 'won',
   });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   if (!deal) return null;
 
   const formatCurrency = (value: number | null) => {
-    if (!value) return "R$ 0,00";
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    if (!value) return 'R$ 0,00';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
   const getPriorityConfig = (priority: string | null) => {
     switch (priority) {
-      case "urgent":
-        return { label: "Urgente", variant: "destructive" as const };
-      case "high":
-        return { label: "Alta", variant: "default" as const };
-      case "medium":
-        return { label: "Média", variant: "secondary" as const };
+      case 'urgent':
+        return { label: 'Urgente', variant: 'destructive' as const };
+      case 'high':
+        return { label: 'Alta', variant: 'default' as const };
+      case 'medium':
+        return { label: 'Média', variant: 'secondary' as const };
       default:
-        return { label: "Baixa", variant: "outline" as const };
+        return { label: 'Baixa', variant: 'outline' as const };
     }
   };
 
@@ -112,27 +102,26 @@ export const DealDetail = ({
   // Calcular dias desde última atividade
   const daysSinceActivity = deal.last_activity
     ? Math.floor(
-      (new Date().getTime() - new Date(deal.last_activity).getTime()) /
-      (1000 * 60 * 60 * 24)
-    )
+        (new Date().getTime() - new Date(deal.last_activity).getTime()) / (1000 * 60 * 60 * 24)
+      )
     : undefined;
 
   // Handlers para ações
   const handleMarkAsWon = () => {
-    setWinLossModal({ open: true, type: "won" });
+    setWinLossModal({ open: true, type: 'won' });
   };
 
   const handleMarkAsLost = () => {
-    setWinLossModal({ open: true, type: "lost" });
+    setWinLossModal({ open: true, type: 'lost' });
   };
 
   const handleWinLoss = (data: { reason: string; detail: string }) => {
     const updateData: any = {
       id: deal.id,
-      status: winLossModal.type === "won" ? "won" : "lost",
+      status: winLossModal.type === 'won' ? 'won' : 'lost',
     };
 
-    if (winLossModal.type === "won") {
+    if (winLossModal.type === 'won') {
       updateData.win_reason = data.reason;
       updateData.won_at = new Date().toISOString();
     } else {
@@ -143,12 +132,12 @@ export const DealDetail = ({
 
     updateDeal.mutate(updateData, {
       onSuccess: () => {
-        setWinLossModal({ open: false, type: "won" });
+        setWinLossModal({ open: false, type: 'won' });
         onOpenChange(false);
         toast.success(
-          winLossModal.type === "won"
-            ? "Negócio marcado como ganho!"
-            : "Negócio marcado como perdido"
+          winLossModal.type === 'won'
+            ? 'Negócio marcado como ganho!'
+            : 'Negócio marcado como perdido'
         );
       },
     });
@@ -176,7 +165,7 @@ export const DealDetail = ({
 
     createDeal.mutate(newDeal, {
       onSuccess: () => {
-        toast.success("Negócio duplicado com sucesso!");
+        toast.success('Negócio duplicado com sucesso!');
         onOpenChange(false);
       },
     });
@@ -189,7 +178,7 @@ export const DealDetail = ({
       onSuccess: () => {
         setShowDeleteDialog(false);
         onOpenChange(false);
-        toast.success("Negócio excluído com sucesso!");
+        toast.success('Negócio excluído com sucesso!');
       },
     });
   };
@@ -218,7 +207,7 @@ export const DealDetail = ({
             {/* Ações */}
             <div className="flex items-center gap-2">
               {/* Ações Rápidas (Visíveis se Open) */}
-              {deal.status === "open" && (
+              {deal.status === 'open' && (
                 <>
                   <Button
                     variant="ghost"
@@ -242,11 +231,7 @@ export const DealDetail = ({
                 </>
               )}
 
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => onEdit(deal)}
-              >
+              <Button variant="outline" size="icon" onClick={() => onEdit(deal)}>
                 <Edit className="h-4 w-4" />
               </Button>
 
@@ -285,9 +270,7 @@ export const DealDetail = ({
           {/* Métricas rápidas */}
           <div className="grid grid-cols-3 gap-3 mt-4">
             <div className="text-center p-2 bg-muted rounded-lg">
-              <p className="text-xl font-bold text-green-600">
-                {formatCurrency(deal.value)}
-              </p>
+              <p className="text-xl font-bold text-green-600">{formatCurrency(deal.value)}</p>
               <p className="text-xs text-muted-foreground">Valor</p>
             </div>
             <div className="text-center p-2 bg-muted rounded-lg">
@@ -352,56 +335,46 @@ export const DealDetail = ({
 
             {/* BANT - Qualificação */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">
-                Qualificação (BANT)
-              </h3>
+              <h3 className="text-sm font-semibold mb-3">Qualificação (BANT)</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${deal.budget_confirmed ? "bg-green-500" : "bg-gray-300"
-                        }`}
+                      className={`w-2 h-2 rounded-full ${
+                        deal.budget_confirmed ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
                     />
-                    <span className="text-sm font-medium">
-                      Orçamento Confirmado
-                    </span>
+                    <span className="text-sm font-medium">Orçamento Confirmado</span>
                   </div>
-                  <Badge variant={deal.budget_confirmed ? "default" : "outline"}>
-                    {deal.budget_confirmed ? "Sim" : "Não"}
+                  <Badge variant={deal.budget_confirmed ? 'default' : 'outline'}>
+                    {deal.budget_confirmed ? 'Sim' : 'Não'}
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${deal.timeline_confirmed ? "bg-green-500" : "bg-gray-300"
-                        }`}
+                      className={`w-2 h-2 rounded-full ${
+                        deal.timeline_confirmed ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
                     />
-                    <span className="text-sm font-medium">
-                      Timeline Confirmado
-                    </span>
+                    <span className="text-sm font-medium">Timeline Confirmado</span>
                   </div>
-                  <Badge
-                    variant={deal.timeline_confirmed ? "default" : "outline"}
-                  >
-                    {deal.timeline_confirmed ? "Sim" : "Não"}
+                  <Badge variant={deal.timeline_confirmed ? 'default' : 'outline'}>
+                    {deal.timeline_confirmed ? 'Sim' : 'Não'}
                   </Badge>
                 </div>
 
                 {deal.decision_maker && (
                   <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Tomador de Decisão
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-1">Tomador de Decisão</p>
                     <p className="font-medium">{deal.decision_maker}</p>
                   </div>
                 )}
 
                 {deal.need_identified && (
                   <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Necessidade Identificada
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-1">Necessidade Identificada</p>
                     <p className="text-sm">{deal.need_identified}</p>
                   </div>
                 )}
@@ -458,15 +431,11 @@ export const DealDetail = ({
                   <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                     <Avatar>
                       <AvatarImage src={deal.profiles.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {deal.profiles.full_name?.[0]}
-                      </AvatarFallback>
+                      <AvatarFallback>{deal.profiles.full_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="font-medium">{deal.profiles.full_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Responsável pelo negócio
-                      </p>
+                      <p className="text-sm text-muted-foreground">Responsável pelo negócio</p>
                     </div>
                   </div>
                 </div>
@@ -480,22 +449,18 @@ export const DealDetail = ({
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Prioridade</p>
-                  <Badge variant={priorityConfig.variant}>
-                    {priorityConfig.label}
-                  </Badge>
+                  <Badge variant={priorityConfig.variant}>{priorityConfig.label}</Badge>
                 </div>
 
                 <div className="p-3 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Status</p>
-                  <Badge>{deal.status || "open"}</Badge>
+                  <Badge>{deal.status || 'open'}</Badge>
                 </div>
 
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Criado em
-                  </p>
+                  <p className="text-xs text-muted-foreground mb-1">Criado em</p>
                   <p className="text-sm font-medium">
-                    {format(new Date(deal.created_at!), "dd/MM/yyyy", {
+                    {format(new Date(deal.created_at!), 'dd/MM/yyyy', {
                       locale: ptBR,
                     })}
                   </p>
@@ -508,7 +473,7 @@ export const DealDetail = ({
                       Fechamento Esperado
                     </p>
                     <p className="text-sm font-medium">
-                      {format(new Date(deal.expected_close_date), "dd/MM/yyyy", {
+                      {format(new Date(deal.expected_close_date), 'dd/MM/yyyy', {
                         locale: ptBR,
                       })}
                     </p>
@@ -554,9 +519,8 @@ export const DealDetail = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir negócio?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O negócio "{deal.title}" será
-              permanentemente excluído, incluindo todas as notas, tarefas e
-              arquivos vinculados.
+              Esta ação não pode ser desfeita. O negócio "{deal.title}" será permanentemente
+              excluído, incluindo todas as notas, tarefas e arquivos vinculados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

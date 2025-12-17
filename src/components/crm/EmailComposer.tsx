@@ -1,26 +1,26 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useEmailTemplates } from "@/hooks/useEmailTemplates";
+} from '@/components/ui/select';
+import { useEmailTemplates } from '@/hooks/useEmailTemplates';
 import DOMPurify from 'dompurify';
-import { Send, Eye } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, Eye } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface EmailComposerProps {
   open: boolean;
@@ -42,9 +42,9 @@ export const EmailComposer = ({
   dealTitle,
 }: EmailComposerProps) => {
   const { templates, sendEmail } = useEmailTemplates();
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
   const [showPreview, setShowPreview] = useState(false);
 
   const handleTemplateSelect = (templateId: string) => {
@@ -58,10 +58,10 @@ export const EmailComposer = ({
 
   const replaceVariables = (text: string): string => {
     return text
-      .replace(/\{\{nome\}\}/g, contactName || "Cliente")
-      .replace(/\{\{empresa\}\}/g, "")
-      .replace(/\{\{negocio\}\}/g, dealTitle || "")
-      .replace(/\{\{data\}\}/g, new Date().toLocaleDateString("pt-BR"));
+      .replace(/\{\{nome\}\}/g, contactName || 'Cliente')
+      .replace(/\{\{empresa\}\}/g, '')
+      .replace(/\{\{negocio\}\}/g, dealTitle || '')
+      .replace(/\{\{data\}\}/g, new Date().toLocaleDateString('pt-BR'));
   };
 
   const handleSend = async () => {
@@ -74,9 +74,9 @@ export const EmailComposer = ({
       template_id: selectedTemplateId || undefined,
     });
     onOpenChange(false);
-    setSubject("");
-    setBody("");
-    setSelectedTemplateId("");
+    setSubject('');
+    setBody('');
+    setSelectedTemplateId('');
   };
 
   return (
@@ -142,7 +142,7 @@ export const EmailComposer = ({
                 className="flex-1"
               >
                 <Send className="h-4 w-4 mr-2" />
-                {sendEmail.isPending ? "Enviando..." : "Enviar Email"}
+                {sendEmail.isPending ? 'Enviando...' : 'Enviar Email'}
               </Button>
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
@@ -159,13 +159,13 @@ export const EmailComposer = ({
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Assunto:</p>
-                  <p className="font-medium">{subject || "(sem assunto)"}</p>
+                  <p className="font-medium">{subject || '(sem assunto)'}</p>
                 </div>
                 <div className="border-t pt-4">
                   <div
                     className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ 
-                      __html: DOMPurify.sanitize(body || "<p>(corpo vazio)</p>") 
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(body || '<p>(corpo vazio)</p>'),
                     }}
                   />
                 </div>

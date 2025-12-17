@@ -74,10 +74,11 @@ export function ContactAvatar({
   // Fetch profile picture from Evolution API if not pre-loaded
   const shouldFetch = !preLoadedUrl && !imageError && !!instanceName && !!phoneNumber;
 
-  const { data: fetchedUrl, isLoading, error } = useContactProfilePicture(
-    shouldFetch ? instanceName : '',
-    shouldFetch ? phoneNumber : ''
-  );
+  const {
+    data: fetchedUrl,
+    isLoading,
+    error,
+  } = useContactProfilePicture(shouldFetch ? instanceName : '', shouldFetch ? phoneNumber : '');
 
   // Use pre-loaded URL first, then fetched URL
   const profilePictureUrl = preLoadedUrl || fetchedUrl;
@@ -116,11 +117,7 @@ export function ContactAvatar({
             isLoading && 'animate-pulse'
           )}
         >
-          {isLoading ? (
-            <User className="h-1/2 w-1/2 animate-pulse" />
-          ) : (
-            getInitials(name)
-          )}
+          {isLoading ? <User className="h-1/2 w-1/2 animate-pulse" /> : getInitials(name)}
         </AvatarFallback>
       </Avatar>
 

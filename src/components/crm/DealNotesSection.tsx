@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { useDealNotes } from "@/hooks/crm/useDealNotes";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Pin, Trash2, Edit2, Save, X } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import { useDealNotes } from '@/hooks/crm/useDealNotes';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Pin, Trash2, Edit2, Save, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 interface DealNotesSectionProps {
   dealId: string;
@@ -26,15 +26,15 @@ interface DealNotesSectionProps {
 export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
   const { notes, isLoading, createNote, updateNote, togglePin, deleteNote } = useDealNotes(dealId);
 
-  const [newNote, setNewNote] = useState("");
+  const [newNote, setNewNote] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editingNoteText, setEditingNoteText] = useState("");
+  const [editingNoteText, setEditingNoteText] = useState('');
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
     createNote.mutate({ note: newNote.trim() });
-    setNewNote("");
+    setNewNote('');
   };
 
   const handleStartEdit = (noteId: string, currentText: string) => {
@@ -46,12 +46,12 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
     if (!editingNoteId || !editingNoteText.trim()) return;
     updateNote.mutate({ noteId: editingNoteId, note: editingNoteText.trim() });
     setEditingNoteId(null);
-    setEditingNoteText("");
+    setEditingNoteText('');
   };
 
   const handleCancelEdit = () => {
     setEditingNoteId(null);
-    setEditingNoteText("");
+    setEditingNoteText('');
   };
 
   const handleDeleteNote = () => {
@@ -61,11 +61,11 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
   };
 
   const getInitials = (name: string | null) => {
-    if (!name) return "??";
+    if (!name) return '??';
     return name
-      .split(" ")
-      .map(n => n[0])
-      .join("")
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -90,19 +90,14 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
           placeholder="Digite sua nota aqui..."
           className="min-h-[80px] resize-none"
           onKeyDown={(e) => {
-            if (e.key === "Enter" && e.ctrlKey) {
+            if (e.key === 'Enter' && e.ctrlKey) {
               handleAddNote();
             }
           }}
         />
         <div className="flex justify-between items-center">
-          <span className="text-xs text-muted-foreground">
-            Ctrl + Enter para adicionar
-          </span>
-          <Button
-            onClick={handleAddNote}
-            disabled={!newNote.trim() || createNote.isPending}
-          >
+          <span className="text-xs text-muted-foreground">Ctrl + Enter para adicionar</span>
+          <Button onClick={handleAddNote} disabled={!newNote.trim() || createNote.isPending}>
             Adicionar Nota
           </Button>
         </div>
@@ -120,8 +115,9 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
             <div
               key={note.id}
               className={cn(
-                "p-4 border rounded-lg transition-colors",
-                note.is_pinned && "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800"
+                'p-4 border rounded-lg transition-colors',
+                note.is_pinned &&
+                  'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/10 dark:border-yellow-800'
               )}
             >
               {/* Header da nota */}
@@ -135,7 +131,7 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
                   </Avatar>
                   <div>
                     <p className="text-sm font-medium">
-                      {note.profiles?.full_name || "Usuário desconhecido"}
+                      {note.profiles?.full_name || 'Usuário desconhecido'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(note.created_at), "dd/MM/yyyy 'às' HH:mm", {
@@ -145,9 +141,7 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
                   </div>
                 </div>
 
-                {note.is_pinned && (
-                  <Pin className="w-4 h-4 text-yellow-600 fill-yellow-600" />
-                )}
+                {note.is_pinned && <Pin className="w-4 h-4 text-yellow-600 fill-yellow-600" />}
               </div>
 
               {/* Conteúdo da nota */}
@@ -168,11 +162,7 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
                       <Save className="w-3 h-3 mr-1" />
                       Salvar
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleCancelEdit}
-                    >
+                    <Button size="sm" variant="outline" onClick={handleCancelEdit}>
                       <X className="w-3 h-3 mr-1" />
                       Cancelar
                     </Button>
@@ -195,13 +185,8 @@ export const DealNotesSection = ({ dealId }: DealNotesSectionProps) => {
                       }
                       disabled={togglePin.isPending}
                     >
-                      <Pin
-                        className={cn(
-                          "w-3 h-3 mr-1",
-                          note.is_pinned && "fill-current"
-                        )}
-                      />
-                      {note.is_pinned ? "Desafixar" : "Fixar"}
+                      <Pin className={cn('w-3 h-3 mr-1', note.is_pinned && 'fill-current')} />
+                      {note.is_pinned ? 'Desafixar' : 'Fixar'}
                     </Button>
                     <Button
                       size="sm"

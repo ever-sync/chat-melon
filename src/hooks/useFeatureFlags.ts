@@ -1,43 +1,42 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
 
 export type FeatureKey =
-  | "chat"
-  | "quick_replies"
-  | "queues"
-  | "products"
-  | "contacts"
-  | "deals_pipeline"
-  | "custom_fields"
-  | "proposals"
-  | "faq"
-  | "workflows"
-  | "campaigns"
-  | "chatbot"
-  | "reports_basic"
-  | "reports_advanced"
-  | "team_performance"
-  | "api_public"
-  | "webhooks"
-  | "multi_company"
-  | "white_label"
-  | "gamification"
-  | "groups"
-  | "automation"
-  | "segments"
-  | "duplicates"
-  | "ai_assistant"
-  | "documents"
-  | "knowledge_base"
-  | "chatbots"
-  | "cadences"
-  | "orders"
-  | "integrations"
-  | "security"
-  | "channels"
-  | "reports_sales";
-
+  | 'chat'
+  | 'quick_replies'
+  | 'queues'
+  | 'products'
+  | 'contacts'
+  | 'deals_pipeline'
+  | 'custom_fields'
+  | 'proposals'
+  | 'faq'
+  | 'workflows'
+  | 'campaigns'
+  | 'chatbot'
+  | 'reports_basic'
+  | 'reports_advanced'
+  | 'team_performance'
+  | 'api_public'
+  | 'webhooks'
+  | 'multi_company'
+  | 'white_label'
+  | 'gamification'
+  | 'groups'
+  | 'automation'
+  | 'segments'
+  | 'duplicates'
+  | 'ai_assistant'
+  | 'documents'
+  | 'knowledge_base'
+  | 'chatbots'
+  | 'cadences'
+  | 'orders'
+  | 'integrations'
+  | 'security'
+  | 'channels'
+  | 'reports_sales';
 
 interface PlatformFeature {
   id: string;
@@ -54,38 +53,38 @@ export const useFeatureFlags = () => {
   const { currentCompany } = useCompany();
 
   const { data: features = [], isLoading } = useQuery({
-    queryKey: ["feature-flags", currentCompany?.id, currentCompany?.plan_id],
+    queryKey: ['feature-flags', currentCompany?.id, currentCompany?.plan_id],
     queryFn: async () => {
       // 1. Buscar todas as features globalmente habilitadas
       const { data: allFeatures, error: featuresError } = await supabase
-        .from("platform_features")
-        .select("*")
-        .eq("is_global_enabled", true)
-        .order("order_index");
+        .from('platform_features')
+        .select('*')
+        .eq('is_global_enabled', true)
+        .order('order_index');
 
       if (featuresError) throw featuresError;
       if (!allFeatures || allFeatures.length === 0) return [];
 
       // 2. Se não tem empresa selecionada ou não tem plano, retorna todas as features globais
       if (!currentCompany?.id || !currentCompany?.plan_id) {
-        console.log("🏢 Empresa sem plano definido - mostrando todas as features globais");
+        console.log('🏢 Empresa sem plano definido - mostrando todas as features globais');
         return allFeatures;
       }
 
       // 3. Buscar features habilitadas para o plano da empresa
       const { data: planFeatures, error: planFeaturesError } = await supabase
-        .from("plan_features")
-        .select("feature_id, is_enabled")
-        .eq("plan_id", currentCompany.plan_id);
+        .from('plan_features')
+        .select('feature_id, is_enabled')
+        .eq('plan_id', currentCompany.plan_id);
 
       if (planFeaturesError) {
-        console.error("Erro ao buscar features do plano:", planFeaturesError);
+        console.error('Erro ao buscar features do plano:', planFeaturesError);
         return allFeatures;
       }
 
       // 4. Se não há configuração de features para o plano, retorna todas as globais
       if (!planFeatures || planFeatures.length === 0) {
-        console.log("📋 Plano sem configuração de features - mostrando todas as features globais");
+        console.log('📋 Plano sem configuração de features - mostrando todas as features globais');
         return allFeatures;
       }
 
@@ -100,7 +99,9 @@ export const useFeatureFlags = () => {
         enabledFeatureIds.has(feature.id)
       );
 
-      console.log(`✅ Features habilitadas para o plano: ${filteredFeatures.length}/${allFeatures.length}`);
+      console.log(
+        `✅ Features habilitadas para o plano: ${filteredFeatures.length}/${allFeatures.length}`
+      );
 
       return filteredFeatures;
     },

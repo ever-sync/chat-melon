@@ -64,9 +64,11 @@ export const throttle = <T extends (...args: any[]) => any>(
 export const isSlowConnection = (): boolean => {
   if ('connection' in navigator) {
     const connection = (navigator as any).connection;
-    return connection.effectiveType === 'slow-2g' || 
-           connection.effectiveType === '2g' || 
-           connection.effectiveType === '3g';
+    return (
+      connection.effectiveType === 'slow-2g' ||
+      connection.effectiveType === '2g' ||
+      connection.effectiveType === '3g'
+    );
   }
   return false;
 };
@@ -85,11 +87,7 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
 /**
  * Request Animation Frame helper para animações suaves
  */
-export const smoothScroll = (
-  element: HTMLElement,
-  to: number,
-  duration: number
-) => {
+export const smoothScroll = (element: HTMLElement, to: number, duration: number) => {
   const start = element.scrollTop;
   const change = to - start;
   const startTime = performance.now();
@@ -97,10 +95,9 @@ export const smoothScroll = (
   const animateScroll = (currentTime: number) => {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    
+
     // Easing function (ease-in-out)
-    const easeInOutQuad = (t: number) => 
-      t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 
     element.scrollTop = start + change * easeInOutQuad(progress);
 

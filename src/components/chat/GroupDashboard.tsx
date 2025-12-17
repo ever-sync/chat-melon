@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
-import { Users, MessageSquare, TrendingUp, Settings } from "lucide-react";
-import { GroupActions } from "./GroupManager";
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
+import { Users, MessageSquare, TrendingUp, Settings } from 'lucide-react';
+import { GroupActions } from './GroupManager';
 
 interface Group {
   id: string;
@@ -34,7 +34,7 @@ export function GroupDashboard() {
 
       if (data) {
         setGroups(data);
-        
+
         // Buscar estatísticas para cada grupo
         const groupStats: Record<string, any> = {};
         for (const group of data) {
@@ -50,7 +50,7 @@ export function GroupDashboard() {
 
           groupStats[group.id] = {
             participants: participantCount || 0,
-            messages: messageCount || 0
+            messages: messageCount || 0,
           };
         }
         setStats(groupStats);
@@ -68,7 +68,7 @@ export function GroupDashboard() {
           event: '*',
           schema: 'public',
           table: 'groups',
-          filter: `company_id=eq.${currentCompany.id}`
+          filter: `company_id=eq.${currentCompany.id}`,
         },
         () => fetchGroups()
       )
@@ -128,7 +128,11 @@ export function GroupDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {group.profile_pic_url ? (
-                    <img src={group.profile_pic_url} alt={group.name} className="w-10 h-10 rounded-full" />
+                    <img
+                      src={group.profile_pic_url}
+                      alt={group.name}
+                      className="w-10 h-10 rounded-full"
+                    />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                       <Users className="h-5 w-5" />
@@ -155,9 +159,7 @@ export function GroupDashboard() {
                 <Badge variant="secondary">
                   {stats[group.id]?.participants || 0} participantes
                 </Badge>
-                <Badge variant="secondary">
-                  {stats[group.id]?.messages || 0} mensagens
-                </Badge>
+                <Badge variant="secondary">{stats[group.id]?.messages || 0} mensagens</Badge>
               </div>
 
               {selectedGroup === group.id && (

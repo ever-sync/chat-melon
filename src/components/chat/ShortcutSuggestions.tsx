@@ -22,9 +22,7 @@ export const ShortcutSuggestions = forwardRef<HTMLDivElement, ShortcutSuggestion
       >
         <div className="px-3 py-2 border-b border-border bg-muted/50 flex items-center gap-2">
           <Zap className="h-4 w-4 text-primary" />
-          <span className="text-xs font-medium text-muted-foreground">
-            Atalhos Rápidos
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">Atalhos Rápidos</span>
           <span className="text-xs text-muted-foreground ml-auto">
             ↑↓ navegar • Enter selecionar • Esc fechar
           </span>
@@ -58,9 +56,7 @@ export const ShortcutSuggestions = forwardRef<HTMLDivElement, ShortcutSuggestion
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm truncate">
-                    {suggestion.name}
-                  </span>
+                  <span className="font-medium text-sm truncate">{suggestion.name}</span>
                   {suggestion.category && (
                     <Badge variant="secondary" className="text-xs shrink-0">
                       {suggestion.category}

@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface FloatingActionButtonProps {
   icon: ReactNode;
@@ -26,7 +26,7 @@ export const FloatingActionButton = ({
       size="icon"
       onClick={onClick}
       className={cn(
-        "fixed z-40 h-14 w-14 rounded-full shadow-lg hover:scale-110 transition-transform",
+        'fixed z-40 h-14 w-14 rounded-full shadow-lg hover:scale-110 transition-transform',
         positionClasses[position],
         className
       )}

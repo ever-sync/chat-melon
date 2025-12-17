@@ -1,11 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Copy, ExternalLink } from "lucide-react";
-import { toast } from "sonner";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Copy, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -15,7 +15,7 @@ interface SettingsDialogProps {
 export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-webhook`;
 
   useEffect(() => {
@@ -24,7 +24,9 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
 
   const loadSettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
@@ -44,7 +46,7 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("URL copiada para a área de transferência");
+    toast.success('URL copiada para a área de transferência');
   };
 
   return (
@@ -63,16 +65,18 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
                   <Label>Nome da Instância</Label>
                   <Input value={settings.instance_name} disabled />
                 </div>
-                
+
                 <div>
                   <Label>URL da API</Label>
                   <Input value={settings.api_url} disabled />
                 </div>
-                
+
                 <div>
                   <Label>Status da Conexão</Label>
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${settings.is_connected ? 'bg-success' : 'bg-destructive'}`} />
+                    <div
+                      className={`w-3 h-3 rounded-full ${settings.is_connected ? 'bg-success' : 'bg-destructive'}`}
+                    />
                     <span>{settings.is_connected ? 'Conectado' : 'Desconectado'}</span>
                   </div>
                 </div>

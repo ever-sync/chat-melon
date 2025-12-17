@@ -1,9 +1,14 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Phone, Video, Loader2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Phone, Video, Loader2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CallButtonProps {
   contactNumber: string;
@@ -16,23 +21,26 @@ export function CallButton({ contactNumber, contactName }: CallButtonProps) {
   const initiateCall = async (type: 'audio' | 'video') => {
     setIsInitiating(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('Usuário não autenticado');
       }
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nmbiuebxhovmwxrbaxsz.supabase.co';
+      const supabaseUrl =
+        import.meta.env.VITE_SUPABASE_URL || 'https://nmbiuebxhovmwxrbaxsz.supabase.co';
 
       const response = await fetch(`${supabaseUrl}/functions/v1/evolution-initiate-call`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           number: contactNumber,
-          type: type === 'audio' ? 'voice' : 'video'
-        })
+          type: type === 'audio' ? 'voice' : 'video',
+        }),
       });
 
       const data = await response.json();
@@ -44,7 +52,7 @@ export function CallButton({ contactNumber, contactName }: CallButtonProps) {
       toast.success(`Chamada de ${type === 'audio' ? 'voz' : 'vídeo'} iniciada com sucesso`);
     } catch (error) {
       console.error('Error initiating call:', error);
-      toast.error(error instanceof Error ? error.message : "Erro ao iniciar chamada");
+      toast.error(error instanceof Error ? error.message : 'Erro ao iniciar chamada');
     } finally {
       setIsInitiating(false);
     }

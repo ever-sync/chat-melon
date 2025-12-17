@@ -1,8 +1,8 @@
-import { useInsights } from "@/hooks/useInsights";
-import { InsightCard } from "./InsightCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import { useInsights } from '@/hooks/useInsights';
+import { InsightCard } from './InsightCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 export const InsightsDashboard = () => {
   const { insights, unreadCount, isLoading, markAsRead, deleteInsight } = useInsights();
@@ -17,9 +17,9 @@ export const InsightsDashboard = () => {
     );
   }
 
-  const highPriorityInsights = insights.filter((i) => i.priority === "high");
-  const mediumPriorityInsights = insights.filter((i) => i.priority === "medium");
-  const lowPriorityInsights = insights.filter((i) => i.priority === "low");
+  const highPriorityInsights = insights.filter((i) => i.priority === 'high');
+  const mediumPriorityInsights = insights.filter((i) => i.priority === 'medium');
+  const lowPriorityInsights = insights.filter((i) => i.priority === 'low');
 
   if (insights.length === 0) {
     return (
@@ -45,9 +45,7 @@ export const InsightsDashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>💡 Insights</span>
-            {unreadCount > 0 && (
-              <Badge variant="default">{unreadCount} novos</Badge>
-            )}
+            {unreadCount > 0 && <Badge variant="default">{unreadCount} novos</Badge>}
           </CardTitle>
         </CardHeader>
       </Card>

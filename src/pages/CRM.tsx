@@ -1,16 +1,33 @@
-import { useState, useEffect } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { PipelineBoard } from "@/components/crm/PipelineBoard";
-import { PipelineListContainer } from "@/components/crm/PipelineListContainer";
-import { usePipelines } from "@/hooks/crm/usePipelines";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, TrendingUp, Settings2, Search, Filter, X, BarChart3, LayoutGrid, List, Calendar as CalendarIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { PipelineBoard } from '@/components/crm/PipelineBoard';
+import { PipelineListContainer } from '@/components/crm/PipelineListContainer';
+import { usePipelines } from '@/hooks/crm/usePipelines';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Plus,
+  TrendingUp,
+  Settings2,
+  Search,
+  Filter,
+  X,
+  BarChart3,
+  LayoutGrid,
+  List,
+  Calendar as CalendarIcon,
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
 export interface DealFilters {
   search: string;
@@ -21,24 +38,26 @@ export interface DealFilters {
 
 export default function CRM() {
   const { pipelines, defaultPipeline } = usePipelines();
-  const [selectedPipelineId, setSelectedPipelineId] = useState<string | undefined>(defaultPipeline?.id);
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string | undefined>(
+    defaultPipeline?.id
+  );
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<"board" | "list" | "calendar">("board");
+  const [viewMode, setViewMode] = useState<'board' | 'list' | 'calendar'>('board');
 
   // Estados de filtros
   const [filters, setFilters] = useState<DealFilters>({
-    search: "",
-    assignedTo: "all",
-    priority: "all",
-    temperature: "all",
+    search: '',
+    assignedTo: 'all',
+    priority: 'all',
+    temperature: 'all',
   });
   const [showFilters, setShowFilters] = useState(false);
 
   // Buscar usuários para filtro de responsável
   const { data: users = [] } = useQuery({
-    queryKey: ["users"],
+    queryKey: ['users'],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*");
+      const { data } = await supabase.from('profiles').select('*');
       return data || [];
     },
   });
@@ -53,19 +72,19 @@ export default function CRM() {
   // Limpar filtros
   const clearFilters = () => {
     setFilters({
-      search: "",
-      assignedTo: "all",
-      priority: "all",
-      temperature: "all",
+      search: '',
+      assignedTo: 'all',
+      priority: 'all',
+      temperature: 'all',
     });
   };
 
   // Contar filtros ativos
   const activeFiltersCount = [
     filters.search,
-    filters.assignedTo !== "all" ? filters.assignedTo : "",
-    filters.priority !== "all" ? filters.priority : "",
-    filters.temperature !== "all" ? filters.temperature : "",
+    filters.assignedTo !== 'all' ? filters.assignedTo : '',
+    filters.priority !== 'all' ? filters.priority : '',
+    filters.temperature !== 'all' ? filters.temperature : '',
   ].filter(Boolean).length;
 
   return (
@@ -91,10 +110,7 @@ export default function CRM() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <Select
-              value={selectedPipelineId}
-              onValueChange={setSelectedPipelineId}
-            >
+            <Select value={selectedPipelineId} onValueChange={setSelectedPipelineId}>
               <SelectTrigger className="w-[280px] h-11 rounded-xl border-gray-200 shadow-sm hover:border-gray-300 transition-colors">
                 <SelectValue placeholder="Selecione um pipeline" />
               </SelectTrigger>
@@ -116,28 +132,28 @@ export default function CRM() {
             {/* View Switcher */}
             <div className="flex items-center bg-muted p-1 rounded-lg">
               <Button
-                variant={viewMode === "board" ? "secondary" : "ghost"}
+                variant={viewMode === 'board' ? 'secondary' : 'ghost'}
                 size="sm"
-                className={`h-9 px-3 rounded-md transition-all ${viewMode === "board" ? "shadow-sm font-medium" : "text-gray-500 hover:text-gray-900"}`}
-                onClick={() => setViewMode("board")}
+                className={`h-9 px-3 rounded-md transition-all ${viewMode === 'board' ? 'shadow-sm font-medium' : 'text-gray-500 hover:text-gray-900'}`}
+                onClick={() => setViewMode('board')}
               >
                 <LayoutGrid className="w-4 h-4 mr-2" />
                 Kanban
               </Button>
               <Button
-                variant={viewMode === "list" ? "secondary" : "ghost"}
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                 size="sm"
-                className={`h-9 px-3 rounded-md transition-all ${viewMode === "list" ? "shadow-sm font-medium" : "text-gray-500 hover:text-gray-900"}`}
-                onClick={() => setViewMode("list")}
+                className={`h-9 px-3 rounded-md transition-all ${viewMode === 'list' ? 'shadow-sm font-medium' : 'text-gray-500 hover:text-gray-900'}`}
+                onClick={() => setViewMode('list')}
               >
                 <List className="w-4 h-4 mr-2" />
                 Lista
               </Button>
               <Button
-                variant={viewMode === "calendar" ? "secondary" : "ghost"}
+                variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
                 size="sm"
-                className={`h-9 px-3 rounded-md transition-all ${viewMode === "calendar" ? "shadow-sm font-medium" : "text-gray-500 hover:text-gray-900"}`}
-                onClick={() => setViewMode("calendar")}
+                className={`h-9 px-3 rounded-md transition-all ${viewMode === 'calendar' ? 'shadow-sm font-medium' : 'text-gray-500 hover:text-gray-900'}`}
+                onClick={() => setViewMode('calendar')}
               >
                 <CalendarIcon className="w-4 h-4 mr-2" />
                 Agenda
@@ -148,7 +164,7 @@ export default function CRM() {
             <Button
               variant="outline"
               className="h-11 rounded-xl border-gray-200 hover:bg-gray-50 transition-all duration-200 hover:scale-105"
-              onClick={() => navigate("/settings/pipelines")}
+              onClick={() => navigate('/settings/pipelines')}
             >
               <Settings2 className="h-4 w-4 mr-2" />
               Gerenciar
@@ -171,7 +187,7 @@ export default function CRM() {
             </div>
 
             <Button
-              variant={showFilters ? "default" : "outline"}
+              variant={showFilters ? 'default' : 'outline'}
               onClick={() => setShowFilters(!showFilters)}
               className="h-10 rounded-lg"
             >
@@ -261,10 +277,14 @@ export default function CRM() {
 
         {/* Pipeline Views */}
         <div className="flex-1 overflow-x-auto overflow-y-hidden -mx-6 px-6">
-          {viewMode === "board" ? (
+          {viewMode === 'board' ? (
             <PipelineBoard selectedPipelineId={selectedPipelineId} filters={filters} />
           ) : (
-            <PipelineListContainer selectedPipelineId={selectedPipelineId} filters={filters} viewMode={viewMode} />
+            <PipelineListContainer
+              selectedPipelineId={selectedPipelineId}
+              filters={filters}
+              viewMode={viewMode}
+            />
           )}
         </div>
       </div>

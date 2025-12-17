@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
-import { Bell, Check, Trash2, X } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { Bell, Check, Trash2, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 type NotificationHistoryItem = {
   id: string;
@@ -30,7 +30,10 @@ interface NotificationHistoryDialogProps {
   inModal?: boolean;
 }
 
-export const NotificationHistoryDialog = ({ onSelectConversation, inModal = false }: NotificationHistoryDialogProps) => {
+export const NotificationHistoryDialog = ({
+  onSelectConversation,
+  inModal = false,
+}: NotificationHistoryDialogProps) => {
   const [notifications, setNotifications] = useState<NotificationHistoryItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,9 +73,7 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
 
       if (error) throw error;
 
-      setNotifications(prev =>
-        prev.map(n => n.id === id ? { ...n, read: true } : n)
-      );
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
     } catch (error) {
       console.error('Erro ao marcar como lida:', error);
     }
@@ -87,8 +88,8 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
 
       if (error) throw error;
 
-      setNotifications(prev => prev.filter(n => n.id !== id));
-      
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+
       toast.success('Notificação removida do histórico');
     } catch (error) {
       console.error('Erro ao deletar notificação:', error);
@@ -98,8 +99,8 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
 
   const clearAllRead = async () => {
     try {
-      const readIds = notifications.filter(n => n.read).map(n => n.id);
-      
+      const readIds = notifications.filter((n) => n.read).map((n) => n.id);
+
       const { error } = await supabase
         .from('notification_history')
         .update({ deleted_at: new Date().toISOString() })
@@ -107,8 +108,8 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
 
       if (error) throw error;
 
-      setNotifications(prev => prev.filter(n => !n.read));
-      
+      setNotifications((prev) => prev.filter((n) => !n.read));
+
       toast.success('Notificações lidas foram removidas');
     } catch (error) {
       console.error('Erro ao limpar histórico:', error);
@@ -126,29 +127,32 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
 
   const getMessageTypeIcon = (type: string) => {
     switch (type) {
-      case 'audio': return '🎤';
-      case 'media': return '📷';
-      case 'poll': return '📊';
-      case 'list': return '📋';
-      case 'contact': return '👤';
-      case 'location': return '📍';
-      default: return '💬';
+      case 'audio':
+        return '🎤';
+      case 'media':
+        return '📷';
+      case 'poll':
+        return '📊';
+      case 'list':
+        return '📋';
+      case 'contact':
+        return '👤';
+      case 'location':
+        return '📍';
+      default:
+        return '💬';
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Se está dentro de um modal, renderiza apenas o conteúdo
   if (inModal) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          {notifications.filter(n => n.read).length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAllRead}
-            >
+          {notifications.filter((n) => n.read).length > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearAllRead}>
               Limpar lidas
             </Button>
           )}
@@ -176,11 +180,11 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getMessageTypeIcon(notification.message_type)}</span>
+                        <span className="text-lg">
+                          {getMessageTypeIcon(notification.message_type)}
+                        </span>
                         <p className="font-semibold text-sm">{notification.title}</p>
-                        {!notification.read && (
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                        )}
+                        {!notification.read && <div className="w-2 h-2 rounded-full bg-primary" />}
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {notification.body}
@@ -248,12 +252,8 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Histórico de Notificações</DialogTitle>
-            {notifications.filter(n => n.read).length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllRead}
-              >
+            {notifications.filter((n) => n.read).length > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearAllRead}>
                 Limpar lidas
               </Button>
             )}
@@ -282,11 +282,11 @@ export const NotificationHistoryDialog = ({ onSelectConversation, inModal = fals
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getMessageTypeIcon(notification.message_type)}</span>
+                        <span className="text-lg">
+                          {getMessageTypeIcon(notification.message_type)}
+                        </span>
                         <p className="font-semibold text-sm">{notification.title}</p>
-                        {!notification.read && (
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                        )}
+                        {!notification.read && <div className="w-2 h-2 rounded-full bg-primary" />}
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {notification.body}

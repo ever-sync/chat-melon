@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Sistema de Push Notifications Web
@@ -30,7 +30,7 @@ export const requestNotificationPermission = async (): Promise<NotificationPermi
   }
 
   const permission = await Notification.requestPermission();
-  
+
   if (permission === 'granted') {
     await subscribeToPush();
   }
@@ -49,7 +49,7 @@ export const subscribeToPush = async (): Promise<PushSubscriptionData | null> =>
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    
+
     // Busca subscription existente
     let subscription = await registration.pushManager.getSubscription();
 
@@ -95,10 +95,10 @@ export const unsubscribeFromPush = async (): Promise<boolean> => {
 
     if (subscription) {
       await subscription.unsubscribe();
-      
+
       // Remove do backend
       await removePushSubscription(subscription.endpoint);
-      
+
       return true;
     }
   } catch (error) {
@@ -111,10 +111,7 @@ export const unsubscribeFromPush = async (): Promise<boolean> => {
 /**
  * Envia notificação local (não-push)
  */
-export const showLocalNotification = (
-  title: string,
-  options?: NotificationOptions
-) => {
+export const showLocalNotification = (title: string, options?: NotificationOptions) => {
   if (Notification.permission !== 'granted') return;
 
   new Notification(title, {
@@ -128,7 +125,9 @@ export const showLocalNotification = (
  * Salva push subscription no Supabase
  */
 const savePushSubscription = async (subscriptionData: PushSubscriptionData) => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return;
 
   // TODO: Criar tabela push_subscriptions para armazenar dados de subscription

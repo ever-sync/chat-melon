@@ -20,7 +20,14 @@ interface ChannelFilterProps {
   className?: string;
 }
 
-const ALL_CHANNELS: ChannelType[] = ['whatsapp', 'instagram', 'messenger', 'telegram', 'widget', 'email'];
+const ALL_CHANNELS: ChannelType[] = [
+  'whatsapp',
+  'instagram',
+  'messenger',
+  'telegram',
+  'widget',
+  'email',
+];
 
 export const ChannelFilter = ({
   selectedChannels,
@@ -44,7 +51,8 @@ export const ChannelFilter = ({
     onChannelsChange([]);
   };
 
-  const hasFilter = selectedChannels.length > 0 && selectedChannels.length < availableChannels.length;
+  const hasFilter =
+    selectedChannels.length > 0 && selectedChannels.length < availableChannels.length;
 
   return (
     <DropdownMenu>
@@ -68,12 +76,7 @@ export const ChannelFilter = ({
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Filtrar por Canal</span>
           {hasFilter && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs"
-              onClick={clearAll}
-            >
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={clearAll}>
               <X className="h-3 w-3 mr-1" />
               Limpar
             </Button>
@@ -97,20 +100,10 @@ export const ChannelFilter = ({
         <DropdownMenuSeparator />
 
         <div className="px-2 py-1.5 flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs h-7"
-            onClick={selectAll}
-          >
+          <Button variant="outline" size="sm" className="flex-1 text-xs h-7" onClick={selectAll}>
             Todos
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs h-7"
-            onClick={clearAll}
-          >
+          <Button variant="outline" size="sm" className="flex-1 text-xs h-7" onClick={clearAll}>
             Nenhum
           </Button>
         </div>

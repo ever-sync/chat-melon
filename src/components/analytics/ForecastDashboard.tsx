@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Target, AlertCircle, Users } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, Target, AlertCircle, Users } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import {
   Table,
   TableBody,
@@ -8,9 +8,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
 interface ForecastDashboardProps {
   data: {
@@ -42,9 +42,9 @@ interface ForecastDashboardProps {
 
 export const ForecastDashboard = ({ data }: ForecastDashboardProps) => {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
       minimumFractionDigits: 0,
     }).format(value);
   };
@@ -56,7 +56,7 @@ export const ForecastDashboard = ({ data }: ForecastDashboardProps) => {
   const realizedPercent = data.goal > 0 ? (data.realized / data.goal) * 100 : 0;
   const forecastRealisticPercent = data.goal > 0 ? (data.forecastRealistic / data.goal) * 100 : 0;
 
-  const currentMonth = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const currentMonth = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
   return (
     <div className="space-y-6">
@@ -137,9 +137,7 @@ export const ForecastDashboard = ({ data }: ForecastDashboardProps) => {
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(data.goal)}</div>
             <Progress value={100} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-1">
-              Objetivo do mês
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Objetivo do mês</p>
           </CardContent>
         </Card>
 
@@ -185,12 +183,8 @@ export const ForecastDashboard = ({ data }: ForecastDashboardProps) => {
                       {stage.stage}
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(stage.totalValue)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {stage.probability}%
-                  </TableCell>
+                  <TableCell className="text-right">{formatCurrency(stage.totalValue)}</TableCell>
+                  <TableCell className="text-right">{stage.probability}%</TableCell>
                   <TableCell className="text-right font-medium">
                     {formatCurrency(stage.forecastValue)}
                   </TableCell>
@@ -199,15 +193,11 @@ export const ForecastDashboard = ({ data }: ForecastDashboardProps) => {
               <TableRow className="font-bold border-t-2">
                 <TableCell>TOTAL</TableCell>
                 <TableCell className="text-right">
-                  {formatCurrency(
-                    data.stageBreakdown.reduce((sum, s) => sum + s.totalValue, 0)
-                  )}
+                  {formatCurrency(data.stageBreakdown.reduce((sum, s) => sum + s.totalValue, 0))}
                 </TableCell>
                 <TableCell></TableCell>
                 <TableCell className="text-right">
-                  {formatCurrency(
-                    data.stageBreakdown.reduce((sum, s) => sum + s.forecastValue, 0)
-                  )}
+                  {formatCurrency(data.stageBreakdown.reduce((sum, s) => sum + s.forecastValue, 0))}
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -244,18 +234,17 @@ export const ForecastDashboard = ({ data }: ForecastDashboardProps) => {
           </CardHeader>
           <CardContent>
             <p className="text-sm">
-              Mês passado previmos{" "}
+              Mês passado previmos{' '}
               <span className="font-bold">{formatCurrency(data.accuracy.previousForecast)}</span>,
-              realizamos{" "}
-              <span className="font-bold">{formatCurrency(data.accuracy.previousRealized)}</span>{" "}
-              (
+              realizamos{' '}
+              <span className="font-bold">{formatCurrency(data.accuracy.previousRealized)}</span> (
               <span
                 className={
                   data.accuracy.accuracyPercent >= 90
-                    ? "text-green-600 font-bold"
+                    ? 'text-green-600 font-bold'
                     : data.accuracy.accuracyPercent >= 70
-                    ? "text-yellow-600 font-bold"
-                    : "text-red-600 font-bold"
+                      ? 'text-yellow-600 font-bold'
+                      : 'text-red-600 font-bold'
                 }
               >
                 {formatPercent(data.accuracy.accuracyPercent)} acurácia

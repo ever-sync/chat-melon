@@ -1,15 +1,37 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useActivityReport } from "@/hooks/useActivityReport";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { ChartContainer } from "@/components/ui/chart";
-import { MessageSquare, Phone, Calendar, FileText, CheckSquare, Download } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useActivityReport } from '@/hooks/useActivityReport';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { ChartContainer } from '@/components/ui/chart';
+import { MessageSquare, Phone, Calendar, FileText, CheckSquare, Download } from 'lucide-react';
+import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const activityIcons = {
   message: MessageSquare,
@@ -20,7 +42,7 @@ const activityIcons = {
 };
 
 export const ActivityReport = () => {
-  const [period, setPeriod] = useState("month");
+  const [period, setPeriod] = useState('month');
   const [userId, setUserId] = useState<string | undefined>();
   const [activityType, setActivityType] = useState<string | undefined>();
 
@@ -28,15 +50,15 @@ export const ActivityReport = () => {
   const getDateRange = () => {
     const now = new Date();
     switch (period) {
-      case "today":
+      case 'today':
         return { startDate: now, endDate: now };
-      case "yesterday": {
+      case 'yesterday': {
         const yesterday = subDays(now, 1);
         return { startDate: yesterday, endDate: yesterday };
       }
-      case "week":
+      case 'week':
         return { startDate: subDays(now, 7), endDate: now };
-      case "month":
+      case 'month':
         return { startDate: startOfMonth(now), endDate: endOfMonth(now) };
       default:
         return { startDate: startOfMonth(now), endDate: endOfMonth(now) };
@@ -53,23 +75,23 @@ export const ActivityReport = () => {
   const exportToCSV = () => {
     if (!detailedActivities.length) return;
 
-    const headers = ["Data/Hora", "Vendedor", "Tipo", "Descrição"];
-    const rows = detailedActivities.map(activity => [
-      format(new Date(activity.timestamp), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+    const headers = ['Data/Hora', 'Vendedor', 'Tipo', 'Descrição'];
+    const rows = detailedActivities.map((activity) => [
+      format(new Date(activity.timestamp), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
       activity.userName,
       activity.type,
       activity.description,
     ]);
 
     const csv = [
-      headers.join(","),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(",")),
-    ].join("\n");
+      headers.join(','),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n');
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `atividades_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.download = `atividades_${format(new Date(), 'yyyy-MM-dd')}.csv`;
     link.click();
   };
 
@@ -100,13 +122,16 @@ export const ActivityReport = () => {
               </SelectContent>
             </Select>
 
-            <Select value={userId || "all"} onValueChange={v => setUserId(v === "all" ? undefined : v)}>
+            <Select
+              value={userId || 'all'}
+              onValueChange={(v) => setUserId(v === 'all' ? undefined : v)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Vendedor" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {byUser.map(user => (
+                {byUser.map((user) => (
                   <SelectItem key={user.userId} value={user.userId}>
                     {user.userName}
                   </SelectItem>
@@ -114,7 +139,10 @@ export const ActivityReport = () => {
               </SelectContent>
             </Select>
 
-            <Select value={activityType || "all"} onValueChange={v => setActivityType(v === "all" ? undefined : v)}>
+            <Select
+              value={activityType || 'all'}
+              onValueChange={(v) => setActivityType(v === 'all' ? undefined : v)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
@@ -202,18 +230,18 @@ export const ActivityReport = () => {
         <CardContent>
           <ChartContainer
             config={{
-              messages: { label: "Mensagens", color: "hsl(var(--chart-1))" },
-              calls: { label: "Ligações", color: "hsl(var(--chart-2))" },
-              meetings: { label: "Reuniões", color: "hsl(var(--chart-3))" },
-              proposals: { label: "Propostas", color: "hsl(var(--chart-4))" },
-              tasks: { label: "Tarefas", color: "hsl(var(--chart-5))" },
+              messages: { label: 'Mensagens', color: 'hsl(var(--chart-1))' },
+              calls: { label: 'Ligações', color: 'hsl(var(--chart-2))' },
+              meetings: { label: 'Reuniões', color: 'hsl(var(--chart-3))' },
+              proposals: { label: 'Propostas', color: 'hsl(var(--chart-4))' },
+              tasks: { label: 'Tarefas', color: 'hsl(var(--chart-5))' },
             }}
             className="h-[300px]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byDay}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), "dd/MM")} />
+                <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'dd/MM')} />
                 <YAxis />
                 <Tooltip />
                 <Legend />
@@ -246,7 +274,7 @@ export const ActivityReport = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {byUser.map(user => (
+              {byUser.map((user) => (
                 <TableRow key={user.userId}>
                   <TableCell className="font-medium">{user.userName}</TableCell>
                   <TableCell className="text-center">{user.messages}</TableCell>
@@ -272,17 +300,22 @@ export const ActivityReport = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {detailedActivities.slice(0, 50).map(activity => {
-              const Icon = activityIcons[activity.type as keyof typeof activityIcons] || MessageSquare;
+            {detailedActivities.slice(0, 50).map((activity) => {
+              const Icon =
+                activityIcons[activity.type as keyof typeof activityIcons] || MessageSquare;
               return (
-                <div key={activity.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent">
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent"
+                >
                   <Icon className="h-4 w-4 mt-1 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">
-                      <span className="font-medium">{format(new Date(activity.timestamp), "HH:mm", { locale: ptBR })}</span>
-                      {" "}
+                      <span className="font-medium">
+                        {format(new Date(activity.timestamp), 'HH:mm', { locale: ptBR })}
+                      </span>{' '}
                       <span className="text-muted-foreground">{activity.userName}</span>
-                      {" - "}
+                      {' - '}
                       {activity.description}
                     </p>
                   </div>

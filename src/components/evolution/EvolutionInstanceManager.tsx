@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { QrCode, RefreshCw, Trash2, Power } from "lucide-react";
-import { EvolutionStatusBadge } from "./EvolutionStatusBadge";
-import { EvolutionQRCodeModal } from "./EvolutionQRCodeModal";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { QrCode, RefreshCw, Trash2, Power } from 'lucide-react';
+import { EvolutionStatusBadge } from './EvolutionStatusBadge';
+import { EvolutionQRCodeModal } from './EvolutionQRCodeModal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface EvolutionInstanceManagerProps {
   companyId: string;
@@ -28,7 +28,9 @@ export const EvolutionInstanceManager = ({
   const handleAction = async (action: 'check-status' | 'restart' | 'delete' | 'get-qrcode') => {
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       const response = await supabase.functions.invoke('evolution-instance-manager', {
         body: {
@@ -44,8 +46,8 @@ export const EvolutionInstanceManager = ({
 
       const messages = {
         'check-status': 'Status verificado',
-        'restart': 'Instância reiniciada',
-        'delete': 'Instância deletada',
+        restart: 'Instância reiniciada',
+        delete: 'Instância deletada',
         'get-qrcode': 'QR Code obtido',
       };
 

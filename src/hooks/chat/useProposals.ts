@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "../crm/useCompanyQuery";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from '../crm/useCompanyQuery';
+import { toast } from 'sonner';
 
 export interface ProposalItem {
   id: string;
@@ -20,10 +20,10 @@ export interface Proposal {
   items: ProposalItem[];
   subtotal: number;
   discount: number;
-  discount_type: "percentage" | "fixed";
+  discount_type: 'percentage' | 'fixed';
   tax: number;
   total: number;
-  status: "draft" | "sent" | "viewed" | "accepted" | "rejected" | "expired";
+  status: 'draft' | 'sent' | 'viewed' | 'accepted' | 'rejected' | 'expired';
   public_link: string | null;
   pdf_url: string | null;
   payment_terms: string | null;
@@ -47,31 +47,33 @@ export const useProposals = (dealId?: string) => {
   const queryClient = useQueryClient();
 
   const { data: proposals = [], isLoading } = useQuery({
-    queryKey: ["proposals", companyId, dealId],
+    queryKey: ['proposals', companyId, dealId],
     queryFn: async () => {
       if (!companyId) return [];
 
       let query = supabase
-        .from("proposals")
-        .select(`
+        .from('proposals')
+        .select(
+          `
           *,
           deals!inner(
             title,
             company_id,
             contacts(name, phone_number)
           )
-        `)
-        .eq("deals.company_id", companyId)
-        .order("created_at", { ascending: false });
+        `
+        )
+        .eq('deals.company_id', companyId)
+        .order('created_at', { ascending: false });
 
       if (dealId) {
-        query = query.eq("deal_id", dealId);
+        query = query.eq('deal_id', dealId);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      return data.map(p => ({
+      return data.map((p) => ({
         ...p,
         items: p.items as any as ProposalItem[],
       })) as Proposal[];
@@ -81,11 +83,13 @@ export const useProposals = (dealId?: string) => {
 
   const createProposal = useMutation({
     mutationFn: async (proposal: Partial<Proposal>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
       const { data, error } = await supabase
-        .from("proposals")
+        .from('proposals')
         .insert({
           deal_id: proposal.deal_id,
           title: proposal.title,
@@ -110,11 +114,11 @@ export const useProposals = (dealId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Proposta criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Proposta criada com sucesso!');
     },
     onError: (error) => {
-      toast.error("Erro ao criar proposta");
+      toast.error('Erro ao criar proposta');
       console.error(error);
     },
   });
@@ -127,9 +131,9 @@ export const useProposals = (dealId?: string) => {
       }
 
       const { data, error } = await supabase
-        .from("proposals")
+        .from('proposals')
         .update(updateData)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -137,11 +141,11 @@ export const useProposals = (dealId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Proposta atualizada!");
+      queryClient.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Proposta atualizada!');
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar proposta");
+      toast.error('Erro ao atualizar proposta');
       console.error(error);
     },
   });
@@ -151,12 +155,12 @@ export const useProposals = (dealId?: string) => {
       const publicSlug = crypto.randomUUID();
 
       const { data, error } = await supabase
-        .from("proposals")
+        .from('proposals')
         .update({
           public_link: publicSlug,
-          status: "sent",
+          status: 'sent',
         })
-        .eq("id", proposalId)
+        .eq('id', proposalId)
         .select()
         .single();
 
@@ -164,11 +168,11 @@ export const useProposals = (dealId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Link público gerado!");
+      queryClient.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Link público gerado!');
     },
     onError: (error) => {
-      toast.error("Erro ao gerar link");
+      toast.error('Erro ao gerar link');
       console.error(error);
     },
   });
@@ -183,19 +187,21 @@ export const useProposals = (dealId?: string) => {
     }) => {
       // Get original proposal
       const { data: original, error: fetchError } = await supabase
-        .from("proposals")
-        .select("*")
-        .eq("id", originalProposalId)
+        .from('proposals')
+        .select('*')
+        .eq('id', originalProposalId)
         .single();
 
       if (fetchError) throw fetchError;
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
       // Create new version
       const { data, error } = await supabase
-        .from("proposals")
+        .from('proposals')
         .insert({
           deal_id: original.deal_id,
           title: original.title,
@@ -205,7 +211,7 @@ export const useProposals = (dealId?: string) => {
           discount_type: original.discount_type,
           tax: original.tax,
           total: original.total,
-          status: "draft",
+          status: 'draft',
           payment_terms: original.payment_terms,
           validity_days: original.validity_days,
           created_by: user.id,
@@ -220,39 +226,47 @@ export const useProposals = (dealId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Nova versão criada!");
+      queryClient.invalidateQueries({ queryKey: ['proposals'] });
+      toast.success('Nova versão criada!');
     },
     onError: (error) => {
-      toast.error("Erro ao criar versão");
+      toast.error('Erro ao criar versão');
       console.error(error);
     },
   });
 
   const getVersionHistory = async (dealId: string) => {
     const { data, error } = await supabase
-      .from("proposals")
-      .select("*")
-      .eq("deal_id", dealId)
-      .order("version", { ascending: false });
+      .from('proposals')
+      .select('*')
+      .eq('deal_id', dealId)
+      .order('version', { ascending: false });
 
     if (error) throw error;
-    return data.map(p => ({
+    return data.map((p) => ({
       ...p,
       items: p.items as any as ProposalItem[],
     })) as Proposal[];
   };
 
   const sendViaWhatsApp = useMutation({
-    mutationFn: async ({ proposalId, contactPhone }: { proposalId: string; contactPhone: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+    mutationFn: async ({
+      proposalId,
+      contactPhone,
+    }: {
+      proposalId: string;
+      contactPhone: string;
+    }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
       // Gerar link público se ainda não tiver
       const { data: proposal } = await supabase
-        .from("proposals")
-        .select("public_link, title")
-        .eq("id", proposalId)
+        .from('proposals')
+        .select('public_link, title')
+        .eq('id', proposalId)
         .single();
 
       let publicLink = proposal?.public_link;
@@ -266,7 +280,7 @@ export const useProposals = (dealId?: string) => {
       const message = `Olá! Segue sua proposta comercial "${proposal?.title}":\n\n${publicUrl}\n\nQualquer dúvida, estou à disposição!`;
 
       // Enviar via Evolution API
-      const response = await supabase.functions.invoke("evolution-send-message", {
+      const response = await supabase.functions.invoke('evolution-send-message', {
         body: {
           phone: contactPhone,
           message,
@@ -278,11 +292,11 @@ export const useProposals = (dealId?: string) => {
       return response.data;
     },
     onSuccess: () => {
-      toast.success("Proposta enviada por WhatsApp!");
+      toast.success('Proposta enviada por WhatsApp!');
     },
     onError: (error) => {
-      console.error("Erro ao enviar proposta:", error);
-      toast.error("Erro ao enviar proposta por WhatsApp");
+      console.error('Erro ao enviar proposta:', error);
+      toast.error('Erro ao enviar proposta por WhatsApp');
     },
   });
 

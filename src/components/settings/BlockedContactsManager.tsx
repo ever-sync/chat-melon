@@ -1,15 +1,24 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCompany } from "@/contexts/CompanyContext";
-import { Trash2, UserX } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCompany } from '@/contexts/CompanyContext';
+import { Trash2, UserX } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { format } from 'date-fns';
 
 interface BlockedContact {
   id: string;
@@ -22,8 +31,8 @@ export function BlockedContactsManager() {
   const { currentCompany } = useCompany();
   const [loading, setLoading] = useState(false);
   const [blockedContacts, setBlockedContacts] = useState<BlockedContact[]>([]);
-  const [newNumber, setNewNumber] = useState("");
-  const [reason, setReason] = useState("");
+  const [newNumber, setNewNumber] = useState('');
+  const [reason, setReason] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,7 +42,9 @@ export function BlockedContactsManager() {
   const loadBlockedContacts = async () => {
     if (!currentCompany) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data, error } = await supabase
@@ -53,30 +64,30 @@ export function BlockedContactsManager() {
 
   const handleBlock = async () => {
     if (!currentCompany || !newNumber.trim()) {
-      toast.error("Informe o número do contato");
+      toast.error('Informe o número do contato');
       return;
     }
 
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
-      .from('blocked_contacts')
-      .insert({
-        user_id: user.id,
-        company_id: currentCompany.id,
-        blocked_number: newNumber.trim(),
-        reason: reason.trim() || null,
-      });
+    const { error } = await supabase.from('blocked_contacts').insert({
+      user_id: user.id,
+      company_id: currentCompany.id,
+      blocked_number: newNumber.trim(),
+      reason: reason.trim() || null,
+    });
 
     if (error) {
-      toast.error("Erro ao bloquear contato");
+      toast.error('Erro ao bloquear contato');
       console.error('Error blocking contact:', error);
     } else {
-      toast.success("Contato bloqueado com sucesso");
-      setNewNumber("");
-      setReason("");
+      toast.success('Contato bloqueado com sucesso');
+      setNewNumber('');
+      setReason('');
       loadBlockedContacts();
     }
     setLoading(false);
@@ -84,16 +95,13 @@ export function BlockedContactsManager() {
 
   const handleUnblock = async (id: string) => {
     setLoading(true);
-    const { error } = await supabase
-      .from('blocked_contacts')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('blocked_contacts').delete().eq('id', id);
 
     if (error) {
-      toast.error("Erro ao desbloquear contato");
+      toast.error('Erro ao desbloquear contato');
       console.error('Error unblocking contact:', error);
     } else {
-      toast.success("Contato desbloqueado com sucesso");
+      toast.success('Contato desbloqueado com sucesso');
       loadBlockedContacts();
     }
     setLoading(false);
@@ -174,7 +182,8 @@ export function BlockedContactsManager() {
           <AlertDialogHeader>
             <AlertDialogTitle>Desbloquear Contato</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja desbloquear este contato? Ele poderá enviar mensagens novamente.
+              Tem certeza que deseja desbloquear este contato? Ele poderá enviar mensagens
+              novamente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,23 +1,23 @@
-import { MessageSquarePlus, CheckSquare, Square, CheckCheck } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ContactAvatar } from "@/components/ContactAvatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { MessageSquarePlus, CheckSquare, Square, CheckCheck } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ContactAvatar } from '@/components/ContactAvatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
-import type { Conversation } from "@/types/chat";
-import NewConversationDialog from "@/components/chat/dialogs/NewConversationDialog";
-import SearchBar from "./SearchBar";
-import { AdvancedFiltersDialog } from "@/components/chat/dialogs/AdvancedFiltersDialog";
-import { ChatFilters } from "@/types/chatFilters";
-import { ChatFiltersBar } from "./ChatFiltersBar";
-import { useState, useEffect, useCallback, ReactNode } from "react";
-import { LabelBadge } from "@/components/chat/LabelBadge";
-import { SatisfactionBadge } from "@/components/chat/SatisfactionBadge";
-import { useCompany } from "@/contexts/CompanyContext";
-import { ChannelIcon } from "@/components/chat/ChannelIcon";
+import { Checkbox } from '@/components/ui/checkbox';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
+import type { Conversation } from '@/types/chat';
+import NewConversationDialog from '@/components/chat/dialogs/NewConversationDialog';
+import SearchBar from './SearchBar';
+import { AdvancedFiltersDialog } from '@/components/chat/dialogs/AdvancedFiltersDialog';
+import { ChatFilters } from '@/types/chatFilters';
+import { ChatFiltersBar } from './ChatFiltersBar';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
+import { LabelBadge } from '@/components/chat/LabelBadge';
+import { SatisfactionBadge } from '@/components/chat/SatisfactionBadge';
+import { useCompany } from '@/contexts/CompanyContext';
+import { ChannelIcon } from '@/components/chat/ChannelIcon';
 
 type ConversationListProps = {
   conversations: Conversation[];
@@ -77,9 +77,15 @@ const ConversationList = ({
 }: ConversationListProps) => {
   const { currentCompany } = useCompany();
   const [showNewConversation, setShowNewConversation] = useState(false);
-  const [conversationLabels, setConversationLabels] = useState<Record<string, Array<{ id: string, name: string, color: string, icon?: string }>>>({});
-  const [conversationSatisfaction, setConversationSatisfaction] = useState<Record<string, { score: number, survey_type: 'csat' | 'nps' }>>({});
-  const [labels, setLabels] = useState<Array<{ id: string; name: string; color: string; icon?: string | null }>>([]);
+  const [conversationLabels, setConversationLabels] = useState<
+    Record<string, Array<{ id: string; name: string; color: string; icon?: string }>>
+  >({});
+  const [conversationSatisfaction, setConversationSatisfaction] = useState<
+    Record<string, { score: number; survey_type: 'csat' | 'nps' }>
+  >({});
+  const [labels, setLabels] = useState<
+    Array<{ id: string; name: string; color: string; icon?: string | null }>
+  >([]);
 
   // Carregar labels das conversas
   useEffect(() => {
@@ -98,32 +104,37 @@ const ConversationList = ({
 
     try {
       const { data, error } = await supabase
-        .from("labels")
-        .select("*")
-        .eq("company_id", currentCompany.id)
-        .order("name");
+        .from('labels')
+        .select('*')
+        .eq('company_id', currentCompany.id)
+        .order('name');
 
       if (error) throw error;
       setLabels(data || []);
     } catch (error) {
-      console.error("Erro ao carregar labels:", error);
+      console.error('Erro ao carregar labels:', error);
     }
   };
 
   const loadConversationLabels = useCallback(async () => {
     try {
-      const conversationIds = conversations.map(c => c.id);
+      const conversationIds = conversations.map((c) => c.id);
       const { data, error } = await supabase
         .from('conversation_labels')
-        .select(`
+        .select(
+          `
           conversation_id,
           labels (id, name, color, icon)
-        `)
+        `
+        )
         .in('conversation_id', conversationIds);
 
       if (error) throw error;
 
-      const labelsMap: Record<string, Array<{ id: string, name: string, color: string, icon?: string }>> = {};
+      const labelsMap: Record<
+        string,
+        Array<{ id: string; name: string; color: string; icon?: string }>
+      > = {};
       data?.forEach((item: any) => {
         if (!labelsMap[item.conversation_id]) {
           labelsMap[item.conversation_id] = [];
@@ -144,15 +155,15 @@ const ConversationList = ({
       const conversationIds = conversations.map((c) => c.id);
 
       const { data, error } = await supabase
-        .from("satisfaction_surveys")
-        .select("conversation_id, score, survey_type")
-        .in("conversation_id", conversationIds)
-        .eq("status", "answered")
-        .not("score", "is", null);
+        .from('satisfaction_surveys')
+        .select('conversation_id, score, survey_type')
+        .in('conversation_id', conversationIds)
+        .eq('status', 'answered')
+        .not('score', 'is', null);
 
       if (error) throw error;
 
-      const satisfactionMap: Record<string, { score: number, survey_type: 'csat' | 'nps' }> = {};
+      const satisfactionMap: Record<string, { score: number; survey_type: 'csat' | 'nps' }> = {};
       data?.forEach((survey: any) => {
         satisfactionMap[survey.conversation_id] = {
           score: survey.score,
@@ -162,44 +173,44 @@ const ConversationList = ({
 
       setConversationSatisfaction(satisfactionMap);
     } catch (error) {
-      console.error("Erro ao carregar satisfação:", error);
+      console.error('Erro ao carregar satisfação:', error);
     }
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
   const formatTime = (timestamp?: string) => {
-    if (!timestamp) return "";
+    if (!timestamp) return '';
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
 
     if (hours < 24) {
-      return date.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
+      return date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
       });
     }
-    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
   const getStatusBadge = (status: string | null) => {
     if (!status) return null;
 
     const statusConfig = {
-      waiting: { label: "Não Lido", variant: "secondary" as const },
-      re_entry: { label: "Reentrada", variant: "default" as const },
-      active: { label: "Ativo", variant: "default" as const },
-      chatbot: { label: "ChatBot", variant: "outline" as const },
-      closed: { label: "Encerrado", variant: "secondary" as const },
+      waiting: { label: 'Não Lido', variant: 'secondary' as const },
+      re_entry: { label: 'Reentrada', variant: 'default' as const },
+      active: { label: 'Ativo', variant: 'default' as const },
+      chatbot: { label: 'ChatBot', variant: 'outline' as const },
+      closed: { label: 'Encerrado', variant: 'secondary' as const },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
@@ -226,13 +237,19 @@ const ConversationList = ({
             {snoozedBadge}
             {onToggleSelectionMode && (
               <Button
-                variant={isSelectionMode ? "secondary" : "ghost"}
+                variant={isSelectionMode ? 'secondary' : 'ghost'}
                 size="icon"
                 onClick={onToggleSelectionMode}
                 className="hover:bg-primary/10"
-                title={isSelectionMode ? "Sair do modo de seleção" : "Selecionar múltiplas conversas"}
+                title={
+                  isSelectionMode ? 'Sair do modo de seleção' : 'Selecionar múltiplas conversas'
+                }
               >
-                {isSelectionMode ? <CheckCheck className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
+                {isSelectionMode ? (
+                  <CheckCheck className="w-5 h-5" />
+                ) : (
+                  <CheckSquare className="w-5 h-5" />
+                )}
               </Button>
             )}
             <Button
@@ -249,15 +266,8 @@ const ConversationList = ({
         {/* Selection mode header */}
         {isSelectionMode && onSelectAll && (
           <div className="px-4 py-2 border-b border-border bg-muted/50 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              Modo de seleção ativo
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onSelectAll}
-              className="text-xs"
-            >
+            <span className="text-sm text-muted-foreground">Modo de seleção ativo</span>
+            <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-xs">
               Selecionar todas
             </Button>
           </div>
@@ -281,12 +291,12 @@ const ConversationList = ({
           filters={filters}
           onRemoveStatus={(status) => {
             const newStatuses = filters.status.includes(status)
-              ? filters.status.filter(s => s !== status)
+              ? filters.status.filter((s) => s !== status)
               : [...filters.status, status];
             onFilterChange({ status: newStatuses });
           }}
           onRemoveLabel={(labelId) => {
-            onFilterChange({ labels: filters.labels.filter(l => l !== labelId) });
+            onFilterChange({ labels: filters.labels.filter((l) => l !== labelId) });
           }}
           onClearAll={onClearAllFilters}
           labels={labels}
@@ -296,10 +306,7 @@ const ConversationList = ({
           {isLoading ? (
             <div className="p-4 space-y-4">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 rounded-lg animate-pulse"
-                >
+                <div key={i} className="flex items-center gap-3 p-3 rounded-lg animate-pulse">
                   <div className="w-12 h-12 rounded-full bg-muted" />
                   <div className="flex-1 space-y-2">
                     <div className="h-4 bg-muted rounded w-3/4" />
@@ -327,10 +334,10 @@ const ConversationList = ({
                     }
                   }}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-chat-hover",
+                    'w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-chat-hover',
                     selectedConversation?.id === conversation.id &&
-                    "bg-primary/10 border-l-4 border-primary",
-                    isSelectionMode && isSelected?.(conversation.id) && "bg-primary/20"
+                      'bg-primary/10 border-l-4 border-primary',
+                    isSelectionMode && isSelected?.(conversation.id) && 'bg-primary/20'
                   )}
                 >
                   {isSelectionMode && (
@@ -354,9 +361,7 @@ const ConversationList = ({
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1.5 min-w-0 pr-2">
-                        <span className="font-semibold truncate">
-                          {conversation.contact_name}
-                        </span>
+                        <span className="font-semibold truncate">{conversation.contact_name}</span>
                         {/* Exibir ícone do canal se disponível */}
                         <ChannelIcon
                           type={(conversation.channel_type as any) || 'whatsapp'}
@@ -370,7 +375,7 @@ const ConversationList = ({
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground truncate">
-                        {conversation.last_message || "Nenhuma mensagem"}
+                        {conversation.last_message || 'Nenhuma mensagem'}
                       </p>
                       {conversation.unread_count > 0 && (
                         <span className="ml-2 flex-shrink-0 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
@@ -386,7 +391,7 @@ const ConversationList = ({
                           surveyType={conversationSatisfaction[conversation.id].survey_type}
                         />
                       )}
-                      {conversationLabels[conversation.id]?.slice(0, 3).map(label => (
+                      {conversationLabels[conversation.id]?.slice(0, 3).map((label) => (
                         <LabelBadge
                           key={label.id}
                           name={label.name}
@@ -409,10 +414,7 @@ const ConversationList = ({
         </div>
       </div>
 
-      <NewConversationDialog
-        open={showNewConversation}
-        onOpenChange={setShowNewConversation}
-      />
+      <NewConversationDialog open={showNewConversation} onOpenChange={setShowNewConversation} />
     </>
   );
 };

@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Target,
   ArrowRight,
@@ -18,11 +18,11 @@ import {
   Filter,
   Mail,
   Eye,
-} from "lucide-react";
-import { useDealActivities } from "@/hooks/useDealActivities";
-import { DealActivityModal } from "./DealActivityModal";
-import { format, isToday, isYesterday } from "date-fns";
-import { ptBR } from "date-fns/locale";
+} from 'lucide-react';
+import { useDealActivities } from '@/hooks/useDealActivities';
+import { DealActivityModal } from './DealActivityModal';
+import { format, isToday, isYesterday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface DealTimelineProps {
   dealId: string;
@@ -53,30 +53,37 @@ export const DealTimeline = ({ dealId }: DealTimelineProps) => {
 
   const getDateLabel = (date: string) => {
     const activityDate = new Date(date);
-    if (isToday(activityDate)) return "Hoje";
-    if (isYesterday(activityDate)) return "Ontem";
+    if (isToday(activityDate)) return 'Hoje';
+    if (isYesterday(activityDate)) return 'Ontem';
     return format(activityDate, "d 'de' MMMM", { locale: ptBR });
   };
 
-  const groupedActivities = activities.reduce((acc, activity) => {
-    const dateLabel = getDateLabel(activity.created_at!);
-    if (!acc[dateLabel]) {
-      acc[dateLabel] = [];
-    }
-    acc[dateLabel].push(activity);
-    return acc;
-  }, {} as Record<string, typeof activities>);
+  const groupedActivities = activities.reduce(
+    (acc, activity) => {
+      const dateLabel = getDateLabel(activity.created_at!);
+      if (!acc[dateLabel]) {
+        acc[dateLabel] = [];
+      }
+      acc[dateLabel].push(activity);
+      return acc;
+    },
+    {} as Record<string, typeof activities>
+  );
 
-  const filteredGroups = Object.entries(groupedActivities).reduce((acc, [date, items]) => {
-    const filtered = typeFilter.length > 0
-      ? items.filter(item => typeFilter.includes(item.activity_type))
-      : items;
-    
-    if (filtered.length > 0) {
-      acc[date] = filtered;
-    }
-    return acc;
-  }, {} as Record<string, typeof activities>);
+  const filteredGroups = Object.entries(groupedActivities).reduce(
+    (acc, [date, items]) => {
+      const filtered =
+        typeFilter.length > 0
+          ? items.filter((item) => typeFilter.includes(item.activity_type))
+          : items;
+
+      if (filtered.length > 0) {
+        acc[date] = filtered;
+      }
+      return acc;
+    },
+    {} as Record<string, typeof activities>
+  );
 
   if (isLoading) {
     return (
@@ -91,11 +98,7 @@ export const DealTimeline = ({ dealId }: DealTimelineProps) => {
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Timeline do Negócio</h3>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
@@ -111,25 +114,19 @@ export const DealTimeline = ({ dealId }: DealTimelineProps) => {
           {Object.keys(activityIcons).map((type) => (
             <Badge
               key={type}
-              variant={typeFilter.includes(type) ? "default" : "outline"}
+              variant={typeFilter.includes(type) ? 'default' : 'outline'}
               className="cursor-pointer"
               onClick={() => {
                 setTypeFilter((prev) =>
-                  prev.includes(type)
-                    ? prev.filter((t) => t !== type)
-                    : [...prev, type]
+                  prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
                 );
               }}
             >
-              {type.replace(/_/g, " ")}
+              {type.replace(/_/g, ' ')}
             </Badge>
           ))}
           {typeFilter.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTypeFilter([])}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setTypeFilter([])}>
               Limpar filtros
             </Button>
           )}
@@ -141,40 +138,38 @@ export const DealTimeline = ({ dealId }: DealTimelineProps) => {
           {Object.entries(filteredGroups).map(([date, items]) => (
             <div key={date} className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="text-sm font-semibold text-muted-foreground">
-                  📅 {date}
-                </div>
+                <div className="text-sm font-semibold text-muted-foreground">📅 {date}</div>
                 <div className="flex-1 h-px bg-border" />
               </div>
 
               <div className="space-y-4 pl-4 border-l-2 border-border">
                 {items.map((activity) => {
-                  const Icon = activityIcons[activity.activity_type as keyof typeof activityIcons] || StickyNote;
-                  const time = format(new Date(activity.created_at!), "HH:mm");
+                  const Icon =
+                    activityIcons[activity.activity_type as keyof typeof activityIcons] ||
+                    StickyNote;
+                  const time = format(new Date(activity.created_at!), 'HH:mm');
 
                   return (
-                  <div key={activity.id} className="relative pl-6">
+                    <div key={activity.id} className="relative pl-6">
                       <div className="absolute left-0 top-0 -translate-x-1/2 translate-y-1 w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center">
                         <Icon className="h-4 w-4 text-primary" />
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">
-                            {time}
-                          </span>
+                          <span className="text-sm font-medium">{time}</span>
                           <span className="text-sm text-muted-foreground">
                             {activity.description}
                           </span>
-                          {activity.activity_type === "email_sent" && 
-                           typeof activity.metadata === 'object' && 
-                           activity.metadata && 
-                           'opened_at' in activity.metadata && 
-                           activity.metadata.opened_at && (
-                            <Badge variant="outline" className="text-xs">
-                              <Eye className="h-3 w-3 mr-1" />
-                              Aberto
-                            </Badge>
-                          )}
+                          {activity.activity_type === 'email_sent' &&
+                            typeof activity.metadata === 'object' &&
+                            activity.metadata &&
+                            'opened_at' in activity.metadata &&
+                            activity.metadata.opened_at && (
+                              <Badge variant="outline" className="text-xs">
+                                <Eye className="h-3 w-3 mr-1" />
+                                Aberto
+                              </Badge>
+                            )}
                         </div>
                         {activity.metadata && typeof activity.metadata === 'object' && (
                           <div className="text-xs text-muted-foreground pl-16">
@@ -201,11 +196,7 @@ export const DealTimeline = ({ dealId }: DealTimelineProps) => {
         </div>
       </ScrollArea>
 
-      <DealActivityModal
-        dealId={dealId}
-        open={showAddActivity}
-        onOpenChange={setShowAddActivity}
-      />
+      <DealActivityModal dealId={dealId} open={showAddActivity} onOpenChange={setShowAddActivity} />
     </div>
   );
 };

@@ -1,16 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
-import { EvolutionInstanceManager } from "@/components/evolution/EvolutionInstanceManager";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
+import { EvolutionInstanceManager } from '@/components/evolution/EvolutionInstanceManager';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function InstancesList() {
   const { companyId } = useCompanyQuery();
 
-  const { data: instances, isLoading, refetch } = useQuery({
+  const {
+    data: instances,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['evolution-instances', companyId],
     queryFn: async () => {
       if (!companyId) return [];
@@ -35,9 +39,7 @@ export function InstancesList() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Instâncias WhatsApp</h2>
-          <p className="text-muted-foreground">
-            Gerencie suas conexões com o WhatsApp
-          </p>
+          <p className="text-muted-foreground">Gerencie suas conexões com o WhatsApp</p>
         </div>
         <Button asChild>
           <Link to="/instance-setup">

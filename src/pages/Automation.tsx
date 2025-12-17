@@ -1,7 +1,7 @@
-import { MainLayout } from "@/components/MainLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlaybookList } from "@/components/automation/PlaybookList";
-import { PlaybookExecutions } from "@/components/automation/PlaybookExecutions";
+import { MainLayout } from '@/components/MainLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PlaybookList } from '@/components/automation/PlaybookList';
+import { PlaybookExecutions } from '@/components/automation/PlaybookExecutions';
 
 export default function Automation() {
   return (

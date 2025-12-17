@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, ReactNode } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useRef, useState, ReactNode } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface VirtualizedListProps<T> {
   items: T[];
@@ -18,7 +18,7 @@ export function VirtualizedList<T>({
   itemHeight,
   renderItem,
   overscan = 5,
-  className = "",
+  className = '',
 }: VirtualizedListProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -58,18 +58,11 @@ export function VirtualizedList<T>({
   const offsetY = startIndex * itemHeight;
 
   return (
-    <div
-      ref={containerRef}
-      className={`overflow-auto ${className}`}
-      style={{ height: '100%' }}
-    >
+    <div ref={containerRef} className={`overflow-auto ${className}`} style={{ height: '100%' }}>
       <div style={{ height: totalHeight, position: 'relative' }}>
         <div style={{ transform: `translateY(${offsetY}px)` }}>
           {visibleItems.map((item, index) => (
-            <div
-              key={startIndex + index}
-              style={{ height: itemHeight }}
-            >
+            <div key={startIndex + index} style={{ height: itemHeight }}>
               {renderItem(item, startIndex + index)}
             </div>
           ))}

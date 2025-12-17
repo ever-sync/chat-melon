@@ -1,22 +1,25 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export function PlanFeaturesEditor() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const queryClient = useQueryClient();
 
   const { data: plans = [] } = useQuery({
-    queryKey: ["subscription-plans"],
+    queryKey: ['subscription-plans'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("subscription_plans")
-        .select("*")
-        .order("price");
+      const { data, error } = await supabase.from('subscription_plans').select('*').order('price');
 
       if (error) throw error;
       return data;
@@ -24,12 +27,12 @@ export function PlanFeaturesEditor() {
   });
 
   const { data: features = [] } = useQuery({
-    queryKey: ["platform-features-all"],
+    queryKey: ['platform-features-all'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("platform_features")
-        .select("*")
-        .order("order_index");
+        .from('platform_features')
+        .select('*')
+        .order('order_index');
 
       if (error) throw error;
       return data;
@@ -37,14 +40,14 @@ export function PlanFeaturesEditor() {
   });
 
   const { data: planFeatures = [] } = useQuery({
-    queryKey: ["plan-features", selectedPlanId],
+    queryKey: ['plan-features', selectedPlanId],
     queryFn: async () => {
       if (!selectedPlanId) return [];
 
       const { data, error } = await supabase
-        .from("plan_features")
-        .select("*")
-        .eq("plan_id", selectedPlanId);
+        .from('plan_features')
+        .select('*')
+        .eq('plan_id', selectedPlanId);
 
       if (error) throw error;
       return data;
@@ -53,26 +56,20 @@ export function PlanFeaturesEditor() {
   });
 
   const updatePlanFeatureMutation = useMutation({
-    mutationFn: async ({
-      featureId,
-      isEnabled,
-    }: {
-      featureId: string;
-      isEnabled: boolean;
-    }) => {
+    mutationFn: async ({ featureId, isEnabled }: { featureId: string; isEnabled: boolean }) => {
       if (!selectedPlanId) return;
 
       const existing = planFeatures.find((pf) => pf.feature_id === featureId);
 
       if (existing) {
         const { error } = await supabase
-          .from("plan_features")
+          .from('plan_features')
           .update({ is_enabled: isEnabled })
-          .eq("id", existing.id);
+          .eq('id', existing.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("plan_features").insert({
+        const { error } = await supabase.from('plan_features').insert({
           plan_id: selectedPlanId,
           feature_id: featureId,
           is_enabled: isEnabled,
@@ -82,12 +79,12 @@ export function PlanFeaturesEditor() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["plan-features"] });
-      queryClient.invalidateQueries({ queryKey: ["feature-flags"] });
-      toast.success("Configuração do plano atualizada!");
+      queryClient.invalidateQueries({ queryKey: ['plan-features'] });
+      queryClient.invalidateQueries({ queryKey: ['feature-flags'] });
+      toast.success('Configuração do plano atualizada!');
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar configuração");
+      toast.error('Erro ao atualizar configuração');
       console.error(error);
     },
   });
@@ -130,17 +127,14 @@ export function PlanFeaturesEditor() {
             Configure as features disponíveis neste plano
           </p>
         </div>
-        <Button variant="outline" onClick={() => setSelectedPlanId("")}>
+        <Button variant="outline" onClick={() => setSelectedPlanId('')}>
           Trocar Plano
         </Button>
       </div>
 
       <div className="space-y-3">
         {features.map((feature) => (
-          <div
-            key={feature.id}
-            className="flex items-center justify-between p-3 border rounded-lg"
-          >
+          <div key={feature.id} className="flex items-center justify-between p-3 border rounded-lg">
             <div className="flex items-center gap-3">
               <Checkbox
                 id={feature.id}
@@ -155,9 +149,7 @@ export function PlanFeaturesEditor() {
               <label htmlFor={feature.id} className="cursor-pointer">
                 <div className="font-medium">{feature.name}</div>
                 {feature.description && (
-                  <div className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </div>
+                  <div className="text-sm text-muted-foreground">{feature.description}</div>
                 )}
               </label>
             </div>

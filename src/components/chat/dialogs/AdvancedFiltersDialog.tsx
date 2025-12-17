@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChatFilters } from '@/types/chatFilters';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompany } from '@/contexts/CompanyContext';
-import { LabelBadge } from "@/components/chat/LabelBadge";
+import { LabelBadge } from '@/components/chat/LabelBadge';
 import { toast } from 'sonner';
 import { useSavedFilters } from '@/hooks/useSavedFilters';
 import { NotificationHistoryDialog } from './NotificationHistoryDialog';
@@ -67,7 +67,7 @@ export const AdvancedFiltersDialog = ({
   const { currentCompany } = useCompany();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
-  const [userStatus, setUserStatus] = useState<string>("online");
+  const [userStatus, setUserStatus] = useState<string>('online');
   const { savedFilters, saveFilter, deleteFilter, setAsDefault } = useSavedFilters();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [filterName, setFilterName] = useState('');
@@ -86,15 +86,15 @@ export const AdvancedFiltersDialog = ({
 
     try {
       const { data, error } = await supabase
-        .from("labels")
-        .select("*")
-        .eq("company_id", currentCompany.id)
-        .order("name");
+        .from('labels')
+        .select('*')
+        .eq('company_id', currentCompany.id)
+        .order('name');
 
       if (error) throw error;
       setLabels(data || []);
     } catch (error) {
-      console.error("Erro ao carregar labels:", error);
+      console.error('Erro ao carregar labels:', error);
     }
   };
 
@@ -103,76 +103,81 @@ export const AdvancedFiltersDialog = ({
 
     try {
       const { data, error } = await supabase
-        .from("sectors")
-        .select("*")
-        .eq("company_id", currentCompany.id)
-        .order("name");
+        .from('sectors')
+        .select('*')
+        .eq('company_id', currentCompany.id)
+        .order('name');
 
       if (error) throw error;
       setSectors(data || []);
     } catch (error) {
-      console.error("Erro ao carregar setores:", error);
+      console.error('Erro ao carregar setores:', error);
     }
   };
 
   const loadUserStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("agent_status")
-        .select("status")
-        .eq("user_id", user.id)
+        .from('agent_status')
+        .select('status')
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
       if (data) setUserStatus(data.status);
     } catch (error) {
-      console.error("Erro ao carregar status:", error);
+      console.error('Erro ao carregar status:', error);
     }
   };
 
   const updateUserStatus = async (newStatus: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: companyData } = await supabase
-        .from("company_users")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .eq("is_default", true)
+        .from('company_users')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
         .maybeSingle();
 
       if (!companyData) return;
 
-      const { error } = await supabase
-        .from("agent_status")
-        .upsert({
+      const { error } = await supabase.from('agent_status').upsert(
+        {
           user_id: user.id,
           company_id: companyData.company_id,
           status: newStatus,
           updated_at: new Date().toISOString(),
-        }, {
-          onConflict: "user_id,company_id"
-        });
+        },
+        {
+          onConflict: 'user_id,company_id',
+        }
+      );
 
       if (error) throw error;
 
       setUserStatus(newStatus);
       toast.success(`Seu status foi alterado para ${newStatus}`);
     } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-      toast.error("Não foi possível atualizar o status");
+      console.error('Erro ao atualizar status:', error);
+      toast.error('Não foi possível atualizar o status');
     }
   };
 
   const handleLabelChange = (value: string) => {
-    const labelId = value === "all" ? null : value;
+    const labelId = value === 'all' ? null : value;
     if (labelId) {
       const newLabels = filters.labels.includes(labelId)
-        ? filters.labels.filter(l => l !== labelId)
+        ? filters.labels.filter((l) => l !== labelId)
         : [...filters.labels, labelId];
       onFiltersChange({ labels: newLabels });
     } else {
@@ -182,14 +187,14 @@ export const AdvancedFiltersDialog = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "online":
-        return "bg-green-500";
-      case "paused":
-        return "bg-yellow-500";
-      case "invisible":
-        return "bg-gray-500";
+      case 'online':
+        return 'bg-green-500';
+      case 'paused':
+        return 'bg-yellow-500';
+      case 'invisible':
+        return 'bg-gray-500';
       default:
-        return "bg-gray-500";
+        return 'bg-gray-500';
     }
   };
 
@@ -253,14 +258,18 @@ export const AdvancedFiltersDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">
-                        Todas as Conversas
-                      </SelectItem>
+                      <SelectItem value="all">Todas as Conversas</SelectItem>
                       <SelectItem value="me">
-                        Meus Atendimentos <Badge variant="secondary" className="ml-2">{conversationCounts.myAttendances}</Badge>
+                        Meus Atendimentos{' '}
+                        <Badge variant="secondary" className="ml-2">
+                          {conversationCounts.myAttendances}
+                        </Badge>
                       </SelectItem>
                       <SelectItem value="unassigned">
-                        Não Atribuídos <Badge variant="secondary" className="ml-2">{conversationCounts.waiting}</Badge>
+                        Não Atribuídos{' '}
+                        <Badge variant="secondary" className="ml-2">
+                          {conversationCounts.waiting}
+                        </Badge>
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -270,8 +279,10 @@ export const AdvancedFiltersDialog = ({
                 <div className="space-y-2">
                   <Label>Setor</Label>
                   <Select
-                    value={filters.sector || "all"}
-                    onValueChange={(value) => onFiltersChange({ sector: value === "all" ? null : value })}
+                    value={filters.sector || 'all'}
+                    onValueChange={(value) =>
+                      onFiltersChange({ sector: value === 'all' ? null : value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Todos os Setores" />
@@ -299,7 +310,7 @@ export const AdvancedFiltersDialog = ({
                 <div className="space-y-2">
                   <Label>Labels</Label>
                   <Select
-                    value={filters.labels.length > 0 ? filters.labels[0] : "all"}
+                    value={filters.labels.length > 0 ? filters.labels[0] : 'all'}
                     onValueChange={handleLabelChange}
                   >
                     <SelectTrigger>
@@ -309,11 +320,7 @@ export const AdvancedFiltersDialog = ({
                       <SelectItem value="all">Todas as Labels</SelectItem>
                       {labels.map((label) => (
                         <SelectItem key={label.id} value={label.id}>
-                          <LabelBadge
-                            name={label.name}
-                            color={label.color}
-                            icon={label.icon}
-                          />
+                          <LabelBadge name={label.name} color={label.color} icon={label.icon} />
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -366,9 +373,7 @@ export const AdvancedFiltersDialog = ({
                     onValueChange={(value) =>
                       onFiltersChange({
                         lastMessageDate:
-                          value === 'all'
-                            ? undefined
-                            : (value as ChatFilters['lastMessageDate']),
+                          value === 'all' ? undefined : (value as ChatFilters['lastMessageDate']),
                       })
                     }
                   >
@@ -393,9 +398,7 @@ export const AdvancedFiltersDialog = ({
                     onValueChange={(value) =>
                       onFiltersChange({
                         noResponseTime:
-                          value === 'all'
-                            ? undefined
-                            : (value as ChatFilters['noResponseTime']),
+                          value === 'all' ? undefined : (value as ChatFilters['noResponseTime']),
                       })
                     }
                   >
@@ -446,9 +449,7 @@ export const AdvancedFiltersDialog = ({
                   <Switch
                     id="unread-only"
                     checked={filters.hasUnread}
-                    onCheckedChange={(checked) =>
-                      onFiltersChange({ hasUnread: checked })
-                    }
+                    onCheckedChange={(checked) => onFiltersChange({ hasUnread: checked })}
                   />
                 </div>
               </div>
@@ -486,10 +487,13 @@ export const AdvancedFiltersDialog = ({
                       key={filter.id}
                       className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                     >
-                      <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => {
-                        onFiltersChange(filter.filters);
-                        toast.success(`Filtro "${filter.name}" foi aplicado com sucesso`);
-                      }}>
+                      <div
+                        className="flex items-center gap-2 flex-1 cursor-pointer"
+                        onClick={() => {
+                          onFiltersChange(filter.filters);
+                          toast.success(`Filtro "${filter.name}" foi aplicado com sucesso`);
+                        }}
+                      >
                         {filter.is_default && (
                           <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                         )}
@@ -559,11 +563,7 @@ export const AdvancedFiltersDialog = ({
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="is-default">Usar como padrão</Label>
-              <Switch
-                id="is-default"
-                checked={isDefault}
-                onCheckedChange={setIsDefault}
-              />
+              <Switch id="is-default" checked={isDefault} onCheckedChange={setIsDefault} />
             </div>
           </div>
           <DialogFooter>

@@ -1,5 +1,5 @@
-import { memo } from "react";
-import { Handle, Position, NodeProps } from "reactflow";
+import { memo } from 'react';
+import { Handle, Position, NodeProps } from 'reactflow';
 
 export const ConditionNode = memo(({ data }: NodeProps) => {
   return (
@@ -12,19 +12,17 @@ export const ConditionNode = memo(({ data }: NodeProps) => {
       <div
         className="px-4 py-3 bg-yellow-500 text-white shadow-lg border-2 border-yellow-600 min-w-[140px] text-center"
         style={{
-          clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-          width: "140px",
-          height: "140px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+          width: '140px',
+          height: '140px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <div>
           <div className="font-medium text-sm">{data.label}</div>
-          {data.nodeType && (
-            <div className="text-xs opacity-90 mt-0.5">{data.nodeType}</div>
-          )}
+          {data.nodeType && <div className="text-xs opacity-90 mt-0.5">{data.nodeType}</div>}
         </div>
       </div>
       <Handle
@@ -43,4 +41,4 @@ export const ConditionNode = memo(({ data }: NodeProps) => {
   );
 });
 
-ConditionNode.displayName = "ConditionNode";
+ConditionNode.displayName = 'ConditionNode';

@@ -77,14 +77,16 @@ export const BulkActionsToolbar = ({
 
       const { data, error } = await supabase
         .from('company_members')
-        .select(`
+        .select(
+          `
           user_id,
           profiles:profiles!company_members_user_id_fkey (
             id,
             full_name,
             avatar_url
           )
-        `)
+        `
+        )
         .eq('company_id', companyId);
 
       if (error) throw error;
@@ -167,17 +169,13 @@ export const BulkActionsToolbar = ({
                       availableLabels.map((label) => (
                         <DropdownMenuItem
                           key={label}
-                          onClick={() =>
-                            bulkAddLabel.mutate({ ids: idsArray, label })
-                          }
+                          onClick={() => bulkAddLabel.mutate({ ids: idsArray, label })}
                         >
                           {label}
                         </DropdownMenuItem>
                       ))
                     ) : (
-                      <DropdownMenuItem disabled>
-                        Nenhuma label disponível
-                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled>Nenhuma label disponível</DropdownMenuItem>
                     )}
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
@@ -192,17 +190,13 @@ export const BulkActionsToolbar = ({
                       availableLabels.map((label) => (
                         <DropdownMenuItem
                           key={label}
-                          onClick={() =>
-                            bulkRemoveLabel.mutate({ ids: idsArray, label })
-                          }
+                          onClick={() => bulkRemoveLabel.mutate({ ids: idsArray, label })}
                         >
                           {label}
                         </DropdownMenuItem>
                       ))
                     ) : (
-                      <DropdownMenuItem disabled>
-                        Nenhuma label disponível
-                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled>Nenhuma label disponível</DropdownMenuItem>
                     )}
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
@@ -216,15 +210,11 @@ export const BulkActionsToolbar = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem
-                  onClick={() => bulkMarkAsRead.mutate(idsArray)}
-                >
+                <DropdownMenuItem onClick={() => bulkMarkAsRead.mutate(idsArray)}>
                   <MailOpen className="h-4 w-4 mr-2" />
                   Marcar como lidas
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => bulkMarkAsUnread.mutate(idsArray)}
-                >
+                <DropdownMenuItem onClick={() => bulkMarkAsUnread.mutate(idsArray)}>
                   <Mail className="h-4 w-4 mr-2" />
                   Marcar como não lidas
                 </DropdownMenuItem>
@@ -241,12 +231,7 @@ export const BulkActionsToolbar = ({
           </div>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClearSelection}
-          className="gap-2"
-        >
+        <Button variant="ghost" size="sm" onClick={onClearSelection} className="gap-2">
           <X className="h-4 w-4" />
           Cancelar
         </Button>
@@ -282,13 +267,8 @@ export const BulkActionsToolbar = ({
             <Button variant="outline" onClick={() => setShowAssignDialog(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleAssign}
-              disabled={!selectedUserId || bulkAssign.isPending}
-            >
-              {bulkAssign.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
+            <Button onClick={handleAssign} disabled={!selectedUserId || bulkAssign.isPending}>
+              {bulkAssign.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Atribuir
             </Button>
           </DialogFooter>

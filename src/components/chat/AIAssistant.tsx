@@ -1,18 +1,40 @@
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Sparkles, TrendingUp, Flame, Snowflake, AlertCircle, Edit, Copy, RefreshCw, Target, FileText, Calendar, CheckCircle, Crown, Book, Database } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
-import { toast } from "sonner";
-import { Link } from "react-router-dom";
-import type { Conversation } from "@/types/chat";
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Sparkles,
+  TrendingUp,
+  Flame,
+  Snowflake,
+  AlertCircle,
+  Edit,
+  Copy,
+  RefreshCw,
+  Target,
+  FileText,
+  Calendar,
+  CheckCircle,
+  Crown,
+  Book,
+  Database,
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
+import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import type { Conversation } from '@/types/chat';
 
 type Message = {
   id: string;
@@ -30,7 +52,7 @@ type AIAnalysis = {
   next_action: string;
   summary: string;
   suggested_actions: Array<{
-    type: "task" | "proposal" | "meeting" | "deal";
+    type: 'task' | 'proposal' | 'meeting' | 'deal';
     label: string;
     description: string;
   }>;
@@ -38,7 +60,7 @@ type AIAnalysis = {
   competitor_mentioned?: string;
 };
 
-type ToneType = "formal" | "casual" | "technical" | "friendly";
+type ToneType = 'formal' | 'casual' | 'technical' | 'friendly';
 
 type KBResponse = {
   answer: string;
@@ -54,7 +76,13 @@ interface AIAssistantProps {
   onCreateProposal?: () => void;
 }
 
-export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateTask, onCreateProposal }: AIAssistantProps) => {
+export const AIAssistant = ({
+  conversation,
+  messages,
+  onUseSuggestion,
+  onCreateTask,
+  onCreateProposal,
+}: AIAssistantProps) => {
   const { currentCompany } = useCompany();
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,10 +104,10 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
     try {
       if (useKnowledgeBase) {
         // Modo Knowledge Base
-        const lastCustomerMessage = [...messages].reverse().find(m => !m.is_from_me);
+        const lastCustomerMessage = [...messages].reverse().find((m) => !m.is_from_me);
 
         if (!lastCustomerMessage) {
-          toast.error("Nenhuma mensagem do cliente encontrada para responder");
+          toast.error('Nenhuma mensagem do cliente encontrada para responder');
           setIsLoading(false);
           return;
         }
@@ -89,41 +117,43 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
             query: lastCustomerMessage.content,
             companyId: currentCompany?.id,
             conversationId: conversation.id,
-            context: messages.slice(-10).map(m => `${m.is_from_me ? 'Agent' : 'User'}: ${m.content}`).join('\n')
-          }
+            context: messages
+              .slice(-10)
+              .map((m) => `${m.is_from_me ? 'Agent' : 'User'}: ${m.content}`)
+              .join('\n'),
+          },
         });
 
         if (error) throw error;
         console.log('KB Response:', data);
         setKbResult(data);
-
       } else {
         // Modo Copiloto Padrão
         // Buscar script do copiloto e chaves de API
-        let salesScript = "";
-        let geminiApiKey = "";
-        let openaiApiKey = "";
-        let groqApiKey = "";
+        let salesScript = '';
+        let geminiApiKey = '';
+        let openaiApiKey = '';
+        let groqApiKey = '';
 
         if (currentCompany?.id) {
           const { data: settings, error: settingsError } = await supabase
-            .from("ai_settings")
-            .select("copilot_script, gemini_api_key, openai_api_key, groq_api_key")
-            .eq("company_id", currentCompany.id)
+            .from('ai_settings')
+            .select('copilot_script, gemini_api_key, openai_api_key, groq_api_key')
+            .eq('company_id', currentCompany.id)
             .maybeSingle();
 
           console.log('AI Settings fetched:', { settings, error: settingsError });
 
           if (settings) {
-            salesScript = settings.copilot_script || "";
-            geminiApiKey = settings.gemini_api_key || "";
-            openaiApiKey = settings.openai_api_key || "";
-            groqApiKey = settings.groq_api_key || "";
+            salesScript = settings.copilot_script || '';
+            geminiApiKey = settings.gemini_api_key || '';
+            openaiApiKey = settings.openai_api_key || '';
+            groqApiKey = settings.groq_api_key || '';
             console.log('API Keys:', {
               hasGemini: !!geminiApiKey,
               hasOpenAI: !!openaiApiKey,
               hasGroq: !!groqApiKey,
-              geminiKeyLength: geminiApiKey?.length || 0
+              geminiKeyLength: geminiApiKey?.length || 0,
             });
           }
         }
@@ -155,7 +185,7 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
       }
     } catch (error) {
       console.error('Error analyzing conversation:', error);
-      toast.error("Não foi possível analisar a conversa");
+      toast.error('Não foi possível analisar a conversa');
     } finally {
     }
   }, [messages, conversation, currentCompany, tone, useKnowledgeBase]);
@@ -182,49 +212,58 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
   const copySummary = () => {
     if (analysis?.summary) {
       navigator.clipboard.writeText(analysis.summary);
-      toast.success("Resumo copiado para a área de transferência");
+      toast.success('Resumo copiado para a área de transferência');
     }
   };
 
   const executeAction = (actionType: string) => {
     switch (actionType) {
-      case "task":
+      case 'task':
         onCreateTask?.();
         break;
-      case "proposal":
+      case 'proposal':
         onCreateProposal?.();
         break;
-      case "meeting":
-        toast.info("Funcionalidade de agendamento em desenvolvimento");
+      case 'meeting':
+        toast.info('Funcionalidade de agendamento em desenvolvimento');
         break;
-      case "deal":
-        toast.info("Criação rápida de negócio em desenvolvimento");
+      case 'deal':
+        toast.info('Criação rápida de negócio em desenvolvimento');
         break;
     }
   };
 
   const getSentimentEmoji = (score: number) => {
-    if (score >= 0.7) return "😊";
-    if (score >= 0.4) return "😐";
-    return "😟";
+    if (score >= 0.7) return '😊';
+    if (score >= 0.4) return '😐';
+    return '😟';
   };
 
   const getTemperatureIcon = (temp: string) => {
     switch (temp) {
-      case "hot": return <Flame className="w-4 h-4 text-orange-500" />;
-      case "warm": return <TrendingUp className="w-4 h-4 text-yellow-500" />;
-      case "cold": return <Snowflake className="w-4 h-4 text-blue-500" />;
-      default: return <TrendingUp className="w-4 h-4" />;
+      case 'hot':
+        return <Flame className="w-4 h-4 text-orange-500" />;
+      case 'warm':
+        return <TrendingUp className="w-4 h-4 text-yellow-500" />;
+      case 'cold':
+        return <Snowflake className="w-4 h-4 text-blue-500" />;
+      default:
+        return <TrendingUp className="w-4 h-4" />;
     }
   };
 
   const getIntentBadgeVariant = (intent: string) => {
     switch (intent) {
-      case "compra": return "default";
-      case "interesse": return "secondary";
-      case "objecao": return "destructive";
-      case "duvida": return "outline";
-      default: return "outline";
+      case 'compra':
+        return 'default';
+      case 'interesse':
+        return 'secondary';
+      case 'objecao':
+        return 'destructive';
+      case 'duvida':
+        return 'outline';
+      default:
+        return 'outline';
     }
   };
 
@@ -253,7 +292,9 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
       <div className="px-4 py-2 border-b border-border bg-card/50 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Book className="w-4 h-4 text-violet-500" />
-          <Label htmlFor="use-kb" className="text-xs cursor-pointer">Base de Conhecimento</Label>
+          <Label htmlFor="use-kb" className="text-xs cursor-pointer">
+            Base de Conhecimento
+          </Label>
         </div>
         <Switch
           id="use-kb"
@@ -281,8 +322,8 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  Você atingiu o limite gratuito de análises de IA.
-                  Ative o <strong>Piloto PRO</strong> para continuar usando análises ilimitadas!
+                  Você atingiu o limite gratuito de análises de IA. Ative o{' '}
+                  <strong>Piloto PRO</strong> para continuar usando análises ilimitadas!
                 </p>
                 <Link to="/piloto-pro">
                   <Button className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700">
@@ -290,9 +331,7 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                     Contratar Piloto PRO
                   </Button>
                 </Link>
-                <p className="text-xs text-center text-muted-foreground">
-                  A partir de R$ 49/mês
-                </p>
+                <p className="text-xs text-center text-muted-foreground">A partir de R$ 49/mês</p>
               </CardContent>
             </Card>
           ) : kbResult ? (
@@ -304,7 +343,10 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                       <Book className="w-4 h-4 text-violet-500" />
                       Resposta Sugerida (KB)
                     </span>
-                    <Badge variant={kbResult.confidence > 0.7 ? "default" : "secondary"} className="text-xs">
+                    <Badge
+                      variant={kbResult.confidence > 0.7 ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
                       {(kbResult.confidence * 100).toFixed(0)}% confiança
                     </Badge>
                   </CardTitle>
@@ -326,7 +368,7 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                       className="h-6 w-6 p-0"
                       onClick={() => {
                         navigator.clipboard.writeText(kbResult.answer);
-                        toast.success("Copiado!");
+                        toast.success('Copiado!');
                       }}
                     >
                       <Copy className="w-3 h-3" />
@@ -345,7 +387,10 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {kbResult.sources.map((source, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs bg-muted/40 p-2 rounded">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between text-xs bg-muted/40 p-2 rounded"
+                      >
                         <span className="truncate max-w-[180px]">{source.name}</span>
                         {source.similarity && (
                           <span className="text-muted-foreground">
@@ -371,7 +416,12 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Sentimento</span>
                       <span className="font-medium">
-                        {getSentimentEmoji(analysis.sentiment)} {analysis.sentiment >= 0.7 ? 'Positivo' : analysis.sentiment >= 0.4 ? 'Neutro' : 'Negativo'}
+                        {getSentimentEmoji(analysis.sentiment)}{' '}
+                        {analysis.sentiment >= 0.7
+                          ? 'Positivo'
+                          : analysis.sentiment >= 0.4
+                            ? 'Neutro'
+                            : 'Negativo'}
                       </span>
                     </div>
                   </div>
@@ -382,7 +432,11 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                     <div className="flex items-center gap-1">
                       {getTemperatureIcon(analysis.temperature)}
                       <span className="text-xs font-medium">
-                        {analysis.temperature === 'hot' ? '🔥 Quente' : analysis.temperature === 'warm' ? '🌡️ Morno' : '❄️ Frio'}
+                        {analysis.temperature === 'hot'
+                          ? '🔥 Quente'
+                          : analysis.temperature === 'warm'
+                            ? '🌡️ Morno'
+                            : '❄️ Frio'}
                       </span>
                     </div>
                   </div>
@@ -399,7 +453,10 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                   {analysis.urgency && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Urgência</span>
-                      <Badge variant={analysis.urgency === 'alta' ? 'destructive' : 'secondary'} className="text-xs">
+                      <Badge
+                        variant={analysis.urgency === 'alta' ? 'destructive' : 'secondary'}
+                        className="text-xs"
+                      >
                         {analysis.urgency}
                       </Badge>
                     </div>
@@ -468,7 +525,9 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{analysis.summary}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {analysis.summary}
+                    </p>
                   </CardContent>
                 </Card>
               )}
@@ -481,7 +540,10 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {analysis.suggested_actions.map((action, index) => (
-                      <div key={index} className="flex items-start gap-2 p-2 bg-muted/50 rounded-md">
+                      <div
+                        key={index}
+                        className="flex items-start gap-2 p-2 bg-muted/50 rounded-md"
+                      >
                         <div className="flex-1">
                           <p className="text-xs font-medium mb-1">{action.label}</p>
                           <p className="text-xs text-muted-foreground">{action.description}</p>
@@ -522,7 +584,9 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                       </div>
                       <div className="text-xs">
                         <p className="text-muted-foreground mb-1">Resposta sugerida:</p>
-                        <p className="italic">"Entendo sua comparação. Nossa solução se diferencia pelo..."</p>
+                        <p className="italic">
+                          "Entendo sua comparação. Nossa solução se diferencia pelo..."
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -547,7 +611,7 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
           disabled={isLoading || messages.length === 0}
         >
           <Sparkles className="w-4 h-4 mr-2" />
-          {useKnowledgeBase ? "Consultar Base de Dados" : "Analisar Conversa"}
+          {useKnowledgeBase ? 'Consultar Base de Dados' : 'Analisar Conversa'}
         </Button>
       </div>
     </div>

@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Mic, Square, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useSendAudioMessage } from "@/hooks/api/useEvolutionApi";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Mic, Square, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useSendAudioMessage } from '@/hooks/api/useEvolutionApi';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface AudioRecorderProps {
   conversationId: string;
@@ -13,7 +13,12 @@ interface AudioRecorderProps {
   onStartRecording?: () => void;
 }
 
-export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRecording }: AudioRecorderProps) {
+export function AudioRecorder({
+  conversationId,
+  contactNumber,
+  onSent,
+  onStartRecording,
+}: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -23,7 +28,9 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
     try {
       // Check if mediaDevices is available (requires HTTPS or localhost)
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast.error("Acesso ao microfone requer HTTPS ou localhost. Acesse via http://localhost:5173");
+        toast.error(
+          'Acesso ao microfone requer HTTPS ou localhost. Acesse via http://localhost:5173'
+        );
         return;
       }
 
@@ -41,7 +48,7 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
         await sendAudioMessage(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
@@ -49,7 +56,9 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
       onStartRecording?.();
     } catch (error: any) {
       console.error('Error starting recording:', error);
-      toast.error(`Erro ao acessar microfone: ${error.message || "Permissão negada ou contexto inseguro"}`);
+      toast.error(
+        `Erro ao acessar microfone: ${error.message || 'Permissão negada ou contexto inseguro'}`
+      );
     }
   };
 
@@ -86,14 +95,14 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
                 conversationId,
                 messageType: 'audio',
                 audio: base64Audio,
-              }
+              },
             });
 
             if (error || !result?.success) {
-              throw new Error(result?.error || error?.message || "Erro ao enviar áudio");
+              throw new Error(result?.error || error?.message || 'Erro ao enviar áudio');
             }
 
-            toast.success("Áudio enviado!");
+            toast.success('Áudio enviado!');
             onSent?.();
             resolve(true);
           } catch (error) {
@@ -104,7 +113,7 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
       });
     } catch (error) {
       console.error('Error sending audio:', error);
-      toast.error("Erro ao enviar áudio");
+      toast.error('Erro ao enviar áudio');
     } finally {
       setIsSending(false);
     }
@@ -120,11 +129,7 @@ export function AudioRecorder({ conversationId, contactNumber, onSent, onStartRe
           onClick={startRecording}
           disabled={isSending}
         >
-          {isSending ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <Mic className="w-5 h-5" />
-          )}
+          {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mic className="w-5 h-5" />}
         </Button>
       ) : (
         <Button

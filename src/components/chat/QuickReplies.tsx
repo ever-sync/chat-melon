@@ -1,15 +1,11 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Search, Star } from "lucide-react";
-import { useTemplates } from "@/hooks/useTemplates";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileText, Search, Star } from 'lucide-react';
+import { useTemplates } from '@/hooks/useTemplates';
 
 interface QuickRepliesProps {
   onSelect: (content: string, templateId: string) => void;
@@ -17,7 +13,7 @@ interface QuickRepliesProps {
 
 export const QuickReplies = ({ onSelect }: QuickRepliesProps) => {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const { templates, incrementUsage } = useTemplates({
     search: search || undefined,
   });
@@ -26,7 +22,7 @@ export const QuickReplies = ({ onSelect }: QuickRepliesProps) => {
     onSelect(content, templateId);
     incrementUsage.mutate(templateId);
     setOpen(false);
-    setSearch("");
+    setSearch('');
   };
 
   const favorites = templates.filter((t) => t.is_favorite);
@@ -68,9 +64,7 @@ export const QuickReplies = ({ onSelect }: QuickRepliesProps) => {
                   >
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">
-                          {template.name}
-                        </span>
+                        <span className="font-medium text-sm">{template.name}</span>
                         {template.category && (
                           <Badge variant="secondary" className="text-xs">
                             {template.category}
@@ -83,11 +77,7 @@ export const QuickReplies = ({ onSelect }: QuickRepliesProps) => {
                       {template.variables && template.variables.length > 0 && (
                         <div className="flex items-center gap-1 flex-wrap">
                           {template.variables.map((v) => (
-                            <Badge
-                              key={v}
-                              variant="outline"
-                              className="text-xs"
-                            >
+                            <Badge key={v} variant="outline" className="text-xs">
                               {`{{${v}}}`}
                             </Badge>
                           ))}
@@ -114,9 +104,7 @@ export const QuickReplies = ({ onSelect }: QuickRepliesProps) => {
                   >
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">
-                          {template.name}
-                        </span>
+                        <span className="font-medium text-sm">{template.name}</span>
                         {template.category && (
                           <Badge variant="secondary" className="text-xs">
                             {template.category}
@@ -129,11 +117,7 @@ export const QuickReplies = ({ onSelect }: QuickRepliesProps) => {
                       {template.variables && template.variables.length > 0 && (
                         <div className="flex items-center gap-1 flex-wrap">
                           {template.variables.map((v) => (
-                            <Badge
-                              key={v}
-                              variant="outline"
-                              className="text-xs"
-                            >
+                            <Badge key={v} variant="outline" className="text-xs">
                               {`{{${v}}}`}
                             </Badge>
                           ))}
@@ -147,9 +131,7 @@ export const QuickReplies = ({ onSelect }: QuickRepliesProps) => {
 
             {templates.length === 0 && (
               <div className="text-center py-8">
-                <p className="text-sm text-muted-foreground">
-                  Nenhum template encontrado
-                </p>
+                <p className="text-sm text-muted-foreground">Nenhum template encontrado</p>
               </div>
             )}
           </div>

@@ -1,16 +1,26 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./crm/useCompanyQuery";
-import { toast } from "sonner";
-import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from './crm/useCompanyQuery';
+import { toast } from 'sonner';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export type CustomField = {
   id: string;
   company_id: string;
-  entity_type: "contact" | "deal" | "company";
+  entity_type: 'contact' | 'deal' | 'company';
   field_name: string;
   field_label: string;
-  field_type: "text" | "number" | "date" | "select" | "multiselect" | "boolean" | "url" | "email" | "phone" | "currency";
+  field_type:
+    | 'text'
+    | 'number'
+    | 'date'
+    | 'select'
+    | 'multiselect'
+    | 'boolean'
+    | 'url'
+    | 'email'
+    | 'phone'
+    | 'currency';
   options?: string[];
   is_required: boolean;
   default_value?: string;
@@ -29,22 +39,22 @@ export type CustomFieldValue = {
   updated_at: string;
 };
 
-export const useCustomFields = (entityType: "contact" | "deal" | "company") => {
+export const useCustomFields = (entityType: 'contact' | 'deal' | 'company') => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
   const { data: fields = [], isLoading } = useQuery({
-    queryKey: ["custom_fields", companyId, entityType],
+    queryKey: ['custom_fields', companyId, entityType],
     queryFn: async () => {
       if (!companyId) return [];
 
       const { data, error } = await supabase
-        .from("custom_fields")
-        .select("*")
-        .eq("company_id", companyId)
-        .eq("entity_type", entityType)
-        .eq("is_active", true)
-        .order("display_order");
+        .from('custom_fields')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('entity_type', entityType)
+        .eq('is_active', true)
+        .order('display_order');
 
       if (error) throw error;
       return data as CustomField[];
@@ -53,9 +63,9 @@ export const useCustomFields = (entityType: "contact" | "deal" | "company") => {
   });
 
   const createField = useMutation({
-    mutationFn: async (field: TablesInsert<"custom_fields">) => {
+    mutationFn: async (field: TablesInsert<'custom_fields'>) => {
       const { data, error } = await supabase
-        .from("custom_fields")
+        .from('custom_fields')
         .insert({
           ...field,
           company_id: companyId!,
@@ -68,21 +78,21 @@ export const useCustomFields = (entityType: "contact" | "deal" | "company") => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["custom_fields"] });
-      toast.success("Campo criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
+      toast.success('Campo criado com sucesso!');
     },
     onError: (error) => {
-      console.error("Erro ao criar campo:", error);
-      toast.error("Erro ao criar campo");
+      console.error('Erro ao criar campo:', error);
+      toast.error('Erro ao criar campo');
     },
   });
 
   const updateField = useMutation({
-    mutationFn: async ({ id, ...field }: TablesUpdate<"custom_fields"> & { id: string }) => {
+    mutationFn: async ({ id, ...field }: TablesUpdate<'custom_fields'> & { id: string }) => {
       const { data, error } = await supabase
-        .from("custom_fields")
+        .from('custom_fields')
         .update(field)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -90,47 +100,44 @@ export const useCustomFields = (entityType: "contact" | "deal" | "company") => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["custom_fields"] });
-      toast.success("Campo atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
+      toast.success('Campo atualizado!');
     },
     onError: (error) => {
-      console.error("Erro ao atualizar campo:", error);
-      toast.error("Erro ao atualizar campo");
+      console.error('Erro ao atualizar campo:', error);
+      toast.error('Erro ao atualizar campo');
     },
   });
 
   const reorderFields = useMutation({
     mutationFn: async (fields: { id: string; display_order: number }[]) => {
       const updates = fields.map(({ id, display_order }) =>
-        supabase
-          .from("custom_fields")
-          .update({ display_order })
-          .eq("id", id)
+        supabase.from('custom_fields').update({ display_order }).eq('id', id)
       );
 
       await Promise.all(updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["custom_fields"] });
+      queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
     },
   });
 
   const deleteField = useMutation({
     mutationFn: async (fieldId: string) => {
       const { error } = await supabase
-        .from("custom_fields")
+        .from('custom_fields')
         .update({ is_active: false })
-        .eq("id", fieldId);
+        .eq('id', fieldId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["custom_fields"] });
-      toast.success("Campo desativado!");
+      queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
+      toast.success('Campo desativado!');
     },
     onError: (error) => {
-      console.error("Erro ao desativar campo:", error);
-      toast.error("Erro ao desativar campo");
+      console.error('Erro ao desativar campo:', error);
+      toast.error('Erro ao desativar campo');
     },
   });
 
@@ -149,14 +156,14 @@ export const useCustomFieldValues = (entityId?: string) => {
   const queryClient = useQueryClient();
 
   const { data: values = [], isLoading } = useQuery({
-    queryKey: ["custom_field_values", entityId],
+    queryKey: ['custom_field_values', entityId],
     queryFn: async () => {
       if (!entityId) return [];
 
       const { data, error } = await supabase
-        .from("custom_field_values")
-        .select("*")
-        .eq("entity_id", entityId);
+        .from('custom_field_values')
+        .select('*')
+        .eq('entity_id', entityId);
 
       if (error) throw error;
       return data as CustomFieldValue[];
@@ -165,9 +172,17 @@ export const useCustomFieldValues = (entityId?: string) => {
   });
 
   const saveValue = useMutation({
-    mutationFn: async ({ fieldId, entityId, value }: { fieldId: string; entityId: string; value: string }) => {
+    mutationFn: async ({
+      fieldId,
+      entityId,
+      value,
+    }: {
+      fieldId: string;
+      entityId: string;
+      value: string;
+    }) => {
       const { data, error } = await supabase
-        .from("custom_field_values")
+        .from('custom_field_values')
         .upsert({
           custom_field_id: fieldId,
           entity_id: entityId,
@@ -180,7 +195,7 @@ export const useCustomFieldValues = (entityId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["custom_field_values"] });
+      queryClient.invalidateQueries({ queryKey: ['custom_field_values'] });
     },
   });
 

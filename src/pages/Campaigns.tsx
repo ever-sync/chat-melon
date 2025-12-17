@@ -1,25 +1,26 @@
-import { useState } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Plus, Play, Pause, Trash2, MoreVertical } from "lucide-react";
+import { useState } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Plus, Play, Pause, Trash2, MoreVertical } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useCampaigns } from "@/hooks/useCampaigns";
-import { CampaignBuilder } from "@/components/campaigns/CampaignBuilder";
-import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+} from '@/components/ui/dropdown-menu';
+import { useCampaigns } from '@/hooks/useCampaigns';
+import { CampaignBuilder } from '@/components/campaigns/CampaignBuilder';
+import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function Campaigns() {
   const [showBuilder, setShowBuilder] = useState(false);
-  const { campaigns, isLoading, startCampaign, pauseCampaign, resumeCampaign, deleteCampaign } = useCampaigns();
+  const { campaigns, isLoading, startCampaign, pauseCampaign, resumeCampaign, deleteCampaign } =
+    useCampaigns();
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; label: string }> = {
@@ -30,12 +31,15 @@ export default function Campaigns() {
       completed: { variant: 'default', label: 'Concluída' },
       cancelled: { variant: 'destructive', label: 'Cancelada' },
     };
-    
+
     const config = variants[status] || variants.draft;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleAction = async (action: 'start' | 'pause' | 'resume' | 'delete', campaignId: string) => {
+  const handleAction = async (
+    action: 'start' | 'pause' | 'resume' | 'delete',
+    campaignId: string
+  ) => {
     try {
       switch (action) {
         case 'start':
@@ -105,15 +109,16 @@ export default function Campaigns() {
         ) : (
           <div className="grid gap-4">
             {campaigns.map((campaign) => {
-              const deliveryRate = campaign.total_contacts > 0 
-                ? (campaign.sent_count / campaign.total_contacts) * 100 
-                : 0;
-              
+              const deliveryRate =
+                campaign.total_contacts > 0
+                  ? (campaign.sent_count / campaign.total_contacts) * 100
+                  : 0;
+
               return (
-                <Card 
-                  key={campaign.id} 
+                <Card
+                  key={campaign.id}
                   className="cursor-pointer hover:border-primary/50 transition-colors"
-                  onClick={() => window.location.href = `/campaigns/${campaign.id}`}
+                  onClick={() => (window.location.href = `/campaigns/${campaign.id}`)}
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -126,10 +131,13 @@ export default function Campaigns() {
                           <CardDescription>{campaign.description}</CardDescription>
                         )}
                         <div className="text-xs text-muted-foreground">
-                          Criada em {format(new Date(campaign.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                          Criada em{' '}
+                          {format(new Date(campaign.created_at), "dd/MM/yyyy 'às' HH:mm", {
+                            locale: ptBR,
+                          })}
                         </div>
                       </div>
-                      
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -155,7 +163,7 @@ export default function Campaigns() {
                               Retomar
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleAction('delete', campaign.id)}
                             className="text-destructive"
                           >
@@ -166,17 +174,19 @@ export default function Campaigns() {
                       </DropdownMenu>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-4">
                     {/* Progress Bar */}
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Progresso de Envio</span>
-                        <span className="font-medium">{campaign.sent_count} / {campaign.total_contacts}</span>
+                        <span className="font-medium">
+                          {campaign.sent_count} / {campaign.total_contacts}
+                        </span>
                       </div>
                       <Progress value={deliveryRate} />
                     </div>
-                    
+
                     {/* Metrics */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div>
@@ -184,7 +194,9 @@ export default function Campaigns() {
                         <div className="text-xs text-muted-foreground">Enviadas</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-primary">{campaign.delivered_count}</div>
+                        <div className="text-2xl font-bold text-primary">
+                          {campaign.delivered_count}
+                        </div>
                         <div className="text-xs text-muted-foreground">Entregues</div>
                       </div>
                       <div>
@@ -192,11 +204,15 @@ export default function Campaigns() {
                         <div className="text-xs text-muted-foreground">Lidas</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-primary">{campaign.reply_count}</div>
+                        <div className="text-2xl font-bold text-primary">
+                          {campaign.reply_count}
+                        </div>
                         <div className="text-xs text-muted-foreground">Respostas</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-destructive">{campaign.failed_count}</div>
+                        <div className="text-2xl font-bold text-destructive">
+                          {campaign.failed_count}
+                        </div>
                         <div className="text-xs text-muted-foreground">Falhas</div>
                       </div>
                     </div>
@@ -208,10 +224,7 @@ export default function Campaigns() {
         )}
 
         {/* Campaign Builder Dialog */}
-        <CampaignBuilder 
-          open={showBuilder} 
-          onOpenChange={setShowBuilder} 
-        />
+        <CampaignBuilder open={showBuilder} onOpenChange={setShowBuilder} />
       </div>
     </MainLayout>
   );

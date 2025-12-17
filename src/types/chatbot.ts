@@ -81,14 +81,29 @@ export interface ConditionNodeData extends BaseNodeData {
 export interface Condition {
   id: string;
   variable: string;
-  operator: 'equals' | 'not_equals' | 'contains' | 'not_contains' | 'greater' | 'less' | 'regex' | 'exists' | 'not_exists';
+  operator:
+    | 'equals'
+    | 'not_equals'
+    | 'contains'
+    | 'not_contains'
+    | 'greater'
+    | 'less'
+    | 'regex'
+    | 'exists'
+    | 'not_exists';
   value: string;
   targetNodeId?: string;
 }
 
 // Action Node - Performs an action
 export interface ActionNodeData extends BaseNodeData {
-  actionType: 'tag_contact' | 'assign_agent' | 'assign_team' | 'update_contact' | 'send_email' | 'create_ticket';
+  actionType:
+    | 'tag_contact'
+    | 'assign_agent'
+    | 'assign_team'
+    | 'update_contact'
+    | 'send_email'
+    | 'create_ticket';
   config: Record<string, unknown>;
 }
 
@@ -228,7 +243,13 @@ export interface ChatbotVersion {
 // Execution Types
 // =====================================================
 
-export type ExecutionStatus = 'running' | 'waiting_input' | 'completed' | 'handoff' | 'failed' | 'timeout';
+export type ExecutionStatus =
+  | 'running'
+  | 'waiting_input'
+  | 'completed'
+  | 'handoff'
+  | 'failed'
+  | 'timeout';
 
 export interface ExecutionLogEntry {
   node_id: string;
@@ -269,7 +290,13 @@ export interface ChatbotExecution {
 // Template Types
 // =====================================================
 
-export type TemplateCategory = 'atendimento' | 'vendas' | 'suporte' | 'agendamento' | 'marketing' | 'custom';
+export type TemplateCategory =
+  | 'atendimento'
+  | 'vendas'
+  | 'suporte'
+  | 'agendamento'
+  | 'marketing'
+  | 'custom';
 
 export interface ChatbotTemplate {
   id: string;
@@ -380,7 +407,10 @@ export const NODE_TYPE_INFO: Record<ChatbotNodeType, NodeTypeInfo> = {
     icon: 'Sparkles',
     color: '#A855F7',
     category: 'integration',
-    defaultData: { useKnowledgeBase: true, fallbackMessage: 'Não consegui encontrar uma resposta.' },
+    defaultData: {
+      useKnowledgeBase: true,
+      fallbackMessage: 'Não consegui encontrar uma resposta.',
+    },
   },
   webhook: {
     type: 'webhook',

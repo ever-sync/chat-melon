@@ -1,12 +1,18 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, TrendingUp, Users, MessageSquare } from "lucide-react";
-import { useSatisfaction } from "@/hooks/useSatisfaction";
-import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Star, TrendingUp, Users, MessageSquare } from 'lucide-react';
+import { useSatisfaction } from '@/hooks/useSatisfaction';
+import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const SatisfactionDashboard = () => {
   const { getMetrics, getMetricsByAgent, getNegativeFeedback, loading } = useSatisfaction();
@@ -22,7 +28,7 @@ export const SatisfactionDashboard = () => {
   }, [agentMetrics]);
 
   const loadAgents = async () => {
-    const agentIds = agentMetrics.map(a => a.agent_id);
+    const agentIds = agentMetrics.map((a) => a.agent_id);
     if (agentIds.length === 0) return;
 
     const { data } = await supabase
@@ -31,10 +37,13 @@ export const SatisfactionDashboard = () => {
       .in('id', agentIds);
 
     if (data) {
-      const agentsMap = data.reduce((acc, agent) => {
-        acc[agent.id] = agent;
-        return acc;
-      }, {} as Record<string, any>);
+      const agentsMap = data.reduce(
+        (acc, agent) => {
+          acc[agent.id] = agent;
+          return acc;
+        },
+        {} as Record<string, any>
+      );
       setAgents(agentsMap);
     }
   };
@@ -90,12 +99,8 @@ export const SatisfactionDashboard = () => {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.avgScore.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.totalResponses} respostas
-            </p>
+            <div className="text-2xl font-bold">{metrics.avgScore.toFixed(1)}</div>
+            <p className="text-xs text-muted-foreground">{metrics.totalResponses} respostas</p>
           </CardContent>
         </Card>
 
@@ -117,9 +122,7 @@ export const SatisfactionDashboard = () => {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {metrics.npsScore.toFixed(0)}
-                </div>
+                <div className="text-2xl font-bold">{metrics.npsScore.toFixed(0)}</div>
                 <p className="text-xs text-muted-foreground">
                   {metrics.promoters}P / {metrics.passives}N / {metrics.detractors}D
                 </p>
@@ -161,9 +164,7 @@ export const SatisfactionDashboard = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                        <span className="text-lg font-bold">
-                          {agent.avg_score.toFixed(1)}
-                        </span>
+                        <span className="text-lg font-bold">{agent.avg_score.toFixed(1)}</span>
                       </div>
                     </div>
                   );
@@ -202,9 +203,7 @@ export const SatisfactionDashboard = () => {
                       </Badge>
                     </div>
                     {survey.feedback && (
-                      <p className="text-sm text-muted-foreground italic">
-                        "{survey.feedback}"
-                      </p>
+                      <p className="text-sm text-muted-foreground italic">"{survey.feedback}"</p>
                     )}
                     <p className="text-xs text-muted-foreground">
                       {new Date(survey.answered_at || '').toLocaleDateString('pt-BR')}

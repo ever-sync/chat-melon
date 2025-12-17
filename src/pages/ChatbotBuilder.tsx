@@ -142,20 +142,14 @@ function ChatbotBuilderContent() {
     [reactFlowInstance, setNodes]
   );
 
-  const onDragStart = useCallback(
-    (event: React.DragEvent, nodeType: ChatbotNodeType) => {
-      event.dataTransfer.setData('application/reactflow', nodeType);
-      event.dataTransfer.effectAllowed = 'move';
-    },
-    []
-  );
+  const onDragStart = useCallback((event: React.DragEvent, nodeType: ChatbotNodeType) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  }, []);
 
-  const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: ChatbotNode) => {
-      setSelectedNode(node);
-    },
-    []
-  );
+  const onNodeClick = useCallback((_: React.MouseEvent, node: ChatbotNode) => {
+    setSelectedNode(node);
+  }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
@@ -175,9 +169,7 @@ function ChatbotBuilderContent() {
   const deleteNode = useCallback(
     (nodeId: string) => {
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-      setEdges((eds) =>
-        eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
-      );
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
       setSelectedNode(null);
     },
     [setNodes, setEdges]
@@ -314,9 +306,7 @@ function ChatbotBuilderContent() {
               className="h-8 border-none bg-transparent text-lg font-semibold shadow-none focus-visible:ring-0"
             />
           </div>
-          <Badge className={statusColors[chatbot.status]}>
-            {statusLabels[chatbot.status]}
-          </Badge>
+          <Badge className={statusColors[chatbot.status]}>{statusLabels[chatbot.status]}</Badge>
           {hasChanges && (
             <span className="text-xs text-muted-foreground">Alterações não salvas</span>
           )}
@@ -412,12 +402,7 @@ function ChatbotBuilderContent() {
           >
             <Background gap={15} size={1} />
             <Controls />
-            <MiniMap
-              nodeStrokeWidth={3}
-              zoomable
-              pannable
-              className="!bg-muted/50"
-            />
+            <MiniMap nodeStrokeWidth={3} zoomable pannable className="!bg-muted/50" />
           </ReactFlow>
         </div>
 
@@ -469,9 +454,7 @@ function ChatbotBuilderContent() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Histórico de Versões</DialogTitle>
-            <DialogDescription>
-              Veja o histórico de publicações do chatbot.
-            </DialogDescription>
+            <DialogDescription>Veja o histórico de publicações do chatbot.</DialogDescription>
           </DialogHeader>
           <div className="max-h-96 space-y-2 overflow-y-auto">
             {versions.length === 0 ? (

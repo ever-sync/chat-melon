@@ -1,70 +1,93 @@
-import { usePipelines } from "@/hooks/crm/usePipelines";
-import { useDealStats } from "@/hooks/crm/useDealStats";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePipelines } from '@/hooks/crm/usePipelines';
+import { useDealStats } from '@/hooks/crm/useDealStats';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
-} from "recharts";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
-  DollarSign, TrendingUp, TrendingDown, Activity, Target,
-  Users, BarChart3, PieChart as PieIcon, ArrowUpRight, ArrowDownRight
-} from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
-import { MainLayout } from "@/components/MainLayout";
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+} from 'recharts';
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Target,
+  Users,
+  BarChart3,
+  PieChart as PieIcon,
+  ArrowUpRight,
+  ArrowDownRight,
+} from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from 'react';
+import { MainLayout } from '@/components/MainLayout';
 
 export default function CRMDashboard() {
   const { pipelines, defaultPipeline } = usePipelines();
-  const [selectedPipelineId, setSelectedPipelineId] = useState<string | undefined>(defaultPipeline?.id);
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string | undefined>(
+    defaultPipeline?.id
+  );
 
   // Use default pipeline if none selected
   const activePipelineId = selectedPipelineId || defaultPipeline?.id;
-  const {
-    pipelineStats,
-    funnelAnalysis,
-    isLoading,
-    formatCurrency,
-    formatPercentage
-  } = useDealStats(activePipelineId);
+  const { pipelineStats, funnelAnalysis, isLoading, formatCurrency, formatPercentage } =
+    useDealStats(activePipelineId);
 
   const statsCards = [
     {
-      title: "Valor em Aberto",
-      value: pipelineStats ? formatCurrency(pipelineStats.total_value) : "-",
+      title: 'Valor em Aberto',
+      value: pipelineStats ? formatCurrency(pipelineStats.total_value) : '-',
       description: `${pipelineStats?.total_deals || 0} negócios ativos`,
       icon: DollarSign,
-      color: "text-blue-600",
-      bg: "bg-blue-50 dark:bg-blue-900/20",
-      trend: "neutral"
+      color: 'text-blue-600',
+      bg: 'bg-blue-50 dark:bg-blue-900/20',
+      trend: 'neutral',
     },
     {
-      title: "Vendas Ganhas",
-      value: pipelineStats ? formatCurrency(pipelineStats.won_value) : "-",
+      title: 'Vendas Ganhas',
+      value: pipelineStats ? formatCurrency(pipelineStats.won_value) : '-',
       description: `${pipelineStats?.won_deals || 0} negócios fechados`,
       icon: TrendingUp,
-      color: "text-green-600",
-      bg: "bg-green-50 dark:bg-green-900/20",
-      trend: "up"
+      color: 'text-green-600',
+      bg: 'bg-green-50 dark:bg-green-900/20',
+      trend: 'up',
     },
     {
-      title: "Taxa de Conversão",
-      value: pipelineStats ? formatPercentage(pipelineStats.conversion_rate) : "-",
-      description: "Média do pipeline",
+      title: 'Taxa de Conversão',
+      value: pipelineStats ? formatPercentage(pipelineStats.conversion_rate) : '-',
+      description: 'Média do pipeline',
       icon: Activity,
-      color: "text-purple-600",
-      bg: "bg-purple-50 dark:bg-purple-900/20",
-      trend: (pipelineStats?.conversion_rate || 0) > 20 ? "up" : "down"
+      color: 'text-purple-600',
+      bg: 'bg-purple-50 dark:bg-purple-900/20',
+      trend: (pipelineStats?.conversion_rate || 0) > 20 ? 'up' : 'down',
     },
     {
-      title: "Ticket Médio",
-      value: pipelineStats ? formatCurrency(pipelineStats.average_deal_value) : "-",
-      description: "Por negócio ativo",
+      title: 'Ticket Médio',
+      value: pipelineStats ? formatCurrency(pipelineStats.average_deal_value) : '-',
+      description: 'Por negócio ativo',
       icon: Target,
-      color: "text-orange-600",
-      bg: "bg-orange-50 dark:bg-orange-900/20",
-      trend: "neutral"
-    }
+      color: 'text-orange-600',
+      bg: 'bg-orange-50 dark:bg-orange-900/20',
+      trend: 'neutral',
+    },
   ];
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
@@ -101,10 +124,7 @@ export default function CRMDashboard() {
             </p>
           </div>
 
-          <Select
-            value={activePipelineId}
-            onValueChange={setSelectedPipelineId}
-          >
+          <Select value={activePipelineId} onValueChange={setSelectedPipelineId}>
             <SelectTrigger className="w-[280px]">
               <SelectValue placeholder="Selecione um pipeline" />
             </SelectTrigger>
@@ -127,13 +147,13 @@ export default function CRMDashboard() {
                   <div className={`p-3 rounded-xl ${stat.bg}`}>
                     <stat.icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
-                  {stat.trend === "up" && (
+                  {stat.trend === 'up' && (
                     <div className="flex items-center text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-full">
                       <ArrowUpRight className="w-3 h-3 mr-1" />
                       Bom
                     </div>
                   )}
-                  {stat.trend === "down" && (
+                  {stat.trend === 'down' && (
                     <div className="flex items-center text-red-600 text-sm font-medium bg-red-50 px-2 py-1 rounded-full">
                       <ArrowDownRight className="w-3 h-3 mr-1" />
                       Baixo
@@ -161,9 +181,7 @@ export default function CRMDashboard() {
                 <BarChart3 className="w-5 h-5 text-indigo-600" />
                 Funil de Vendas
               </CardTitle>
-              <CardDescription>
-                Quantidade e valor por etapa do pipeline
-              </CardDescription>
+              <CardDescription>Quantidade e valor por etapa do pipeline</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[350px] w-full">
@@ -183,12 +201,21 @@ export default function CRMDashboard() {
                     />
                     <Tooltip
                       formatter={(value: any, name: string) => {
-                        if (name === "Valor Total") return formatCurrency(value);
+                        if (name === 'Valor Total') return formatCurrency(value);
                         return value;
                       }}
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      contentStyle={{
+                        borderRadius: '8px',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      }}
                     />
-                    <Bar dataKey="total_value" name="Valor Total" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                    <Bar
+                      dataKey="total_value"
+                      name="Valor Total"
+                      fill="#6366f1"
+                      radius={[0, 4, 4, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -202,9 +229,7 @@ export default function CRMDashboard() {
                 <PieIcon className="w-5 h-5 text-purple-600" />
                 Distribuição de Volume
               </CardTitle>
-              <CardDescription>
-                Número de negócios por etapa
-              </CardDescription>
+              <CardDescription>Número de negócios por etapa</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[350px] w-full flex items-center justify-center">
@@ -226,7 +251,11 @@ export default function CRMDashboard() {
                     </Pie>
                     <Tooltip
                       formatter={(value: any) => `${value} negócios`}
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      contentStyle={{
+                        borderRadius: '8px',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -234,7 +263,10 @@ export default function CRMDashboard() {
               <div className="grid grid-cols-2 gap-2 mt-4">
                 {funnelAnalysis?.map((entry, index) => (
                   <div key={index} className="flex items-center gap-2 text-xs text-gray-500">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
                     <span className="truncate flex-1">{entry.stage_name}</span>
                     <span className="font-medium">{entry.deal_count}</span>
                   </div>
@@ -274,7 +306,9 @@ export default function CRMDashboard() {
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg text-center">
                   <p className="text-xs text-green-600 uppercase tracking-wide">Ganhos</p>
-                  <p className="text-xl font-bold text-green-700 mt-1">{pipelineStats?.won_deals}</p>
+                  <p className="text-xl font-bold text-green-700 mt-1">
+                    {pipelineStats?.won_deals}
+                  </p>
                 </div>
                 <div className="p-4 bg-red-50 rounded-lg text-center">
                   <p className="text-xs text-red-600 uppercase tracking-wide">Perdidos</p>

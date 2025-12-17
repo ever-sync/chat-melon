@@ -1,6 +1,6 @@
-import { useState, useRef, ReactNode } from "react";
-import { RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, useRef, ReactNode } from 'react';
+import { RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -70,16 +70,13 @@ export const PullToRefresh = ({ onRefresh, children }: PullToRefreshProps) => {
       {/* Refresh indicator */}
       <div
         className={cn(
-          "absolute top-0 left-0 right-0 flex items-center justify-center transition-opacity",
-          "h-16 -mt-16"
+          'absolute top-0 left-0 right-0 flex items-center justify-center transition-opacity',
+          'h-16 -mt-16'
         )}
         style={{ opacity }}
       >
         <RefreshCw
-          className={cn(
-            "h-6 w-6 text-primary",
-            refreshing && "animate-spin"
-          )}
+          className={cn('h-6 w-6 text-primary', refreshing && 'animate-spin')}
           style={{
             transform: !refreshing ? `rotate(${rotation}deg)` : undefined,
           }}

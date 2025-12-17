@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +30,7 @@ export const SnoozeMenu = ({ conversationId, trigger }: SnoozeMenuProps) => {
 
   const { snooze } = useSnooze();
 
-  const handleSnooze = async (option: typeof SNOOZE_OPTIONS[0]) => {
+  const handleSnooze = async (option: (typeof SNOOZE_OPTIONS)[0]) => {
     await snooze.mutateAsync({
       conversationId,
       until: option.getDate(),
@@ -145,10 +141,7 @@ export const SnoozeMenu = ({ conversationId, trigger }: SnoozeMenuProps) => {
             <Button variant="outline" onClick={() => setShowCustom(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleCustomSnooze}
-              disabled={!customDate || snooze.isPending}
-            >
+            <Button onClick={handleCustomSnooze} disabled={!customDate || snooze.isPending}>
               Confirmar
             </Button>
           </DialogFooter>

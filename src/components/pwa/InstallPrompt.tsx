@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { X, Download } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { X, Download } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -35,7 +35,7 @@ export const InstallPrompt = () => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
+
       // Mostra prompt após 10 segundos
       setTimeout(() => {
         setShowPrompt(true);
@@ -89,19 +89,10 @@ export const InstallPrompt = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleDismiss}
-              className="h-8 w-8 p-0"
-            >
+            <Button size="sm" variant="ghost" onClick={handleDismiss} className="h-8 w-8 p-0">
               <X className="h-4 w-4" />
             </Button>
-            <Button
-              size="sm"
-              onClick={handleInstall}
-              className="whitespace-nowrap"
-            >
+            <Button size="sm" onClick={handleInstall} className="whitespace-nowrap">
               Instalar
             </Button>
           </div>

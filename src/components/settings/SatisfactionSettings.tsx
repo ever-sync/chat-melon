@@ -1,21 +1,27 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
-import { Star, TrendingUp, Loader2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
+import { Star, TrendingUp, Loader2 } from 'lucide-react';
 
 export const SatisfactionSettings = () => {
   const { getCompanyId } = useCompanyQuery();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   const [settings, setSettings] = useState({
     enabled: false,
     survey_type: 'csat' as 'csat' | 'nps',
@@ -32,7 +38,7 @@ export const SatisfactionSettings = () => {
   const loadSettings = async () => {
     try {
       const companyId = getCompanyId();
-      
+
       const { data, error } = await supabase
         .from('satisfaction_settings')
         .select('*')
@@ -62,10 +68,9 @@ export const SatisfactionSettings = () => {
     setSaving(true);
     try {
       const companyId = getCompanyId();
-      
-      const { error } = await supabase
-        .from('satisfaction_settings')
-        .upsert({
+
+      const { error } = await supabase.from('satisfaction_settings').upsert(
+        {
           company_id: companyId,
           enabled: settings.enabled,
           survey_type: settings.survey_type,
@@ -73,16 +78,18 @@ export const SatisfactionSettings = () => {
           custom_message: settings.custom_message || null,
           ask_feedback: settings.ask_feedback,
           feedback_prompt: settings.feedback_prompt,
-        }, {
-          onConflict: 'company_id'
-        });
+        },
+        {
+          onConflict: 'company_id',
+        }
+      );
 
       if (error) throw error;
 
-      toast.success("Configurações de satisfação salvas!");
+      toast.success('Configurações de satisfação salvas!');
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      toast.error("Não foi possível salvar as configurações");
+      toast.error('Não foi possível salvar as configurações');
     } finally {
       setSaving(false);
     }
@@ -147,7 +154,7 @@ Responda com um número:
               <Label>Tipo de Pesquisa</Label>
               <Select
                 value={settings.survey_type}
-                onValueChange={(value: 'csat' | 'nps') => 
+                onValueChange={(value: 'csat' | 'nps') =>
                   setSettings({ ...settings, survey_type: value })
                 }
               >
@@ -170,7 +177,7 @@ Responda com um número:
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {settings.survey_type === 'csat' 
+                {settings.survey_type === 'csat'
                   ? 'CSAT mede a satisfação com o atendimento específico'
                   : 'NPS mede a probabilidade de recomendar sua empresa'}
               </p>
@@ -183,10 +190,12 @@ Responda com um número:
                 min={0}
                 max={1440}
                 value={settings.delay_minutes}
-                onChange={(e) => setSettings({ 
-                  ...settings, 
-                  delay_minutes: parseInt(e.target.value) || 0 
-                })}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    delay_minutes: parseInt(e.target.value) || 0,
+                  })
+                }
               />
               <p className="text-xs text-muted-foreground">
                 Aguarda este tempo antes de enviar a pesquisa
@@ -196,7 +205,9 @@ Responda com um número:
             <div className="space-y-2">
               <Label>Mensagem da Pesquisa</Label>
               <Textarea
-                placeholder={settings.survey_type === 'csat' ? defaultCSATMessage : defaultNPSMessage}
+                placeholder={
+                  settings.survey_type === 'csat' ? defaultCSATMessage : defaultNPSMessage
+                }
                 value={settings.custom_message}
                 onChange={(e) => setSettings({ ...settings, custom_message: e.target.value })}
                 rows={8}

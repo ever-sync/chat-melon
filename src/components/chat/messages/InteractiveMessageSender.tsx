@@ -1,14 +1,25 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { ListOrdered, BarChart3, MapPin, Contact } from "lucide-react";
-import { useSendPollMessage, useSendListMessage, useSendLocationMessage, useSendContactMessage } from "@/hooks/api/useEvolutionApi";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import { ListOrdered, BarChart3, MapPin, Contact } from 'lucide-react';
+import {
+  useSendPollMessage,
+  useSendListMessage,
+  useSendLocationMessage,
+  useSendContactMessage,
+} from '@/hooks/api/useEvolutionApi';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface InteractiveMessageSenderProps {
   conversationId: string;
@@ -16,7 +27,11 @@ interface InteractiveMessageSenderProps {
   onMessageSent?: () => void;
 }
 
-export function InteractiveMessageSender({ conversationId, contactNumber, onMessageSent }: InteractiveMessageSenderProps) {
+export function InteractiveMessageSender({
+  conversationId,
+  contactNumber,
+  onMessageSent,
+}: InteractiveMessageSenderProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -29,32 +44,32 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
   const sendContactHook = useSendContactMessage(instanceName);
 
   // Poll state
-  const [pollQuestion, setPollQuestion] = useState("");
-  const [pollOptions, setPollOptions] = useState(["", ""]);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
 
   // List state
-  const [listTitle, setListTitle] = useState("");
-  const [listDescription, setListDescription] = useState("");
-  const [listOptions, setListOptions] = useState([{ title: "", description: "" }]);
+  const [listTitle, setListTitle] = useState('');
+  const [listDescription, setListDescription] = useState('');
+  const [listOptions, setListOptions] = useState([{ title: '', description: '' }]);
 
   // Location state
-  const [locationName, setLocationName] = useState("");
-  const [locationAddress, setLocationAddress] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [locationName, setLocationName] = useState('');
+  const [locationAddress, setLocationAddress] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
 
   // Contact state
-  const [contactName, setContactName] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
 
-  const addPollOption = () => setPollOptions([...pollOptions, ""]);
+  const addPollOption = () => setPollOptions([...pollOptions, '']);
   const updatePollOption = (index: number, value: string) => {
     const newOptions = [...pollOptions];
     newOptions[index] = value;
     setPollOptions(newOptions);
   };
 
-  const addListOption = () => setListOptions([...listOptions, { title: "", description: "" }]);
+  const addListOption = () => setListOptions([...listOptions, { title: '', description: '' }]);
   const updateListOption = (index: number, field: 'title' | 'description', value: string) => {
     const newOptions = [...listOptions];
     newOptions[index][field] = value;
@@ -63,15 +78,15 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
 
   const handleSendPoll = async () => {
     if (!contactNumber) {
-      toast.error("Número do contato não encontrado");
+      toast.error('Número do contato não encontrado');
       return;
     }
-    if (!pollQuestion || pollOptions.filter(o => o).length < 2) {
-      toast.error("Adicione uma pergunta e pelo menos 2 opções");
+    if (!pollQuestion || pollOptions.filter((o) => o).length < 2) {
+      toast.error('Adicione uma pergunta e pelo menos 2 opções');
       return;
     }
     if (!instanceName) {
-      toast.error("Evolution API não configurada");
+      toast.error('Evolution API não configurada');
       return;
     }
 
@@ -81,12 +96,12 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
         number: contactNumber,
         name: pollQuestion,
         selectableCount: 1,
-        values: pollOptions.filter(o => o)
+        values: pollOptions.filter((o) => o),
       });
 
       setOpen(false);
-      setPollQuestion("");
-      setPollOptions(["", ""]);
+      setPollQuestion('');
+      setPollOptions(['', '']);
       onMessageSent?.();
     } catch (error: any) {
       console.error('Error sending poll:', error);
@@ -97,15 +112,15 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
 
   const handleSendList = async () => {
     if (!contactNumber) {
-      toast.error("Número do contato não encontrado");
+      toast.error('Número do contato não encontrado');
       return;
     }
-    if (!listTitle || listOptions.filter(o => o.title).length < 1) {
-      toast.error("Adicione um título e pelo menos 1 opção");
+    if (!listTitle || listOptions.filter((o) => o.title).length < 1) {
+      toast.error('Adicione um título e pelo menos 1 opção');
       return;
     }
     if (!instanceName) {
-      toast.error("Evolution API não configurada");
+      toast.error('Evolution API não configurada');
       return;
     }
 
@@ -115,19 +130,21 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
         number: contactNumber,
         title: listTitle,
         description: listDescription,
-        buttonText: "Ver Opções",
-        sections: [{
-          title: "Opções",
-          rows: listOptions
-            .filter(o => o.title)
-            .map((o, i) => ({ title: o.title, description: o.description, rowId: `opt_${i}` }))
-        }]
+        buttonText: 'Ver Opções',
+        sections: [
+          {
+            title: 'Opções',
+            rows: listOptions
+              .filter((o) => o.title)
+              .map((o, i) => ({ title: o.title, description: o.description, rowId: `opt_${i}` })),
+          },
+        ],
       });
 
       setOpen(false);
-      setListTitle("");
-      setListDescription("");
-      setListOptions([{ title: "", description: "" }]);
+      setListTitle('');
+      setListDescription('');
+      setListOptions([{ title: '', description: '' }]);
       onMessageSent?.();
     } catch (error: any) {
       console.error('Error sending list:', error);
@@ -138,15 +155,15 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
 
   const handleSendLocation = async () => {
     if (!contactNumber) {
-      toast.error("Número do contato não encontrado");
+      toast.error('Número do contato não encontrado');
       return;
     }
     if (!latitude || !longitude) {
-      toast.error("Informe latitude e longitude");
+      toast.error('Informe latitude e longitude');
       return;
     }
     if (!instanceName) {
-      toast.error("Evolution API não configurada");
+      toast.error('Evolution API não configurada');
       return;
     }
 
@@ -157,14 +174,14 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         name: locationName,
-        address: locationAddress
+        address: locationAddress,
       });
 
       setOpen(false);
-      setLocationName("");
-      setLocationAddress("");
-      setLatitude("");
-      setLongitude("");
+      setLocationName('');
+      setLocationAddress('');
+      setLatitude('');
+      setLongitude('');
       onMessageSent?.();
     } catch (error: any) {
       console.error('Error sending location:', error);
@@ -175,15 +192,15 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
 
   const handleSendContact = async () => {
     if (!contactNumber) {
-      toast.error("Número do contato não encontrado");
+      toast.error('Número do contato não encontrado');
       return;
     }
     if (!contactName || !contactPhone) {
-      toast.error("Informe nome e telefone do contato");
+      toast.error('Informe nome e telefone do contato');
       return;
     }
     if (!instanceName) {
-      toast.error("Evolution API não configurada");
+      toast.error('Evolution API não configurada');
       return;
     }
 
@@ -191,16 +208,18 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
     try {
       await sendContactHook.mutateAsync({
         number: contactNumber,
-        contact: [{
-          fullName: contactName,
-          wuid: contactPhone.includes('@') ? contactPhone : `${contactPhone}@s.whatsapp.net`,
-          phoneNumber: contactPhone
-        }]
+        contact: [
+          {
+            fullName: contactName,
+            wuid: contactPhone.includes('@') ? contactPhone : `${contactPhone}@s.whatsapp.net`,
+            phoneNumber: contactPhone,
+          },
+        ],
       });
 
       setOpen(false);
-      setContactName("");
-      setContactPhone("");
+      setContactName('');
+      setContactPhone('');
       onMessageSent?.();
     } catch (error: any) {
       console.error('Error sending contact:', error);
@@ -212,7 +231,12 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Mensagem Interativa" className="rounded-full hover:bg-primary/10">
+        <Button
+          variant="ghost"
+          size="icon"
+          title="Mensagem Interativa"
+          className="rounded-full hover:bg-primary/10"
+        >
           <ListOrdered className="w-5 h-5 text-muted-foreground" />
         </Button>
       </DialogTrigger>
@@ -223,10 +247,22 @@ export function InteractiveMessageSender({ conversationId, contactNumber, onMess
 
         <Tabs defaultValue="poll">
           <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="poll"><BarChart3 className="h-4 w-4 mr-1" />Enquete</TabsTrigger>
-            <TabsTrigger value="list"><ListOrdered className="h-4 w-4 mr-1" />Lista</TabsTrigger>
-            <TabsTrigger value="location"><MapPin className="h-4 w-4 mr-1" />Local</TabsTrigger>
-            <TabsTrigger value="contact"><Contact className="h-4 w-4 mr-1" />Contato</TabsTrigger>
+            <TabsTrigger value="poll">
+              <BarChart3 className="h-4 w-4 mr-1" />
+              Enquete
+            </TabsTrigger>
+            <TabsTrigger value="list">
+              <ListOrdered className="h-4 w-4 mr-1" />
+              Lista
+            </TabsTrigger>
+            <TabsTrigger value="location">
+              <MapPin className="h-4 w-4 mr-1" />
+              Local
+            </TabsTrigger>
+            <TabsTrigger value="contact">
+              <Contact className="h-4 w-4 mr-1" />
+              Contato
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="poll" className="space-y-4">

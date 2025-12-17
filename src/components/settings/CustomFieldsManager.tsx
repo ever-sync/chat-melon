@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, GripVertical, Edit, Power } from "lucide-react";
-import { useCustomFields } from "@/hooks/useCustomFields";
-import { CustomFieldModal } from "./CustomFieldModal";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Plus, GripVertical, Edit, Power } from 'lucide-react';
+import { useCustomFields } from '@/hooks/useCustomFields';
+import { CustomFieldModal } from './CustomFieldModal';
 import {
   DndContext,
   closestCenter,
@@ -13,44 +13,44 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from "@dnd-kit/core";
+} from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import type { CustomField } from "@/hooks/useCustomFields";
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import type { CustomField } from '@/hooks/useCustomFields';
 
-type EntityType = "contact" | "deal" | "company";
+type EntityType = 'contact' | 'deal' | 'company';
 
 const fieldTypeLabels: Record<string, string> = {
-  text: "Texto",
-  number: "Número",
-  date: "Data",
-  select: "Seleção",
-  multiselect: "Múltipla Escolha",
-  boolean: "Sim/Não",
-  url: "URL",
-  email: "Email",
-  phone: "Telefone",
-  currency: "Moeda",
+  text: 'Texto',
+  number: 'Número',
+  date: 'Data',
+  select: 'Seleção',
+  multiselect: 'Múltipla Escolha',
+  boolean: 'Sim/Não',
+  url: 'URL',
+  email: 'Email',
+  phone: 'Telefone',
+  currency: 'Moeda',
 };
 
-function SortableFieldItem({ field, onEdit, onToggle }: { 
-  field: CustomField; 
+function SortableFieldItem({
+  field,
+  onEdit,
+  onToggle,
+}: {
+  field: CustomField;
   onEdit: (field: CustomField) => void;
   onToggle: (id: string) => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: field.id });
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: field.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -74,9 +74,7 @@ function SortableFieldItem({ field, onEdit, onToggle }: {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h4 className="font-medium truncate">{field.field_label}</h4>
-          {field.is_required && (
-            <span className="text-xs text-destructive">*</span>
-          )}
+          {field.is_required && <span className="text-xs text-destructive">*</span>}
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>{fieldTypeLabels[field.field_type]}</span>
@@ -86,18 +84,10 @@ function SortableFieldItem({ field, onEdit, onToggle }: {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onEdit(field)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => onEdit(field)}>
           <Edit className="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggle(field.id)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => onToggle(field.id)}>
           <Power className="h-4 w-4" />
         </Button>
       </div>
@@ -106,10 +96,10 @@ function SortableFieldItem({ field, onEdit, onToggle }: {
 }
 
 export function CustomFieldsManager() {
-  const [entityType, setEntityType] = useState<EntityType>("contact");
+  const [entityType, setEntityType] = useState<EntityType>('contact');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomField | undefined>();
-  
+
   const { fields, reorderFields, deleteField } = useCustomFields(entityType);
   const [items, setItems] = useState(fields);
 
@@ -183,14 +173,8 @@ export function CustomFieldsManager() {
         <TabsContent value={entityType} className="space-y-4 mt-4">
           {items.length === 0 ? (
             <Card className="p-8 text-center">
-              <p className="text-muted-foreground">
-                Nenhum campo customizado criado ainda.
-              </p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={handleCreate}
-              >
+              <p className="text-muted-foreground">Nenhum campo customizado criado ainda.</p>
+              <Button variant="outline" className="mt-4" onClick={handleCreate}>
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Primeiro Campo
               </Button>

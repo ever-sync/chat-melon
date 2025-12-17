@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,11 +6,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 type ForwardDialogProps = {
   open: boolean;
@@ -19,33 +19,28 @@ type ForwardDialogProps = {
   onSuccess: () => void;
 };
 
-const ForwardDialog = ({
-  open,
-  onOpenChange,
-  conversationId,
-  onSuccess,
-}: ForwardDialogProps) => {
-  const [flowName, setFlowName] = useState("");
+const ForwardDialog = ({ open, onOpenChange, conversationId, onSuccess }: ForwardDialogProps) => {
+  const [flowName, setFlowName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleForward = async () => {
     if (!flowName.trim()) {
-      toast.error("Digite o nome do fluxo");
+      toast.error('Digite o nome do fluxo');
       return;
     }
 
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success(`Conversa encaminhada para o fluxo "${flowName}"`);
 
       onSuccess();
       onOpenChange(false);
-      setFlowName("");
+      setFlowName('');
     } catch (error) {
-      console.error("Erro ao encaminhar conversa:", error);
-      toast.error("Não foi possível encaminhar a conversa");
+      console.error('Erro ao encaminhar conversa:', error);
+      toast.error('Não foi possível encaminhar a conversa');
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +73,7 @@ const ForwardDialog = ({
             Cancelar
           </Button>
           <Button onClick={handleForward} disabled={isLoading}>
-            {isLoading ? "Encaminhando..." : "Encaminhar"}
+            {isLoading ? 'Encaminhando...' : 'Encaminhar'}
           </Button>
         </DialogFooter>
       </DialogContent>

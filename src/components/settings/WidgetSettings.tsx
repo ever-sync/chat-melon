@@ -4,13 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -38,7 +32,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export const WidgetSettings = () => {
-  const { settings, isLoading, createSettings, updateSettings, generateEmbedCode, hasSettings } = useWidgetSettings();
+  const { settings, isLoading, createSettings, updateSettings, generateEmbedCode, hasSettings } =
+    useWidgetSettings();
   const [copied, setCopied] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -50,7 +45,9 @@ export const WidgetSettings = () => {
     border_radius: settings?.border_radius ?? 16,
     greeting_title: settings?.greeting_title ?? 'Olá! 👋',
     greeting_message: settings?.greeting_message ?? 'Como posso ajudar você hoje?',
-    offline_message: settings?.offline_message ?? 'Estamos offline no momento. Deixe sua mensagem e responderemos em breve.',
+    offline_message:
+      settings?.offline_message ??
+      'Estamos offline no momento. Deixe sua mensagem e responderemos em breve.',
     input_placeholder: settings?.input_placeholder ?? 'Digite sua mensagem...',
     require_name: settings?.require_name ?? true,
     require_email: settings?.require_email ?? true,
@@ -91,9 +88,7 @@ export const WidgetSettings = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Widget de Chat</h2>
-          <p className="text-muted-foreground">
-            Configure o widget de chat para seu site
-          </p>
+          <p className="text-muted-foreground">Configure o widget de chat para seu site</p>
         </div>
         <div className="flex items-center gap-2">
           <Switch
@@ -158,12 +153,16 @@ export const WidgetSettings = () => {
                     <Input
                       type="color"
                       value={formData.secondary_color}
-                      onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, secondary_color: e.target.value })
+                      }
                       className="w-12 h-10 p-1 cursor-pointer"
                     />
                     <Input
                       value={formData.secondary_color}
-                      onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, secondary_color: e.target.value })
+                      }
                       placeholder="#FFFFFF"
                     />
                   </div>
@@ -198,7 +197,9 @@ export const WidgetSettings = () => {
                   <Label>Tamanho do botão</Label>
                   <Select
                     value={formData.button_size}
-                    onValueChange={(value) => setFormData({ ...formData, button_size: value as any })}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, button_size: value as any })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -237,7 +238,9 @@ export const WidgetSettings = () => {
                 </div>
                 <Switch
                   checked={formData.show_agent_photo}
-                  onCheckedChange={(checked) => setFormData({ ...formData, show_agent_photo: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, show_agent_photo: checked })
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -247,7 +250,9 @@ export const WidgetSettings = () => {
                 </div>
                 <Switch
                   checked={formData.show_agent_name}
-                  onCheckedChange={(checked) => setFormData({ ...formData, show_agent_name: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, show_agent_name: checked })
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -267,7 +272,9 @@ export const WidgetSettings = () => {
                 </div>
                 <Switch
                   checked={formData.show_branding}
-                  onCheckedChange={(checked) => setFormData({ ...formData, show_branding: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, show_branding: checked })
+                  }
                 />
               </div>
             </CardContent>
@@ -332,9 +339,7 @@ export const WidgetSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle>Formulário pré-chat</CardTitle>
-              <CardDescription>
-                Campos coletados antes de iniciar a conversa
-              </CardDescription>
+              <CardDescription>Campos coletados antes de iniciar a conversa</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -354,7 +359,9 @@ export const WidgetSettings = () => {
                 </div>
                 <Switch
                   checked={formData.require_email}
-                  onCheckedChange={(checked) => setFormData({ ...formData, require_email: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, require_email: checked })
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -364,7 +371,9 @@ export const WidgetSettings = () => {
                 </div>
                 <Switch
                   checked={formData.require_phone}
-                  onCheckedChange={(checked) => setFormData({ ...formData, require_phone: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, require_phone: checked })
+                  }
                 />
               </div>
             </CardContent>
@@ -375,9 +384,7 @@ export const WidgetSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle>Horário comercial</CardTitle>
-              <CardDescription>
-                Limitar widget ao horário de atendimento
-              </CardDescription>
+              <CardDescription>Limitar widget ao horário de atendimento</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -389,14 +396,16 @@ export const WidgetSettings = () => {
                 </div>
                 <Switch
                   checked={formData.business_hours_only}
-                  onCheckedChange={(checked) => setFormData({ ...formData, business_hours_only: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, business_hours_only: checked })
+                  }
                 />
               </div>
 
               {formData.business_hours_only && (
                 <div className="text-sm text-muted-foreground border rounded-lg p-4 bg-muted/50">
-                  O horário comercial segue as configurações gerais da empresa
-                  em Configurações → Geral.
+                  O horário comercial segue as configurações gerais da empresa em Configurações →
+                  Geral.
                 </div>
               )}
             </CardContent>
@@ -422,11 +431,7 @@ export const WidgetSettings = () => {
                   className="absolute top-2 right-2"
                   onClick={handleCopyCode}
                 >
-                  {copied ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
 
@@ -440,9 +445,7 @@ export const WidgetSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle>Domínios permitidos</CardTitle>
-              <CardDescription>
-                Deixe vazio para permitir em qualquer domínio
-              </CardDescription>
+              <CardDescription>Deixe vazio para permitir em qualquer domínio</CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
@@ -455,10 +458,7 @@ export const WidgetSettings = () => {
       </Tabs>
 
       <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          onClick={() => window.location.reload()}
-        >
+        <Button variant="outline" onClick={() => window.location.reload()}>
           Cancelar
         </Button>
         <Button

@@ -1,8 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Proposal, ProposalItem } from "@/hooks/chat/useProposals";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, Edit } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Proposal, ProposalItem } from '@/hooks/chat/useProposals';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Minus, Edit } from 'lucide-react';
 
 interface ProposalComparisonProps {
   open: boolean;
@@ -27,12 +27,8 @@ export const ProposalComparison = ({
     const removed: ProposalItem[] = [];
     const modified: { old: ProposalItem; new: ProposalItem }[] = [];
 
-    const olderItems = new Map(
-      olderVersion.items.map((item) => [item.product_id, item])
-    );
-    const newerItems = new Map(
-      newerVersion.items.map((item) => [item.product_id, item])
-    );
+    const olderItems = new Map(olderVersion.items.map((item) => [item.product_id, item]));
+    const newerItems = new Map(newerVersion.items.map((item) => [item.product_id, item]));
 
     // Find added and modified
     newerVersion.items.forEach((newItem) => {
@@ -60,9 +56,9 @@ export const ProposalComparison = ({
   const { added, removed, modified } = getDifferences();
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
@@ -82,9 +78,7 @@ export const ProposalComparison = ({
               <div>
                 <div className="text-sm text-muted-foreground mb-1">Versão Anterior</div>
                 <div className="font-semibold">v{olderVersion.version}</div>
-                <div className="text-sm">
-                  Total: {formatCurrency(olderVersion.total)}
-                </div>
+                <div className="text-sm">Total: {formatCurrency(olderVersion.total)}</div>
                 <div className="text-xs text-muted-foreground">
                   {olderVersion.items.length} itens
                 </div>
@@ -92,9 +86,7 @@ export const ProposalComparison = ({
               <div>
                 <div className="text-sm text-muted-foreground mb-1">Versão Atual</div>
                 <div className="font-semibold">v{newerVersion.version}</div>
-                <div className="text-sm">
-                  Total: {formatCurrency(newerVersion.total)}
-                </div>
+                <div className="text-sm">Total: {formatCurrency(newerVersion.total)}</div>
                 <div className="text-xs text-muted-foreground">
                   {newerVersion.items.length} itens
                 </div>
@@ -128,9 +120,7 @@ export const ProposalComparison = ({
                         <div>
                           <div className="font-medium">{item.name}</div>
                           {item.description && (
-                            <div className="text-sm text-muted-foreground">
-                              {item.description}
-                            </div>
+                            <div className="text-sm text-muted-foreground">{item.description}</div>
                           )}
                         </div>
                         <Badge className="bg-green-600 text-white">Novo</Badge>
@@ -138,9 +128,7 @@ export const ProposalComparison = ({
                       <div className="flex gap-4 mt-2 text-sm">
                         <span>Qtd: {item.quantity}</span>
                         <span>Unit: {formatCurrency(item.unit_price)}</span>
-                        <span className="font-semibold">
-                          Total: {formatCurrency(item.total)}
-                        </span>
+                        <span className="font-semibold">Total: {formatCurrency(item.total)}</span>
                       </div>
                     </div>
                   ))}
@@ -175,9 +163,7 @@ export const ProposalComparison = ({
                       <div className="flex gap-4 mt-2 text-sm line-through">
                         <span>Qtd: {item.quantity}</span>
                         <span>Unit: {formatCurrency(item.unit_price)}</span>
-                        <span className="font-semibold">
-                          Total: {formatCurrency(item.total)}
-                        </span>
+                        <span className="font-semibold">Total: {formatCurrency(item.total)}</span>
                       </div>
                     </div>
                   ))}
@@ -219,8 +205,8 @@ export const ProposalComparison = ({
                             <div
                               className={
                                 oldItem.quantity !== newItem.quantity
-                                  ? "text-yellow-700 font-semibold"
-                                  : ""
+                                  ? 'text-yellow-700 font-semibold'
+                                  : ''
                               }
                             >
                               Qtd: {newItem.quantity}
@@ -228,8 +214,8 @@ export const ProposalComparison = ({
                             <div
                               className={
                                 oldItem.unit_price !== newItem.unit_price
-                                  ? "text-yellow-700 font-semibold"
-                                  : ""
+                                  ? 'text-yellow-700 font-semibold'
+                                  : ''
                               }
                             >
                               Unit: {formatCurrency(newItem.unit_price)}
@@ -255,8 +241,8 @@ export const ProposalComparison = ({
                   <span
                     className={
                       newerVersion.subtotal - olderVersion.subtotal > 0
-                        ? "text-green-600 font-semibold"
-                        : "text-red-600 font-semibold"
+                        ? 'text-green-600 font-semibold'
+                        : 'text-red-600 font-semibold'
                     }
                   >
                     {formatCurrency(newerVersion.subtotal - olderVersion.subtotal)}
@@ -267,8 +253,8 @@ export const ProposalComparison = ({
                   <span
                     className={
                       newerVersion.discount - olderVersion.discount > 0
-                        ? "text-red-600 font-semibold"
-                        : "text-green-600 font-semibold"
+                        ? 'text-red-600 font-semibold'
+                        : 'text-green-600 font-semibold'
                     }
                   >
                     {formatCurrency(newerVersion.discount - olderVersion.discount)}
@@ -279,8 +265,8 @@ export const ProposalComparison = ({
                   <span
                     className={
                       newerVersion.total - olderVersion.total > 0
-                        ? "text-green-600 font-bold text-lg"
-                        : "text-red-600 font-bold text-lg"
+                        ? 'text-green-600 font-bold text-lg'
+                        : 'text-red-600 font-bold text-lg'
                     }
                   >
                     {formatCurrency(newerVersion.total - olderVersion.total)}

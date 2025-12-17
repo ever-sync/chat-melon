@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { OnboardingGuide } from "./onboarding/OnboardingGuide";
-import { PageLoadingSkeleton } from "./LoadingFallback";
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { OnboardingGuide } from './onboarding/OnboardingGuide';
+import { PageLoadingSkeleton } from './LoadingFallback';
 
 interface RequireCompanyProps {
   children: React.ReactNode;
@@ -22,7 +22,9 @@ export function RequireCompany({ children }: RequireCompanyProps) {
   const checkCompany = async () => {
     try {
       // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
         setIsAuthenticated(false);
@@ -34,23 +36,23 @@ export function RequireCompany({ children }: RequireCompanyProps) {
 
       // 🔓 ONBOARDING DESABILITADO PARA TODOS OS USUÁRIOS
       // Os usuários podem usar o sistema sem empresa e criar depois nas configurações
-      console.log("✅ Onboarding desabilitado - acesso liberado para todos");
+      console.log('✅ Onboarding desabilitado - acesso liberado para todos');
       setShowOnboarding(false);
       setLoading(false);
     } catch (error) {
-      console.error("Error checking company:", error);
+      console.error('Error checking company:', error);
       setLoading(false);
     }
   };
 
   const handleOnboardingComplete = async () => {
-    console.log("🎉 Onboarding completado!");
+    console.log('🎉 Onboarding completado!');
 
     // Fechar modal imediatamente
     setShowOnboarding(false);
 
     // Forçar reload da página para carregar dados da empresa
-    console.log("🔄 Recarregando página...");
+    console.log('🔄 Recarregando página...');
     window.location.reload();
   };
 
@@ -65,32 +67,28 @@ export function RequireCompany({ children }: RequireCompanyProps) {
 
   // Protected pages that require company
   const protectedPaths = [
-    "/dashboard",
-    "/chat",
-    "/crm",
-    "/tasks",
-    "/templates",
-    "/proposals",
-    "/automation",
-    "/gamification",
-    "/contacts",
-    "/duplicates",
-    "/segments",
-    "/settings",
-    "/campaigns",
-    "/products",
-    "/reports",
-    "/groups",
+    '/dashboard',
+    '/chat',
+    '/crm',
+    '/tasks',
+    '/templates',
+    '/proposals',
+    '/automation',
+    '/gamification',
+    '/contacts',
+    '/duplicates',
+    '/segments',
+    '/settings',
+    '/campaigns',
+    '/products',
+    '/reports',
+    '/groups',
   ];
 
-  const isProtectedPath = protectedPaths.some((path) =>
-    location.pathname.startsWith(path)
-  );
+  const isProtectedPath = protectedPaths.some((path) => location.pathname.startsWith(path));
 
   if (isProtectedPath && showOnboarding) {
-    return (
-      <OnboardingGuide isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
-    );
+    return <OnboardingGuide isOpen={showOnboarding} onComplete={handleOnboardingComplete} />;
   }
 
   return <>{children}</>;

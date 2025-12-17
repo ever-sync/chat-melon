@@ -43,11 +43,13 @@ export function DocumentList({ onEdit }: DocumentListProps) {
     try {
       const { data, error } = await supabase
         .from('kb_documents')
-        .select(`
+        .select(
+          `
           *,
           category:faq_categories(name),
           chunks:kb_chunks(count)
-        `)
+        `
+        )
         .eq('company_id', currentCompany.id)
         .order('created_at', { ascending: false });
 
@@ -69,10 +71,7 @@ export function DocumentList({ onEdit }: DocumentListProps) {
     if (!confirm('Tem certeza que deseja excluir este documento?')) return;
 
     try {
-      const { error } = await supabase
-        .from('kb_documents')
-        .delete()
-        .eq('id', documentId);
+      const { error } = await supabase.from('kb_documents').delete().eq('id', documentId);
 
       if (error) throw error;
 
@@ -179,13 +178,13 @@ export function DocumentList({ onEdit }: DocumentListProps) {
                 {doc.source_type}
               </TableCell>
               <TableCell>
-                <Badge variant="secondary">
-                  {doc.chunks?.[0]?.count || 0} chunks
-                </Badge>
+                <Badge variant="secondary">{doc.chunks?.[0]?.count || 0} chunks</Badge>
               </TableCell>
               <TableCell>
                 {doc.is_active ? (
-                  <Badge variant="default" className="bg-green-500">Ativo</Badge>
+                  <Badge variant="default" className="bg-green-500">
+                    Ativo
+                  </Badge>
                 ) : (
                   <Badge variant="secondary">Inativo</Badge>
                 )}

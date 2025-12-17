@@ -9,12 +9,15 @@ interface ChannelIconProps {
   className?: string;
 }
 
-const CHANNEL_CONFIG: Record<ChannelType, {
-  icon: typeof MessageCircle;
-  color: string;
-  bgColor: string;
-  label: string;
-}> = {
+const CHANNEL_CONFIG: Record<
+  ChannelType,
+  {
+    icon: typeof MessageCircle;
+    color: string;
+    bgColor: string;
+    label: string;
+  }
+> = {
   whatsapp: {
     icon: MessageCircle,
     color: '#25D366',
@@ -81,10 +84,7 @@ export const ChannelIcon = ({
         )}
         title={config.label}
       >
-        <Icon
-          className={sizeConfig.icon}
-          style={{ color: config.color }}
-        />
+        <Icon className={sizeConfig.icon} style={{ color: config.color }} />
       </div>
     );
   }

@@ -7,9 +7,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+} from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type EndConversationDialogProps = {
   open: boolean;
@@ -27,13 +27,13 @@ const EndConversationDialog = ({
   const handleEndConversation = async () => {
     try {
       const { error } = await supabase
-        .from("conversations")
-        .update({ status: "closed" })
-        .eq("id", conversationId);
+        .from('conversations')
+        .update({ status: 'closed' })
+        .eq('id', conversationId);
 
       if (error) throw error;
 
-      toast.success("A conversa foi encerrada com sucesso");
+      toast.success('A conversa foi encerrada com sucesso');
 
       // Agendar envio da pesquisa de satisfação
       try {
@@ -44,15 +44,18 @@ const EndConversationDialog = ({
 
         if (settings && settings.delay_minutes > 0) {
           // Usar setTimeout para enviar após delay configurado
-          setTimeout(async () => {
-            await supabase.functions.invoke('send-satisfaction-survey', {
-              body: { conversation_id: conversationId }
-            });
-          }, settings.delay_minutes * 60 * 1000);
+          setTimeout(
+            async () => {
+              await supabase.functions.invoke('send-satisfaction-survey', {
+                body: { conversation_id: conversationId },
+              });
+            },
+            settings.delay_minutes * 60 * 1000
+          );
         } else {
           // Enviar imediatamente
           await supabase.functions.invoke('send-satisfaction-survey', {
-            body: { conversation_id: conversationId }
+            body: { conversation_id: conversationId },
           });
         }
       } catch (error) {
@@ -62,8 +65,8 @@ const EndConversationDialog = ({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Erro ao encerrar conversa:", error);
-      toast.error("Não foi possível encerrar a conversa");
+      console.error('Erro ao encerrar conversa:', error);
+      toast.error('Não foi possível encerrar a conversa');
     }
   };
 
@@ -78,9 +81,7 @@ const EndConversationDialog = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleEndConversation}>
-            Encerrar
-          </AlertDialogAction>
+          <AlertDialogAction onClick={handleEndConversation}>Encerrar</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

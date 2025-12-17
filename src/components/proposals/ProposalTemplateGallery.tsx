@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { useProposalTemplates, ProposalTemplate } from "@/hooks/useProposalTemplates";
-import { Search, FileText, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { useProposalTemplates, ProposalTemplate } from '@/hooks/useProposalTemplates';
+import { Search, FileText, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ProposalTemplateGalleryProps {
   open: boolean;
@@ -19,13 +19,14 @@ export const ProposalTemplateGallery = ({
   onSelectTemplate,
 }: ProposalTemplateGalleryProps) => {
   const { templates, isLoading } = useProposalTemplates();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const categories = Array.from(new Set(templates.map(t => t.category).filter(Boolean)));
+  const categories = Array.from(new Set(templates.map((t) => t.category).filter(Boolean)));
 
-  const filteredTemplates = templates.filter(template => {
-    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredTemplates = templates.filter((template) => {
+    const matchesSearch =
+      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       template.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -59,7 +60,7 @@ export const ProposalTemplateGallery = ({
           {categories.length > 0 && (
             <div className="flex gap-2 flex-wrap">
               <Button
-                variant={selectedCategory === null ? "default" : "outline"}
+                variant={selectedCategory === null ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory(null)}
               >
@@ -68,7 +69,7 @@ export const ProposalTemplateGallery = ({
               {categories.map((category) => (
                 <Button
                   key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
+                  variant={selectedCategory === category ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedCategory(category || null)}
                 >
@@ -101,8 +102,8 @@ export const ProposalTemplateGallery = ({
                   key={template.id}
                   onClick={() => handleSelect(template)}
                   className={cn(
-                    "border rounded-lg p-4 text-left hover:border-primary transition-colors group relative",
-                    template.is_default && "border-primary/50"
+                    'border rounded-lg p-4 text-left hover:border-primary transition-colors group relative',
+                    template.is_default && 'border-primary/50'
                   )}
                 >
                   {/* Thumbnail */}
@@ -134,9 +135,7 @@ export const ProposalTemplateGallery = ({
                       </Badge>
                     )}
 
-                    <p className="text-xs text-muted-foreground">
-                      Usado {template.usage_count}x
-                    </p>
+                    <p className="text-xs text-muted-foreground">Usado {template.usage_count}x</p>
                   </div>
 
                   {/* Seções Preview */}
@@ -152,11 +151,7 @@ export const ProposalTemplateGallery = ({
 
           {/* Botão para começar em branco */}
           <div className="border-t pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="w-full"
-            >
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
               Começar em Branco
             </Button>
           </div>

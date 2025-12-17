@@ -1,7 +1,14 @@
 import { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 interface Props {
   children: ReactNode;
@@ -78,9 +85,7 @@ class ErrorBoundary extends Component<Props, State> {
                   </p>
                   {this.state.errorInfo && (
                     <details className="mt-2">
-                      <summary className="text-xs cursor-pointer">
-                        Ver stack trace
-                      </summary>
+                      <summary className="text-xs cursor-pointer">Ver stack trace</summary>
                       <pre className="text-xs mt-2 overflow-auto max-h-40">
                         {this.state.errorInfo.componentStack}
                       </pre>
@@ -94,11 +99,7 @@ class ErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Tentar Novamente
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
                 Recarregar Página
               </Button>
             </CardFooter>

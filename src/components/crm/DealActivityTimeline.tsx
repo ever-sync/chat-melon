@@ -1,10 +1,10 @@
-import { useDealActivities } from "@/hooks/crm/useDealActivities";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { useDealActivities } from '@/hooks/crm/useDealActivities';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface DealActivityTimelineProps {
   dealId: string;
@@ -22,31 +22,31 @@ export const DealActivityTimeline = ({ dealId }: DealActivityTimelineProps) => {
   } = useDealActivities(dealId);
 
   const getInitials = (name: string | null) => {
-    if (!name) return "??";
+    if (!name) return '??';
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
   const getActivityBgColor = (type: string): string => {
     const colors: Record<string, string> = {
-      created: "bg-green-100 dark:bg-green-900",
-      updated: "bg-blue-100 dark:bg-blue-900",
-      stage_change: "bg-purple-100 dark:bg-purple-900",
-      note_added: "bg-yellow-100 dark:bg-yellow-900",
-      task_created: "bg-orange-100 dark:bg-orange-900",
-      task_completed: "bg-green-100 dark:bg-green-900",
-      file_uploaded: "bg-blue-100 dark:bg-blue-900",
-      contact_linked: "bg-indigo-100 dark:bg-indigo-900",
-      email_sent: "bg-cyan-100 dark:bg-cyan-900",
-      call_made: "bg-pink-100 dark:bg-pink-900",
-      meeting_scheduled: "bg-teal-100 dark:bg-teal-900",
-      custom: "bg-gray-100 dark:bg-gray-900",
+      created: 'bg-green-100 dark:bg-green-900',
+      updated: 'bg-blue-100 dark:bg-blue-900',
+      stage_change: 'bg-purple-100 dark:bg-purple-900',
+      note_added: 'bg-yellow-100 dark:bg-yellow-900',
+      task_created: 'bg-orange-100 dark:bg-orange-900',
+      task_completed: 'bg-green-100 dark:bg-green-900',
+      file_uploaded: 'bg-blue-100 dark:bg-blue-900',
+      contact_linked: 'bg-indigo-100 dark:bg-indigo-900',
+      email_sent: 'bg-cyan-100 dark:bg-cyan-900',
+      call_made: 'bg-pink-100 dark:bg-pink-900',
+      meeting_scheduled: 'bg-teal-100 dark:bg-teal-900',
+      custom: 'bg-gray-100 dark:bg-gray-900',
     };
-    return colors[type] || "bg-gray-100 dark:bg-gray-900";
+    return colors[type] || 'bg-gray-100 dark:bg-gray-900';
   };
 
   if (isLoading) {
@@ -90,9 +90,7 @@ export const DealActivityTimeline = ({ dealId }: DealActivityTimelineProps) => {
           {/* Cabeçalho da data */}
           <div className="flex items-center gap-2">
             <div className="h-px bg-border flex-1" />
-            <span className="text-xs font-semibold text-muted-foreground px-2">
-              {date}
-            </span>
+            <span className="text-xs font-semibold text-muted-foreground px-2">{date}</span>
             <div className="h-px bg-border flex-1" />
           </div>
 
@@ -106,7 +104,7 @@ export const DealActivityTimeline = ({ dealId }: DealActivityTimelineProps) => {
                 {/* Ícone da atividade */}
                 <div
                   className={cn(
-                    "absolute -left-8 w-8 h-8 rounded-full flex items-center justify-center text-sm z-10",
+                    'absolute -left-8 w-8 h-8 rounded-full flex items-center justify-center text-sm z-10',
                     getActivityBgColor(activity.activity_type)
                   )}
                 >
@@ -119,7 +117,7 @@ export const DealActivityTimeline = ({ dealId }: DealActivityTimelineProps) => {
                     <div className="flex-1 min-w-0">
                       <p
                         className={cn(
-                          "text-sm font-medium",
+                          'text-sm font-medium',
                           getActivityColor(activity.activity_type)
                         )}
                       >
@@ -141,7 +139,7 @@ export const DealActivityTimeline = ({ dealId }: DealActivityTimelineProps) => {
 
                     {/* Hora */}
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {format(new Date(activity.created_at), "HH:mm", {
+                      {format(new Date(activity.created_at), 'HH:mm', {
                         locale: ptBR,
                       })}
                     </span>
@@ -151,9 +149,7 @@ export const DealActivityTimeline = ({ dealId }: DealActivityTimelineProps) => {
                   {activity.profile && (
                     <div className="flex items-center gap-2 mt-2 pt-2 border-t">
                       <Avatar className="h-5 w-5">
-                        <AvatarImage
-                          src={activity.profile.avatar_url || undefined}
-                        />
+                        <AvatarImage src={activity.profile.avatar_url || undefined} />
                         <AvatarFallback className="text-xs">
                           {getInitials(activity.profile.full_name)}
                         </AvatarFallback>

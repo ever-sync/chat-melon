@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Bell, Volume2, Moon, X, Save, Play } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Bell, Volume2, Moon, X, Save, Play } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type NotificationSettings = {
   volume: number;
@@ -30,7 +30,7 @@ const createBeepSound = (audioContext: AudioContext, volume: number): void => {
   gainNode.connect(audioContext.destination);
 
   oscillator.frequency.value = 880; // Frequência em Hz (nota A5)
-  oscillator.type = "sine";
+  oscillator.type = 'sine';
 
   gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
@@ -47,11 +47,11 @@ export const NotificationSettings = () => {
     badge_enabled: true,
     muted_contacts: [],
     do_not_disturb_enabled: false,
-    do_not_disturb_start: "22:00",
-    do_not_disturb_end: "08:00",
+    do_not_disturb_start: '22:00',
+    do_not_disturb_end: '08:00',
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [newMutedContact, setNewMutedContact] = useState("");
+  const [newMutedContact, setNewMutedContact] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -61,7 +61,7 @@ export const NotificationSettings = () => {
 
     try {
       if (!audioRef.current) {
-        audioRef.current = new Audio("/notification.mp3");
+        audioRef.current = new Audio('/notification.mp3');
       }
 
       audioRef.current.volume = volume;
@@ -69,9 +69,11 @@ export const NotificationSettings = () => {
       audioRef.current.play().catch(() => {
         // Se falhar, usar Web Audio API como fallback
         if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+          audioContextRef.current = new (
+            window.AudioContext || (window as any).webkitAudioContext
+          )();
         }
-        if (audioContextRef.current.state === "suspended") {
+        if (audioContextRef.current.state === 'suspended') {
           audioContextRef.current.resume();
         }
         createBeepSound(audioContextRef.current, volume);
@@ -81,7 +83,7 @@ export const NotificationSettings = () => {
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      if (audioContextRef.current.state === "suspended") {
+      if (audioContextRef.current.state === 'suspended') {
         audioContextRef.current.resume();
       }
       createBeepSound(audioContextRef.current, volume);
@@ -94,26 +96,28 @@ export const NotificationSettings = () => {
 
   const loadSettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: companyData } = await supabase
-        .from("company_users")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .eq("is_default", true)
+        .from('company_users')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
         .maybeSingle();
 
       if (!companyData) return;
 
       const { data, error } = await supabase
-        .from("notification_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("company_id", companyData.company_id)
+        .from('notification_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('company_id', companyData.company_id)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
         setSettings({
@@ -123,46 +127,49 @@ export const NotificationSettings = () => {
           badge_enabled: data.badge_enabled ?? true,
           muted_contacts: data.muted_contacts || [],
           do_not_disturb_enabled: data.do_not_disturb_enabled ?? false,
-          do_not_disturb_start: data.do_not_disturb_start || "22:00",
-          do_not_disturb_end: data.do_not_disturb_end || "08:00",
+          do_not_disturb_start: data.do_not_disturb_start || '22:00',
+          do_not_disturb_end: data.do_not_disturb_end || '08:00',
         });
       }
     } catch (error) {
-      console.error("Erro ao carregar configurações:", error);
+      console.error('Erro ao carregar configurações:', error);
     }
   };
 
   const saveSettings = async () => {
     setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
 
       const { data: companyData } = await supabase
-        .from("company_users")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .eq("is_default", true)
+        .from('company_users')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
         .maybeSingle();
 
-      if (!companyData) throw new Error("Empresa não encontrada");
+      if (!companyData) throw new Error('Empresa não encontrada');
 
-      const { error } = await supabase
-        .from("notification_settings")
-        .upsert({
+      const { error } = await supabase.from('notification_settings').upsert(
+        {
           user_id: user.id,
           company_id: companyData.company_id,
           ...settings,
-        }, {
-          onConflict: "user_id,company_id",
-        });
+        },
+        {
+          onConflict: 'user_id,company_id',
+        }
+      );
 
       if (error) throw error;
 
-      toast.success("Configurações salvas com sucesso");
+      toast.success('Configurações salvas com sucesso');
     } catch (error) {
-      console.error("Erro ao salvar configurações:", error);
-      toast.error("Erro ao salvar configurações");
+      console.error('Erro ao salvar configurações:', error);
+      toast.error('Erro ao salvar configurações');
     } finally {
       setIsSaving(false);
     }
@@ -171,14 +178,14 @@ export const NotificationSettings = () => {
   const addMutedContact = () => {
     if (!newMutedContact.trim()) return;
     if (settings.muted_contacts.includes(newMutedContact)) {
-      toast.error("Contato já está silenciado");
+      toast.error('Contato já está silenciado');
       return;
     }
     setSettings({
       ...settings,
       muted_contacts: [...settings.muted_contacts, newMutedContact],
     });
-    setNewMutedContact("");
+    setNewMutedContact('');
   };
 
   const removeMutedContact = (contact: string) => {
@@ -196,9 +203,7 @@ export const NotificationSettings = () => {
             <Bell className="h-5 w-5" />
             <CardTitle>Notificações Gerais</CardTitle>
           </div>
-          <CardDescription>
-            Configure como você deseja receber notificações
-          </CardDescription>
+          <CardDescription>Configure como você deseja receber notificações</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
@@ -211,25 +216,19 @@ export const NotificationSettings = () => {
             <Switch
               id="enabled"
               checked={settings.enabled}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, enabled: checked })
-              }
+              onCheckedChange={(checked) => setSettings({ ...settings, enabled: checked })}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="sound">Som de notificação</Label>
-              <p className="text-sm text-muted-foreground">
-                Tocar som quando receber notificações
-              </p>
+              <p className="text-sm text-muted-foreground">Tocar som quando receber notificações</p>
             </div>
             <Switch
               id="sound"
               checked={settings.sound_enabled}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, sound_enabled: checked })
-              }
+              onCheckedChange={(checked) => setSettings({ ...settings, sound_enabled: checked })}
               disabled={!settings.enabled}
             />
           </div>
@@ -255,9 +254,7 @@ export const NotificationSettings = () => {
                 </div>
                 <Slider
                   value={[settings.volume]}
-                  onValueChange={(value) =>
-                    setSettings({ ...settings, volume: value[0] })
-                  }
+                  onValueChange={(value) => setSettings({ ...settings, volume: value[0] })}
                   max={1}
                   step={0.1}
                   disabled={!settings.enabled || !settings.sound_enabled}
@@ -276,9 +273,7 @@ export const NotificationSettings = () => {
             <Switch
               id="badge"
               checked={settings.badge_enabled}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, badge_enabled: checked })
-              }
+              onCheckedChange={(checked) => setSettings({ ...settings, badge_enabled: checked })}
               disabled={!settings.enabled}
             />
           </div>
@@ -291,9 +286,7 @@ export const NotificationSettings = () => {
             <Moon className="h-5 w-5" />
             <CardTitle>Não Perturbe</CardTitle>
           </div>
-          <CardDescription>
-            Silencie notificações em horários específicos
-          </CardDescription>
+          <CardDescription>Silencie notificações em horários específicos</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -350,9 +343,7 @@ export const NotificationSettings = () => {
       <Card>
         <CardHeader>
           <CardTitle>Contatos Silenciados</CardTitle>
-          <CardDescription>
-            Contatos que não enviarão notificações
-          </CardDescription>
+          <CardDescription>Contatos que não enviarão notificações</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -361,7 +352,7 @@ export const NotificationSettings = () => {
               value={newMutedContact}
               onChange={(e) => setNewMutedContact(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === 'Enter') {
                   addMutedContact();
                 }
               }}
@@ -384,16 +375,14 @@ export const NotificationSettings = () => {
           )}
 
           {settings.muted_contacts.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Nenhum contato silenciado
-            </p>
+            <p className="text-sm text-muted-foreground">Nenhum contato silenciado</p>
           )}
         </CardContent>
       </Card>
 
       <Button onClick={saveSettings} disabled={isSaving} className="w-full">
         <Save className="h-4 w-4 mr-2" />
-        {isSaving ? "Salvando..." : "Salvar Configurações"}
+        {isSaving ? 'Salvando...' : 'Salvar Configurações'}
       </Button>
     </div>
   );

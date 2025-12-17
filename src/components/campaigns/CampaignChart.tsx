@@ -1,7 +1,16 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CampaignChartProps {
   campaignId: string;
@@ -48,7 +57,7 @@ export function CampaignChart({ campaignId }: CampaignChartProps) {
           event: 'UPDATE',
           schema: 'public',
           table: 'campaigns',
-          filter: `id=eq.${campaignId}`
+          filter: `id=eq.${campaignId}`,
         },
         () => {
           fetchData();
@@ -74,24 +83,24 @@ export function CampaignChart({ campaignId }: CampaignChartProps) {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="enviadas" 
-              stroke="hsl(var(--primary))" 
+            <Line
+              type="monotone"
+              dataKey="enviadas"
+              stroke="hsl(var(--primary))"
               strokeWidth={2}
               name="Enviadas"
             />
-            <Line 
-              type="monotone" 
-              dataKey="entregues" 
-              stroke="hsl(142, 76%, 36%)" 
+            <Line
+              type="monotone"
+              dataKey="entregues"
+              stroke="hsl(142, 76%, 36%)"
               strokeWidth={2}
               name="Entregues"
             />
-            <Line 
-              type="monotone" 
-              dataKey="lidas" 
-              stroke="hsl(221, 83%, 53%)" 
+            <Line
+              type="monotone"
+              dataKey="lidas"
+              stroke="hsl(221, 83%, 53%)"
               strokeWidth={2}
               name="Lidas"
             />

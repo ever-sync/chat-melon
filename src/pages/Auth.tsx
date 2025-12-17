@@ -1,25 +1,27 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/dashboard");
+        navigate('/dashboard');
       }
     });
 
@@ -40,9 +42,9 @@ const Auth = () => {
         password: formData.password,
       });
       if (error) throw error;
-      toast.success("Login realizado com sucesso!");
+      toast.success('Login realizado com sucesso!');
     } catch (error: any) {
-      toast.error(error.message || "Erro ao fazer login");
+      toast.error(error.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
     }
@@ -73,7 +75,9 @@ const Auth = () => {
             </h2>
             <div className="flex flex-col">
               <span className="font-semibold text-lg">Karen Yue</span>
-              <span className="text-white/80 text-sm">Director of Digital Marketing Technology</span>
+              <span className="text-white/80 text-sm">
+                Director of Digital Marketing Technology
+              </span>
             </div>
           </div>
         </div>
@@ -83,9 +87,7 @@ const Auth = () => {
           <div className="max-w-md mx-auto w-full">
             <div className="text-center mb-10">
               <h1 className="text-3xl font-bold text-slate-900 mb-3">Create your account</h1>
-              <p className="text-slate-500">
-                Join Nucleus UI and start designing with ease.
-              </p>
+              <p className="text-slate-500">Join Nucleus UI and start designing with ease.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -114,7 +116,7 @@ const Auth = () => {
                     <Input
                       id="password"
                       name="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="••••••••••••"
@@ -144,7 +146,7 @@ const Auth = () => {
                       Creating account...
                     </>
                   ) : (
-                    "Create account"
+                    'Create account'
                   )}
                 </Button>
               </div>

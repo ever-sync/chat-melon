@@ -11,14 +11,16 @@ export function useContactProfile(contactId: string, phone: string, companyId: s
 
       setIsLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session) return;
 
         const { data, error } = await supabase.functions.invoke('evolution-fetch-contact-profile', {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: { contactId, phone, companyId }
+          body: { contactId, phone, companyId },
         });
 
         if (data?.profilePictureUrl) {

@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -103,7 +109,14 @@ export const NodeEditor = memo(function NodeEditor({
             )}
 
             <ButtonsEditor
-              buttons={(localData.buttons as { id: string; label: string; action: string; value: string }[]) || []}
+              buttons={
+                (localData.buttons as {
+                  id: string;
+                  label: string;
+                  action: string;
+                  value: string;
+                }[]) || []
+              }
               onChange={(buttons) => handleChange('buttons', buttons)}
             />
           </div>
@@ -199,7 +212,14 @@ export const NodeEditor = memo(function NodeEditor({
             </div>
 
             <MenuOptionsEditor
-              options={(localData.options as { id: string; label: string; value: string; emoji?: string }[]) || []}
+              options={
+                (localData.options as {
+                  id: string;
+                  label: string;
+                  value: string;
+                  emoji?: string;
+                }[]) || []
+              }
               onChange={(options) => handleChange('options', options)}
             />
 
@@ -229,7 +249,14 @@ export const NodeEditor = memo(function NodeEditor({
         return (
           <div className="space-y-4">
             <ConditionsEditor
-              conditions={(localData.conditions as { id: string; variable: string; operator: string; value: string }[]) || []}
+              conditions={
+                (localData.conditions as {
+                  id: string;
+                  variable: string;
+                  operator: string;
+                  value: string;
+                }[]) || []
+              }
               onChange={(conditions) => handleChange('conditions', conditions)}
             />
           </div>
@@ -473,9 +500,7 @@ export const NodeEditor = memo(function NodeEditor({
                 value={(localData.value as string) || ''}
                 onChange={(e) => handleChange('value', e.target.value)}
                 placeholder={
-                  localData.valueType === 'expression'
-                    ? '{{nome}} + " " + {{sobrenome}}'
-                    : 'valor'
+                  localData.valueType === 'expression' ? '{{nome}} + " " + {{sobrenome}}' : 'valor'
                 }
               />
             </div>
@@ -521,10 +546,7 @@ export const NodeEditor = memo(function NodeEditor({
     <div className="w-80 border-l bg-background">
       <div className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-2">
-          <div
-            className="h-3 w-3 rounded-full"
-            style={{ backgroundColor: nodeInfo.color }}
-          />
+          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: nodeInfo.color }} />
           <span className="font-medium">{nodeInfo.label}</span>
         </div>
         <div className="flex gap-1">
@@ -561,10 +583,7 @@ function ButtonsEditor({
   onChange: (buttons: { id: string; label: string; action: string; value: string }[]) => void;
 }) {
   const addButton = () => {
-    onChange([
-      ...buttons,
-      { id: crypto.randomUUID(), label: '', action: 'next_node', value: '' },
-    ]);
+    onChange([...buttons, { id: crypto.randomUUID(), label: '', action: 'next_node', value: '' }]);
   };
 
   const updateButton = (index: number, field: string, value: string) => {
@@ -596,11 +615,7 @@ function ButtonsEditor({
             placeholder="Texto do botão"
             className="flex-1"
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => removeButton(index)}
-          >
+          <Button variant="ghost" size="icon" onClick={() => removeButton(index)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -658,11 +673,7 @@ function MenuOptionsEditor({
               placeholder="Texto da opção"
               className="flex-1"
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => removeOption(index)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => removeOption(index)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -683,7 +694,9 @@ function ConditionsEditor({
   onChange,
 }: {
   conditions: { id: string; variable: string; operator: string; value: string }[];
-  onChange: (conditions: { id: string; variable: string; operator: string; value: string }[]) => void;
+  onChange: (
+    conditions: { id: string; variable: string; operator: string; value: string }[]
+  ) => void;
 }) {
   const addCondition = () => {
     onChange([
@@ -722,11 +735,7 @@ function ConditionsEditor({
               placeholder="variavel"
               className="flex-1"
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => removeCondition(index)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => removeCondition(index)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

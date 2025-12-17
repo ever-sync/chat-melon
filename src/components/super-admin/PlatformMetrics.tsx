@@ -1,21 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Building2, Users, MessageSquare, TrendingUp } from "lucide-react";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card } from '@/components/ui/card';
+import { Building2, Users, MessageSquare, TrendingUp } from 'lucide-react';
 
 export function PlatformMetrics() {
   const { data: metrics, isLoading } = useQuery({
-    queryKey: ["platform-metrics"],
+    queryKey: ['platform-metrics'],
     queryFn: async () => {
       const [companiesRes, usersRes, conversationsRes, dealsRes] = await Promise.all([
-        supabase.from("companies").select("id", { count: "exact", head: true }),
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
-        supabase.from("conversations").select("id", { count: "exact", head: true }),
-        supabase.from("deals").select("id, value, status"),
+        supabase.from('companies').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('conversations').select('id', { count: 'exact', head: true }),
+        supabase.from('deals').select('id, value, status'),
       ]);
 
       const totalRevenue = (dealsRes.data || [])
-        .filter((d) => d.status === "won")
+        .filter((d) => d.status === 'won')
         .reduce((sum, d) => sum + (d.value || 0), 0);
 
       return {
@@ -33,28 +33,28 @@ export function PlatformMetrics() {
 
   const cards = [
     {
-      title: "Total de Empresas",
+      title: 'Total de Empresas',
       value: metrics?.totalCompanies || 0,
       icon: Building2,
-      color: "text-blue-500",
+      color: 'text-blue-500',
     },
     {
-      title: "Total de Usuários",
+      title: 'Total de Usuários',
       value: metrics?.totalUsers || 0,
       icon: Users,
-      color: "text-green-500",
+      color: 'text-green-500',
     },
     {
-      title: "Total de Conversas",
+      title: 'Total de Conversas',
       value: metrics?.totalConversations || 0,
       icon: MessageSquare,
-      color: "text-purple-500",
+      color: 'text-purple-500',
     },
     {
-      title: "Receita Total",
+      title: 'Receita Total',
       value: `R$ ${((metrics?.totalRevenue || 0) / 1000).toFixed(1)}k`,
       icon: TrendingUp,
-      color: "text-emerald-500",
+      color: 'text-emerald-500',
     },
   ];
 

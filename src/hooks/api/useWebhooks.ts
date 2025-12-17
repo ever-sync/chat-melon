@@ -64,7 +64,7 @@ function generateWebhookSecret(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   return Array.from(array)
-    .map(b => b.toString(16).padStart(2, '0'))
+    .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 }
 
@@ -131,12 +131,20 @@ export const useWebhooks = () => {
       updates,
     }: {
       id: string;
-      updates: Partial<Pick<WebhookEndpoint, 'name' | 'url' | 'events' | 'enabled' | 'custom_headers' | 'retry_count' | 'retry_delay_seconds'>>;
+      updates: Partial<
+        Pick<
+          WebhookEndpoint,
+          | 'name'
+          | 'url'
+          | 'events'
+          | 'enabled'
+          | 'custom_headers'
+          | 'retry_count'
+          | 'retry_delay_seconds'
+        >
+      >;
     }) => {
-      const { error } = await supabase
-        .from('webhook_endpoints')
-        .update(updates)
-        .eq('id', id);
+      const { error } = await supabase.from('webhook_endpoints').update(updates).eq('id', id);
 
       if (error) throw error;
     },
@@ -151,10 +159,7 @@ export const useWebhooks = () => {
 
   const deleteWebhook = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('webhook_endpoints')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('webhook_endpoints').delete().eq('id', id);
 
       if (error) throw error;
     },

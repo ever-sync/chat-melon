@@ -1,43 +1,36 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Plus, Search, AlertCircle } from "lucide-react";
-import { TaskCard } from "./TaskCard";
-import { TaskModal } from "./TaskModal";
-import { useTasks } from "@/hooks/crm/useTasks";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { TablesInsert } from "@/integrations/supabase/types";
+} from '@/components/ui/select';
+import { Plus, Search, AlertCircle } from 'lucide-react';
+import { TaskCard } from './TaskCard';
+import { TaskModal } from './TaskModal';
+import { useTasks } from '@/hooks/crm/useTasks';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 export const TaskList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>();
   const [filters, setFilters] = useState({
-    status: "all",
-    priority: "all",
-    search: "",
+    status: 'all',
+    priority: 'all',
+    search: '',
   });
 
-  const {
-    tasks,
-    overdueTasks,
-    isLoading,
-    createTask,
-    updateTask,
-    completeTask,
-    deleteTask,
-  } = useTasks({
-    status: filters.status === "all" ? undefined : filters.status || undefined,
-    priority: filters.priority === "all" ? undefined : filters.priority || undefined,
-  });
+  const { tasks, overdueTasks, isLoading, createTask, updateTask, completeTask, deleteTask } =
+    useTasks({
+      status: filters.status === 'all' ? undefined : filters.status || undefined,
+      priority: filters.priority === 'all' ? undefined : filters.priority || undefined,
+    });
 
   const filteredTasks = tasks.filter((task) => {
     if (!filters.search) return true;
@@ -49,10 +42,10 @@ export const TaskList = () => {
     );
   });
 
-  const pendingTasks = filteredTasks.filter((t) => t.status === "pending");
-  const completedTasks = filteredTasks.filter((t) => t.status === "completed");
+  const pendingTasks = filteredTasks.filter((t) => t.status === 'pending');
+  const completedTasks = filteredTasks.filter((t) => t.status === 'completed');
 
-  const handleSubmit = async (data: TablesInsert<"tasks">) => {
+  const handleSubmit = async (data: TablesInsert<'tasks'>) => {
     if (editingTask) {
       return await updateTask.mutateAsync({ id: editingTask.id, ...data });
     } else {
@@ -77,8 +70,8 @@ export const TaskList = () => {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Você tem {overdueTasks.length} tarefa{overdueTasks.length > 1 ? "s" : ""}{" "}
-              atrasada{overdueTasks.length > 1 ? "s" : ""}!
+              Você tem {overdueTasks.length} tarefa{overdueTasks.length > 1 ? 's' : ''} atrasada
+              {overdueTasks.length > 1 ? 's' : ''}!
             </AlertDescription>
           </Alert>
         )}
@@ -87,7 +80,12 @@ export const TaskList = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Tarefas</CardTitle>
-              <Button onClick={() => { setEditingTask(undefined); setModalOpen(true); }}>
+              <Button
+                onClick={() => {
+                  setEditingTask(undefined);
+                  setModalOpen(true);
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Tarefa
               </Button>
@@ -100,18 +98,14 @@ export const TaskList = () => {
                 <Input
                   placeholder="Buscar tarefas..."
                   value={filters.search}
-                  onChange={(e) =>
-                    setFilters({ ...filters, search: e.target.value })
-                  }
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="pl-9"
                 />
               </div>
 
               <Select
                 value={filters.status}
-                onValueChange={(value) =>
-                  setFilters({ ...filters, status: value })
-                }
+                onValueChange={(value) => setFilters({ ...filters, status: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os status" />
@@ -126,9 +120,7 @@ export const TaskList = () => {
 
               <Select
                 value={filters.priority}
-                onValueChange={(value) =>
-                  setFilters({ ...filters, priority: value })
-                }
+                onValueChange={(value) => setFilters({ ...filters, priority: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as prioridades" />
@@ -159,7 +151,7 @@ export const TaskList = () => {
                         setModalOpen(true);
                       }}
                       onDelete={() => {
-                        if (confirm("Deseja realmente excluir esta tarefa?")) {
+                        if (confirm('Deseja realmente excluir esta tarefa?')) {
                           deleteTask.mutate(task.id);
                         }
                       }}
@@ -183,7 +175,7 @@ export const TaskList = () => {
                         setModalOpen(true);
                       }}
                       onDelete={() => {
-                        if (confirm("Deseja realmente excluir esta tarefa?")) {
+                        if (confirm('Deseja realmente excluir esta tarefa?')) {
                           deleteTask.mutate(task.id);
                         }
                       }}
@@ -194,9 +186,7 @@ export const TaskList = () => {
 
               {filteredTasks.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">
-                    Nenhuma tarefa encontrada
-                  </p>
+                  <p className="text-muted-foreground">Nenhuma tarefa encontrada</p>
                 </div>
               )}
             </div>

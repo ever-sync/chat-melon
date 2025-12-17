@@ -1,9 +1,15 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle2, Copy } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, CheckCircle2, Copy } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface EvolutionQRCodeModalProps {
   isOpen: boolean;
@@ -12,11 +18,11 @@ interface EvolutionQRCodeModalProps {
   initialQrCode?: string | null;
 }
 
-export const EvolutionQRCodeModal = ({ 
-  isOpen, 
-  onClose, 
+export const EvolutionQRCodeModal = ({
+  isOpen,
+  onClose,
   companyId,
-  initialQrCode 
+  initialQrCode,
 }: EvolutionQRCodeModalProps) => {
   const [qrCode, setQrCode] = useState<string | null>(initialQrCode || null);
   const [loading, setLoading] = useState(false);
@@ -50,8 +56,10 @@ export const EvolutionQRCodeModal = ({
   const refreshQRCode = async () => {
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       const response = await supabase.functions.invoke('evolution-instance-manager', {
         body: {
           action: 'get-qrcode',
@@ -63,7 +71,7 @@ export const EvolutionQRCodeModal = ({
       });
 
       if (response.error) throw response.error;
-      
+
       if (response.data?.qrCode) {
         setQrCode(response.data.qrCode);
         setTimeLeft(60);
@@ -80,8 +88,10 @@ export const EvolutionQRCodeModal = ({
   const checkConnectionStatus = async () => {
     try {
       setChecking(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       const response = await supabase.functions.invoke('evolution-instance-manager', {
         body: {
           action: 'check-status',
@@ -93,7 +103,7 @@ export const EvolutionQRCodeModal = ({
       });
 
       if (response.error) throw response.error;
-      
+
       if (response.data?.isConnected) {
         setIsConnected(true);
         toast.success('WhatsApp conectado com sucesso!');
@@ -135,11 +145,7 @@ export const EvolutionQRCodeModal = ({
             <>
               <div className="flex items-center justify-center bg-card p-4 rounded-lg border">
                 {qrCode ? (
-                  <img 
-                    src={qrCode} 
-                    alt="QR Code" 
-                    className="w-64 h-64 object-contain"
-                  />
+                  <img src={qrCode} alt="QR Code" className="w-64 h-64 object-contain" />
                 ) : (
                   <div className="w-64 h-64 flex items-center justify-center text-muted-foreground">
                     <p>Carregando QR Code...</p>
@@ -153,9 +159,7 @@ export const EvolutionQRCodeModal = ({
                     Expira em: <span className="font-semibold">{timeLeft}s</span>
                   </span>
                   {checking && (
-                    <span className="text-xs text-muted-foreground">
-                      Verificando conexão...
-                    </span>
+                    <span className="text-xs text-muted-foreground">Verificando conexão...</span>
                   )}
                 </div>
 
@@ -177,11 +181,7 @@ export const EvolutionQRCodeModal = ({
                   <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                   Atualizar QR
                 </Button>
-                <Button
-                  onClick={copyQRCode}
-                  variant="outline"
-                  size="icon"
-                >
+                <Button onClick={copyQRCode} variant="outline" size="icon">
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>

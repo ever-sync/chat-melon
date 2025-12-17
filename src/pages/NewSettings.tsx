@@ -1,35 +1,35 @@
-import { MainLayout } from "@/components/MainLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCompany } from "@/contexts/CompanyContext";
-import { EvolutionInstanceManager } from "@/components/evolution/EvolutionInstanceManager";
-import { InstancesList } from "@/components/settings/InstancesList";
-import { CompanyProfileSettings } from "@/components/settings/CompanyProfileSettings";
-import { PrivacySettings } from "@/components/settings/PrivacySettings";
-import { BlockedContactsManager } from "@/components/settings/BlockedContactsManager";
-import { NotificationSettings } from "@/components/notifications/NotificationSettings";
-import { CustomFieldsManager } from "@/components/settings/CustomFieldsManager";
-import { SatisfactionSettings } from "@/components/settings/SatisfactionSettings";
-import { ScoringRulesManager } from "@/components/settings/ScoringRulesManager";
-import { InstanceHealthDashboard } from "@/components/settings/InstanceHealthDashboard";
-import { InstanceSettingsForm } from "@/components/settings/InstanceSettingsForm";
-import { GoogleCalendarSettings } from "@/components/settings/GoogleCalendarSettings";
-import { EmailSettings } from "@/components/settings/EmailSettings";
-import { PWASettings } from "@/components/pwa/PWASettings";
-import { TranscriptionSettings } from "@/components/settings/TranscriptionSettings";
-import { WidgetSettings } from "@/components/settings/WidgetSettings";
-import { ApiKeyManager } from "@/components/settings/ApiKeyManager";
-import { WebhookManager } from "@/components/settings/WebhookManager";
-import { ChannelsSettings } from "@/components/settings/ChannelsSettings";
-import UsersPage from "@/pages/settings/UsersPage";
-import AISettingsPage from "@/pages/settings/AISettingsPage";
+import { MainLayout } from '@/components/MainLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCompany } from '@/contexts/CompanyContext';
+import { EvolutionInstanceManager } from '@/components/evolution/EvolutionInstanceManager';
+import { InstancesList } from '@/components/settings/InstancesList';
+import { CompanyProfileSettings } from '@/components/settings/CompanyProfileSettings';
+import { PrivacySettings } from '@/components/settings/PrivacySettings';
+import { BlockedContactsManager } from '@/components/settings/BlockedContactsManager';
+import { NotificationSettings } from '@/components/notifications/NotificationSettings';
+import { CustomFieldsManager } from '@/components/settings/CustomFieldsManager';
+import { SatisfactionSettings } from '@/components/settings/SatisfactionSettings';
+import { ScoringRulesManager } from '@/components/settings/ScoringRulesManager';
+import { InstanceHealthDashboard } from '@/components/settings/InstanceHealthDashboard';
+import { InstanceSettingsForm } from '@/components/settings/InstanceSettingsForm';
+import { GoogleCalendarSettings } from '@/components/settings/GoogleCalendarSettings';
+import { EmailSettings } from '@/components/settings/EmailSettings';
+import { PWASettings } from '@/components/pwa/PWASettings';
+import { TranscriptionSettings } from '@/components/settings/TranscriptionSettings';
+import { WidgetSettings } from '@/components/settings/WidgetSettings';
+import { ApiKeyManager } from '@/components/settings/ApiKeyManager';
+import { WebhookManager } from '@/components/settings/WebhookManager';
+import { ChannelsSettings } from '@/components/settings/ChannelsSettings';
+import UsersPage from '@/pages/settings/UsersPage';
+import AISettingsPage from '@/pages/settings/AISettingsPage';
 import {
   Settings,
   User,
@@ -53,8 +53,8 @@ import {
   Key,
   Webhook,
   Package,
-  Sparkles
-} from "lucide-react";
+  Sparkles,
+} from 'lucide-react';
 
 export default function NewSettings() {
   const { currentCompany } = useCompany();
@@ -74,7 +74,9 @@ export default function NewSettings() {
   }, [currentCompany]);
 
   const fetchData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const currentCompanyId = currentCompany?.id || null;
@@ -98,18 +100,17 @@ export default function NewSettings() {
 
   const handleSaveProfile = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(profile)
-      .eq('id', user.id);
+    const { error } = await supabase.from('profiles').update(profile).eq('id', user.id);
 
     if (error) {
-      toast.error("Erro ao salvar perfil");
+      toast.error('Erro ao salvar perfil');
     } else {
-      toast.success("Perfil atualizado com sucesso");
+      toast.success('Perfil atualizado com sucesso');
     }
     setLoading(false);
   };
@@ -374,7 +375,9 @@ export default function NewSettings() {
                 <CardContent className="p-8 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="first_name" className="text-sm font-semibold">Primeiro Nome</Label>
+                      <Label htmlFor="first_name" className="text-sm font-semibold">
+                        Primeiro Nome
+                      </Label>
                       <Input
                         id="first_name"
                         placeholder="João"
@@ -384,7 +387,9 @@ export default function NewSettings() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last_name" className="text-sm font-semibold">Sobrenome</Label>
+                      <Label htmlFor="last_name" className="text-sm font-semibold">
+                        Sobrenome
+                      </Label>
                       <Input
                         id="last_name"
                         placeholder="Silva"
@@ -396,7 +401,9 @@ export default function NewSettings() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="nickname" className="text-sm font-semibold">Apelido</Label>
+                    <Label htmlFor="nickname" className="text-sm font-semibold">
+                      Apelido
+                    </Label>
                     <Input
                       id="nickname"
                       placeholder="Como você quer ser chamado no sistema"
@@ -410,7 +417,9 @@ export default function NewSettings() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-semibold">Nome Completo</Label>
+                    <Label htmlFor="name" className="text-sm font-semibold">
+                      Nome Completo
+                    </Label>
                     <Input
                       id="name"
                       placeholder="João da Silva"
@@ -424,7 +433,9 @@ export default function NewSettings() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
+                      <Label htmlFor="email" className="text-sm font-semibold">
+                        Email
+                      </Label>
                       <Input
                         id="email"
                         type="email"
@@ -435,7 +446,9 @@ export default function NewSettings() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-sm font-semibold">Telefone</Label>
+                      <Label htmlFor="phone" className="text-sm font-semibold">
+                        Telefone
+                      </Label>
                       <Input
                         id="phone"
                         placeholder="(11) 99999-9999"
@@ -454,7 +467,7 @@ export default function NewSettings() {
                       disabled={loading}
                       className="rounded-xl h-11 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105"
                     >
-                      {loading ? "Salvando..." : "Salvar Alterações"}
+                      {loading ? 'Salvando...' : 'Salvar Alterações'}
                     </Button>
                   </div>
                 </CardContent>

@@ -4,19 +4,44 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCompany } from '@/contexts/CompanyContext';
 import { Database } from '@/integrations/supabase/types';
 
-export type Permission = 
-  | 'chat.view_all' | 'chat.view_team' | 'chat.view_own' 
-  | 'chat.send_messages' | 'chat.transfer' | 'chat.take_over' 
-  | 'chat.close' | 'chat.delete_messages'
-  | 'contacts.view_all' | 'contacts.view_own' | 'contacts.create'
-  | 'contacts.edit_all' | 'contacts.edit_own' | 'contacts.delete'
-  | 'deals.view_all' | 'deals.view_own' | 'deals.create'
-  | 'deals.edit_all' | 'deals.edit_own' | 'deals.delete' | 'deals.move_stage'
-  | 'campaigns.view' | 'campaigns.create' | 'campaigns.edit'
-  | 'campaigns.execute' | 'campaigns.delete'
-  | 'reports.view_all' | 'reports.view_team' | 'reports.view_own' | 'reports.export'
-  | 'settings.company' | 'settings.users' | 'settings.queues'
-  | 'settings.labels' | 'settings.pipelines' | 'settings.integrations' | 'settings.audit_logs';
+export type Permission =
+  | 'chat.view_all'
+  | 'chat.view_team'
+  | 'chat.view_own'
+  | 'chat.send_messages'
+  | 'chat.transfer'
+  | 'chat.take_over'
+  | 'chat.close'
+  | 'chat.delete_messages'
+  | 'contacts.view_all'
+  | 'contacts.view_own'
+  | 'contacts.create'
+  | 'contacts.edit_all'
+  | 'contacts.edit_own'
+  | 'contacts.delete'
+  | 'deals.view_all'
+  | 'deals.view_own'
+  | 'deals.create'
+  | 'deals.edit_all'
+  | 'deals.edit_own'
+  | 'deals.delete'
+  | 'deals.move_stage'
+  | 'campaigns.view'
+  | 'campaigns.create'
+  | 'campaigns.edit'
+  | 'campaigns.execute'
+  | 'campaigns.delete'
+  | 'reports.view_all'
+  | 'reports.view_team'
+  | 'reports.view_own'
+  | 'reports.export'
+  | 'settings.company'
+  | 'settings.users'
+  | 'settings.queues'
+  | 'settings.labels'
+  | 'settings.pipelines'
+  | 'settings.integrations'
+  | 'settings.audit_logs';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -170,7 +195,7 @@ export function usePermissions(): UsePermissionsReturn {
 
       if (userRole) {
         const role = userRole.role as AppRole;
-        
+
         setMember({
           id: user.id,
           role,
@@ -191,30 +216,45 @@ export function usePermissions(): UsePermissionsReturn {
     fetchPermissions();
   }, [fetchPermissions]);
 
-  const can = useCallback((permission: Permission): boolean => {
-    return permissions[permission] === true;
-  }, [permissions]);
+  const can = useCallback(
+    (permission: Permission): boolean => {
+      return permissions[permission] === true;
+    },
+    [permissions]
+  );
 
-  const canAny = useCallback((perms: Permission[]): boolean => {
-    return perms.some(p => permissions[p] === true);
-  }, [permissions]);
+  const canAny = useCallback(
+    (perms: Permission[]): boolean => {
+      return perms.some((p) => permissions[p] === true);
+    },
+    [permissions]
+  );
 
-  const canAll = useCallback((perms: Permission[]): boolean => {
-    return perms.every(p => permissions[p] === true);
-  }, [permissions]);
+  const canAll = useCallback(
+    (perms: Permission[]): boolean => {
+      return perms.every((p) => permissions[p] === true);
+    },
+    [permissions]
+  );
 
-  const isRole = useCallback((roles: AppRole | AppRole[]): boolean => {
-    if (!member?.role) return false;
-    const roleArray = Array.isArray(roles) ? roles : [roles];
-    return roleArray.includes(member.role);
-  }, [member?.role]);
+  const isRole = useCallback(
+    (roles: AppRole | AppRole[]): boolean => {
+      if (!member?.role) return false;
+      const roleArray = Array.isArray(roles) ? roles : [roles];
+      return roleArray.includes(member.role);
+    },
+    [member?.role]
+  );
 
-  const isAtLeast = useCallback((role: UserRole): boolean => {
-    if (!member?.role) return false;
-    const memberLevel = ROLE_LEVELS[member.role] || 0;
-    const requiredLevel = ROLE_LEVELS[role] || 0;
-    return memberLevel >= requiredLevel;
-  }, [member?.role]);
+  const isAtLeast = useCallback(
+    (role: UserRole): boolean => {
+      if (!member?.role) return false;
+      const memberLevel = ROLE_LEVELS[member.role] || 0;
+      const requiredLevel = ROLE_LEVELS[role] || 0;
+      return memberLevel >= requiredLevel;
+    },
+    [member?.role]
+  );
 
   return {
     permissions,

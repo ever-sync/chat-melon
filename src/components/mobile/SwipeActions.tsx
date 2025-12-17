@@ -1,6 +1,6 @@
-import { useState, useRef, ReactNode } from "react";
-import { Trash2, Archive, Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, useRef, ReactNode } from 'react';
+import { Trash2, Archive, Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface SwipeAction {
   icon: React.ElementType;
@@ -15,11 +15,7 @@ interface SwipeActionsProps {
   threshold?: number;
 }
 
-export const SwipeActions = ({ 
-  children, 
-  actions, 
-  threshold = 80 
-}: SwipeActionsProps) => {
+export const SwipeActions = ({ children, actions, threshold = 80 }: SwipeActionsProps) => {
   const [swipeDistance, setSwipeDistance] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
   const startX = useRef(0);
@@ -67,11 +63,11 @@ export const SwipeActions = ({
               key={index}
               onClick={() => handleActionClick(action)}
               className={cn(
-                "w-20 flex flex-col items-center justify-center gap-1 text-white",
+                'w-20 flex flex-col items-center justify-center gap-1 text-white',
                 action.color
               )}
               style={{
-                transform: `translateX(${Math.max(0, (actions.length * 80) - swipeDistance)}px)`,
+                transform: `translateX(${Math.max(0, actions.length * 80 - swipeDistance)}px)`,
                 transition: isRevealed ? 'transform 0.3s ease' : 'none',
               }}
             >

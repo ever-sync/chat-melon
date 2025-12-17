@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useQueues } from "@/hooks/useQueues";
+import { useState, useEffect } from 'react';
+import { useQueues } from '@/hooks/useQueues';
 import {
   Dialog,
   DialogContent,
@@ -7,20 +7,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface QueueModalProps {
   open: boolean;
@@ -29,23 +29,23 @@ interface QueueModalProps {
 }
 
 const COLORS = [
-  "#EF4444", // red
-  "#F59E0B", // amber
-  "#10B981", // green
-  "#3B82F6", // blue
-  "#8B5CF6", // purple
-  "#EC4899", // pink
-  "#6B7280", // gray
+  '#EF4444', // red
+  '#F59E0B', // amber
+  '#10B981', // green
+  '#3B82F6', // blue
+  '#8B5CF6', // purple
+  '#EC4899', // pink
+  '#6B7280', // gray
 ];
 
 const DAYS = [
-  { key: "monday", label: "Segunda" },
-  { key: "tuesday", label: "Terça" },
-  { key: "wednesday", label: "Quarta" },
-  { key: "thursday", label: "Quinta" },
-  { key: "friday", label: "Sexta" },
-  { key: "saturday", label: "Sábado" },
-  { key: "sunday", label: "Domingo" },
+  { key: 'monday', label: 'Segunda' },
+  { key: 'tuesday', label: 'Terça' },
+  { key: 'wednesday', label: 'Quarta' },
+  { key: 'thursday', label: 'Quinta' },
+  { key: 'friday', label: 'Sexta' },
+  { key: 'saturday', label: 'Sábado' },
+  { key: 'sunday', label: 'Domingo' },
 ];
 
 export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
@@ -62,24 +62,27 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
     is_active: boolean;
     working_hours: Record<string, { enabled: boolean; start: string; end: string }>;
   }>({
-    name: "",
-    description: "",
-    color: "#3B82F6",
+    name: '',
+    description: '',
+    color: '#3B82F6',
     max_conversations_per_agent: 5,
     auto_assign: true,
-    assignment_method: "round_robin",
+    assignment_method: 'round_robin',
     is_active: true,
-    working_hours: DAYS.reduce((acc, day) => ({
-      ...acc,
-      [day.key]: { enabled: true, start: "08:00", end: "18:00" },
-    }), {} as Record<string, { enabled: boolean; start: string; end: string }>),
+    working_hours: DAYS.reduce(
+      (acc, day) => ({
+        ...acc,
+        [day.key]: { enabled: true, start: '08:00', end: '18:00' },
+      }),
+      {} as Record<string, { enabled: boolean; start: string; end: string }>
+    ),
   });
 
   useEffect(() => {
     if (queue) {
       setFormData({
         name: queue.name,
-        description: queue.description || "",
+        description: queue.description || '',
         color: queue.color,
         max_conversations_per_agent: queue.max_conversations_per_agent,
         auto_assign: queue.auto_assign,
@@ -102,7 +105,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
       }
       onClose();
     } catch (error) {
-      console.error("Error saving queue:", error);
+      console.error('Error saving queue:', error);
     } finally {
       setLoading(false);
     }
@@ -125,9 +128,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {queue ? "Editar Fila" : "Nova Fila"}
-          </DialogTitle>
+          <DialogTitle>{queue ? 'Editar Fila' : 'Nova Fila'}</DialogTitle>
           <DialogDescription>
             Configure as propriedades e horários de funcionamento da fila
           </DialogDescription>
@@ -146,9 +147,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ex: Suporte, Vendas, Financeiro"
                   required
                 />
@@ -159,9 +158,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Descreva o propósito desta fila"
                   rows={3}
                 />
@@ -176,8 +173,8 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                       type="button"
                       className={`h-8 w-8 rounded-full border-2 transition-all ${
                         formData.color === color
-                          ? "border-foreground scale-110"
-                          : "border-transparent"
+                          ? 'border-foreground scale-110'
+                          : 'border-transparent'
                       }`}
                       style={{ backgroundColor: color }}
                       onClick={() => setFormData({ ...formData, color })}
@@ -187,9 +184,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="max_conversations">
-                  Máximo de Conversas por Agente
-                </Label>
+                <Label htmlFor="max_conversations">Máximo de Conversas por Agente</Label>
                 <Input
                   id="max_conversations"
                   type="number"
@@ -209,20 +204,14 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                 <Label htmlFor="assignment_method">Método de Distribuição</Label>
                 <Select
                   value={formData.assignment_method}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, assignment_method: value })
-                  }
+                  onValueChange={(value) => setFormData({ ...formData, assignment_method: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="round_robin">
-                      Rodízio (Round Robin)
-                    </SelectItem>
-                    <SelectItem value="least_busy">
-                      Menos Ocupado
-                    </SelectItem>
+                    <SelectItem value="round_robin">Rodízio (Round Robin)</SelectItem>
+                    <SelectItem value="least_busy">Menos Ocupado</SelectItem>
                     <SelectItem value="random">Aleatório</SelectItem>
                   </SelectContent>
                 </Select>
@@ -233,9 +222,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                 <Switch
                   id="auto_assign"
                   checked={formData.auto_assign}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, auto_assign: checked })
-                  }
+                  onCheckedChange={(checked) => setFormData({ ...formData, auto_assign: checked })}
                 />
               </div>
 
@@ -244,9 +231,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                 <Switch
                   id="is_active"
                   checked={formData.is_active}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, is_active: checked })
-                  }
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                 />
               </div>
             </TabsContent>
@@ -265,7 +250,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                       <Switch
                         checked={hours.enabled}
                         onCheckedChange={(checked) =>
-                          handleWorkingHoursChange(day.key, "enabled", checked)
+                          handleWorkingHoursChange(day.key, 'enabled', checked)
                         }
                       />
                     </div>
@@ -277,11 +262,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                             type="time"
                             value={hours.start}
                             onChange={(e) =>
-                              handleWorkingHoursChange(
-                                day.key,
-                                "start",
-                                e.target.value
-                              )
+                              handleWorkingHoursChange(day.key, 'start', e.target.value)
                             }
                           />
                         </div>
@@ -291,11 +272,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
                             type="time"
                             value={hours.end}
                             onChange={(e) =>
-                              handleWorkingHoursChange(
-                                day.key,
-                                "end",
-                                e.target.value
-                              )
+                              handleWorkingHoursChange(day.key, 'end', e.target.value)
                             }
                           />
                         </div>
@@ -312,7 +289,7 @@ export const QueueModal = ({ open, onClose, queue }: QueueModalProps) => {
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : queue ? "Atualizar" : "Criar"}
+              {loading ? 'Salvando...' : queue ? 'Atualizar' : 'Criar'}
             </Button>
           </DialogFooter>
         </form>

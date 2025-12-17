@@ -1,46 +1,54 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Users, UserPlus, UserMinus, Crown, ShieldOff } from "lucide-react";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Users, UserPlus, UserMinus, Crown, ShieldOff } from 'lucide-react';
+import { useCompany } from '@/contexts/CompanyContext';
 
 export function GroupManager() {
   const { currentCompany } = useCompany();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [groupName, setGroupName] = useState("");
-  const [groupDescription, setGroupDescription] = useState("");
-  const [participants, setParticipants] = useState("");
+  const [groupName, setGroupName] = useState('');
+  const [groupDescription, setGroupDescription] = useState('');
+  const [participants, setParticipants] = useState('');
 
   const createGroup = async () => {
     if (!groupName || !participants) {
-      toast.error("Preencha nome e participantes");
+      toast.error('Preencha nome e participantes');
       return;
     }
 
     if (!currentCompany) {
-      toast.error("Selecione uma empresa");
+      toast.error('Selecione uma empresa');
       return;
     }
 
     setLoading(true);
     try {
-      const participantsList = participants.split(',').map(p => p.trim());
+      const participantsList = participants.split(',').map((p) => p.trim());
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('evolution-group-manager', {
         body: {
           action: 'create',
           companyId: currentCompany.id,
           name: groupName,
           description: groupDescription,
-          participants: participantsList
+          participants: participantsList,
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -55,17 +63,17 @@ export function GroupManager() {
         group_id: data.result.groupJid,
         name: groupName,
         description: groupDescription,
-        owner_number: data.result.owner
+        owner_number: data.result.owner,
       });
 
-      toast.success("Grupo criado!");
+      toast.success('Grupo criado!');
       setOpen(false);
-      setGroupName("");
-      setGroupDescription("");
-      setParticipants("");
+      setGroupName('');
+      setGroupDescription('');
+      setParticipants('');
     } catch (error) {
       console.error('Error creating group:', error);
-      toast.error("Erro ao criar grupo");
+      toast.error('Erro ao criar grupo');
     } finally {
       setLoading(false);
     }
@@ -127,17 +135,19 @@ interface GroupActionsProps {
 }
 
 export function GroupActions({ groupId, companyId }: GroupActionsProps) {
-  const [participantNumber, setParticipantNumber] = useState("");
+  const [participantNumber, setParticipantNumber] = useState('');
 
   const handleAction = async (action: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const { error } = await supabase.functions.invoke('evolution-group-manager', {
         body: {
           action,
           companyId,
           groupId,
-          participant: participantNumber
+          participant: participantNumber,
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -145,11 +155,11 @@ export function GroupActions({ groupId, companyId }: GroupActionsProps) {
       });
 
       if (error) throw error;
-      toast.success("Ação realizada!");
-      setParticipantNumber("");
+      toast.success('Ação realizada!');
+      setParticipantNumber('');
     } catch (error) {
       console.error('Group action error:', error);
-      toast.error("Erro ao executar ação");
+      toast.error('Erro ao executar ação');
     }
   };
 

@@ -4,13 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -140,9 +134,7 @@ export const WebhookManager = () => {
 
   const toggleEvent = (event: string) => {
     setSelectedEvents((prev) =>
-      prev.includes(event)
-        ? prev.filter((e) => e !== event)
-        : [...prev, event]
+      prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
     );
   };
 
@@ -155,13 +147,16 @@ export const WebhookManager = () => {
   };
 
   // Group events by category
-  const eventsByCategory = WEBHOOK_EVENTS.reduce((acc, event) => {
-    if (!acc[event.category]) {
-      acc[event.category] = [];
-    }
-    acc[event.category].push(event);
-    return acc;
-  }, {} as Record<string, typeof WEBHOOK_EVENTS[number][]>);
+  const eventsByCategory = WEBHOOK_EVENTS.reduce(
+    (acc, event) => {
+      if (!acc[event.category]) {
+        acc[event.category] = [];
+      }
+      acc[event.category].push(event);
+      return acc;
+    },
+    {} as Record<string, (typeof WEBHOOK_EVENTS)[number][]>
+  );
 
   const getStatusBadge = (webhook: WebhookEndpoint) => {
     if (webhook.disabled_at) {
@@ -215,9 +210,7 @@ export const WebhookManager = () => {
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>Criar Webhook</DialogTitle>
-              <DialogDescription>
-                Configure um endpoint para receber eventos
-              </DialogDescription>
+              <DialogDescription>Configure um endpoint para receber eventos</DialogDescription>
             </DialogHeader>
 
             <div className="flex-1 overflow-y-auto space-y-4 py-4">
@@ -246,18 +239,10 @@ export const WebhookManager = () => {
                 <div className="flex items-center justify-between">
                   <Label>Eventos</Label>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={selectAllEvents}
-                    >
+                    <Button variant="ghost" size="sm" onClick={selectAllEvents}>
                       Selecionar todos
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearAllEvents}
-                    >
+                    <Button variant="ghost" size="sm" onClick={clearAllEvents}>
                       Limpar
                     </Button>
                   </div>
@@ -270,7 +255,8 @@ export const WebhookManager = () => {
                         <div className="flex items-center gap-2">
                           <span>{category}</span>
                           <Badge variant="secondary" className="text-xs">
-                            {events.filter((e) => selectedEvents.includes(e.value)).length}/{events.length}
+                            {events.filter((e) => selectedEvents.includes(e.value)).length}/
+                            {events.length}
                           </Badge>
                         </div>
                       </AccordionTrigger>
@@ -283,10 +269,7 @@ export const WebhookManager = () => {
                                 checked={selectedEvents.includes(event.value)}
                                 onCheckedChange={() => toggleEvent(event.value)}
                               />
-                              <label
-                                htmlFor={event.value}
-                                className="text-sm cursor-pointer"
-                              >
+                              <label htmlFor={event.value} className="text-sm cursor-pointer">
                                 {event.label}
                               </label>
                             </div>
@@ -307,9 +290,7 @@ export const WebhookManager = () => {
                 onClick={handleCreate}
                 disabled={!name || !url || selectedEvents.length === 0 || createWebhook.isPending}
               >
-                {createWebhook.isPending && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
+                {createWebhook.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Criar
               </Button>
             </DialogFooter>
@@ -388,9 +369,7 @@ export const WebhookManager = () => {
                           <Play className="h-4 w-4 mr-2" />
                           Testar
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => regenerateSecret.mutate(webhook.id)}
-                        >
+                        <DropdownMenuItem onClick={() => regenerateSecret.mutate(webhook.id)}>
                           <RefreshCw className="h-4 w-4 mr-2" />
                           Regenerar Secret
                         </DropdownMenuItem>
@@ -414,15 +393,9 @@ export const WebhookManager = () => {
                 <div className="flex items-center gap-2">
                   <Label className="text-sm text-muted-foreground">Secret:</Label>
                   <code className="text-sm bg-muted px-2 py-1 rounded flex-1">
-                    {showSecrets.has(webhook.id)
-                      ? webhook.secret
-                      : '•'.repeat(32)}
+                    {showSecrets.has(webhook.id) ? webhook.secret : '•'.repeat(32)}
                   </code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleShowSecret(webhook.id)}
-                  >
+                  <Button variant="ghost" size="icon" onClick={() => toggleShowSecret(webhook.id)}>
                     {showSecrets.has(webhook.id) ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
@@ -466,9 +439,7 @@ export const WebhookManager = () => {
                     </span>
                   )}
                   {webhook.avg_response_time_ms && (
-                    <span>
-                      Média: {webhook.avg_response_time_ms}ms
-                    </span>
+                    <span>Média: {webhook.avg_response_time_ms}ms</span>
                   )}
                 </div>
 
@@ -487,13 +458,11 @@ export const WebhookManager = () => {
       <Card>
         <CardHeader>
           <CardTitle>Verificação de Assinatura</CardTitle>
-          <CardDescription>
-            Valide as requisições usando a assinatura HMAC
-          </CardDescription>
+          <CardDescription>Valide as requisições usando a assinatura HMAC</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-{`// Exemplo em Node.js
+            {`// Exemplo em Node.js
 const crypto = require('crypto');
 
 function verifyWebhookSignature(payload, signature, secret) {

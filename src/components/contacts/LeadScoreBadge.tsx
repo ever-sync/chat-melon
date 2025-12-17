@@ -1,6 +1,6 @@
-import { Flame, Thermometer, Snowflake } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Flame, Thermometer, Snowflake } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface LeadScoreBadgeProps {
   score: number;
@@ -43,27 +43,29 @@ export const LeadScoreBadge = ({ score, breakdown }: LeadScoreBadgeProps) => {
   const config = getScoreConfig(score);
   const Icon = config.icon;
 
-  const breakdownText = breakdown && Object.keys(breakdown).length > 0 ? (
-    <div className="space-y-1">
-      {Object.entries(breakdown).map(([key, value]) => (
-        <div key={key} className="text-xs flex justify-between gap-4">
-          <span>{key}</span>
-          <span className="font-medium">{value > 0 ? '+' : ''}{value}</span>
+  const breakdownText =
+    breakdown && Object.keys(breakdown).length > 0 ? (
+      <div className="space-y-1">
+        {Object.entries(breakdown).map(([key, value]) => (
+          <div key={key} className="text-xs flex justify-between gap-4">
+            <span>{key}</span>
+            <span className="font-medium">
+              {value > 0 ? '+' : ''}
+              {value}
+            </span>
+          </div>
+        ))}
+        <div className="border-t pt-1 mt-2 flex justify-between gap-4 font-semibold">
+          <span>Total</span>
+          <span>{score} pontos</span>
         </div>
-      ))}
-      <div className="border-t pt-1 mt-2 flex justify-between gap-4 font-semibold">
-        <span>Total</span>
-        <span>{score} pontos</span>
       </div>
-    </div>
-  ) : (
-    <div className="text-xs">
-      <p>Score: {score} pontos</p>
-      <p className="text-muted-foreground mt-1">
-        Nenhuma regra aplicada ainda
-      </p>
-    </div>
-  );
+    ) : (
+      <div className="text-xs">
+        <p>Score: {score} pontos</p>
+        <p className="text-muted-foreground mt-1">Nenhuma regra aplicada ainda</p>
+      </div>
+    );
 
   return (
     <TooltipProvider>
@@ -74,9 +76,7 @@ export const LeadScoreBadge = ({ score, breakdown }: LeadScoreBadgeProps) => {
             {score}
           </Badge>
         </TooltipTrigger>
-        <TooltipContent className="max-w-xs">
-          {breakdownText}
-        </TooltipContent>
+        <TooltipContent className="max-w-xs">{breakdownText}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

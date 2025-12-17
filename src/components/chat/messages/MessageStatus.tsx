@@ -1,5 +1,5 @@
-import { Clock, Check, CheckCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Clock, Check, CheckCheck } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface MessageStatusProps {
   status: string;
@@ -29,9 +29,15 @@ export function MessageStatus({ status, timestamp, deliveredAt, readAt }: Messag
   };
 
   const getStatusText = () => {
-    if (readAt) return `Lido ${new Date(readAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-    if (deliveredAt) return `Entregue ${new Date(deliveredAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-    if (timestamp) return new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    if (readAt)
+      return `Lido ${new Date(readAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    if (deliveredAt)
+      return `Entregue ${new Date(deliveredAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    if (timestamp)
+      return new Date(timestamp).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     return '';
   };
 

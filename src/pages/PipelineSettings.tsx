@@ -1,16 +1,25 @@
-import { useState } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, Settings2, Trash2, Edit } from "lucide-react";
-import { usePipelines } from "@/hooks/crm/usePipelines";
-import { PipelineModal } from "@/components/settings/PipelineModal";
-import { StagesManager } from "@/components/settings/StagesManager";
-import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
+import { useState } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Plus, Settings2, Trash2, Edit } from 'lucide-react';
+import { usePipelines } from '@/hooks/crm/usePipelines';
+import { PipelineModal } from '@/components/settings/PipelineModal';
+import { StagesManager } from '@/components/settings/StagesManager';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 
 export default function PipelineSettings() {
   const { pipelines, isLoading } = usePipelines();
@@ -41,19 +50,16 @@ export default function PipelineSettings() {
     if (!deletingPipelineId) return;
 
     try {
-      const { error } = await supabase
-        .from("pipelines")
-        .delete()
-        .eq("id", deletingPipelineId);
+      const { error } = await supabase.from('pipelines').delete().eq('id', deletingPipelineId);
 
       if (error) throw error;
 
-      toast.success("Pipeline excluído com sucesso!");
+      toast.success('Pipeline excluído com sucesso!');
       setDeleteDialogOpen(false);
       setDeletingPipelineId(null);
     } catch (error) {
-      console.error("Error deleting pipeline:", error);
-      toast.error("Erro ao excluir pipeline");
+      console.error('Error deleting pipeline:', error);
+      toast.error('Erro ao excluir pipeline');
     }
   };
 
@@ -68,9 +74,7 @@ export default function PipelineSettings() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Pipelines</h1>
-            <p className="text-muted-foreground">
-              Gerencie seus pipelines de vendas e suas etapas
-            </p>
+            <p className="text-muted-foreground">Gerencie seus pipelines de vendas e suas etapas</p>
           </div>
           <Button onClick={handleCreatePipeline}>
             <Plus className="h-4 w-4 mr-2" />
@@ -98,14 +102,10 @@ export default function PipelineSettings() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-lg">{pipeline.name}</CardTitle>
-                        {pipeline.is_default && (
-                          <Badge variant="secondary">Padrão</Badge>
-                        )}
+                        {pipeline.is_default && <Badge variant="secondary">Padrão</Badge>}
                       </div>
                       {pipeline.description && (
-                        <CardDescription className="mt-1">
-                          {pipeline.description}
-                        </CardDescription>
+                        <CardDescription className="mt-1">{pipeline.description}</CardDescription>
                       )}
                     </div>
                   </div>
@@ -144,11 +144,7 @@ export default function PipelineSettings() {
           </div>
         )}
 
-        <PipelineModal
-          open={modalOpen}
-          onOpenChange={setModalOpen}
-          pipeline={editingPipeline}
-        />
+        <PipelineModal open={modalOpen} onOpenChange={setModalOpen} pipeline={editingPipeline} />
 
         <StagesManager
           open={stagesManagerOpen}
@@ -161,14 +157,13 @@ export default function PipelineSettings() {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir este pipeline? Esta ação não pode ser desfeita e todos os negócios associados serão movidos para o pipeline padrão.
+                Tem certeza que deseja excluir este pipeline? Esta ação não pode ser desfeita e
+                todos os negócios associados serão movidos para o pipeline padrão.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeletePipeline}>
-                Excluir
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleDeletePipeline}>Excluir</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

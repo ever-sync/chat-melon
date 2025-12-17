@@ -1,24 +1,18 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  MoreVertical,
-  Calendar,
-  User,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
-import { format, isPast, isToday, isTomorrow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import type { Task } from "@/hooks/crm/useTasks";
+} from '@/components/ui/dropdown-menu';
+import { MoreVertical, Calendar, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { format, isPast, isToday, isTomorrow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import type { Task } from '@/hooks/crm/useTasks';
 
 interface TaskCardProps {
   task: Task;
@@ -30,55 +24,51 @@ interface TaskCardProps {
 export const TaskCard = ({ task, onComplete, onEdit, onDelete }: TaskCardProps) => {
   const getPriorityColor = (priority: string | null) => {
     switch (priority) {
-      case "urgent":
-        return "destructive";
-      case "high":
-        return "default";
-      case "medium":
-        return "secondary";
+      case 'urgent':
+        return 'destructive';
+      case 'high':
+        return 'default';
+      case 'medium':
+        return 'secondary';
       default:
-        return "outline";
+        return 'outline';
     }
   };
 
   const getTaskTypeLabel = (type: string | null) => {
     const types: Record<string, string> = {
-      call: "Ligação",
-      email: "Email",
-      meeting: "Reunião",
-      follow_up: "Follow-up",
-      proposal: "Proposta",
-      other: "Outro",
+      call: 'Ligação',
+      email: 'Email',
+      meeting: 'Reunião',
+      follow_up: 'Follow-up',
+      proposal: 'Proposta',
+      other: 'Outro',
     };
-    return types[type || "other"] || "Outro";
+    return types[type || 'other'] || 'Outro';
   };
 
   const getDateLabel = (date: string) => {
     const dueDate = new Date(date);
-    if (isToday(dueDate)) return "Hoje";
-    if (isTomorrow(dueDate)) return "Amanhã";
-    return format(dueDate, "dd/MM/yyyy", { locale: ptBR });
+    if (isToday(dueDate)) return 'Hoje';
+    if (isTomorrow(dueDate)) return 'Amanhã';
+    return format(dueDate, 'dd/MM/yyyy', { locale: ptBR });
   };
 
-  const isOverdue = task.status === "pending" && isPast(new Date(task.due_date));
-  const isCompleted = task.status === "completed";
+  const isOverdue = task.status === 'pending' && isPast(new Date(task.due_date));
+  const isCompleted = task.status === 'completed';
 
   return (
-    <Card className={isOverdue ? "border-destructive" : ""}>
+    <Card className={isOverdue ? 'border-destructive' : ''}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Checkbox
-            checked={isCompleted}
-            onCheckedChange={onComplete}
-            className="mt-1"
-          />
+          <Checkbox checked={isCompleted} onCheckedChange={onComplete} className="mt-1" />
 
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <h3
                   className={`font-medium text-sm ${
-                    isCompleted ? "line-through text-muted-foreground" : ""
+                    isCompleted ? 'line-through text-muted-foreground' : ''
                   }`}
                 >
                   {task.title}
@@ -107,7 +97,7 @@ export const TaskCard = ({ task, onComplete, onEdit, onDelete }: TaskCardProps) 
 
             <div className="flex items-center flex-wrap gap-2">
               <Badge variant={getPriorityColor(task.priority)} className="text-xs">
-                {task.priority || "medium"}
+                {task.priority || 'medium'}
               </Badge>
 
               <Badge variant="outline" className="text-xs">

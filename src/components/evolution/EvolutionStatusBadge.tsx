@@ -1,12 +1,12 @@
-import { Badge } from "@/components/ui/badge";
-import { Circle, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { Circle, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 
 interface EvolutionStatusBadgeProps {
   status: string;
   className?: string;
 }
 
-export const EvolutionStatusBadge = ({ status, className = "" }: EvolutionStatusBadgeProps) => {
+export const EvolutionStatusBadge = ({ status, className = '' }: EvolutionStatusBadgeProps) => {
   const getStatusConfig = () => {
     switch (status) {
       case 'connected':

@@ -1,13 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -93,7 +87,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [agentName, setAgentName] = useState("Copiloto");
+  const [agentName, setAgentName] = useState('Copiloto');
 
   const loadAgentName = useCallback(async () => {
     const { data } = await supabase
@@ -109,7 +103,9 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   const loadConversation = useCallback(async () => {
     const { data } = await supabase
       .from('conversations')
-      .select('ai_enabled, ai_mode, ai_paused_at, ai_messages_count, ai_summary, ai_next_step_suggestion')
+      .select(
+        'ai_enabled, ai_mode, ai_paused_at, ai_messages_count, ai_summary, ai_next_step_suggestion'
+      )
       .eq('id', conversationId)
       .maybeSingle();
     setConversation(data);
@@ -163,18 +159,26 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
     // Subscrever a atualizações em tempo real
     const channel = supabase
       .channel(`ai-panel-${conversationId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'lead_insights',
-        filter: `conversation_id=eq.${conversationId}`,
-      }, () => loadInsights())
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'ai_suggestions',
-        filter: `conversation_id=eq.${conversationId}`,
-      }, () => loadSuggestions())
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lead_insights',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => loadInsights()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ai_suggestions',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => loadSuggestions()
+      )
       .subscribe();
 
     return () => {
@@ -221,10 +225,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   };
 
   const dismissSuggestion = async (suggestion: AISuggestion) => {
-    await supabase
-      .from('ai_suggestions')
-      .update({ status: 'dismissed' })
-      .eq('id', suggestion.id);
+    await supabase.from('ai_suggestions').update({ status: 'dismissed' }).eq('id', suggestion.id);
     loadSuggestions();
   };
 
@@ -292,8 +293,12 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
       <div className="p-4 border-b bg-white">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-full ${conversation?.ai_enabled ? 'bg-violet-100' : 'bg-gray-100'}`}>
-              <Bot className={`h-5 w-5 ${conversation?.ai_enabled ? 'text-violet-600' : 'text-gray-400'}`} />
+            <div
+              className={`p-2 rounded-full ${conversation?.ai_enabled ? 'bg-violet-100' : 'bg-gray-100'}`}
+            >
+              <Bot
+                className={`h-5 w-5 ${conversation?.ai_enabled ? 'text-violet-600' : 'text-gray-400'}`}
+              />
             </div>
             <div>
               <h3 className="font-semibold">{agentName}</h3>
@@ -326,7 +331,9 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
 
         {/* Status */}
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${conversation?.ai_enabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+          <div
+            className={`w-2 h-2 rounded-full ${conversation?.ai_enabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}
+          />
           <span className="text-sm">
             {conversation?.ai_enabled ? 'IA respondendo automaticamente' : 'IA pausada'}
           </span>
@@ -336,8 +343,12 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
       <ScrollArea className="flex-1">
         <Tabs defaultValue="insights" className="w-full">
           <TabsList className="w-full grid grid-cols-3 p-1 m-2">
-            <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
-            <TabsTrigger value="qualification" className="text-xs">Score</TabsTrigger>
+            <TabsTrigger value="insights" className="text-xs">
+              Insights
+            </TabsTrigger>
+            <TabsTrigger value="qualification" className="text-xs">
+              Score
+            </TabsTrigger>
             <TabsTrigger value="suggestions" className="text-xs">
               Sugestões
               {suggestions.length > 0 && (
@@ -360,9 +371,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
-                  <p className="text-sm text-muted-foreground">
-                    {conversation.ai_summary}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{conversation.ai_summary}</p>
                   {conversation.ai_next_step_suggestion && (
                     <div className="mt-2 p-2 bg-violet-50 rounded text-sm">
                       <strong>Próximo passo:</strong> {conversation.ai_next_step_suggestion}
@@ -383,7 +392,9 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
                 const Icon = getInsightIcon(insight.insight_type);
                 return (
                   <div key={insight.id} className="flex gap-3 p-2 bg-white rounded-lg border">
-                    <div className={`p-2 rounded-full h-fit ${getInsightColor(insight.insight_type)}`}>
+                    <div
+                      className={`p-2 rounded-full h-fit ${getInsightColor(insight.insight_type)}`}
+                    >
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -458,7 +469,9 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
                     </div>
                     <Progress value={qualification.authority_score * 4} className="h-1 mb-1" />
                     {qualification.authority_notes && (
-                      <p className="text-xs text-muted-foreground">{qualification.authority_notes}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {qualification.authority_notes}
+                      </p>
                     )}
                   </div>
 
@@ -532,9 +545,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 pt-0">
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {suggestion.content}
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-3">{suggestion.content}</p>
                     <div className="flex gap-2">
                       <Button
                         size="sm"

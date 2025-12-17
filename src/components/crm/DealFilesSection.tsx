@@ -1,22 +1,14 @@
-import { useState, useRef } from "react";
-import { useDealFiles } from "@/hooks/crm/useDealFiles";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Upload,
-  Download,
-  Trash2,
-  FileText,
-  Image as ImageIcon,
-  File,
-  Eye,
-} from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useState, useRef } from 'react';
+import { useDealFiles } from '@/hooks/crm/useDealFiles';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload, Download, Trash2, FileText, Image as ImageIcon, File, Eye } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,13 +18,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface DealFilesSectionProps {
   dealId: string;
@@ -55,7 +42,7 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deleteFileId, setDeleteFileId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>('all');
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,7 +50,7 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
 
     // Verificar tamanho (máx 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert("Arquivo muito grande! Máximo de 10MB permitido.");
+      alert('Arquivo muito grande! Máximo de 10MB permitido.');
       return;
     }
 
@@ -74,7 +61,7 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
 
     // Limpar input
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -85,11 +72,11 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
   };
 
   const getInitials = (name: string | null) => {
-    if (!name) return "??";
+    if (!name) return '??';
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -129,15 +116,11 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
         ) : (
           <>
             <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-            <p className="text-sm font-medium mb-1">
-              Clique para fazer upload
-            </p>
+            <p className="text-sm font-medium mb-1">Clique para fazer upload</p>
             <p className="text-xs text-muted-foreground mb-3">
               PDF, DOC, DOCX, XLS, XLSX, TXT, imagens (máx 10MB)
             </p>
-            <Button onClick={() => fileInputRef.current?.click()}>
-              Selecionar Arquivo
-            </Button>
+            <Button onClick={() => fileInputRef.current?.click()}>Selecionar Arquivo</Button>
           </>
         )}
       </div>
@@ -146,9 +129,7 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
       {files.length > 0 && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">
-              Todos ({files.length})
-            </TabsTrigger>
+            <TabsTrigger value="all">Todos ({files.length})</TabsTrigger>
             <TabsTrigger value="images">
               <ImageIcon className="w-4 h-4 mr-1" />
               Imagens ({imageFiles.length})
@@ -172,7 +153,7 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
                 onDelete={() => setDeleteFileId(file.id)}
                 onDownload={() => downloadFile(file)}
                 onPreview={
-                  file.mime_type?.startsWith("image/")
+                  file.mime_type?.startsWith('image/')
                     ? () => setPreviewImage(file.file_url)
                     : undefined
                 }
@@ -186,10 +167,7 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
           {/* Imagens */}
           <TabsContent value="images" className="mt-4">
             {imageFiles.length === 0 ? (
-              <EmptyState
-                icon={ImageIcon}
-                message="Nenhuma imagem enviada"
-              />
+              <EmptyState icon={ImageIcon} message="Nenhuma imagem enviada" />
             ) : (
               <div className="grid grid-cols-4 gap-2">
                 {imageFiles.map((file) => (
@@ -234,10 +212,7 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
           {/* Documentos */}
           <TabsContent value="documents" className="space-y-2 mt-4">
             {documentFiles.length === 0 ? (
-              <EmptyState
-                icon={FileText}
-                message="Nenhum documento enviado"
-              />
+              <EmptyState icon={FileText} message="Nenhum documento enviado" />
             ) : (
               documentFiles.map((file) => (
                 <FileItem
@@ -300,16 +275,12 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
       </Dialog>
 
       {/* Dialog de confirmação de exclusão */}
-      <AlertDialog
-        open={!!deleteFileId}
-        onOpenChange={() => setDeleteFileId(null)}
-      >
+      <AlertDialog open={!!deleteFileId} onOpenChange={() => setDeleteFileId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir arquivo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O arquivo será permanentemente
-              excluído.
+              Esta ação não pode ser desfeita. O arquivo será permanentemente excluído.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -359,9 +330,7 @@ const FileItem = ({
           {file.uploader_profile && (
             <>
               <Avatar className="h-4 w-4">
-                <AvatarImage
-                  src={file.uploader_profile.avatar_url || undefined}
-                />
+                <AvatarImage src={file.uploader_profile.avatar_url || undefined} />
                 <AvatarFallback className="text-xs">
                   {getInitials(file.uploader_profile.full_name)}
                 </AvatarFallback>
@@ -371,7 +340,7 @@ const FileItem = ({
             </>
           )}
           <span>
-            {format(new Date(file.created_at), "dd/MM/yyyy", {
+            {format(new Date(file.created_at), 'dd/MM/yyyy', {
               locale: ptBR,
             })}
           </span>

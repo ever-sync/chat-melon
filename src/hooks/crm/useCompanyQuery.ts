@@ -1,4 +1,4 @@
-import { useCompany } from "@/contexts/CompanyContext";
+import { useCompany } from '@/contexts/CompanyContext';
 
 /**
  * Hook para garantir que todas as queries filtrem por company_id
@@ -13,9 +13,9 @@ export const useCompanyQuery = () => {
    */
   const withCompanyFilter = (query: any) => {
     if (!currentCompany?.id) {
-      throw new Error("Nenhuma empresa selecionada. Impossível executar query.");
+      throw new Error('Nenhuma empresa selecionada. Impossível executar query.');
     }
-    return query.eq("company_id", currentCompany.id);
+    return query.eq('company_id', currentCompany.id);
   };
 
   /**
@@ -23,7 +23,7 @@ export const useCompanyQuery = () => {
    */
   const getCompanyId = (): string => {
     if (!currentCompany?.id) {
-      throw new Error("Nenhuma empresa selecionada.");
+      throw new Error('Nenhuma empresa selecionada.');
     }
     return currentCompany.id;
   };

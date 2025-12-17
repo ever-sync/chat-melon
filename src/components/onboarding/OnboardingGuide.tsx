@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Building2, Smartphone, CheckCircle, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { Building2, Smartphone, CheckCircle, Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface OnboardingGuideProps {
   isOpen: boolean;
@@ -23,16 +23,16 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
 
   // Step 1: Company Data
   const [companyData, setCompanyData] = useState({
-    cnpj: "",
-    legalName: "",
-    fantasyName: "",
-    companyEmail: "",
-    companyPhone: "",
+    cnpj: '',
+    legalName: '',
+    fantasyName: '',
+    companyEmail: '',
+    companyPhone: '',
   });
 
   // Step 2: WhatsApp Data (Evolution API)
   const [whatsappData, setWhatsappData] = useState({
-    instanceName: "",
+    instanceName: '',
   });
 
   const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,37 +48,39 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("Usuário não autenticado");
-        navigate("/auth");
+        toast.error('Usuário não autenticado');
+        navigate('/auth');
         return;
       }
 
       // Verificar se CNPJ já existe
       if (companyData.cnpj) {
         const { data: existingCompanies } = await supabase
-          .from("companies")
-          .select("id, name")
-          .eq("cnpj", companyData.cnpj)
-          .is("deleted_at", null);
+          .from('companies')
+          .select('id, name')
+          .eq('cnpj', companyData.cnpj)
+          .is('deleted_at', null);
 
         if (existingCompanies && existingCompanies.length > 0) {
           const existingCompany = existingCompanies[0];
 
           // Verificar se a empresa pertence ao usuário atual
           const { data: userCompany } = await supabase
-            .from("company_users")
-            .select("company_id")
-            .eq("user_id", user.id)
-            .eq("company_id", existingCompany.id)
+            .from('company_users')
+            .select('company_id')
+            .eq('user_id', user.id)
+            .eq('company_id', existingCompany.id)
             .maybeSingle();
 
           if (userCompany) {
             // Empresa já existe e pertence ao usuário - pular para próximo step
-            localStorage.setItem("onboardingCompanyId", existingCompany.id);
-            toast.success("Empresa já cadastrada! Vamos configurar o WhatsApp.");
+            localStorage.setItem('onboardingCompanyId', existingCompany.id);
+            toast.success('Empresa já cadastrada! Vamos configurar o WhatsApp.');
             setCurrentStep(2);
             setLoading(false);
             return;
@@ -96,9 +98,9 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
 
       // Create company - APENAS name (obrigatória), cnpj e created_by (para RLS)
       const { data: company, error: companyError } = await supabase
-        .from("companies")
+        .from('companies')
         .insert({
-          name: companyData.fantasyName || companyData.legalName || "Empresa",
+          name: companyData.fantasyName || companyData.legalName || 'Empresa',
           cnpj: companyData.cnpj || null,
           created_by: user.id,
         })
@@ -112,7 +114,7 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
       trialEnds.setDate(trialEnds.getDate() + 3);
 
       await supabase
-        .from("companies")
+        .from('companies')
         .update({
           email: companyData.companyEmail,
           phone: companyData.companyPhone,
@@ -120,37 +122,37 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
           trial_ends_at: trialEnds.toISOString(),
           subscription_status: 'trial',
         })
-        .eq("id", company.id);
+        .eq('id', company.id);
 
       // Criar company_users
-      await supabase.from("company_users").insert({
+      await supabase.from('company_users').insert({
         user_id: user.id,
         company_id: company.id,
         is_default: true,
       });
 
       // Criar company_members
-      await supabase.from("company_members").insert({
+      await supabase.from('company_members').insert({
         user_id: user.id,
         company_id: company.id,
-        role: "admin",
-        display_name: user.user_metadata?.full_name || user.email || "Admin",
+        role: 'admin',
+        display_name: user.user_metadata?.full_name || user.email || 'Admin',
         email: user.email,
         is_active: true,
       });
 
       // Save company ID for next step
-      localStorage.setItem("onboardingCompanyId", company.id);
+      localStorage.setItem('onboardingCompanyId', company.id);
 
-      toast.success("Empresa criada com sucesso! Agora vamos conectar seu WhatsApp.");
+      toast.success('Empresa criada com sucesso! Agora vamos conectar seu WhatsApp.');
       setCurrentStep(2);
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error('Error:', error);
 
-      if (error.message && error.message.includes("CNPJ já cadastrado")) {
-        toast.error("CNPJ já cadastrado!", { duration: 8000 });
+      if (error.message && error.message.includes('CNPJ já cadastrado')) {
+        toast.error('CNPJ já cadastrado!', { duration: 8000 });
       } else {
-        toast.error(error.message || "Erro ao cadastrar empresa");
+        toast.error(error.message || 'Erro ao cadastrar empresa');
       }
     } finally {
       setLoading(false);
@@ -162,30 +164,30 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
     setLoading(true);
 
     try {
-      const companyId = localStorage.getItem("onboardingCompanyId");
+      const companyId = localStorage.getItem('onboardingCompanyId');
 
       if (!companyId) {
-        toast.error("Erro: empresa não encontrada");
+        toast.error('Erro: empresa não encontrada');
         return;
       }
 
       // Tentar salvar o nome da instância (pode falhar por cache)
       try {
         await supabase
-          .from("companies")
+          .from('companies')
           .update({
             evolution_instance_name: whatsappData.instanceName,
           })
-          .eq("id", companyId);
+          .eq('id', companyId);
       } catch (updateError) {
-        console.warn("Não foi possível salvar instância (cache issue):", updateError);
+        console.warn('Não foi possível salvar instância (cache issue):', updateError);
         // Continua mesmo se falhar
       }
 
-      localStorage.removeItem("onboardingCompanyId");
+      localStorage.removeItem('onboardingCompanyId');
       await refreshCompanies();
 
-      toast.success("WhatsApp configurado! Você pode ajustar nas Configurações.");
+      toast.success('WhatsApp configurado! Você pode ajustar nas Configurações.');
       setCurrentStep(3);
 
       // Wait 2 seconds to show success, then complete
@@ -193,8 +195,8 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
         onComplete();
       }, 2000);
     } catch (error: any) {
-      console.error("Error:", error);
-      toast.error(error.message || "Erro ao configurar WhatsApp");
+      console.error('Error:', error);
+      toast.error(error.message || 'Erro ao configurar WhatsApp');
     } finally {
       setLoading(false);
     }
@@ -204,18 +206,18 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
     setLoading(true);
 
     try {
-      localStorage.removeItem("onboardingCompanyId");
+      localStorage.removeItem('onboardingCompanyId');
       await refreshCompanies();
 
-      toast.success("Você pode configurar o WhatsApp depois em Configurações");
+      toast.success('Você pode configurar o WhatsApp depois em Configurações');
       setCurrentStep(3);
 
       setTimeout(() => {
         onComplete();
       }, 2000);
     } catch (error: any) {
-      console.error("Error:", error);
-      toast.error("Erro ao finalizar");
+      console.error('Error:', error);
+      toast.error('Erro ao finalizar');
     } finally {
       setLoading(false);
     }
@@ -231,9 +233,9 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
             {currentStep === 1 && <Building2 className="w-6 h-6 text-green-600" />}
             {currentStep === 2 && <Smartphone className="w-6 h-6 text-blue-600" />}
             {currentStep === 3 && <CheckCircle className="w-6 h-6 text-green-600" />}
-            {currentStep === 1 && "Configurar Empresa"}
-            {currentStep === 2 && "Conectar WhatsApp"}
-            {currentStep === 3 && "Tudo Pronto!"}
+            {currentStep === 1 && 'Configurar Empresa'}
+            {currentStep === 2 && 'Conectar WhatsApp'}
+            {currentStep === 3 && 'Tudo Pronto!'}
           </DialogTitle>
         </DialogHeader>
 
@@ -242,13 +244,13 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
           <div className="space-y-2">
             <Progress value={progressPercentage} className="h-2" />
             <div className="flex justify-between text-sm text-gray-500">
-              <span className={currentStep >= 1 ? "text-green-600 font-medium" : ""}>
+              <span className={currentStep >= 1 ? 'text-green-600 font-medium' : ''}>
                 1. Empresa
               </span>
-              <span className={currentStep >= 2 ? "text-blue-600 font-medium" : ""}>
+              <span className={currentStep >= 2 ? 'text-blue-600 font-medium' : ''}>
                 2. WhatsApp
               </span>
-              <span className={currentStep >= 3 ? "text-green-600 font-medium" : ""}>
+              <span className={currentStep >= 3 ? 'text-green-600 font-medium' : ''}>
                 3. Concluído
               </span>
             </div>
@@ -341,8 +343,9 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
             <form onSubmit={handleStep2Submit} className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-blue-800">
-                  <strong>💡 Importante:</strong> Você precisa ter uma instância do WhatsApp já criada
-                  na Evolution API. As credenciais da API são configuradas pelo administrador do sistema.
+                  <strong>💡 Importante:</strong> Você precisa ter uma instância do WhatsApp já
+                  criada na Evolution API. As credenciais da API são configuradas pelo administrador
+                  do sistema.
                 </p>
               </div>
 

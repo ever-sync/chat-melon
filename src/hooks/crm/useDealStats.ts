@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
 
 export type DealStageStats = {
   stage_id: string;
@@ -31,14 +31,14 @@ export const useDealStats = (pipelineId?: string) => {
 
   // Query para estatísticas por stage
   const { data: stageStats = [], isLoading: isLoadingStageStats } = useQuery({
-    queryKey: ["deal-stats-by-stage", pipelineId],
+    queryKey: ['deal-stats-by-stage', pipelineId],
     queryFn: async () => {
       if (!pipelineId) return [];
 
       const { data, error } = await supabase
-        .from("deal_stats_by_stage")
-        .select("*")
-        .eq("pipeline_id", pipelineId);
+        .from('deal_stats_by_stage')
+        .select('*')
+        .eq('pipeline_id', pipelineId);
 
       if (error) throw error;
       return data as DealStageStats[];
@@ -49,27 +49,27 @@ export const useDealStats = (pipelineId?: string) => {
 
   // Query para estatísticas gerais do pipeline
   const { data: pipelineStats, isLoading: isLoadingPipelineStats } = useQuery({
-    queryKey: ["pipeline-stats", pipelineId, currentCompany?.id],
+    queryKey: ['pipeline-stats', pipelineId, currentCompany?.id],
     queryFn: async () => {
       if (!pipelineId || !currentCompany?.id) return null;
 
       // Buscar todos os deals do pipeline
       const { data: allDeals, error: allError } = await supabase
-        .from("deals")
-        .select("id, value, status, created_at, won_at, lost_at")
-        .eq("pipeline_id", pipelineId)
-        .eq("company_id", currentCompany.id);
+        .from('deals')
+        .select('id, value, status, created_at, won_at, lost_at')
+        .eq('pipeline_id', pipelineId)
+        .eq('company_id', currentCompany.id);
 
       if (allError) throw allError;
 
       // Deals abertos
-      const openDeals = allDeals.filter((d) => d.status === "open");
+      const openDeals = allDeals.filter((d) => d.status === 'open');
 
       // Deals ganhos
-      const wonDeals = allDeals.filter((d) => d.status === "won");
+      const wonDeals = allDeals.filter((d) => d.status === 'won');
 
       // Deals perdidos
-      const lostDeals = allDeals.filter((d) => d.status === "lost");
+      const lostDeals = allDeals.filter((d) => d.status === 'lost');
 
       // Calcular valores
       const totalValue = openDeals.reduce((sum, d) => sum + (d.value || 0), 0);
@@ -114,15 +114,15 @@ export const useDealStats = (pipelineId?: string) => {
 
   // Query para análise de funil (deals por stage com percentuais)
   const { data: funnelAnalysis, isLoading: isLoadingFunnel } = useQuery({
-    queryKey: ["funnel-analysis", pipelineId, currentCompany?.id],
+    queryKey: ['funnel-analysis', pipelineId, currentCompany?.id],
     queryFn: async () => {
       if (!pipelineId || !currentCompany?.id) return [];
 
       const { data, error } = await supabase
-        .from("deal_stats_by_stage")
-        .select("*")
-        .eq("pipeline_id", pipelineId)
-        .order("order_index", { ascending: true });
+        .from('deal_stats_by_stage')
+        .select('*')
+        .eq('pipeline_id', pipelineId)
+        .order('order_index', { ascending: true });
 
       if (error) throw error;
 
@@ -145,17 +145,15 @@ export const useDealStats = (pipelineId?: string) => {
     }
     const previousStage = funnelAnalysis[index - 1];
     const conversion =
-      previousStage.deal_count > 0
-        ? (stage.deal_count / previousStage.deal_count) * 100
-        : 0;
+      previousStage.deal_count > 0 ? (stage.deal_count / previousStage.deal_count) * 100 : 0;
     return { ...stage, conversion_from_previous: conversion };
   });
 
   // Função para formatar moeda
   const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 

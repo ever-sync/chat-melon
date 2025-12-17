@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
-import { DealWinLossModal } from "./DealWinLossModal";
-import { DealDetail } from "./DealDetail";
-import { BulkActionsToolbar } from "./BulkActionsToolbar";
+import { useState, useMemo } from 'react';
+import { DealWinLossModal } from './DealWinLossModal';
+import { DealDetail } from './DealDetail';
+import { BulkActionsToolbar } from './BulkActionsToolbar';
 import {
   DndContext,
   DragOverlay,
@@ -11,22 +11,22 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-} from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { DealCard } from "./DealCard";
-import { DealModal } from "./DealModal";
-import { useDeals, type Deal } from "@/hooks/crm/useDeals";
-import { usePipelines } from "@/hooks/crm/usePipelines";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { TablesInsert } from "@/integrations/supabase/types";
-import { CelebrationModal } from "@/components/gamification/CelebrationModal";
-import { useCelebration } from "@/hooks/useCelebration";
-import { useGamification } from "@/hooks/useGamification";
-import type { DealFilters } from "@/pages/CRM";
-import { toast } from "sonner";
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { DealCard } from './DealCard';
+import { DealModal } from './DealModal';
+import { useDeals, type Deal } from '@/hooks/crm/useDeals';
+import { usePipelines } from '@/hooks/crm/usePipelines';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { TablesInsert } from '@/integrations/supabase/types';
+import { CelebrationModal } from '@/components/gamification/CelebrationModal';
+import { useCelebration } from '@/hooks/useCelebration';
+import { useGamification } from '@/hooks/useGamification';
+import type { DealFilters } from '@/pages/CRM';
+import { toast } from 'sonner';
 
 interface PipelineBoardProps {
   selectedPipelineId?: string;
@@ -43,7 +43,14 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
     (a, b) => a.order_index - b.order_index
   );
 
-  const { deals, isLoading: isDealsLoading, createDeal, updateDeal, moveDeal, deleteDeal } = useDeals(activePipelineId);
+  const {
+    deals,
+    isLoading: isDealsLoading,
+    createDeal,
+    updateDeal,
+    moveDeal,
+    deleteDeal,
+  } = useDeals(activePipelineId);
 
   // Aplicar filtros aos deals
   const filteredDeals = useMemo(() => {
@@ -56,17 +63,17 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
       }
 
       // Filtro de responsável
-      if (filters.assignedTo !== "all" && deal.assigned_to !== filters.assignedTo) {
+      if (filters.assignedTo !== 'all' && deal.assigned_to !== filters.assignedTo) {
         return false;
       }
 
       // Filtro de prioridade
-      if (filters.priority !== "all" && deal.priority !== filters.priority) {
+      if (filters.priority !== 'all' && deal.priority !== filters.priority) {
         return false;
       }
 
       // Filtro de temperatura
-      if (filters.temperature !== "all" && deal.temperature !== filters.temperature) {
+      if (filters.temperature !== 'all' && deal.temperature !== filters.temperature) {
         return false;
       }
 
@@ -82,9 +89,13 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
   const [editingDeal, setEditingDeal] = useState<Deal | undefined>();
   const [viewingDeal, setViewingDeal] = useState<Deal | null>(null);
   const [showDealDetail, setShowDealDetail] = useState(false);
-  const [winLossModal, setWinLossModal] = useState<{ open: boolean; type: "won" | "lost"; dealId?: string }>({
+  const [winLossModal, setWinLossModal] = useState<{
+    open: boolean;
+    type: 'won' | 'lost';
+    dealId?: string;
+  }>({
     open: false,
-    type: "won",
+    type: 'won',
   });
 
   // Bulk actions state
@@ -129,19 +140,19 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
 
     // Validar que o stage de destino existe no pipeline atual
     if (!targetStage) {
-      console.error("Stage inválido:", targetStageId);
+      console.error('Stage inválido:', targetStageId);
       return;
     }
 
     if (deal && deal.stage_id !== targetStageId) {
       // Abrir modal de ganho/perda se for stage de fechamento
       if (targetStage?.is_closed_won) {
-        setWinLossModal({ open: true, type: "won", dealId });
+        setWinLossModal({ open: true, type: 'won', dealId });
         return;
       }
 
       if (targetStage?.is_closed_lost) {
-        setWinLossModal({ open: true, type: "lost", dealId });
+        setWinLossModal({ open: true, type: 'lost', dealId });
         return;
       }
 
@@ -167,12 +178,12 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
   };
 
   const handleDeleteDeal = (dealId: string) => {
-    if (confirm("Tem certeza que deseja excluir este negócio?")) {
+    if (confirm('Tem certeza que deseja excluir este negócio?')) {
       deleteDeal.mutate(dealId);
     }
   };
 
-  const handleSubmit = (data: TablesInsert<"deals">) => {
+  const handleSubmit = (data: TablesInsert<'deals'>) => {
     if (editingDeal) {
       updateDeal.mutate({ id: editingDeal.id, ...data });
     } else {
@@ -232,7 +243,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
 
     const deal = deals.find((d) => d.id === winLossModal.dealId);
     const targetStage = stages.find((s) =>
-      winLossModal.type === "won" ? s.is_closed_won : s.is_closed_lost
+      winLossModal.type === 'won' ? s.is_closed_won : s.is_closed_lost
     );
 
     if (!deal || !targetStage) return;
@@ -241,10 +252,10 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
     const updateData: any = {
       id: deal.id,
       stage_id: targetStage.id,
-      status: winLossModal.type === "won" ? "won" : "lost",
+      status: winLossModal.type === 'won' ? 'won' : 'lost',
     };
 
-    if (winLossModal.type === "won") {
+    if (winLossModal.type === 'won') {
       updateData.win_reason = data.reason;
       updateData.won_at = new Date().toISOString();
     } else {
@@ -256,9 +267,9 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
     updateDeal.mutate(updateData);
 
     // Celebração se ganhou
-    if (winLossModal.type === "won") {
+    if (winLossModal.type === 'won') {
       setTimeout(() => {
-        celebrate("deal_won", {
+        celebrate('deal_won', {
           title: deal.title,
           value: deal.value || 0,
         });
@@ -269,9 +280,9 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
 
   const formatCurrency = (deals: Deal[]) => {
     const total = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(total);
   };
 
@@ -328,13 +339,13 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
 
                   <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                     <span className="text-sm text-gray-500 font-medium">
-                      {stageDeals.length} {stageDeals.length === 1 ? "negócio" : "negócios"}
+                      {stageDeals.length} {stageDeals.length === 1 ? 'negócio' : 'negócios'}
                     </span>
                     <span
                       className="text-sm font-bold px-3 py-1 rounded-full"
                       style={{
                         backgroundColor: `${stage.color}15`,
-                        color: stage.color
+                        color: stage.color,
                       }}
                     >
                       {formatCurrency(stageDeals)}
@@ -380,9 +391,9 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
           {activeDeal ? (
             <DealCard
               deal={activeDeal}
-              onEdit={(deal) => { }}
-              onDelete={() => { }}
-              onView={() => { }}
+              onEdit={(deal) => {}}
+              onDelete={() => {}}
+              onView={() => {}}
             />
           ) : null}
         </DragOverlay>

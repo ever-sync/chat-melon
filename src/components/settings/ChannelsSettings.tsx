@@ -2,13 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -105,7 +99,9 @@ export const ChannelsSettings = () => {
     return labels[status];
   };
 
-  const getStatusVariant = (status: ChannelStatus): 'default' | 'secondary' | 'destructive' | 'outline' => {
+  const getStatusVariant = (
+    status: ChannelStatus
+  ): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (status) {
       case 'connected':
         return 'default';
@@ -256,14 +252,18 @@ export const ChannelsSettings = () => {
       )}
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteChannelId} onOpenChange={(open) => !open && setDeleteChannelId(null)}>
+      <AlertDialog
+        open={!!deleteChannelId}
+        onOpenChange={(open) => !open && setDeleteChannelId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover Canal?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O canal "{channelToDelete?.name}" será
-              desconectado e todas as configurações serão perdidas.
-              <br /><br />
+              Esta ação não pode ser desfeita. O canal "{channelToDelete?.name}" será desconectado e
+              todas as configurações serão perdidas.
+              <br />
+              <br />
               <strong>Nota:</strong> As conversas existentes não serão excluídas.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -344,9 +344,7 @@ const ChannelCard = ({
                 {channel.external_id && ` • ${channel.external_id}`}
               </p>
               {channel.error_message && (
-                <p className="text-xs text-destructive mt-1">
-                  {channel.error_message}
-                </p>
+                <p className="text-xs text-destructive mt-1">{channel.error_message}</p>
               )}
             </div>
           </div>
@@ -355,53 +353,32 @@ const ChannelCard = ({
             {/* Stats */}
             <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground mr-4">
               <div className="text-center">
-                <div className="font-semibold text-foreground">
-                  {channel.total_conversations}
-                </div>
+                <div className="font-semibold text-foreground">{channel.total_conversations}</div>
                 <div className="text-xs">Conversas</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-foreground">
-                  {channel.total_messages_sent}
-                </div>
+                <div className="font-semibold text-foreground">{channel.total_messages_sent}</div>
                 <div className="text-xs">Enviadas</div>
               </div>
               {metrics && (
                 <div className="text-center">
-                  <div className="font-semibold text-foreground">
-                    {metrics.uptime}%
-                  </div>
+                  <div className="font-semibold text-foreground">{metrics.uptime}%</div>
                   <div className="text-xs">Uptime</div>
                 </div>
               )}
             </div>
 
             {/* Actions */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onConfigure}
-              title="Configurações"
-            >
+            <Button variant="ghost" size="icon" onClick={onConfigure} title="Configurações">
               <Settings className="h-4 w-4" />
             </Button>
 
             {channel.status === 'connected' ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onDisconnect}
-                title="Desconectar"
-              >
+              <Button variant="ghost" size="icon" onClick={onDisconnect} title="Desconectar">
                 <Unplug className="h-4 w-4" />
               </Button>
             ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onConnect}
-                title="Conectar"
-              >
+              <Button variant="ghost" size="icon" onClick={onConnect} title="Conectar">
                 <Plug className="h-4 w-4" />
               </Button>
             )}
@@ -469,45 +446,48 @@ const AddChannelDialog = ({
         return (
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Para conectar o {getChannelLabel(channelType)}, você precisa autorizar
-              o acesso através do Facebook.
+              Para conectar o {getChannelLabel(channelType)}, você precisa autorizar o acesso
+              através do Facebook.
             </p>
-            <Button className="w-full" onClick={async () => {
-              try {
-                const { data, error } = await supabase.functions.invoke('meta-oauth', {
-                  body: { action: 'get_auth_url', companyId: currentCompany?.id }
-                });
+            <Button
+              className="w-full"
+              onClick={async () => {
+                try {
+                  const { data, error } = await supabase.functions.invoke('meta-oauth', {
+                    body: { action: 'get_auth_url', companyId: currentCompany?.id },
+                  });
 
-                if (error) throw error;
-                if (data?.authUrl) {
-                  const width = 600;
-                  const height = 700;
-                  const left = window.screen.width / 2 - width / 2;
-                  const top = window.screen.height / 2 - height / 2;
+                  if (error) throw error;
+                  if (data?.authUrl) {
+                    const width = 600;
+                    const height = 700;
+                    const left = window.screen.width / 2 - width / 2;
+                    const top = window.screen.height / 2 - height / 2;
 
-                  const popup = window.open(
-                    data.authUrl,
-                    'Connect With Meta',
-                    `width=${width},height=${height},left=${left},top=${top}`
-                  );
+                    const popup = window.open(
+                      data.authUrl,
+                      'Connect With Meta',
+                      `width=${width},height=${height},left=${left},top=${top}`
+                    );
 
-                  const handleMessage = (event: MessageEvent) => {
-                    if (event.data?.type === 'oauth-success' && event.data?.provider === 'meta') {
-                      toast.success('Conectado com sucesso!');
-                      popup?.close();
-                      window.removeEventListener('message', handleMessage);
-                      // Trigger refresh and close dialog
-                      onChannelConnected();
-                    }
-                  };
+                    const handleMessage = (event: MessageEvent) => {
+                      if (event.data?.type === 'oauth-success' && event.data?.provider === 'meta') {
+                        toast.success('Conectado com sucesso!');
+                        popup?.close();
+                        window.removeEventListener('message', handleMessage);
+                        // Trigger refresh and close dialog
+                        onChannelConnected();
+                      }
+                    };
 
-                  window.addEventListener('message', handleMessage);
+                    window.addEventListener('message', handleMessage);
+                  }
+                } catch (error) {
+                  console.error('Meta OAuth Error:', error);
+                  toast.error('Erro ao iniciar conexão');
                 }
-              } catch (error) {
-                console.error('Meta OAuth Error:', error);
-                toast.error('Erro ao iniciar conexão');
-              }
-            }}>
+              }}
+            >
               <ExternalLink className="h-4 w-4 mr-2" />
               Conectar com Facebook
             </Button>
@@ -554,9 +534,7 @@ const AddChannelDialog = ({
             {channelType && <ChannelIcon type={channelType} size="md" showBackground />}
             Adicionar {channelType && getChannelLabel(channelType)}
           </DialogTitle>
-          <DialogDescription>
-            Configure as credenciais para conectar este canal.
-          </DialogDescription>
+          <DialogDescription>Configure as credenciais para conectar este canal.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -597,11 +575,7 @@ interface ConfigureChannelDialogProps {
   channel: Channel;
 }
 
-const ConfigureChannelDialog = ({
-  open,
-  onOpenChange,
-  channel,
-}: ConfigureChannelDialogProps) => {
+const ConfigureChannelDialog = ({ open, onOpenChange, channel }: ConfigureChannelDialogProps) => {
   const { metrics } = useChannelHealth(channel.id);
 
   return (
@@ -620,9 +594,7 @@ const ConfigureChannelDialog = ({
             <h4 className="font-medium">Status do Canal</h4>
             <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {channel.total_conversations}
-                </div>
+                <div className="text-2xl font-bold text-primary">{channel.total_conversations}</div>
                 <div className="text-xs text-muted-foreground">Conversas</div>
               </div>
               <div className="text-center">
@@ -632,9 +604,7 @@ const ConfigureChannelDialog = ({
                 <div className="text-xs text-muted-foreground">Mensagens</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-500">
-                  {metrics?.uptime || '100'}%
-                </div>
+                <div className="text-2xl font-bold text-green-500">{metrics?.uptime || '100'}%</div>
                 <div className="text-xs text-muted-foreground">Uptime 24h</div>
               </div>
             </div>

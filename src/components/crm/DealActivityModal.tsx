@@ -1,22 +1,17 @@
-import { useForm } from "react-hook-form";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useForm } from 'react-hook-form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useDealActivities } from "@/hooks/useDealActivities";
+} from '@/components/ui/select';
+import { useDealActivities } from '@/hooks/useDealActivities';
 
 interface DealActivityModalProps {
   dealId: string;
@@ -31,11 +26,7 @@ interface ActivityForm {
   result?: string;
 }
 
-export const DealActivityModal = ({
-  dealId,
-  open,
-  onOpenChange,
-}: DealActivityModalProps) => {
+export const DealActivityModal = ({ dealId, open, onOpenChange }: DealActivityModalProps) => {
   const { register, handleSubmit, watch, setValue, reset } = useForm<ActivityForm>({
     defaultValues: {
       datetime: new Date().toISOString().slice(0, 16),
@@ -43,7 +34,7 @@ export const DealActivityModal = ({
   });
   const { addActivity } = useDealActivities(dealId);
 
-  const activityType = watch("activity_type");
+  const activityType = watch('activity_type');
 
   const onSubmit = (data: ActivityForm) => {
     const metadata: Record<string, any> = {
@@ -76,8 +67,8 @@ export const DealActivityModal = ({
           <div className="space-y-2">
             <Label htmlFor="activity_type">Tipo de Atividade *</Label>
             <Select
-              value={watch("activity_type")}
-              onValueChange={(value) => setValue("activity_type", value)}
+              value={watch('activity_type')}
+              onValueChange={(value) => setValue('activity_type', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tipo" />
@@ -96,7 +87,7 @@ export const DealActivityModal = ({
             <Input
               id="datetime"
               type="datetime-local"
-              {...register("datetime", { required: true })}
+              {...register('datetime', { required: true })}
             />
           </div>
 
@@ -104,19 +95,16 @@ export const DealActivityModal = ({
             <Label htmlFor="description">Descrição *</Label>
             <Textarea
               id="description"
-              {...register("description", { required: true })}
+              {...register('description', { required: true })}
               placeholder="Descreva a atividade..."
               rows={3}
             />
           </div>
 
-          {(activityType === "call_made" || activityType === "meeting") && (
+          {(activityType === 'call_made' || activityType === 'meeting') && (
             <div className="space-y-2">
               <Label htmlFor="result">Resultado</Label>
-              <Select
-                value={watch("result")}
-                onValueChange={(value) => setValue("result", value)}
-              >
+              <Select value={watch('result')} onValueChange={(value) => setValue('result', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o resultado" />
                 </SelectTrigger>
@@ -134,9 +122,7 @@ export const DealActivityModal = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Adicionar
-            </Button>
+            <Button type="submit">Adicionar</Button>
           </div>
         </form>
       </DialogContent>

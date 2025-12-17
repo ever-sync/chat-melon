@@ -1,5 +1,5 @@
-import { MainLayout } from "@/components/MainLayout";
-import { TemplatesManager } from "@/components/chat/TemplatesManager";
+import { MainLayout } from '@/components/MainLayout';
+import { TemplatesManager } from '@/components/chat/TemplatesManager';
 
 export default function Templates() {
   return (

@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Users, Trash2, Edit, Filter } from "lucide-react";
-import { useSegments } from "@/hooks/useSegments";
-import { SegmentBuilder } from "@/components/contacts/SegmentBuilder";
+import { useState } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Users, Trash2, Edit, Filter } from 'lucide-react';
+import { useSegments } from '@/hooks/useSegments';
+import { SegmentBuilder } from '@/components/contacts/SegmentBuilder';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,9 +14,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useNavigate } from "react-router-dom";
+} from '@/components/ui/alert-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
 
 export default function Segments() {
   const { segments, isLoading, deleteSegment } = useSegments();
@@ -113,28 +113,16 @@ export default function Segments() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
-                        {segment.name}
-                      </CardTitle>
+                      <CardTitle className="flex items-center gap-2">{segment.name}</CardTitle>
                       {segment.description && (
-                        <CardDescription className="mt-2">
-                          {segment.description}
-                        </CardDescription>
+                        <CardDescription className="mt-2">{segment.description}</CardDescription>
                       )}
                     </div>
                     <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(segment)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(segment)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(segment.id)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(segment.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -145,15 +133,11 @@ export default function Segments() {
                     <div className="flex items-center gap-2 text-2xl font-bold">
                       <Users className="h-6 w-6 text-primary" />
                       {segment.contact_count || 0}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        contatos
-                      </span>
+                      <span className="text-sm font-normal text-muted-foreground">contatos</span>
                     </div>
 
                     <div className="space-y-2 text-sm text-muted-foreground">
-                      <div>
-                        {segment.filters?.length || 0} regra(s) ativa(s)
-                      </div>
+                      <div>{segment.filters?.length || 0} regra(s) ativa(s)</div>
                       {segment.is_dynamic && (
                         <div className="flex items-center gap-1">
                           <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
@@ -177,19 +161,15 @@ export default function Segments() {
         )}
       </div>
 
-      <SegmentBuilder
-        open={builderOpen}
-        onOpenChange={setBuilderOpen}
-        segment={selectedSegment}
-      />
+      <SegmentBuilder open={builderOpen} onOpenChange={setBuilderOpen} segment={selectedSegment} />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Segmento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este segmento? Esta ação não pode ser desfeita.
-              Os contatos não serão afetados.
+              Tem certeza que deseja excluir este segmento? Esta ação não pode ser desfeita. Os
+              contatos não serão afetados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

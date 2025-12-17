@@ -1,19 +1,19 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, ExternalLink, CheckCircle2 } from "lucide-react";
-import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
-import { useTasks } from "@/hooks/crm/useTasks";
-import { Button } from "@/components/ui/button";
-import { format, isToday } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar, Clock, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
+import { useTasks } from '@/hooks/crm/useTasks';
+import { Button } from '@/components/ui/button';
+import { format, isToday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const CalendarWidget = () => {
   const { connectionStatus, todayEvents, isLoadingEvents } = useGoogleCalendar();
   const { tasks } = useTasks({
-    status: "pending",
-    dateFrom: format(new Date(), "yyyy-MM-dd"),
-    dateTo: format(new Date(), "yyyy-MM-dd"),
+    status: 'pending',
+    dateFrom: format(new Date(), 'yyyy-MM-dd'),
+    dateTo: format(new Date(), 'yyyy-MM-dd'),
   });
 
   if (!connectionStatus?.connected) {
@@ -50,8 +50,8 @@ export const CalendarWidget = () => {
       link: event.htmlLink,
     })),
     ...tasks
-      .filter(t => t.task_type === 'meeting' || t.task_type === 'call')
-      .map(task => ({
+      .filter((t) => t.task_type === 'meeting' || t.task_type === 'call')
+      .map((task) => ({
         id: task.id,
         title: task.title,
         start: new Date(task.due_date),
@@ -75,7 +75,7 @@ export const CalendarWidget = () => {
       <CardContent>
         {isLoadingEvents ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
@@ -84,9 +84,7 @@ export const CalendarWidget = () => {
             <CheckCircle2 className="h-12 w-12 mx-auto text-green-500/50" />
             <div className="space-y-1">
               <p className="text-sm font-medium">Nenhum evento hoje</p>
-              <p className="text-xs text-muted-foreground">
-                Você está livre! 🎉
-              </p>
+              <p className="text-xs text-muted-foreground">Você está livre! 🎉</p>
             </div>
           </div>
         ) : (
@@ -99,7 +97,7 @@ export const CalendarWidget = () => {
                 >
                   <div className="flex flex-col items-center justify-center min-w-[50px] text-center">
                     <div className="text-xs font-medium text-muted-foreground">
-                      {format(event.start, "HH:mm", { locale: ptBR })}
+                      {format(event.start, 'HH:mm', { locale: ptBR })}
                     </div>
                   </div>
 
@@ -112,11 +110,9 @@ export const CalendarWidget = () => {
                       )}
                       <p className="text-sm font-medium truncate">{event.title}</p>
                     </div>
-                    
+
                     {event.type === 'task' && event.contact && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Com: {event.contact}
-                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">Com: {event.contact}</p>
                     )}
 
                     {event.type === 'calendar' && event.link && (

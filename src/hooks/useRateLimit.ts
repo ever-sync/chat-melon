@@ -198,13 +198,10 @@ export function useThrottle<Args extends unknown[]>(
       } else {
         // Agenda execução para quando o delay expirar
         clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(
-          () => {
-            callback(...args);
-            lastRun.current = Date.now();
-          },
-          delay - timeSinceLastRun
-        );
+        timeoutRef.current = setTimeout(() => {
+          callback(...args);
+          lastRun.current = Date.now();
+        }, delay - timeSinceLastRun);
       }
     },
     [callback, delay]

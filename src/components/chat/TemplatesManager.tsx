@@ -1,57 +1,43 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  Search,
-  MoreVertical,
-  Star,
-  Copy,
-  Edit,
-  Trash2,
-} from "lucide-react";
-import { useTemplates } from "@/hooks/useTemplates";
-import { TemplateModal } from "./dialogs/TemplateModal";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { TablesInsert } from "@/integrations/supabase/types";
-import { toast } from "sonner";
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, MoreVertical, Star, Copy, Edit, Trash2 } from 'lucide-react';
+import { useTemplates } from '@/hooks/useTemplates';
+import { TemplateModal } from './dialogs/TemplateModal';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { TablesInsert } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 export const TemplatesManager = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>();
   const [filters, setFilters] = useState({
-    category: "all",
-    search: "",
+    category: 'all',
+    search: '',
   });
 
-  const {
-    templates,
-    isLoading,
-    createTemplate,
-    updateTemplate,
-    toggleFavorite,
-    deleteTemplate,
-  } = useTemplates({
-    category: filters.category === "all" ? undefined : filters.category || undefined,
-    search: filters.search || undefined,
-  });
+  const { templates, isLoading, createTemplate, updateTemplate, toggleFavorite, deleteTemplate } =
+    useTemplates({
+      category: filters.category === 'all' ? undefined : filters.category || undefined,
+      search: filters.search || undefined,
+    });
 
-  const handleSubmit = (data: TablesInsert<"message_templates">) => {
+  const handleSubmit = (data: TablesInsert<'message_templates'>) => {
     if (editingTemplate) {
       updateTemplate.mutate({ id: editingTemplate.id, ...data });
     } else {
@@ -61,7 +47,7 @@ export const TemplatesManager = () => {
 
   const handleCopy = (content: string) => {
     navigator.clipboard.writeText(content);
-    toast.success("Template copiado!");
+    toast.success('Template copiado!');
   };
 
   if (isLoading) {
@@ -100,18 +86,14 @@ export const TemplatesManager = () => {
                 <Input
                   placeholder="Buscar templates..."
                   value={filters.search}
-                  onChange={(e) =>
-                    setFilters({ ...filters, search: e.target.value })
-                  }
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="pl-9"
                 />
               </div>
 
               <Select
                 value={filters.category}
-                onValueChange={(value) =>
-                  setFilters({ ...filters, category: value })
-                }
+                onValueChange={(value) => setFilters({ ...filters, category: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as categorias" />
@@ -132,9 +114,7 @@ export const TemplatesManager = () => {
             <div className="space-y-3">
               {templates.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">
-                    Nenhum template encontrado
-                  </p>
+                  <p className="text-muted-foreground">Nenhum template encontrado</p>
                 </div>
               ) : (
                 templates.map((template) => (
@@ -143,9 +123,7 @@ export const TemplatesManager = () => {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0 space-y-2">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-sm">
-                              {template.name}
-                            </h3>
+                            <h3 className="font-semibold text-sm">{template.name}</h3>
                             {template.is_favorite && (
                               <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                             )}
@@ -164,11 +142,7 @@ export const TemplatesManager = () => {
                             {template.variables && template.variables.length > 0 && (
                               <div className="flex items-center gap-1">
                                 {template.variables.map((v) => (
-                                  <Badge
-                                    key={v}
-                                    variant="secondary"
-                                    className="text-xs"
-                                  >
+                                  <Badge key={v} variant="secondary" className="text-xs">
                                     {`{{${v}}}`}
                                   </Badge>
                                 ))}
@@ -182,11 +156,7 @@ export const TemplatesManager = () => {
 
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 flex-shrink-0"
-                            >
+                            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -200,13 +170,9 @@ export const TemplatesManager = () => {
                               }
                             >
                               <Star className="h-4 w-4 mr-2" />
-                              {template.is_favorite
-                                ? "Remover favorito"
-                                : "Favoritar"}
+                              {template.is_favorite ? 'Remover favorito' : 'Favoritar'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleCopy(template.content)}
-                            >
+                            <DropdownMenuItem onClick={() => handleCopy(template.content)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Copiar
                             </DropdownMenuItem>
@@ -221,11 +187,7 @@ export const TemplatesManager = () => {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
-                                if (
-                                  confirm(
-                                    "Deseja realmente excluir este template?"
-                                  )
-                                ) {
+                                if (confirm('Deseja realmente excluir este template?')) {
                                   deleteTemplate.mutate(template.id);
                                 }
                               }}

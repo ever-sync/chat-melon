@@ -1,23 +1,21 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface CampaignProgressProps {
   campaign: any;
 }
 
 export function CampaignProgress({ campaign }: CampaignProgressProps) {
-  const progress = campaign.total_contacts > 0 
-    ? (campaign.sent_count / campaign.total_contacts) * 100 
-    : 0;
+  const progress =
+    campaign.total_contacts > 0 ? (campaign.sent_count / campaign.total_contacts) * 100 : 0;
 
   // Calculate ETA based on sending rate
   const remainingContacts = campaign.total_contacts - campaign.sent_count;
-  const etaMinutes = campaign.sending_rate > 0 
-    ? Math.ceil(remainingContacts / campaign.sending_rate) 
-    : 0;
+  const etaMinutes =
+    campaign.sending_rate > 0 ? Math.ceil(remainingContacts / campaign.sending_rate) : 0;
 
   const formatETA = (minutes: number) => {
-    if (minutes === 0) return "Concluído";
+    if (minutes === 0) return 'Concluído';
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;

@@ -1,16 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar, CheckCircle2, XCircle } from "lucide-react";
-import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Calendar, CheckCircle2, XCircle } from 'lucide-react';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
+import { Badge } from '@/components/ui/badge';
 
 export const GoogleCalendarSettings = () => {
-  const {
-    connectionStatus,
-    isCheckingConnection,
-    connectCalendar,
-    disconnectCalendar,
-  } = useGoogleCalendar();
+  const { connectionStatus, isCheckingConnection, connectCalendar, disconnectCalendar } =
+    useGoogleCalendar();
 
   const redirectUri = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-oauth`;
   const appUrl = window.location.origin;
@@ -23,9 +19,7 @@ export const GoogleCalendarSettings = () => {
             <Calendar className="h-5 w-5" />
             Google Calendar
           </CardTitle>
-          <CardDescription>
-            Verificando conexão...
-          </CardDescription>
+          <CardDescription>Verificando conexão...</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -38,9 +32,7 @@ export const GoogleCalendarSettings = () => {
           <Calendar className="h-5 w-5" />
           Google Calendar
         </CardTitle>
-        <CardDescription>
-          Sincronize suas tarefas e reuniões com o Google Calendar
-        </CardDescription>
+        <CardDescription>Sincronize suas tarefas e reuniões com o Google Calendar</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {connectionStatus?.connected ? (
@@ -55,7 +47,10 @@ export const GoogleCalendarSettings = () => {
                   {connectionStatus.email}
                 </p>
               </div>
-              <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">
+              <Badge
+                variant="outline"
+                className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700"
+              >
                 Ativo
               </Badge>
             </div>
@@ -76,7 +71,7 @@ export const GoogleCalendarSettings = () => {
               disabled={disconnectCalendar.isPending}
             >
               <XCircle className="h-4 w-4 mr-2" />
-              {disconnectCalendar.isPending ? "Desconectando..." : "Desconectar"}
+              {disconnectCalendar.isPending ? 'Desconectando...' : 'Desconectar'}
             </Button>
           </>
         ) : (
@@ -84,9 +79,7 @@ export const GoogleCalendarSettings = () => {
             <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
               <XCircle className="h-5 w-5 text-muted-foreground" />
               <div className="flex-1">
-                <p className="text-sm font-medium">
-                  Não conectado
-                </p>
+                <p className="text-sm font-medium">Não conectado</p>
                 <p className="text-xs text-muted-foreground">
                   Conecte para sincronizar suas tarefas
                 </p>
@@ -102,13 +95,17 @@ export const GoogleCalendarSettings = () => {
               </p>
               <div className="space-y-2 text-xs">
                 <div>
-                  <p className="font-medium text-amber-900 dark:text-amber-100">1. Authorized JavaScript origins:</p>
+                  <p className="font-medium text-amber-900 dark:text-amber-100">
+                    1. Authorized JavaScript origins:
+                  </p>
                   <code className="block mt-1 p-2 bg-amber-100 dark:bg-amber-900/30 rounded text-amber-900 dark:text-amber-100 break-all">
                     {appUrl}
                   </code>
                 </div>
                 <div>
-                  <p className="font-medium text-amber-900 dark:text-amber-100">2. Authorized redirect URIs:</p>
+                  <p className="font-medium text-amber-900 dark:text-amber-100">
+                    2. Authorized redirect URIs:
+                  </p>
                   <code className="block mt-1 p-2 bg-amber-100 dark:bg-amber-900/30 rounded text-amber-900 dark:text-amber-100 break-all">
                     {redirectUri}
                   </code>
@@ -137,7 +134,8 @@ export const GoogleCalendarSettings = () => {
             {connectCalendar.isError && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                 <p className="text-xs text-destructive">
-                  Erro ao conectar. Verifique se os URIs estão configurados corretamente no Google Cloud Console.
+                  Erro ao conectar. Verifique se os URIs estão configurados corretamente no Google
+                  Cloud Console.
                 </p>
               </div>
             )}
@@ -148,7 +146,7 @@ export const GoogleCalendarSettings = () => {
               className="w-full"
             >
               <Calendar className="h-4 w-4 mr-2" />
-              {connectCalendar.isPending ? "Conectando..." : "Conectar Google Calendar"}
+              {connectCalendar.isPending ? 'Conectando...' : 'Conectar Google Calendar'}
             </Button>
           </>
         )}

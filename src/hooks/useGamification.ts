@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export type Goal = {
   id: string;
@@ -41,16 +41,18 @@ export const useGamification = () => {
 
   // Buscar metas do usuário
   const { data: goals = [], isLoading: goalsLoading } = useQuery({
-    queryKey: ["goals"],
+    queryKey: ['goals'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
       const { data, error } = await supabase
-        .from("goals")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .from('goals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as Goal[];
@@ -59,12 +61,12 @@ export const useGamification = () => {
 
   // Buscar achievements da empresa
   const { data: achievements = [], isLoading: achievementsLoading } = useQuery({
-    queryKey: ["achievements"],
+    queryKey: ['achievements'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("achievements")
-        .select("*")
-        .order("points", { ascending: true });
+        .from('achievements')
+        .select('*')
+        .order('points', { ascending: true });
 
       if (error) throw error;
       return data as Achievement[];
@@ -73,16 +75,18 @@ export const useGamification = () => {
 
   // Buscar achievements conquistados pelo usuário
   const { data: userAchievements = [], isLoading: userAchievementsLoading } = useQuery({
-    queryKey: ["userAchievements"],
+    queryKey: ['userAchievements'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
       const { data, error } = await supabase
-        .from("user_achievements")
-        .select("*, achievements(*)")
-        .eq("user_id", user.id)
-        .order("earned_at", { ascending: false });
+        .from('user_achievements')
+        .select('*, achievements(*)')
+        .eq('user_id', user.id)
+        .order('earned_at', { ascending: false });
 
       if (error) throw error;
       return data as UserAchievement[];
@@ -91,16 +95,18 @@ export const useGamification = () => {
 
   // Buscar rankings (leaderboard)
   const { data: leaderboard = [], isLoading: leaderboardLoading } = useQuery({
-    queryKey: ["leaderboard"],
+    queryKey: ['leaderboard'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
       // Buscar empresa do usuário
       const { data: companyUser } = await supabase
-        .from("company_users")
-        .select("company_id")
-        .eq("user_id", user.id)
+        .from('company_users')
+        .select('company_id')
+        .eq('user_id', user.id)
         .single();
 
       if (!companyUser) return [];
@@ -111,11 +117,11 @@ export const useGamification = () => {
       startOfMonth.setHours(0, 0, 0, 0);
 
       const { data: deals } = await supabase
-        .from("deals")
-        .select("assigned_to, value, profiles!deals_assigned_to_fkey(*)")
-        .eq("company_id", companyUser.company_id)
-        .eq("status", "won")
-        .gte("won_at", startOfMonth.toISOString());
+        .from('deals')
+        .select('assigned_to, value, profiles!deals_assigned_to_fkey(*)')
+        .eq('company_id', companyUser.company_id)
+        .eq('status', 'won')
+        .gte('won_at', startOfMonth.toISOString());
 
       if (!deals) return [];
 
@@ -123,7 +129,7 @@ export const useGamification = () => {
       const grouped = deals.reduce((acc: any, deal: any) => {
         const userId = deal.assigned_to;
         if (!userId) return acc;
-        
+
         if (!acc[userId]) {
           acc[userId] = {
             user: deal.profiles,
@@ -145,33 +151,37 @@ export const useGamification = () => {
   // Criar meta
   const createGoalMutation = useMutation({
     mutationFn: async (goalData: any) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
       const { data: companyUser } = await supabase
-        .from("company_users")
-        .select("company_id")
-        .eq("user_id", user.id)
+        .from('company_users')
+        .select('company_id')
+        .eq('user_id', user.id)
         .single();
 
-      const { error } = await supabase.from("goals").insert([{
-        user_id: user.id,
-        company_id: companyUser?.company_id,
-        goal_type: goalData.goal_type,
-        target_value: goalData.target_value,
-        period: goalData.period,
-        start_date: goalData.start_date,
-        end_date: goalData.end_date,
-      }]);
+      const { error } = await supabase.from('goals').insert([
+        {
+          user_id: user.id,
+          company_id: companyUser?.company_id,
+          goal_type: goalData.goal_type,
+          target_value: goalData.target_value,
+          period: goalData.period,
+          start_date: goalData.start_date,
+          end_date: goalData.end_date,
+        },
+      ]);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      toast.success("Meta criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast.success('Meta criada com sucesso!');
     },
     onError: (error) => {
-      toast.error("Erro ao criar meta");
+      toast.error('Erro ao criar meta');
       console.error(error);
     },
   });
@@ -180,54 +190,54 @@ export const useGamification = () => {
   const updateGoalProgressMutation = useMutation({
     mutationFn: async ({ goalId, currentValue }: { goalId: string; currentValue: number }) => {
       const { error } = await supabase
-        .from("goals")
+        .from('goals')
         .update({ current_value: currentValue })
-        .eq("id", goalId);
+        .eq('id', goalId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 
   // Verificar e desbloquear achievements
   const checkAchievements = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     // Buscar deals ganhos do usuário
     const { data: wonDeals } = await supabase
-      .from("deals")
-      .select("*")
-      .eq("assigned_to", user.id)
-      .eq("status", "won");
+      .from('deals')
+      .select('*')
+      .eq('assigned_to', user.id)
+      .eq('status', 'won');
 
     const wonCount = wonDeals?.length || 0;
 
     // Verificar cada achievement
     for (const achievement of achievements) {
       // Pular se já conquistou
-      const alreadyEarned = userAchievements.some(
-        ua => ua.achievement_id === achievement.id
-      );
+      const alreadyEarned = userAchievements.some((ua) => ua.achievement_id === achievement.id);
       if (alreadyEarned) continue;
 
       let earned = false;
 
       // Avaliar critério
-      if (achievement.criteria.type === "deals_won") {
+      if (achievement.criteria.type === 'deals_won') {
         earned = wonCount >= achievement.criteria.count;
       }
 
       if (earned) {
-        await supabase.from("user_achievements").insert({
+        await supabase.from('user_achievements').insert({
           user_id: user.id,
           achievement_id: achievement.id,
         });
 
-        queryClient.invalidateQueries({ queryKey: ["userAchievements"] });
-        
+        queryClient.invalidateQueries({ queryKey: ['userAchievements'] });
+
         // Mostrar notificação
         toast.success(`🏆 Achievement desbloqueado: ${achievement.name}!`, {
           description: achievement.description,

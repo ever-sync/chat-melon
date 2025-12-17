@@ -1,7 +1,7 @@
-import { Badge } from "@/components/ui/badge";
-import { LucideIcon } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Badge } from '@/components/ui/badge';
+import { LucideIcon } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LabelBadgeProps {
   name: string;
@@ -9,20 +9,20 @@ interface LabelBadgeProps {
   icon?: string | null;
   className?: string;
   onClick?: () => void;
-  variant?: "default" | "outline";
+  variant?: 'default' | 'outline';
 }
 
-export function LabelBadge({ 
-  name, 
-  color, 
-  icon, 
-  className, 
+export function LabelBadge({
+  name,
+  color,
+  icon,
+  className,
   onClick,
-  variant = "default" 
+  variant = 'default',
 }: LabelBadgeProps) {
   // Busca o ícone dinamicamente do lucide-react
-  const IconComponent = icon && (LucideIcons as any)[icon] as LucideIcon;
-  
+  const IconComponent = icon && ((LucideIcons as any)[icon] as LucideIcon);
+
   // Calcula cor do texto baseado na luminância da cor de fundo
   const getTextColor = (hexColor: string) => {
     const rgb = parseInt(hexColor.slice(1), 16);
@@ -34,17 +34,17 @@ export function LabelBadge({
   };
 
   const textColor = getTextColor(color);
-  
+
   return (
     <Badge
       variant={variant}
       className={cn(
-        "text-xs font-medium flex items-center gap-1 cursor-pointer transition-all hover:scale-105",
-        variant === "default" && "border-0",
+        'text-xs font-medium flex items-center gap-1 cursor-pointer transition-all hover:scale-105',
+        variant === 'default' && 'border-0',
         className
       )}
       style={
-        variant === "default"
+        variant === 'default'
           ? {
               backgroundColor: `${color}33`, // 20% opacity
               color: color,

@@ -43,14 +43,8 @@ import type { Chatbot, ChatbotTemplate } from '@/types/chatbot';
 export default function ChatbotsPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const {
-    chatbots,
-    isLoading,
-    createChatbot,
-    updateChatbot,
-    deleteChatbot,
-    duplicateChatbot,
-  } = useChatbots();
+  const { chatbots, isLoading, createChatbot, updateChatbot, deleteChatbot, duplicateChatbot } =
+    useChatbots();
   const { templates, createFromTemplate } = useChatbotTemplates();
 
   const [search, setSearch] = useState('');
@@ -165,9 +159,7 @@ export default function ChatbotsPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Chatbots</h1>
-          <p className="text-muted-foreground">
-            Crie e gerencie seus fluxos de automação
-          </p>
+          <p className="text-muted-foreground">Crie e gerencie seus fluxos de automação</p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -234,7 +226,11 @@ export default function ChatbotsPage() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100"
+                      >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -276,9 +272,7 @@ export default function ChatbotsPage() {
               </CardHeader>
               <CardContent>
                 {bot.description && (
-                  <CardDescription className="mb-4 line-clamp-2">
-                    {bot.description}
-                  </CardDescription>
+                  <CardDescription className="mb-4 line-clamp-2">{bot.description}</CardDescription>
                 )}
 
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -319,9 +313,7 @@ export default function ChatbotsPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Novo Chatbot</DialogTitle>
-            <DialogDescription>
-              Crie um chatbot do zero ou use um template.
-            </DialogDescription>
+            <DialogDescription>Crie um chatbot do zero ou use um template.</DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="blank">
@@ -389,9 +381,7 @@ export default function ChatbotsPage() {
                             </Badge>
                           )}
                         </div>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {template.description}
-                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">{template.description}</p>
                         <p className="mt-2 text-xs text-muted-foreground">
                           {template.usage_count} usos
                         </p>
@@ -409,7 +399,9 @@ export default function ChatbotsPage() {
             </Button>
             <Button
               onClick={handleCreate}
-              disabled={!newBotName.trim() || createChatbot.isPending || createFromTemplate.isPending}
+              disabled={
+                !newBotName.trim() || createChatbot.isPending || createFromTemplate.isPending
+              }
             >
               {(createChatbot.isPending || createFromTemplate.isPending) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -426,19 +418,15 @@ export default function ChatbotsPage() {
           <DialogHeader>
             <DialogTitle>Excluir Chatbot</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir o chatbot "{selectedChatbot?.name}"? Esta ação
-              não pode ser desfeita.
+              Tem certeza que deseja excluir o chatbot "{selectedChatbot?.name}"? Esta ação não pode
+              ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteChatbot.isPending}
-            >
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteChatbot.isPending}>
               {deleteChatbot.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Excluir
             </Button>

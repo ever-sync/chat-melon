@@ -1,5 +1,15 @@
-import { User, LogOut, Settings as SettingsIcon, Building2, ChevronDown, MessageCircle, CheckSquare, FileText, Filter } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  User,
+  LogOut,
+  Settings as SettingsIcon,
+  Building2,
+  ChevronDown,
+  MessageCircle,
+  CheckSquare,
+  FileText,
+  Filter,
+} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,26 +17,30 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useCompany } from "@/contexts/CompanyContext";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { GlobalSearch } from "@/components/GlobalSearch";
-import { TrialBadge } from "@/components/TrialBadge";
-import { InternalChatPanel } from "@/components/internal-chat/InternalChatPanel";
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useCompany } from '@/contexts/CompanyContext';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { GlobalSearch } from '@/components/GlobalSearch';
+import { TrialBadge } from '@/components/TrialBadge';
+import { InternalChatPanel } from '@/components/internal-chat/InternalChatPanel';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(
+    null
+  );
   const { currentCompany, companies, switchCompany, loading } = useCompany();
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         let { data } = await supabase
           .from('profiles')
@@ -59,12 +73,13 @@ export const Header = () => {
     navigate('/auth');
   };
 
-  const initials = profile?.full_name
-    ?.split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'U';
+  const initials =
+    profile?.full_name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'U';
 
   return (
     <header className="sticky top-0 z-[60] w-full border-b border-border/50 bg-background/95 backdrop-blur-md">
@@ -76,13 +91,16 @@ export const Header = () => {
           {!loading && companies.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="gap-2 min-w-[200px] justify-between rounded-xl border-0 hover:bg-muted/50">
+                <Button
+                  variant="ghost"
+                  className="gap-2 min-w-[200px] justify-between rounded-xl border-0 hover:bg-muted/50"
+                >
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-primary/10">
                       <Building2 className="h-4 w-4 text-primary" />
                     </div>
                     <span className="font-medium truncate text-sm">
-                      {currentCompany?.name || "Selecione uma empresa"}
+                      {currentCompany?.name || 'Selecione uma empresa'}
                     </span>
                   </div>
                   <ChevronDown className="h-4 w-4 opacity-50" />
@@ -95,7 +113,7 @@ export const Header = () => {
                   <DropdownMenuItem
                     key={company.id}
                     onClick={() => switchCompany(company.id)}
-                    className={currentCompany?.id === company.id ? "bg-accent" : ""}
+                    className={currentCompany?.id === company.id ? 'bg-accent' : ''}
                   >
                     <Building2 className="mr-2 h-4 w-4" />
                     <span>{company.name}</span>
@@ -154,10 +172,15 @@ export const Header = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 gap-3 px-3 rounded-xl hover:bg-muted/50">
+              <Button
+                variant="ghost"
+                className="relative h-10 gap-3 px-3 rounded-xl hover:bg-muted/50"
+              >
                 <Avatar className="h-9 w-9 border-2 border-primary/10">
                   <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">{initials}</AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="hidden md:inline-block font-medium text-sm">
                   {profile?.full_name || 'Usuário'}

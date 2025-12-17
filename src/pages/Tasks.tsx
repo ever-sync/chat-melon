@@ -1,5 +1,5 @@
-import { MainLayout } from "@/components/MainLayout";
-import { TaskList } from "@/components/tasks/TaskList";
+import { MainLayout } from '@/components/MainLayout';
+import { TaskList } from '@/components/tasks/TaskList';
 
 export default function Tasks() {
   return (

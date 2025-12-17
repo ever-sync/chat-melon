@@ -11,9 +11,11 @@ export const useSavedFilters = () => {
 
   const loadSavedFilters = async () => {
     if (!currentCompany?.id) return;
-    
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
@@ -40,7 +42,9 @@ export const useSavedFilters = () => {
     if (!currentCompany?.id) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // If setting as default, unset other defaults first
@@ -52,15 +56,13 @@ export const useSavedFilters = () => {
           .eq('user_id', user.id);
       }
 
-      const { error } = await supabase
-        .from('saved_filters')
-        .insert({
-          user_id: user.id,
-          company_id: currentCompany.id,
-          name,
-          filters: filters as any,
-          is_default: isDefault,
-        });
+      const { error } = await supabase.from('saved_filters').insert({
+        user_id: user.id,
+        company_id: currentCompany.id,
+        name,
+        filters: filters as any,
+        is_default: isDefault,
+      });
 
       if (error) throw error;
 
@@ -75,10 +77,7 @@ export const useSavedFilters = () => {
 
   const deleteFilter = async (filterId: string) => {
     try {
-      const { error } = await supabase
-        .from('saved_filters')
-        .delete()
-        .eq('id', filterId);
+      const { error } = await supabase.from('saved_filters').delete().eq('id', filterId);
 
       if (error) throw error;
 
@@ -95,7 +94,9 @@ export const useSavedFilters = () => {
     if (!currentCompany?.id) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Unset all defaults first

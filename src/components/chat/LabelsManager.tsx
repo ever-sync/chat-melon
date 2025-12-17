@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Plus, Trash2, Tag, Sparkles } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Plus, Trash2, Tag, Sparkles } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,17 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useCompany } from "@/contexts/CompanyContext";
-import { LabelBadge } from "./LabelBadge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/select';
+import { useCompany } from '@/contexts/CompanyContext';
+import { LabelBadge } from './LabelBadge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LabelData {
   id: string;
@@ -45,20 +45,35 @@ interface LabelsManagerProps {
 }
 
 const PRESET_COLORS = [
-  { name: "Vermelho", color: "#EF4444" },
-  { name: "Laranja", color: "#F97316" },
-  { name: "Amarelo", color: "#F59E0B" },
-  { name: "Verde", color: "#10B981" },
-  { name: "Azul", color: "#3B82F6" },
-  { name: "Roxo", color: "#8B5CF6" },
-  { name: "Rosa", color: "#EC4899" },
-  { name: "Cinza", color: "#6B7280" },
+  { name: 'Vermelho', color: '#EF4444' },
+  { name: 'Laranja', color: '#F97316' },
+  { name: 'Amarelo', color: '#F59E0B' },
+  { name: 'Verde', color: '#10B981' },
+  { name: 'Azul', color: '#3B82F6' },
+  { name: 'Roxo', color: '#8B5CF6' },
+  { name: 'Rosa', color: '#EC4899' },
+  { name: 'Cinza', color: '#6B7280' },
 ];
 
 const PRESET_ICONS = [
-  "AlertCircle", "CheckCircle", "Clock", "HeadphonesIcon", "ShoppingCart",
-  "Tag", "Star", "Flag", "Zap", "Heart", "TrendingUp", "AlertTriangle",
-  "Info", "Mail", "Phone", "MessageSquare", "Users", "Calendar"
+  'AlertCircle',
+  'CheckCircle',
+  'Clock',
+  'HeadphonesIcon',
+  'ShoppingCart',
+  'Tag',
+  'Star',
+  'Flag',
+  'Zap',
+  'Heart',
+  'TrendingUp',
+  'AlertTriangle',
+  'Info',
+  'Mail',
+  'Phone',
+  'MessageSquare',
+  'Users',
+  'Calendar',
 ];
 
 export function LabelsManager({
@@ -72,10 +87,10 @@ export function LabelsManager({
   const [internalOpen, setInternalOpen] = useState(false);
   const [labels, setLabels] = useState<LabelData[]>([]);
   const [conversationLabelIds, setConversationLabelIds] = useState<string[]>([]);
-  const [newLabelName, setNewLabelName] = useState("");
+  const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState(PRESET_COLORS[0].color);
   const [newLabelIcon, setNewLabelIcon] = useState<string>(PRESET_ICONS[0]);
-  const [newLabelDescription, setNewLabelDescription] = useState("");
+  const [newLabelDescription, setNewLabelDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const { currentCompany } = useCompany();
 
@@ -113,7 +128,7 @@ export function LabelsManager({
         .eq('conversation_id', conversationId);
 
       if (error) throw error;
-      setConversationLabelIds(data?.map(cl => cl.label_id) || []);
+      setConversationLabelIds(data?.map((cl) => cl.label_id) || []);
     } catch (error: any) {
       console.error('Erro ao carregar labels da conversa:', error);
     }
@@ -124,54 +139,49 @@ export function LabelsManager({
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('labels')
-        .insert({
-          company_id: currentCompany?.id,
-          name: newLabelName.trim(),
-          color: newLabelColor,
-          icon: newLabelIcon,
-          description: newLabelDescription.trim() || null,
-        });
+      const { error } = await supabase.from('labels').insert({
+        company_id: currentCompany?.id,
+        name: newLabelName.trim(),
+        color: newLabelColor,
+        icon: newLabelIcon,
+        description: newLabelDescription.trim() || null,
+      });
 
       if (error) throw error;
 
-      toast.success("Label criada!", {
-        description: "A label foi criada com sucesso"
+      toast.success('Label criada!', {
+        description: 'A label foi criada com sucesso',
       });
 
-      setNewLabelName("");
-      setNewLabelDescription("");
+      setNewLabelName('');
+      setNewLabelDescription('');
       setNewLabelColor(PRESET_COLORS[0].color);
       setNewLabelIcon(PRESET_ICONS[0]);
       loadLabels();
     } catch (error: any) {
       console.error('Erro ao criar label:', error);
-      toast.error("Erro ao criar label: " + error.message);
+      toast.error('Erro ao criar label: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteLabel = async (labelId: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta label?")) return;
+    if (!confirm('Tem certeza que deseja excluir esta label?')) return;
 
     try {
-      const { error } = await supabase
-        .from('labels')
-        .delete()
-        .eq('id', labelId);
+      const { error } = await supabase.from('labels').delete().eq('id', labelId);
 
       if (error) throw error;
 
-      toast.success("Label removida!", {
-        description: "A label foi removida com sucesso"
+      toast.success('Label removida!', {
+        description: 'A label foi removida com sucesso',
       });
 
       loadLabels();
     } catch (error: any) {
       console.error('Erro ao remover label:', error);
-      toast.error("Erro ao remover label: " + error.message);
+      toast.error('Erro ao remover label: ' + error.message);
     }
   };
 
@@ -188,12 +198,10 @@ export function LabelsManager({
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('conversation_labels')
-          .insert({
-            conversation_id: conversationId,
-            label_id: labelId,
-          });
+        const { error } = await supabase.from('conversation_labels').insert({
+          conversation_id: conversationId,
+          label_id: labelId,
+        });
 
         if (error) throw error;
       }
@@ -202,7 +210,7 @@ export function LabelsManager({
       onLabelsChange?.();
     } catch (error: any) {
       console.error('Erro ao atualizar label:', error);
-      toast.error("Erro ao atualizar label: " + error.message);
+      toast.error('Erro ao atualizar label: ' + error.message);
     }
   };
 
@@ -289,7 +297,9 @@ export function LabelsManager({
                       <div className="flex items-center gap-2 truncate">
                         {(() => {
                           const IconComponent = (LucideIcons as any)[newLabelIcon];
-                          return IconComponent ? <IconComponent className="w-3 h-3 shrink-0" /> : null;
+                          return IconComponent ? (
+                            <IconComponent className="w-3 h-3 shrink-0" />
+                          ) : null;
                         })()}
                         <span className="truncate">{newLabelIcon}</span>
                       </div>
@@ -324,11 +334,7 @@ export function LabelsManager({
               {/* Preview simples */}
               {newLabelName && (
                 <div className="pt-2 border-t flex justify-center">
-                  <LabelBadge
-                    name={newLabelName}
-                    color={newLabelColor}
-                    icon={newLabelIcon}
-                  />
+                  <LabelBadge name={newLabelName} color={newLabelColor} icon={newLabelIcon} />
                 </div>
               )}
             </div>
@@ -337,7 +343,7 @@ export function LabelsManager({
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Aplicar</Label>
               <div className="grid grid-cols-1 gap-2">
-                {labels.map(label => {
+                {labels.map((label) => {
                   const isSelected = conversationLabelIds.includes(label.id);
                   return (
                     <div
@@ -355,7 +361,7 @@ export function LabelsManager({
                           name={label.name}
                           color={label.color}
                           icon={label.icon}
-                          variant={isSelected ? "default" : "outline"}
+                          variant={isSelected ? 'default' : 'outline'}
                           className="max-w-full justify-start"
                         />
                       </div>

@@ -4,7 +4,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2, Save, X, FileText, Link as LinkIcon, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -160,7 +166,7 @@ export function DocumentEditor({ documentId, onSaved, onCancel }: DocumentEditor
 
     if (file.type === 'text/plain') {
       const text = await file.text();
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         title: prev.title || file.name.replace('.txt', ''),
         content: text,
@@ -193,9 +199,7 @@ export function DocumentEditor({ documentId, onSaved, onCancel }: DocumentEditor
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle>
-            {documentId ? 'Editar Documento' : 'Adicionar Documento'}
-          </CardTitle>
+          <CardTitle>{documentId ? 'Editar Documento' : 'Adicionar Documento'}</CardTitle>
           <CardDescription>
             O documento será dividido em chunks e processado para busca semântica
           </CardDescription>
@@ -306,7 +310,8 @@ export function DocumentEditor({ documentId, onSaved, onCancel }: DocumentEditor
             />
             <p className="text-xs text-muted-foreground">
               {formData.content.length} caracteres
-              {formData.content.length > 0 && ` • ~${Math.ceil(formData.content.length / 1000)} chunks estimados`}
+              {formData.content.length > 0 &&
+                ` • ~${Math.ceil(formData.content.length / 1000)} chunks estimados`}
             </p>
           </div>
 

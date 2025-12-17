@@ -93,9 +93,7 @@ export default function KnowledgeBase() {
             <Card>
               <CardHeader>
                 <CardTitle>Busca Semântica</CardTitle>
-                <CardDescription>
-                  Teste a busca semântica na base de conhecimento
-                </CardDescription>
+                <CardDescription>Teste a busca semântica na base de conhecimento</CardDescription>
               </CardHeader>
               <CardContent>
                 <SemanticSearch />

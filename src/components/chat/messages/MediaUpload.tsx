@@ -1,20 +1,20 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Paperclip, X, Image, FileText, Film, Music } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { Paperclip, X, Image, FileText, Film, Music } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { useSendMediaMessage } from "@/hooks/api/useEvolutionApi";
-import { useCompany } from "@/contexts/CompanyContext";
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useSendMediaMessage } from '@/hooks/api/useEvolutionApi';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface MediaUploadProps {
   conversationId: string;
@@ -25,7 +25,7 @@ interface MediaUploadProps {
 export function MediaUpload({ conversationId, contactNumber, onMediaSent }: MediaUploadProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [caption, setCaption] = useState("");
+  const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -36,7 +36,7 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.size > 16 * 1024 * 1024) {
-        toast.error("O arquivo deve ter no máximo 16MB");
+        toast.error('O arquivo deve ter no máximo 16MB');
         return;
       }
 
@@ -91,24 +91,23 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
           media: base64,
           content: file.name,
           caption: caption.trim() || undefined,
-        }
+        },
       });
 
       if (error || !result?.success) {
-        throw new Error(result?.error || error?.message || "Erro ao enviar mídia");
+        throw new Error(result?.error || error?.message || 'Erro ao enviar mídia');
       }
 
-      toast.success("Mídia enviada com sucesso");
+      toast.success('Mídia enviada com sucesso');
 
       setOpen(false);
       setFile(null);
-      setCaption("");
+      setCaption('');
       setPreview(null);
       onMediaSent();
-
     } catch (error: any) {
       console.error('Erro ao enviar mídia:', error);
-      toast.error(error.message || "Erro ao enviar mídia");
+      toast.error(error.message || 'Erro ao enviar mídia');
     } finally {
       setUploading(false);
     }
@@ -188,12 +187,8 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
             </div>
           )}
 
-          <Button
-            onClick={handleUpload}
-            disabled={!file || uploading}
-            className="w-full"
-          >
-            {uploading ? "Enviando..." : "Enviar"}
+          <Button onClick={handleUpload} disabled={!file || uploading} className="w-full">
+            {uploading ? 'Enviando...' : 'Enviar'}
           </Button>
         </div>
       </DialogContent>

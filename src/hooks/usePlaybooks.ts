@@ -1,18 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./crm/useCompanyQuery";
-import { toast } from "sonner";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from './crm/useCompanyQuery';
+import { toast } from 'sonner';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export type Playbook = Tables<"playbooks">;
-export type PlaybookExecution = Tables<"playbook_executions"> & {
-  playbooks?: Pick<Playbook, "name">;
+export type Playbook = Tables<'playbooks'>;
+export type PlaybookExecution = Tables<'playbook_executions'> & {
+  playbooks?: Pick<Playbook, 'name'>;
   deals?: { title: string; contacts: { name: string | null } };
 };
 
 export type PlaybookStep = {
   id: string;
-  type: "send_whatsapp" | "create_task" | "move_stage" | "wait" | "webhook" | "notify_user";
+  type: 'send_whatsapp' | 'create_task' | 'move_stage' | 'wait' | 'webhook' | 'notify_user';
   config: {
     message?: string;
     title?: string;
@@ -33,15 +33,15 @@ export const usePlaybooks = () => {
   const queryClient = useQueryClient();
 
   const { data: playbooks = [], isLoading } = useQuery({
-    queryKey: ["playbooks", companyId],
+    queryKey: ['playbooks', companyId],
     queryFn: async () => {
       if (!companyId) return [];
 
       const { data, error } = await supabase
-        .from("playbooks")
-        .select("*")
-        .eq("company_id", companyId)
-        .order("created_at", { ascending: false });
+        .from('playbooks')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -50,11 +50,11 @@ export const usePlaybooks = () => {
   });
 
   const createPlaybook = useMutation({
-    mutationFn: async (playbook: TablesInsert<"playbooks">) => {
-      if (!companyId) throw new Error("Company ID not found");
+    mutationFn: async (playbook: TablesInsert<'playbooks'>) => {
+      if (!companyId) throw new Error('Company ID not found');
 
       const { data, error } = await supabase
-        .from("playbooks")
+        .from('playbooks')
         .insert({ ...playbook, company_id: companyId })
         .select()
         .single();
@@ -63,27 +63,21 @@ export const usePlaybooks = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["playbooks", companyId] });
-      toast.success("Playbook criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['playbooks', companyId] });
+      toast.success('Playbook criado com sucesso!');
     },
     onError: (error) => {
-      console.error("Error creating playbook:", error);
-      toast.error("Erro ao criar playbook");
+      console.error('Error creating playbook:', error);
+      toast.error('Erro ao criar playbook');
     },
   });
 
   const updatePlaybook = useMutation({
-    mutationFn: async ({
-      id,
-      updates,
-    }: {
-      id: string;
-      updates: TablesUpdate<"playbooks">;
-    }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: TablesUpdate<'playbooks'> }) => {
       const { data, error } = await supabase
-        .from("playbooks")
+        .from('playbooks')
         .update(updates)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -91,42 +85,39 @@ export const usePlaybooks = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["playbooks", companyId] });
-      toast.success("Playbook atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['playbooks', companyId] });
+      toast.success('Playbook atualizado!');
     },
     onError: (error) => {
-      console.error("Error updating playbook:", error);
-      toast.error("Erro ao atualizar playbook");
+      console.error('Error updating playbook:', error);
+      toast.error('Erro ao atualizar playbook');
     },
   });
 
   const deletePlaybook = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("playbooks").delete().eq("id", id);
+      const { error } = await supabase.from('playbooks').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["playbooks", companyId] });
-      toast.success("Playbook excluído!");
+      queryClient.invalidateQueries({ queryKey: ['playbooks', companyId] });
+      toast.success('Playbook excluído!');
     },
     onError: (error) => {
-      console.error("Error deleting playbook:", error);
-      toast.error("Erro ao excluir playbook");
+      console.error('Error deleting playbook:', error);
+      toast.error('Erro ao excluir playbook');
     },
   });
 
   const toggleActive = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase
-        .from("playbooks")
-        .update({ is_active })
-        .eq("id", id);
+      const { error } = await supabase.from('playbooks').update({ is_active }).eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["playbooks", companyId] });
-      toast.success("Status atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['playbooks', companyId] });
+      toast.success('Status atualizado!');
     },
   });
 
@@ -145,23 +136,25 @@ export const usePlaybookExecutions = (playbookId?: string) => {
   const queryClient = useQueryClient();
 
   const { data: executions = [], isLoading } = useQuery({
-    queryKey: ["playbook-executions", companyId, playbookId],
+    queryKey: ['playbook-executions', companyId, playbookId],
     queryFn: async () => {
       if (!companyId) return [];
 
       let query = supabase
-        .from("playbook_executions")
-        .select(`
+        .from('playbook_executions')
+        .select(
+          `
           *,
           playbooks!inner(name, company_id),
           deals(title, contacts(name))
-        `)
-        .eq("playbooks.company_id", companyId)
-        .order("started_at", { ascending: false })
+        `
+        )
+        .eq('playbooks.company_id', companyId)
+        .order('started_at', { ascending: false })
         .limit(50);
 
       if (playbookId) {
-        query = query.eq("playbook_id", playbookId);
+        query = query.eq('playbook_id', playbookId);
       }
 
       const { data, error } = await query;
@@ -173,7 +166,7 @@ export const usePlaybookExecutions = (playbookId?: string) => {
   });
 
   const refetch = () => {
-    queryClient.invalidateQueries({ queryKey: ["playbook-executions", companyId, playbookId] });
+    queryClient.invalidateQueries({ queryKey: ['playbook-executions', companyId, playbookId] });
   };
 
   return {

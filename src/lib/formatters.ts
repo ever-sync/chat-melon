@@ -15,10 +15,7 @@ import { FORMAT } from '@/config/constants';
  * formatCurrency(1000, { minimumFractionDigits: 0 }); // "R$ 1.000"
  * ```
  */
-export function formatCurrency(
-  value: number,
-  options?: Intl.NumberFormatOptions
-): string {
+export function formatCurrency(value: number, options?: Intl.NumberFormatOptions): string {
   return new Intl.NumberFormat(FORMAT.LOCALE, {
     style: 'currency',
     currency: FORMAT.CURRENCY,

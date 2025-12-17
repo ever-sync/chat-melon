@@ -1,13 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./useCompanyQuery";
-import { toast } from "sonner";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from './useCompanyQuery';
+import { toast } from 'sonner';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export type Deal = Tables<"deals"> & {
-  contacts: Tables<"contacts"> | null;
-  pipeline_stages: Tables<"pipeline_stages"> | null;
-  profiles: Tables<"profiles"> | null;
+export type Deal = Tables<'deals'> & {
+  contacts: Tables<'contacts'> | null;
+  pipeline_stages: Tables<'pipeline_stages'> | null;
+  profiles: Tables<'profiles'> | null;
 };
 
 export const useDeals = (pipelineId?: string, contactId?: string) => {
@@ -15,28 +15,30 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
   const queryClient = useQueryClient();
 
   const { data: deals = [], isLoading } = useQuery({
-    queryKey: ["deals", companyId, pipelineId, contactId],
+    queryKey: ['deals', companyId, pipelineId, contactId],
     queryFn: async () => {
       if (!companyId) return [];
 
       let query = supabase
-        .from("deals")
-        .select(`
+        .from('deals')
+        .select(
+          `
           *,
           contacts (*),
           pipeline_stages (*),
           profiles:assigned_to (*)
-        `)
-        .eq("company_id", companyId)
-        .eq("status", "open")
-        .order("created_at", { ascending: false });
+        `
+        )
+        .eq('company_id', companyId)
+        .eq('status', 'open')
+        .order('created_at', { ascending: false });
 
       if (pipelineId) {
-        query = query.eq("pipeline_id", pipelineId);
+        query = query.eq('pipeline_id', pipelineId);
       }
 
       if (contactId) {
-        query = query.eq("contact_id", contactId);
+        query = query.eq('contact_id', contactId);
       }
 
       const { data, error } = await query;
@@ -48,135 +50,128 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
     staleTime: 2 * 60 * 1000, // 2 minutos cache
   });
 
-
   const createDeal = useMutation({
-    mutationFn: async (deal: TablesInsert<"deals">) => {
-      if (!companyId) throw new Error("No company selected");
+    mutationFn: async (deal: TablesInsert<'deals'>) => {
+      if (!companyId) throw new Error('No company selected');
 
       const { data, error } = await supabase
-        .from("deals")
+        .from('deals')
         .insert({ ...deal, company_id: companyId })
-        .select(`
+        .select(
+          `
           *,
           contacts (*),
           pipeline_stages (*),
           profiles:assigned_to (*)
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
 
       // Log activity
-      await supabase.from("deal_activities").insert({
+      await supabase.from('deal_activities').insert({
         deal_id: data.id,
-        activity_type: "created",
-        description: "Negócio criado",
+        activity_type: 'created',
+        description: 'Negócio criado',
       });
 
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deals"] });
-      toast.success("Negócio criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      toast.success('Negócio criado com sucesso!');
     },
     onError: (error) => {
-      toast.error("Erro ao criar negócio: " + error.message);
+      toast.error('Erro ao criar negócio: ' + error.message);
     },
   });
 
   const updateDeal = useMutation({
-    mutationFn: async ({
-      id,
-      ...updates
-    }: TablesUpdate<"deals"> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: TablesUpdate<'deals'> & { id: string }) => {
       const { data, error } = await supabase
-        .from("deals")
+        .from('deals')
         .update(updates)
-        .eq("id", id)
-        .select(`
+        .eq('id', id)
+        .select(
+          `
           *,
           contacts (*),
           pipeline_stages (*),
           profiles:assigned_to (*)
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deals"] });
-      toast.success("Negócio atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      toast.success('Negócio atualizado!');
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar negócio: " + error.message);
+      toast.error('Erro ao atualizar negócio: ' + error.message);
     },
   });
 
   const moveDeal = useMutation({
-    mutationFn: async ({
-      dealId,
-      targetStageId,
-    }: {
-      dealId: string;
-      targetStageId: string;
-    }) => {
+    mutationFn: async ({ dealId, targetStageId }: { dealId: string; targetStageId: string }) => {
       const { data, error } = await supabase
-        .from("deals")
+        .from('deals')
         .update({
           stage_id: targetStageId,
           last_activity: new Date().toISOString(),
         })
-        .eq("id", dealId)
-        .select(`
+        .eq('id', dealId)
+        .select(
+          `
           *,
           contacts (*),
           pipeline_stages (*),
           profiles:assigned_to (*)
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
 
       // Get stage info for activity log
       const { data: newStage } = await supabase
-        .from("pipeline_stages")
-        .select("name")
-        .eq("id", targetStageId)
+        .from('pipeline_stages')
+        .select('name')
+        .eq('id', targetStageId)
         .single();
 
       // Log activity
-      await supabase.from("deal_activities").insert({
+      await supabase.from('deal_activities').insert({
         deal_id: dealId,
-        activity_type: "stage_change",
+        activity_type: 'stage_change',
         description: `Movido para "${newStage?.name}"`,
       });
 
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deals"] });
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
     },
     onError: (error) => {
-      toast.error("Erro ao mover negócio: " + error.message);
+      toast.error('Erro ao mover negócio: ' + error.message);
     },
   });
 
   const deleteDeal = useMutation({
     mutationFn: async (dealId: string) => {
-      const { error } = await supabase
-        .from("deals")
-        .delete()
-        .eq("id", dealId);
+      const { error } = await supabase.from('deals').delete().eq('id', dealId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deals"] });
-      toast.success("Negócio excluído com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      toast.success('Negócio excluído com sucesso!');
     },
     onError: (error) => {
-      toast.error("Erro ao excluir negócio: " + error.message);
+      toast.error('Erro ao excluir negócio: ' + error.message);
     },
   });
 

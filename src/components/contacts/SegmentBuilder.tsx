@@ -1,14 +1,20 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Users } from "lucide-react";
-import { useSegments, type SegmentFilter } from "@/hooks/useSegments";
-import { useCustomFields } from "@/hooks/useCustomFields";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Plus, Trash2, Users } from 'lucide-react';
+import { useSegments, type SegmentFilter } from '@/hooks/useSegments';
+import { useCustomFields } from '@/hooks/useCustomFields';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SegmentBuilderProps {
   open: boolean;
@@ -17,47 +23,45 @@ interface SegmentBuilderProps {
 }
 
 const FIELD_OPTIONS = [
-  { value: "created_at", label: "Data de Criação", type: "date" },
-  { value: "updated_at", label: "Última Interação", type: "date" },
-  { value: "name", label: "Nome", type: "text" },
-  { value: "phone_number", label: "Telefone", type: "text" },
-  { value: "email", label: "Email", type: "text" },
-  { value: "is_business", label: "É Empresa", type: "boolean" },
+  { value: 'created_at', label: 'Data de Criação', type: 'date' },
+  { value: 'updated_at', label: 'Última Interação', type: 'date' },
+  { value: 'name', label: 'Nome', type: 'text' },
+  { value: 'phone_number', label: 'Telefone', type: 'text' },
+  { value: 'email', label: 'Email', type: 'text' },
+  { value: 'is_business', label: 'É Empresa', type: 'boolean' },
 ];
 
 const OPERATORS_BY_TYPE: Record<string, Array<{ value: string; label: string }>> = {
   text: [
-    { value: "equals", label: "igual a" },
-    { value: "not_equals", label: "diferente de" },
-    { value: "contains", label: "contém" },
-    { value: "starts_with", label: "começa com" },
-    { value: "ends_with", label: "termina com" },
-    { value: "is_empty", label: "está vazio" },
-    { value: "is_not_empty", label: "não está vazio" },
+    { value: 'equals', label: 'igual a' },
+    { value: 'not_equals', label: 'diferente de' },
+    { value: 'contains', label: 'contém' },
+    { value: 'starts_with', label: 'começa com' },
+    { value: 'ends_with', label: 'termina com' },
+    { value: 'is_empty', label: 'está vazio' },
+    { value: 'is_not_empty', label: 'não está vazio' },
   ],
   number: [
-    { value: "equals", label: "igual a" },
-    { value: "not_equals", label: "diferente de" },
-    { value: "greater_than", label: "maior que" },
-    { value: "less_than", label: "menor que" },
+    { value: 'equals', label: 'igual a' },
+    { value: 'not_equals', label: 'diferente de' },
+    { value: 'greater_than', label: 'maior que' },
+    { value: 'less_than', label: 'menor que' },
   ],
   date: [
-    { value: "before", label: "antes de" },
-    { value: "after", label: "depois de" },
+    { value: 'before', label: 'antes de' },
+    { value: 'after', label: 'depois de' },
   ],
-  boolean: [
-    { value: "equals", label: "é" },
-  ],
+  boolean: [{ value: 'equals', label: 'é' }],
 };
 
 export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderProps) {
   const { createSegment, updateSegment, previewSegment } = useSegments();
-  const { fields: customFields } = useCustomFields("contact");
+  const { fields: customFields } = useCustomFields('contact');
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [filters, setFilters] = useState<SegmentFilter[]>([
-    { field: "created_at", operator: "after", value: "", logic: "AND" },
+    { field: 'created_at', operator: 'after', value: '', logic: 'AND' },
   ]);
   const [preview, setPreview] = useState({ count: 0, contacts: [] });
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -65,14 +69,14 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
   useEffect(() => {
     if (segment) {
       setName(segment.name);
-      setDescription(segment.description || "");
+      setDescription(segment.description || '');
       setFilters(segment.filters || []);
     }
   }, [segment]);
 
   useEffect(() => {
     const loadPreview = async () => {
-      const validFilters = filters.filter((f) => f.field && f.operator && f.value !== "");
+      const validFilters = filters.filter((f) => f.field && f.operator && f.value !== '');
       if (validFilters.length > 0) {
         setIsLoadingPreview(true);
         const result = await previewSegment(validFilters);
@@ -88,10 +92,7 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
   }, [filters]);
 
   const addFilter = () => {
-    setFilters([
-      ...filters,
-      { field: "created_at", operator: "after", value: "", logic: "AND" },
-    ]);
+    setFilters([...filters, { field: 'created_at', operator: 'after', value: '', logic: 'AND' }]);
   };
 
   const removeFilter = (index: number) => {
@@ -110,16 +111,16 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
 
     const customField = customFields.find((f) => f.field_name === field);
     if (customField) {
-      if (customField.field_type === "date") return "date";
-      if (customField.field_type === "number") return "number";
-      if (customField.field_type === "boolean") return "boolean";
+      if (customField.field_type === 'date') return 'date';
+      if (customField.field_type === 'number') return 'number';
+      if (customField.field_type === 'boolean') return 'boolean';
     }
 
-    return "text";
+    return 'text';
   };
 
   const handleSave = () => {
-    const validFilters = filters.filter((f) => f.field && f.operator && f.value !== "");
+    const validFilters = filters.filter((f) => f.field && f.operator && f.value !== '');
 
     const segmentData: any = {
       name,
@@ -140,9 +141,9 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
   };
 
   const resetForm = () => {
-    setName("");
-    setDescription("");
-    setFilters([{ field: "created_at", operator: "after", value: "", logic: "AND" }]);
+    setName('');
+    setDescription('');
+    setFilters([{ field: 'created_at', operator: 'after', value: '', logic: 'AND' }]);
   };
 
   const allFieldOptions = [
@@ -158,7 +159,7 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{segment ? "Editar Segmento" : "Novo Segmento"}</DialogTitle>
+          <DialogTitle>{segment ? 'Editar Segmento' : 'Novo Segmento'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -196,11 +197,16 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
 
             <div className="space-y-3">
               {filters.map((filter, index) => (
-                <div key={index} className="flex items-start gap-2 p-4 border rounded-lg bg-muted/50">
+                <div
+                  key={index}
+                  className="flex items-start gap-2 p-4 border rounded-lg bg-muted/50"
+                >
                   {index > 0 && (
                     <Select
                       value={filter.logic}
-                      onValueChange={(value) => updateFilter(index, { logic: value as "AND" | "OR" })}
+                      onValueChange={(value) =>
+                        updateFilter(index, { logic: value as 'AND' | 'OR' })
+                      }
                     >
                       <SelectTrigger className="w-20">
                         <SelectValue />
@@ -214,7 +220,7 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
 
                   <Select
                     value={filter.field}
-                    onValueChange={(value) => updateFilter(index, { field: value, value: "" })}
+                    onValueChange={(value) => updateFilter(index, { field: value, value: '' })}
                   >
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Selecione campo" />
@@ -244,12 +250,12 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
                     </SelectContent>
                   </Select>
 
-                  {!["is_empty", "is_not_empty"].includes(filter.operator) && (
+                  {!['is_empty', 'is_not_empty'].includes(filter.operator) && (
                     <Input
                       value={filter.value}
                       onChange={(e) => updateFilter(index, { value: e.target.value })}
                       placeholder="Valor"
-                      type={getFieldType(filter.field) === "date" ? "date" : "text"}
+                      type={getFieldType(filter.field) === 'date' ? 'date' : 'text'}
                       className="flex-1"
                     />
                   )}
@@ -287,7 +293,7 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
                 <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
                   {preview.contacts.map((contact: any) => (
                     <div key={contact.id} className="p-3 hover:bg-muted/50">
-                      <div className="font-medium">{contact.name || "Sem nome"}</div>
+                      <div className="font-medium">{contact.name || 'Sem nome'}</div>
                       <div className="text-sm text-muted-foreground">{contact.phone_number}</div>
                     </div>
                   ))}
@@ -301,7 +307,7 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
               Cancelar
             </Button>
             <Button onClick={handleSave} disabled={!name || filters.length === 0}>
-              {segment ? "Atualizar" : "Criar"} Segmento
+              {segment ? 'Atualizar' : 'Criar'} Segmento
             </Button>
           </div>
         </div>

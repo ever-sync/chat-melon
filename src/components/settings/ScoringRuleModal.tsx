@@ -1,11 +1,17 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useScoringRules } from "@/hooks/useScoringRules";
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useScoringRules } from '@/hooks/useScoringRules';
 
 interface ScoringRuleModalProps {
   open: boolean;
@@ -16,10 +22,25 @@ interface ScoringRuleModalProps {
 const CONDITION_TYPES = [
   { value: 'has_email', label: 'Tem Email', needsValue: false },
   { value: 'has_company', label: 'Tem Empresa', needsValue: false },
-  { value: 'response_time', label: 'Tempo de Resposta', needsValue: true, valuePlaceholder: 'Minutos' },
-  { value: 'messages_count', label: 'Quantidade de Mensagens', needsValue: true, valuePlaceholder: 'Número' },
+  {
+    value: 'response_time',
+    label: 'Tempo de Resposta',
+    needsValue: true,
+    valuePlaceholder: 'Minutos',
+  },
+  {
+    value: 'messages_count',
+    label: 'Quantidade de Mensagens',
+    needsValue: true,
+    valuePlaceholder: 'Número',
+  },
   { value: 'has_open_deal', label: 'Tem Deal Aberto', needsValue: false },
-  { value: 'deal_value', label: 'Valor do Deal', needsValue: true, valuePlaceholder: 'Valor em R$' },
+  {
+    value: 'deal_value',
+    label: 'Valor do Deal',
+    needsValue: true,
+    valuePlaceholder: 'Valor em R$',
+  },
   { value: 'days_inactive', label: 'Dias Inativo', needsValue: true, valuePlaceholder: 'Dias' },
 ];
 
@@ -55,7 +76,7 @@ export const ScoringRuleModal = ({ open, onOpenChange, rule }: ScoringRuleModalP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (rule) {
       updateRule({
         id: rule.id,
@@ -64,11 +85,11 @@ export const ScoringRuleModal = ({ open, onOpenChange, rule }: ScoringRuleModalP
     } else {
       createRule(formData as any);
     }
-    
+
     onOpenChange(false);
   };
 
-  const selectedCondition = CONDITION_TYPES.find(t => t.value === formData.condition_type);
+  const selectedCondition = CONDITION_TYPES.find((t) => t.value === formData.condition_type);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,9 +174,7 @@ export const ScoringRuleModal = ({ open, onOpenChange, rule }: ScoringRuleModalP
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">
-              {rule ? 'Salvar' : 'Criar'}
-            </Button>
+            <Button type="submit">{rule ? 'Salvar' : 'Criar'}</Button>
           </div>
         </form>
       </DialogContent>

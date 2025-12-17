@@ -91,9 +91,7 @@ export const useBulkConversationActions = () => {
       if (result.failed === 0) {
         toast.success(`${result.success} conversas resolvidas`);
       } else {
-        toast.warning(
-          `${result.success} resolvidas, ${result.failed} falharam`
-        );
+        toast.warning(`${result.success} resolvidas, ${result.failed} falharam`);
       }
       clearSelection();
     },

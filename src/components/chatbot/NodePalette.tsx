@@ -24,7 +24,7 @@ export const NodePalette = memo(function NodePalette({ onDragStart }: NodePalett
       acc[info.category].push({ type: type as ChatbotNodeType, ...info });
       return acc;
     },
-    {} as Record<string, (typeof NODE_TYPE_INFO[ChatbotNodeType] & { type: ChatbotNodeType })[]>
+    {} as Record<string, ((typeof NODE_TYPE_INFO)[ChatbotNodeType] & { type: ChatbotNodeType })[]>
   );
 
   return (
@@ -36,7 +36,9 @@ export const NodePalette = memo(function NodePalette({ onDragStart }: NodePalett
           const nodes = nodesByCategory[categoryKey];
           if (!nodes || nodes.length === 0) return null;
 
-          const CategoryIcon = Icons[category.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+          const CategoryIcon = Icons[category.icon as keyof typeof Icons] as React.ComponentType<{
+            className?: string;
+          }>;
 
           return (
             <div key={categoryKey}>
@@ -47,7 +49,9 @@ export const NodePalette = memo(function NodePalette({ onDragStart }: NodePalett
 
               <div className="space-y-1">
                 {nodes.map((node) => {
-                  const NodeIcon = Icons[node.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+                  const NodeIcon = Icons[node.icon as keyof typeof Icons] as React.ComponentType<{
+                    className?: string;
+                  }>;
 
                   return (
                     <div
@@ -63,12 +67,7 @@ export const NodePalette = memo(function NodePalette({ onDragStart }: NodePalett
                         className="flex h-6 w-6 items-center justify-center rounded"
                         style={{ backgroundColor: `${node.color}20` }}
                       >
-                        {NodeIcon && (
-                          <NodeIcon
-                            className="h-4 w-4"
-                            style={{ color: node.color }}
-                          />
-                        )}
+                        {NodeIcon && <NodeIcon className="h-4 w-4" style={{ color: node.color }} />}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">{node.label}</p>

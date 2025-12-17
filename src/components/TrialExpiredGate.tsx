@@ -36,9 +36,7 @@ export function TrialExpiredGate({ children }: TrialExpiredGateProps) {
   }
 
   // Verifica se a rota atual é permitida
-  const isAllowedRoute = ALLOWED_ROUTES.some((route) =>
-    location.pathname.startsWith(route)
-  );
+  const isAllowedRoute = ALLOWED_ROUTES.some((route) => location.pathname.startsWith(route));
 
   // Se não pode acessar E não está em rota permitida, redirect para /upgrade
   if (!canAccessPlatform && !isAllowedRoute) {

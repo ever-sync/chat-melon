@@ -1,18 +1,24 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileText, AlertTriangle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
-import Papa from "papaparse";
-import * as XLSX from "xlsx";
-import { useCustomFields } from "@/hooks/useCustomFields";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Upload, FileText, AlertTriangle, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
+import { useCustomFields } from '@/hooks/useCustomFields';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ImportContact {
   rowIndex: number;
@@ -36,10 +42,14 @@ interface ContactImportDialogProps {
   onImportComplete: () => void;
 }
 
-export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: ContactImportDialogProps) => {
+export const ContactImportDialog = ({
+  open,
+  onOpenChange,
+  onImportComplete,
+}: ContactImportDialogProps) => {
   const { companyId } = useCompanyQuery();
-  const { fields: customFields } = useCustomFields("contact");
-  
+  const { fields: customFields } = useCustomFields('contact');
+
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
@@ -47,22 +57,24 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
   const [allRows, setAllRows] = useState<string[][]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [contacts, setContacts] = useState<ImportContact[]>([]);
-  const [duplicateAction, setDuplicateAction] = useState<"skip" | "update" | "create">("skip");
+  const [duplicateAction, setDuplicateAction] = useState<'skip' | 'update' | 'create'>('skip');
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [importResult, setImportResult] = useState<{ success: number; errors: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ success: number; errors: number } | null>(
+    null
+  );
 
   const systemFields = [
-    { value: "name", label: "Nome", required: true },
-    { value: "phone_number", label: "Telefone", required: true },
-    { value: "email", label: "Email", required: false },
-    { value: "company", label: "Empresa", required: false },
-    { value: "position", label: "Cargo", required: false },
-    ...customFields.map(cf => ({
+    { value: 'name', label: 'Nome', required: true },
+    { value: 'phone_number', label: 'Telefone', required: true },
+    { value: 'email', label: 'Email', required: false },
+    { value: 'company', label: 'Empresa', required: false },
+    { value: 'position', label: 'Cargo', required: false },
+    ...customFields.map((cf) => ({
       value: `custom_${cf.id}`,
       label: cf.field_label,
-      required: cf.is_required || false
-    }))
+      required: cf.is_required || false,
+    })),
   ];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,9 +82,9 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
     if (!uploadedFile) return;
 
     setFile(uploadedFile);
-    
-    const isCSV = uploadedFile.name.endsWith(".csv");
-    const isExcel = uploadedFile.name.endsWith(".xlsx") || uploadedFile.name.endsWith(".xls");
+
+    const isCSV = uploadedFile.name.endsWith('.csv');
+    const isExcel = uploadedFile.name.endsWith('.xlsx') || uploadedFile.name.endsWith('.xls');
 
     if (isCSV) {
       Papa.parse(uploadedFile, {
@@ -84,17 +96,17 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
           autoMapHeaders(data[0]);
           setStep(2);
         },
-        skipEmptyLines: true
+        skipEmptyLines: true,
       });
     } else if (isExcel) {
       const reader = new FileReader();
       reader.onload = (evt) => {
         const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: "binary" });
+        const wb = XLSX.read(bstr, { type: 'binary' });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
         const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as string[][];
-        
+
         setHeaders(data[0]);
         setPreviewRows(data.slice(1, 6));
         setAllRows(data.slice(1));
@@ -103,81 +115,85 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
       };
       reader.readAsBinaryString(uploadedFile);
     } else {
-      toast.error("Formato não suportado. Use CSV ou Excel (.xlsx)");
+      toast.error('Formato não suportado. Use CSV ou Excel (.xlsx)');
     }
   };
 
   const autoMapHeaders = (fileHeaders: string[]) => {
     const autoMapping: Record<string, string> = {};
-    
+
     fileHeaders.forEach((header) => {
       const normalized = header.toLowerCase().trim();
-      
-      if (normalized.includes("nome") || normalized === "name") {
-        autoMapping[header] = "name";
-      } else if (normalized.includes("telefone") || normalized.includes("phone") || normalized.includes("celular")) {
-        autoMapping[header] = "phone_number";
-      } else if (normalized.includes("email") || normalized.includes("e-mail")) {
-        autoMapping[header] = "email";
-      } else if (normalized.includes("empresa") || normalized.includes("company")) {
-        autoMapping[header] = "company";
-      } else if (normalized.includes("cargo") || normalized.includes("position")) {
-        autoMapping[header] = "position";
+
+      if (normalized.includes('nome') || normalized === 'name') {
+        autoMapping[header] = 'name';
+      } else if (
+        normalized.includes('telefone') ||
+        normalized.includes('phone') ||
+        normalized.includes('celular')
+      ) {
+        autoMapping[header] = 'phone_number';
+      } else if (normalized.includes('email') || normalized.includes('e-mail')) {
+        autoMapping[header] = 'email';
+      } else if (normalized.includes('empresa') || normalized.includes('company')) {
+        autoMapping[header] = 'company';
+      } else if (normalized.includes('cargo') || normalized.includes('position')) {
+        autoMapping[header] = 'position';
       }
     });
-    
+
     setMapping(autoMapping);
   };
 
   const validateAndMapContacts = async () => {
     const mappedContacts: ImportContact[] = [];
-    
+
     for (let i = 0; i < allRows.length; i++) {
       const row = allRows[i];
       const contactData: Record<string, string> = {};
-      
+
       headers.forEach((header, index) => {
-        contactData[header] = row[index] || "";
+        contactData[header] = row[index] || '';
       });
 
-      const mapped: ImportContact["mapped"] = {};
+      const mapped: ImportContact['mapped'] = {};
       const errors: string[] = [];
 
       // Map fields
       Object.entries(mapping).forEach(([fileHeader, systemField]) => {
         const value = contactData[fileHeader];
-        
-        if (systemField.startsWith("custom_")) {
+
+        if (systemField.startsWith('custom_')) {
           if (!mapped.customFields) mapped.customFields = {};
-          mapped.customFields[systemField.replace("custom_", "")] = value;
+          mapped.customFields[systemField.replace('custom_', '')] = value;
         } else {
           (mapped as any)[systemField] = value;
         }
       });
 
       // Validate required fields
-      if (!mapped.name || mapped.name.trim() === "") {
-        errors.push("Nome é obrigatório");
+      if (!mapped.name || mapped.name.trim() === '') {
+        errors.push('Nome é obrigatório');
       }
-      if (!mapped.phone_number || mapped.phone_number.trim() === "") {
-        errors.push("Telefone é obrigatório");
+      if (!mapped.phone_number || mapped.phone_number.trim() === '') {
+        errors.push('Telefone é obrigatório');
       }
 
       // Validate phone format
       if (mapped.phone_number) {
-        const phoneClean = mapped.phone_number.replace(/\D/g, "");
+        const phoneClean = mapped.phone_number.replace(/\D/g, '');
         if (phoneClean.length < 10 || phoneClean.length > 11) {
-          errors.push("Telefone inválido");
+          errors.push('Telefone inválido');
         }
       }
 
       // Check for duplicates in database
       if (mapped.phone_number && !errors.length) {
         const { data: existing } = await supabase
-          .from("contacts")
-          .select("id")
-          .eq("company_id", companyId!)
-          .eq("phone_number", mapped.phone_number)
+          .from('contacts')
+          .select('id')
+          .eq('company_id', companyId!)
+          .eq('phone_number', mapped.phone_number)
           .maybeSingle();
 
         if (existing) {
@@ -187,7 +203,7 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
             mapped,
             errors,
             isDuplicate: true,
-            existingId: existing.id
+            existingId: existing.id,
           });
           continue;
         }
@@ -197,7 +213,7 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
         rowIndex: i,
         data: contactData,
         mapped,
-        errors
+        errors,
       });
     }
 
@@ -208,13 +224,13 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
   const processImport = async () => {
     setImporting(true);
     setStep(4);
-    
+
     let successCount = 0;
     let errorCount = 0;
-    
-    const contactsToProcess = contacts.filter(c => {
+
+    const contactsToProcess = contacts.filter((c) => {
       if (c.errors && c.errors.length > 0) return false;
-      if (c.isDuplicate && duplicateAction === "skip") return false;
+      if (c.isDuplicate && duplicateAction === 'skip') return false;
       return true;
     });
 
@@ -223,35 +239,33 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
       setProgress(((i + 1) / contactsToProcess.length) * 100);
 
       try {
-        if (contact.isDuplicate && duplicateAction === "update") {
+        if (contact.isDuplicate && duplicateAction === 'update') {
           // Update existing
           const { error } = await supabase
-            .from("contacts")
+            .from('contacts')
             .update({
               name: contact.mapped?.name,
               email: contact.mapped?.email,
-              updated_at: new Date().toISOString()
+              updated_at: new Date().toISOString(),
             })
-            .eq("id", contact.existingId!);
+            .eq('id', contact.existingId!);
 
           if (error) throw error;
         } else {
           // Create new
-          const { error } = await supabase
-            .from("contacts")
-            .insert({
-              company_id: companyId!,
-              name: contact.mapped?.name,
-              phone_number: contact.mapped?.phone_number,
-              email: contact.mapped?.email || null
-            });
+          const { error } = await supabase.from('contacts').insert({
+            company_id: companyId!,
+            name: contact.mapped?.name,
+            phone_number: contact.mapped?.phone_number,
+            email: contact.mapped?.email || null,
+          });
 
           if (error) throw error;
         }
-        
+
         successCount++;
       } catch (error) {
-        console.error("Erro ao importar contato:", error);
+        console.error('Erro ao importar contato:', error);
         errorCount++;
       }
     }
@@ -270,7 +284,7 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
     setContacts([]);
     setProgress(0);
     setImportResult(null);
-    setDuplicateAction("skip");
+    setDuplicateAction('skip');
   };
 
   const handleClose = () => {
@@ -281,17 +295,15 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
     }
   };
 
-  const validContacts = contacts.filter(c => !c.errors || c.errors.length === 0);
-  const errorContacts = contacts.filter(c => c.errors && c.errors.length > 0);
-  const duplicateContacts = contacts.filter(c => c.isDuplicate);
+  const validContacts = contacts.filter((c) => !c.errors || c.errors.length === 0);
+  const errorContacts = contacts.filter((c) => c.errors && c.errors.length > 0);
+  const duplicateContacts = contacts.filter((c) => c.isDuplicate);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Importar Contatos - Etapa {step} de 4
-          </DialogTitle>
+          <DialogTitle>Importar Contatos - Etapa {step} de 4</DialogTitle>
         </DialogHeader>
 
         {/* ETAPA 1: UPLOAD */}
@@ -332,7 +344,7 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
                   <Label className="w-1/3 font-mono text-sm">{header}</Label>
                   <ArrowRight className="w-4 h-4 text-muted-foreground" />
                   <Select
-                    value={mapping[header] || ""}
+                    value={mapping[header] || ''}
                     onValueChange={(value) => setMapping({ ...mapping, [header]: value })}
                   >
                     <SelectTrigger className="w-2/3">
@@ -342,7 +354,8 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
                       <SelectItem value="">Não importar</SelectItem>
                       {systemFields.map((field) => (
                         <SelectItem key={field.value} value={field.value}>
-                          {field.label} {field.required && <span className="text-destructive">*</span>}
+                          {field.label}{' '}
+                          {field.required && <span className="text-destructive">*</span>}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -358,7 +371,9 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
                   <thead>
                     <tr className="border-b">
                       {headers.map((header) => (
-                        <th key={header} className="text-left p-2">{header}</th>
+                        <th key={header} className="text-left p-2">
+                          {header}
+                        </th>
                       ))}
                     </tr>
                   </thead>
@@ -366,7 +381,9 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
                     {previewRows.map((row, i) => (
                       <tr key={i} className="border-b">
                         {row.map((cell, j) => (
-                          <td key={j} className="p-2">{cell}</td>
+                          <td key={j} className="p-2">
+                            {cell}
+                          </td>
                         ))}
                       </tr>
                     ))}
@@ -409,7 +426,10 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
             {duplicateContacts.length > 0 && (
               <div className="space-y-2">
                 <Label>Ação para contatos duplicados:</Label>
-                <Select value={duplicateAction} onValueChange={(value: any) => setDuplicateAction(value)}>
+                <Select
+                  value={duplicateAction}
+                  onValueChange={(value: any) => setDuplicateAction(value)}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -451,9 +471,7 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
               <>
                 <div className="text-center">
                   <div className="text-2xl font-bold mb-2">Importando...</div>
-                  <div className="text-muted-foreground">
-                    Processando contatos
-                  </div>
+                  <div className="text-muted-foreground">Processando contatos</div>
                 </div>
                 <Progress value={progress} className="w-full" />
                 <div className="text-center text-sm text-muted-foreground">
@@ -467,7 +485,7 @@ export const ContactImportDialog = ({ open, onOpenChange, onImportComplete }: Co
                   <div className="text-2xl font-bold mb-2">Importação concluída!</div>
                   <div className="text-muted-foreground">
                     {importResult?.success} contatos importados com sucesso
-                    {importResult?.errors ? ` • ${importResult.errors} com erro` : ""}
+                    {importResult?.errors ? ` • ${importResult.errors} com erro` : ''}
                   </div>
                 </div>
                 <Button onClick={handleClose} className="w-full">

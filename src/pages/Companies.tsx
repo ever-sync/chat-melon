@@ -1,18 +1,29 @@
-import { useState, useEffect } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Building2, Edit, Trash2, QrCode, MoreVertical } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { EvolutionStatusBadge } from "@/components/evolution/EvolutionStatusBadge";
-import { EvolutionQRCodeModal } from "@/components/evolution/EvolutionQRCodeModal";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Plus, Building2, Edit, Trash2, QrCode, MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { EvolutionStatusBadge } from '@/components/evolution/EvolutionStatusBadge';
+import { EvolutionQRCodeModal } from '@/components/evolution/EvolutionQRCodeModal';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Company {
   id: string;
@@ -37,12 +48,12 @@ const Companies = () => {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showQRModal, setShowQRModal] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    cnpj: "",
-    email: "",
-    phone: "",
-    evolutionApiUrl: "",
-    evolutionApiKey: "",
+    name: '',
+    cnpj: '',
+    email: '',
+    phone: '',
+    evolutionApiUrl: '',
+    evolutionApiKey: '',
     createEvolutionInstance: true,
   });
   const navigate = useNavigate();
@@ -53,13 +64,15 @@ const Companies = () => {
 
   const fetchCompanies = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("companies")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from('companies')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setCompanies(data || []);
@@ -67,12 +80,15 @@ const Companies = () => {
       // Buscar configurações Evolution para cada empresa
       if (data && data.length > 0) {
         const { data: evolutionData } = await supabase
-          .from("evolution_settings")
-          .select("company_id, instance_status, qr_code")
-          .in("company_id", data.map(c => c.id));
+          .from('evolution_settings')
+          .select('company_id, instance_status, qr_code')
+          .in(
+            'company_id',
+            data.map((c) => c.id)
+          );
 
         const settingsMap: Record<string, EvolutionSettings> = {};
-        evolutionData?.forEach(setting => {
+        evolutionData?.forEach((setting) => {
           settingsMap[setting.company_id] = {
             instance_status: setting.instance_status,
             qr_code: setting.qr_code,
@@ -81,8 +97,8 @@ const Companies = () => {
         setEvolutionSettings(settingsMap);
       }
     } catch (error: any) {
-      console.error("Error fetching companies:", error);
-      toast.error("Erro ao carregar empresas");
+      console.error('Error fetching companies:', error);
+      toast.error('Erro ao carregar empresas');
     } finally {
       setLoading(false);
     }
@@ -91,27 +107,29 @@ const Companies = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       if (editingCompany) {
         // Update existing company
         const { error } = await supabase
-          .from("companies")
+          .from('companies')
           .update({
             name: formData.name,
             cnpj: formData.cnpj,
             email: formData.email,
             phone: formData.phone,
           })
-          .eq("id", editingCompany.id);
+          .eq('id', editingCompany.id);
 
         if (error) throw error;
-        toast.success("Empresa atualizada com sucesso");
+        toast.success('Empresa atualizada com sucesso');
       } else {
         // Create new company
         const { data: newCompany, error: companyError } = await supabase
-          .from("companies")
+          .from('companies')
           .insert({
             name: formData.name,
             cnpj: formData.cnpj,
@@ -126,13 +144,16 @@ const Companies = () => {
 
         // Criar instância Evolution se checkbox marcado
         if (formData.createEvolutionInstance && newCompany) {
-          const instanceName = formData.name.toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]/g, "_");
+          const instanceName = formData.name
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]/g, '_');
 
-          const { data: { session } } = await supabase.auth.getSession();
-          
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+
           const evolutionResponse = await supabase.functions.invoke('evolution-instance-manager', {
             body: {
               action: 'create',
@@ -150,31 +171,31 @@ const Companies = () => {
             console.error('Erro ao criar instância Evolution:', evolutionResponse.error);
             toast.error('Empresa criada, mas erro ao criar instância Evolution');
           } else {
-            toast.success("Empresa criada com sucesso!");
+            toast.success('Empresa criada com sucesso!');
             if (evolutionResponse.data?.qrCode) {
               setShowQRModal(newCompany.id);
             }
           }
         } else {
-          toast.success("Empresa criada com sucesso");
+          toast.success('Empresa criada com sucesso');
         }
       }
 
       setIsDialogOpen(false);
       setEditingCompany(null);
-      setFormData({ 
-        name: "", 
-        cnpj: "", 
-        email: "", 
-        phone: "",
-        evolutionApiUrl: "",
-        evolutionApiKey: "",
+      setFormData({
+        name: '',
+        cnpj: '',
+        email: '',
+        phone: '',
+        evolutionApiUrl: '',
+        evolutionApiKey: '',
         createEvolutionInstance: true,
       });
       fetchCompanies();
     } catch (error: any) {
-      console.error("Error saving company:", error);
-      toast.error("Erro ao salvar empresa");
+      console.error('Error saving company:', error);
+      toast.error('Erro ao salvar empresa');
     }
   };
 
@@ -182,37 +203,34 @@ const Companies = () => {
     setEditingCompany(company);
     setFormData({
       name: company.name,
-      cnpj: company.cnpj || "",
-      email: company.email || "",
-      phone: company.phone || "",
-      evolutionApiUrl: "",
-      evolutionApiKey: "",
+      cnpj: company.cnpj || '',
+      email: company.email || '',
+      phone: company.phone || '',
+      evolutionApiUrl: '',
+      evolutionApiKey: '',
       createEvolutionInstance: false,
     });
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (companyId: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta empresa?")) return;
+    if (!confirm('Tem certeza que deseja excluir esta empresa?')) return;
 
     try {
-      const { error } = await supabase
-        .from("companies")
-        .delete()
-        .eq("id", companyId);
+      const { error } = await supabase.from('companies').delete().eq('id', companyId);
 
       if (error) throw error;
-      toast.success("Empresa excluída com sucesso");
+      toast.success('Empresa excluída com sucesso');
       fetchCompanies();
     } catch (error: any) {
-      console.error("Error deleting company:", error);
-      toast.error("Erro ao excluir empresa");
+      console.error('Error deleting company:', error);
+      toast.error('Erro ao excluir empresa');
     }
   };
 
   const handleAccess = (companyId: string) => {
-    localStorage.setItem("currentCompanyId", companyId);
-    navigate("/dashboard");
+    localStorage.setItem('currentCompanyId', companyId);
+    navigate('/dashboard');
     window.location.reload();
   };
 
@@ -232,33 +250,31 @@ const Companies = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Minhas Empresas</h1>
-            <p className="text-muted-foreground">
-              Gerencie todas as suas empresas em um só lugar
-            </p>
+            <p className="text-muted-foreground">Gerencie todas as suas empresas em um só lugar</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => {
-                setEditingCompany(null);
-                setFormData({ 
-                  name: "", 
-                  cnpj: "", 
-                  email: "", 
-                  phone: "",
-                  evolutionApiUrl: "",
-                  evolutionApiKey: "",
-                  createEvolutionInstance: true,
-                });
-              }}>
+              <Button
+                onClick={() => {
+                  setEditingCompany(null);
+                  setFormData({
+                    name: '',
+                    cnpj: '',
+                    email: '',
+                    phone: '',
+                    evolutionApiUrl: '',
+                    evolutionApiKey: '',
+                    createEvolutionInstance: true,
+                  });
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Empresa
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>
-                  {editingCompany ? "Editar Empresa" : "Nova Empresa"}
-                </DialogTitle>
+                <DialogTitle>{editingCompany ? 'Editar Empresa' : 'Nova Empresa'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -302,11 +318,14 @@ const Companies = () => {
                       <Checkbox
                         id="createEvolutionInstance"
                         checked={formData.createEvolutionInstance}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           setFormData({ ...formData, createEvolutionInstance: checked as boolean })
                         }
                       />
-                      <Label htmlFor="createEvolutionInstance" className="text-sm font-normal cursor-pointer">
+                      <Label
+                        htmlFor="createEvolutionInstance"
+                        className="text-sm font-normal cursor-pointer"
+                      >
                         Criar instância Evolution API automaticamente
                       </Label>
                     </div>
@@ -319,7 +338,9 @@ const Companies = () => {
                             id="evolutionApiUrl"
                             placeholder="https://sua-api-evolution.com"
                             value={formData.evolutionApiUrl}
-                            onChange={(e) => setFormData({ ...formData, evolutionApiUrl: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, evolutionApiUrl: e.target.value })
+                            }
                             required={formData.createEvolutionInstance}
                           />
                         </div>
@@ -330,7 +351,9 @@ const Companies = () => {
                             type="password"
                             placeholder="Sua API Key"
                             value={formData.evolutionApiKey}
-                            onChange={(e) => setFormData({ ...formData, evolutionApiKey: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, evolutionApiKey: e.target.value })
+                            }
                             required={formData.createEvolutionInstance}
                           />
                         </div>
@@ -343,9 +366,7 @@ const Companies = () => {
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>
-                  <Button type="submit">
-                    {editingCompany ? "Salvar" : "Criar"}
-                  </Button>
+                  <Button type="submit">{editingCompany ? 'Salvar' : 'Criar'}</Button>
                 </div>
               </form>
             </DialogContent>
@@ -376,9 +397,7 @@ const Companies = () => {
                     <div>
                       <h3 className="font-semibold text-lg">{company.name}</h3>
                       {company.cnpj && (
-                        <p className="text-sm text-muted-foreground">
-                          CNPJ: {company.cnpj}
-                        </p>
+                        <p className="text-sm text-muted-foreground">CNPJ: {company.cnpj}</p>
                       )}
                     </div>
                   </div>
@@ -417,18 +436,10 @@ const Companies = () => {
                   >
                     Acessar
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(company)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(company)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(company.id)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(company.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -436,14 +447,14 @@ const Companies = () => {
                 <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Status</span>
-                    <span className={company.is_active ? "text-green-500" : "text-red-500"}>
-                      {company.is_active ? "Ativa" : "Inativa"}
+                    <span className={company.is_active ? 'text-green-500' : 'text-red-500'}>
+                      {company.is_active ? 'Ativa' : 'Inativa'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">WhatsApp</span>
-                    <EvolutionStatusBadge 
-                      status={evolutionSettings[company.id]?.instance_status || 'not_created'} 
+                    <EvolutionStatusBadge
+                      status={evolutionSettings[company.id]?.instance_status || 'not_created'}
                     />
                   </div>
                 </div>

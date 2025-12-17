@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChatFilters } from '@/types/chatFilters';
-import { LabelBadge } from "@/components/chat/LabelBadge";
+import { LabelBadge } from '@/components/chat/LabelBadge';
 
 interface ChatFiltersBarProps {
   filters: ChatFilters;
@@ -83,11 +83,7 @@ export const ChatFiltersBar = ({
         if (!labelData) return null;
         return (
           <div key={labelId} className="flex items-center gap-1">
-            <LabelBadge
-              name={labelData.name}
-              color={labelData.color}
-              icon={labelData.icon}
-            />
+            <LabelBadge name={labelData.name} color={labelData.color} icon={labelData.icon} />
             <button
               onClick={() => onRemoveLabel(labelId)}
               className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
@@ -149,12 +145,7 @@ export const ChatFiltersBar = ({
         </Badge>
       )}
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onClearAll}
-        className="ml-auto text-xs"
-      >
+      <Button variant="ghost" size="sm" onClick={onClearAll} className="ml-auto text-xs">
         Limpar todos
       </Button>
     </div>

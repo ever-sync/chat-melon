@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./crm/useCompanyQuery";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from './crm/useCompanyQuery';
+import { toast } from 'sonner';
 
 export interface TemplateSection {
-  type: "header" | "text" | "products" | "pricing" | "terms" | "signature" | "image" | "divider";
+  type: 'header' | 'text' | 'products' | 'pricing' | 'terms' | 'signature' | 'image' | 'divider';
   title?: string;
   subtitle?: string;
   content?: string;
@@ -41,25 +41,25 @@ export const useProposalTemplates = (category?: string) => {
   const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading } = useQuery({
-    queryKey: ["proposal-templates", companyId, category],
+    queryKey: ['proposal-templates', companyId, category],
     queryFn: async () => {
       if (!companyId) return [];
 
       let query = supabase
-        .from("proposal_templates")
-        .select("*")
-        .eq("company_id", companyId)
-        .order("is_default", { ascending: false })
-        .order("usage_count", { ascending: false });
+        .from('proposal_templates')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('is_default', { ascending: false })
+        .order('usage_count', { ascending: false });
 
       if (category) {
-        query = query.eq("category", category);
+        query = query.eq('category', category);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      return (data || []).map(t => ({
+      return (data || []).map((t) => ({
         ...t,
         content: t.content as unknown as TemplateContent,
       })) as ProposalTemplate[];
@@ -69,12 +69,14 @@ export const useProposalTemplates = (category?: string) => {
 
   const createTemplate = useMutation({
     mutationFn: async (template: Partial<ProposalTemplate>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
-      if (!companyId) throw new Error("Empresa não encontrada");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
+      if (!companyId) throw new Error('Empresa não encontrada');
 
       const { data, error } = await supabase
-        .from("proposal_templates")
+        .from('proposal_templates')
         .insert({
           company_id: companyId,
           name: template.name,
@@ -92,11 +94,11 @@ export const useProposalTemplates = (category?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposal-templates"] });
-      toast.success("Template criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['proposal-templates'] });
+      toast.success('Template criado com sucesso!');
     },
     onError: (error) => {
-      toast.error("Erro ao criar template");
+      toast.error('Erro ao criar template');
       console.error(error);
     },
   });
@@ -104,7 +106,7 @@ export const useProposalTemplates = (category?: string) => {
   const updateTemplate = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ProposalTemplate> & { id: string }) => {
       const { data, error } = await supabase
-        .from("proposal_templates")
+        .from('proposal_templates')
         .update({
           name: updates.name,
           description: updates.description,
@@ -113,7 +115,7 @@ export const useProposalTemplates = (category?: string) => {
           category: updates.category,
           is_default: updates.is_default,
         })
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -121,46 +123,43 @@ export const useProposalTemplates = (category?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposal-templates"] });
-      toast.success("Template atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['proposal-templates'] });
+      toast.success('Template atualizado!');
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar template");
+      toast.error('Erro ao atualizar template');
       console.error(error);
     },
   });
 
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("proposal_templates")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('proposal_templates').delete().eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposal-templates"] });
-      toast.success("Template excluído!");
+      queryClient.invalidateQueries({ queryKey: ['proposal-templates'] });
+      toast.success('Template excluído!');
     },
     onError: (error) => {
-      toast.error("Erro ao excluir template");
+      toast.error('Erro ao excluir template');
       console.error(error);
     },
   });
 
   const incrementUsage = useMutation({
     mutationFn: async (id: string) => {
-      const template = templates.find(t => t.id === id);
+      const template = templates.find((t) => t.id === id);
       if (template) {
         await supabase
-          .from("proposal_templates")
+          .from('proposal_templates')
           .update({ usage_count: template.usage_count + 1 })
-          .eq("id", id);
+          .eq('id', id);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["proposal-templates"] });
+      queryClient.invalidateQueries({ queryKey: ['proposal-templates'] });
     },
   });
 

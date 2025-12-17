@@ -38,11 +38,11 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
   const loadSettings = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('evolution-settings', {
-        body: { companyId, action: 'get' }
+        body: { companyId, action: 'get' },
       });
 
       if (data && !error) {
-        setSettings(prev => ({ ...prev, ...data }));
+        setSettings((prev) => ({ ...prev, ...data }));
       }
     } catch (err) {
       console.error('Erro ao carregar:', err);
@@ -55,7 +55,7 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
     setIsSaving(true);
     try {
       const { error } = await supabase.functions.invoke('evolution-settings', {
-        body: { companyId, action: 'set', settings }
+        body: { companyId, action: 'set', settings },
       });
 
       if (error) throw error;
@@ -69,19 +69,20 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Configurações da Instância</CardTitle>
-        <CardDescription>
-          Configure o comportamento do seu WhatsApp conectado
-        </CardDescription>
+        <CardDescription>Configure o comportamento do seu WhatsApp conectado</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        
         {/* Sempre Online */}
         <div className="flex items-center justify-between">
           <div>
@@ -92,7 +93,7 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
           </div>
           <Switch
             checked={settings.always_online}
-            onCheckedChange={(checked) => setSettings(s => ({ ...s, always_online: checked }))}
+            onCheckedChange={(checked) => setSettings((s) => ({ ...s, always_online: checked }))}
           />
         </div>
 
@@ -106,7 +107,7 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
           </div>
           <Switch
             checked={settings.read_messages}
-            onCheckedChange={(checked) => setSettings(s => ({ ...s, read_messages: checked }))}
+            onCheckedChange={(checked) => setSettings((s) => ({ ...s, read_messages: checked }))}
           />
         </div>
 
@@ -114,13 +115,11 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
         <div className="flex items-center justify-between">
           <div>
             <Label>Ignorar Grupos</Label>
-            <p className="text-sm text-muted-foreground">
-              Não receber mensagens de grupos
-            </p>
+            <p className="text-sm text-muted-foreground">Não receber mensagens de grupos</p>
           </div>
           <Switch
             checked={settings.groups_ignore}
-            onCheckedChange={(checked) => setSettings(s => ({ ...s, groups_ignore: checked }))}
+            onCheckedChange={(checked) => setSettings((s) => ({ ...s, groups_ignore: checked }))}
           />
         </div>
 
@@ -134,7 +133,7 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
           </div>
           <Switch
             checked={settings.reject_call}
-            onCheckedChange={(checked) => setSettings(s => ({ ...s, reject_call: checked }))}
+            onCheckedChange={(checked) => setSettings((s) => ({ ...s, reject_call: checked }))}
           />
         </div>
 
@@ -143,7 +142,7 @@ export function InstanceSettingsForm({ companyId }: { companyId: string }) {
             <Label>Mensagem ao Rejeitar</Label>
             <Input
               value={settings.msg_call}
-              onChange={(e) => setSettings(s => ({ ...s, msg_call: e.target.value }))}
+              onChange={(e) => setSettings((s) => ({ ...s, msg_call: e.target.value }))}
               placeholder="No momento não posso atender. Envie uma mensagem!"
             />
           </div>

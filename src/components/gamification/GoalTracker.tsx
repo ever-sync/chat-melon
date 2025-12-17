@@ -1,28 +1,34 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { Plus, Target, TrendingUp } from "lucide-react";
-import { useGamification, type Goal } from "@/hooks/useGamification";
-import { format, differenceInDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Plus, Target, TrendingUp } from 'lucide-react';
+import { useGamification, type Goal } from '@/hooks/useGamification';
+import { format, differenceInDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export const GoalTracker = () => {
   const { goals, createGoal } = useGamification();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [formData, setFormData] = useState({
-    goal_type: "revenue",
+    goal_type: 'revenue',
     target_value: 0,
-    period: "monthly",
+    period: 'monthly',
     start_date: new Date().toISOString().split('T')[0],
-    end_date: "",
+    end_date: '',
   });
 
-  const activeGoals = goals.filter(g => g.status === 'active');
+  const activeGoals = goals.filter((g) => g.status === 'active');
 
   const getProgress = (goal: Goal) => {
     return Math.min((goal.current_value / goal.target_value) * 100, 100);
@@ -36,28 +42,28 @@ export const GoalTracker = () => {
     await createGoal(formData);
     setShowCreateDialog(false);
     setFormData({
-      goal_type: "revenue",
+      goal_type: 'revenue',
       target_value: 0,
-      period: "monthly",
+      period: 'monthly',
       start_date: new Date().toISOString().split('T')[0],
-      end_date: "",
+      end_date: '',
     });
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
   const getGoalTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      revenue: "Receita",
-      deals: "Negócios",
-      calls: "Ligações",
-      meetings: "Reuniões",
-      response_time: "Tempo de Resposta",
+      revenue: 'Receita',
+      deals: 'Negócios',
+      calls: 'Ligações',
+      meetings: 'Reuniões',
+      response_time: 'Tempo de Resposta',
     };
     return labels[type] || type;
   };
@@ -76,7 +82,7 @@ export const GoalTracker = () => {
         {activeGoals.map((goal) => {
           const progress = getProgress(goal);
           const daysLeft = getDaysRemaining(goal);
-          
+
           return (
             <Card key={goal.id}>
               <CardHeader>
@@ -98,16 +104,16 @@ export const GoalTracker = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Atual</span>
                     <span className="font-semibold">
-                      {goal.goal_type === 'revenue' 
-                        ? formatCurrency(goal.current_value) 
+                      {goal.goal_type === 'revenue'
+                        ? formatCurrency(goal.current_value)
                         : goal.current_value.toFixed(0)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Meta</span>
                     <span className="font-semibold">
-                      {goal.goal_type === 'revenue' 
-                        ? formatCurrency(goal.target_value) 
+                      {goal.goal_type === 'revenue'
+                        ? formatCurrency(goal.target_value)
                         : goal.target_value.toFixed(0)}
                     </span>
                   </div>

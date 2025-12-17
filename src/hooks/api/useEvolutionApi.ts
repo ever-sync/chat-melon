@@ -141,8 +141,7 @@ export function useLogoutInstance() {
  */
 export function useSendTextMessage(instanceName: string) {
   return useMutation({
-    mutationFn: (data: SendTextMessageRequest) =>
-      evolutionApi.sendTextMessage(instanceName, data),
+    mutationFn: (data: SendTextMessageRequest) => evolutionApi.sendTextMessage(instanceName, data),
     onSuccess: () => {
       toast.success('Mensagem enviada!');
     },
@@ -234,8 +233,7 @@ export function useSendReactionMessage(instanceName: string) {
  */
 export function useSendPollMessage(instanceName: string) {
   return useMutation({
-    mutationFn: (data: SendPollMessageRequest) =>
-      evolutionApi.sendPollMessage(instanceName, data),
+    mutationFn: (data: SendPollMessageRequest) => evolutionApi.sendPollMessage(instanceName, data),
     onSuccess: () => {
       toast.success('Enquete enviada!');
     },
@@ -250,8 +248,7 @@ export function useSendPollMessage(instanceName: string) {
  */
 export function useSendListMessage(instanceName: string) {
   return useMutation({
-    mutationFn: (data: SendListMessageRequest) =>
-      evolutionApi.sendListMessage(instanceName, data),
+    mutationFn: (data: SendListMessageRequest) => evolutionApi.sendListMessage(instanceName, data),
     onSuccess: () => {
       toast.success('Lista enviada!');
     },
@@ -270,8 +267,7 @@ export function useSendListMessage(instanceName: string) {
  */
 export function useMarkAsRead(instanceName: string) {
   return useMutation({
-    mutationFn: (remoteJid: string) =>
-      evolutionApi.markAsRead(instanceName, remoteJid),
+    mutationFn: (remoteJid: string) => evolutionApi.markAsRead(instanceName, remoteJid),
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao marcar como lida');
     },
@@ -299,8 +295,15 @@ export function useArchiveChat(instanceName: string) {
  */
 export function useDeleteMessage(instanceName: string) {
   return useMutation({
-    mutationFn: ({ remoteJid, messageId, fromMe }: { remoteJid: string; messageId: string; fromMe: boolean }) =>
-      evolutionApi.deleteMessage(instanceName, remoteJid, messageId, fromMe),
+    mutationFn: ({
+      remoteJid,
+      messageId,
+      fromMe,
+    }: {
+      remoteJid: string;
+      messageId: string;
+      fromMe: boolean;
+    }) => evolutionApi.deleteMessage(instanceName, remoteJid, messageId, fromMe),
     onSuccess: () => {
       toast.success('Mensagem deletada!');
     },
@@ -315,8 +318,13 @@ export function useDeleteMessage(instanceName: string) {
  */
 export function useSendPresence(instanceName: string) {
   return useMutation({
-    mutationFn: ({ remoteJid, presence }: { remoteJid: string; presence: 'available' | 'composing' | 'recording' | 'paused' }) =>
-      evolutionApi.sendPresence(instanceName, remoteJid, presence),
+    mutationFn: ({
+      remoteJid,
+      presence,
+    }: {
+      remoteJid: string;
+      presence: 'available' | 'composing' | 'recording' | 'paused';
+    }) => evolutionApi.sendPresence(instanceName, remoteJid, presence),
     onError: (error: Error) => {
       console.error('Erro ao enviar presença:', error);
     },
@@ -421,9 +429,7 @@ export function useSyncContactPhotos(instanceName: string) {
         })
       );
 
-      const successful = results.filter(
-        (r) => r.status === 'fulfilled' && r.value !== null
-      ).length;
+      const successful = results.filter((r) => r.status === 'fulfilled' && r.value !== null).length;
 
       return {
         total: contacts.length,
@@ -550,8 +556,15 @@ export function useUpdateGroupParticipants(instanceName: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ groupJid, action, participants }: { groupJid: string; action: 'add' | 'remove' | 'promote' | 'demote'; participants: string[] }) =>
-      evolutionApi.updateParticipant(instanceName, groupJid, action, participants),
+    mutationFn: ({
+      groupJid,
+      action,
+      participants,
+    }: {
+      groupJid: string;
+      action: 'add' | 'remove' | 'promote' | 'demote';
+      participants: string[];
+    }) => evolutionApi.updateParticipant(instanceName, groupJid, action, participants),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['evolution-groups'] });
 

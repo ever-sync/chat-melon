@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, CheckCircle2, Smartphone, Wifi, WifiOff } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Download, CheckCircle2, Smartphone, Wifi, WifiOff } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -45,7 +45,7 @@ export const PWASettings = () => {
 
   const handleInstall = async () => {
     if (!deferredPrompt) {
-      toast.error("O app não pode ser instalado neste momento");
+      toast.error('O app não pode ser instalado neste momento');
       return;
     }
 
@@ -53,7 +53,7 @@ export const PWASettings = () => {
     const { outcome } = await deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
-      toast.success("App instalado com sucesso!");
+      toast.success('App instalado com sucesso!');
       setIsInstalled(true);
     }
 
@@ -63,9 +63,9 @@ export const PWASettings = () => {
   const clearCache = async () => {
     if ('caches' in window) {
       const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
-      toast.success("Cache limpo com sucesso!");
-      
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      toast.success('Cache limpo com sucesso!');
+
       // Recarrega a página
       setTimeout(() => {
         window.location.reload();
@@ -83,9 +83,7 @@ export const PWASettings = () => {
                 <Smartphone className="h-5 w-5" />
                 Progressive Web App (PWA)
               </CardTitle>
-              <CardDescription>
-                Instale o app no seu dispositivo para acesso rápido
-              </CardDescription>
+              <CardDescription>Instale o app no seu dispositivo para acesso rápido</CardDescription>
             </div>
             {isInstalled && (
               <Badge variant="secondary" className="gap-1">
@@ -98,22 +96,16 @@ export const PWASettings = () => {
         <CardContent className="space-y-4">
           {!isInstalled ? (
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Instalar o app permite:
-              </p>
+              <p className="text-sm text-muted-foreground">Instalar o app permite:</p>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                 <li>Acesso rápido pela tela inicial</li>
                 <li>Funciona offline</li>
                 <li>Notificações push</li>
                 <li>Experiência como app nativo</li>
               </ul>
-              <Button 
-                onClick={handleInstall}
-                disabled={!deferredPrompt}
-                className="w-full mt-4"
-              >
+              <Button onClick={handleInstall} disabled={!deferredPrompt} className="w-full mt-4">
                 <Download className="mr-2 h-4 w-4" />
-                {deferredPrompt ? "Instalar App" : "App não disponível para instalação"}
+                {deferredPrompt ? 'Instalar App' : 'App não disponível para instalação'}
               </Button>
             </div>
           ) : (
@@ -138,18 +130,15 @@ export const PWASettings = () => {
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">
-                {isOnline ? "Online" : "Offline"}
-              </p>
+              <p className="text-sm font-medium">{isOnline ? 'Online' : 'Offline'}</p>
               <p className="text-sm text-muted-foreground">
-                {isOnline 
-                  ? "Conectado à internet" 
-                  : "Usando modo offline - alguns recursos podem estar limitados"
-                }
+                {isOnline
+                  ? 'Conectado à internet'
+                  : 'Usando modo offline - alguns recursos podem estar limitados'}
               </p>
             </div>
-            <Badge variant={isOnline ? "secondary" : "destructive"}>
-              {isOnline ? "Conectado" : "Desconectado"}
+            <Badge variant={isOnline ? 'secondary' : 'destructive'}>
+              {isOnline ? 'Conectado' : 'Desconectado'}
             </Badge>
           </div>
         </CardContent>
@@ -158,16 +147,10 @@ export const PWASettings = () => {
       <Card>
         <CardHeader>
           <CardTitle>Cache e Dados</CardTitle>
-          <CardDescription>
-            Gerenciar dados armazenados localmente
-          </CardDescription>
+          <CardDescription>Gerenciar dados armazenados localmente</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={clearCache}
-            variant="outline"
-            className="w-full"
-          >
+          <Button onClick={clearCache} variant="outline" className="w-full">
             Limpar Cache
           </Button>
           <p className="text-xs text-muted-foreground mt-2">

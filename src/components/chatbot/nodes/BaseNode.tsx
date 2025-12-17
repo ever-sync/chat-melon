@@ -22,7 +22,9 @@ export const BaseNode = memo(function BaseNode({
   sourceHandles,
 }: BaseNodeProps) {
   const nodeInfo = NODE_TYPE_INFO[type];
-  const IconComponent = Icons[nodeInfo.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+  const IconComponent = Icons[nodeInfo.icon as keyof typeof Icons] as React.ComponentType<{
+    className?: string;
+  }>;
 
   return (
     <div
@@ -91,9 +93,7 @@ export const BaseNode = memo(function BaseNode({
 export const StartNode = memo(function StartNode({ data, selected }: NodeProps) {
   return (
     <BaseNode type="start" selected={selected} showTargetHandle={false}>
-      <p className="text-xs text-muted-foreground">
-        {data.label || 'Ponto de início do fluxo'}
-      </p>
+      <p className="text-xs text-muted-foreground">{data.label || 'Ponto de início do fluxo'}</p>
     </BaseNode>
   );
 });
@@ -102,9 +102,7 @@ export const StartNode = memo(function StartNode({ data, selected }: NodeProps) 
 export const EndNode = memo(function EndNode({ data, selected }: NodeProps) {
   return (
     <BaseNode type="end" selected={selected} showSourceHandle={false}>
-      <p className="text-xs text-muted-foreground">
-        {data.endMessage || 'Fim do fluxo'}
-      </p>
+      <p className="text-xs text-muted-foreground">{data.endMessage || 'Fim do fluxo'}</p>
       {data.closeConversation && (
         <span className="mt-1 inline-block rounded bg-orange-100 px-1.5 py-0.5 text-xs text-orange-700">
           Encerra conversa
@@ -130,10 +128,7 @@ export const MessageNode = memo(function MessageNode({ data, selected }: NodePro
       {data.buttons && data.buttons.length > 0 && (
         <div className="mt-2 space-y-1">
           {data.buttons.map((btn: { id: string; label: string }) => (
-            <div
-              key={btn.id}
-              className="rounded border bg-muted/50 px-2 py-1 text-xs"
-            >
+            <div key={btn.id} className="rounded border bg-muted/50 px-2 py-1 text-xs">
               {btn.label}
             </div>
           ))}
@@ -177,10 +172,7 @@ export const MenuNode = memo(function MenuNode({ data, selected }: NodeProps) {
       {options.length > 0 && (
         <div className="mt-2 space-y-1">
           {options.map((opt: { id: string; label: string; emoji?: string }) => (
-            <div
-              key={opt.id}
-              className="flex items-center gap-1 text-xs"
-            >
+            <div key={opt.id} className="flex items-center gap-1 text-xs">
               <span className="flex h-4 w-4 items-center justify-center rounded bg-primary/10 text-primary">
                 {opt.emoji || options.indexOf(opt) + 1}
               </span>
@@ -205,13 +197,15 @@ export const ConditionNode = memo(function ConditionNode({ data, selected }: Nod
     <BaseNode type="condition" selected={selected} sourceHandles={sourceHandles}>
       {conditions.length > 0 ? (
         <div className="space-y-1">
-          {conditions.map((cond: { id: string; variable: string; operator: string; value: string }) => (
-            <div key={cond.id} className="text-xs">
-              <span className="font-medium">{cond.variable}</span>{' '}
-              <span className="text-muted-foreground">{cond.operator}</span>{' '}
-              <span className="text-primary">{cond.value}</span>
-            </div>
-          ))}
+          {conditions.map(
+            (cond: { id: string; variable: string; operator: string; value: string }) => (
+              <div key={cond.id} className="text-xs">
+                <span className="font-medium">{cond.variable}</span>{' '}
+                <span className="text-muted-foreground">{cond.operator}</span>{' '}
+                <span className="text-primary">{cond.value}</span>
+              </div>
+            )
+          )}
         </div>
       ) : (
         <p className="text-xs italic text-muted-foreground">Nenhuma condição</p>
@@ -238,9 +232,7 @@ export const DelayNode = memo(function DelayNode({ data, selected }: NodeProps) 
 export const HandoffNode = memo(function HandoffNode({ data, selected }: NodeProps) {
   return (
     <BaseNode type="handoff" selected={selected} showSourceHandle={false}>
-      <p className="text-sm">
-        {data.message || 'Transferindo para atendente...'}
-      </p>
+      <p className="text-sm">{data.message || 'Transferindo para atendente...'}</p>
       {(data.teamId || data.agentId) && (
         <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
           <Icons.User className="h-3 w-3" />
@@ -262,9 +254,7 @@ export const AIResponseNode = memo(function AIResponseNode({ data, selected }: N
             <span>Usa base de conhecimento</span>
           </div>
         )}
-        {data.prompt && (
-          <p className="line-clamp-2 text-xs text-muted-foreground">{data.prompt}</p>
-        )}
+        {data.prompt && <p className="line-clamp-2 text-xs text-muted-foreground">{data.prompt}</p>}
       </div>
     </BaseNode>
   );
@@ -305,9 +295,7 @@ export const ActionNode = memo(function ActionNode({ data, selected }: NodeProps
 
   return (
     <BaseNode type="action" selected={selected}>
-      <p className="text-sm">
-        {actionLabels[data.actionType] || data.actionType}
-      </p>
+      <p className="text-sm">{actionLabels[data.actionType] || data.actionType}</p>
     </BaseNode>
   );
 });

@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
+import { toast } from 'sonner';
 
-export type DealTaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
-export type DealTaskPriority = "low" | "medium" | "high" | "urgent";
+export type DealTaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+export type DealTaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export type DealTask = {
   id: string;
@@ -60,13 +60,14 @@ export const useDealTasks = (dealId?: string) => {
 
   // Query para buscar tarefas
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["deal-tasks", dealId],
+    queryKey: ['deal-tasks', dealId],
     queryFn: async () => {
       if (!dealId) return [];
 
       const { data, error } = await supabase
-        .from("deal_tasks")
-        .select(`
+        .from('deal_tasks')
+        .select(
+          `
           *,
           assigned_profile:profiles!deal_tasks_assigned_to_fkey (
             id,
@@ -78,10 +79,11 @@ export const useDealTasks = (dealId?: string) => {
             full_name,
             avatar_url
           )
-        `)
-        .eq("deal_id", dealId)
-        .order("status", { ascending: true })
-        .order("due_date", { ascending: true, nullsFirst: false });
+        `
+        )
+        .eq('deal_id', dealId)
+        .order('status', { ascending: true })
+        .order('due_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
       return data as DealTask[];
@@ -91,26 +93,26 @@ export const useDealTasks = (dealId?: string) => {
   });
 
   // Tarefas pendentes
-  const pendingTasks = tasks.filter(t => t.status === "pending" || t.status === "in_progress");
-  const completedTasks = tasks.filter(t => t.status === "completed");
-  const overdueTasks = tasks.filter(t =>
-    t.status !== "completed" &&
-    t.due_date &&
-    new Date(t.due_date) < new Date()
+  const pendingTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'in_progress');
+  const completedTasks = tasks.filter((t) => t.status === 'completed');
+  const overdueTasks = tasks.filter(
+    (t) => t.status !== 'completed' && t.due_date && new Date(t.due_date) < new Date()
   );
 
   // Mutation para criar tarefa
   const createTask = useMutation({
     mutationFn: async (input: CreateDealTaskInput) => {
       if (!dealId || !currentCompany?.id) {
-        throw new Error("Deal ID ou Company ID não disponível");
+        throw new Error('Deal ID ou Company ID não disponível');
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
 
       const { data, error } = await supabase
-        .from("deal_tasks")
+        .from('deal_tasks')
         .insert({
           deal_id: dealId,
           company_id: currentCompany.id,
@@ -119,10 +121,11 @@ export const useDealTasks = (dealId?: string) => {
           description: input.description,
           assigned_to: input.assigned_to,
           due_date: input.due_date,
-          priority: input.priority || "medium",
+          priority: input.priority || 'medium',
           reminder_at: input.reminder_at,
         })
-        .select(`
+        .select(
+          `
           *,
           assigned_profile:profiles!deal_tasks_assigned_to_fkey (
             id,
@@ -134,19 +137,20 @@ export const useDealTasks = (dealId?: string) => {
             full_name,
             avatar_url
           )
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deal-tasks", dealId] });
-      queryClient.invalidateQueries({ queryKey: ["deal-activities", dealId] });
-      toast.success("Tarefa criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['deal-tasks', dealId] });
+      queryClient.invalidateQueries({ queryKey: ['deal-activities', dealId] });
+      toast.success('Tarefa criada com sucesso!');
     },
     onError: (error: Error) => {
-      toast.error("Erro ao criar tarefa: " + error.message);
+      toast.error('Erro ao criar tarefa: ' + error.message);
     },
   });
 
@@ -154,10 +158,11 @@ export const useDealTasks = (dealId?: string) => {
   const updateTask = useMutation({
     mutationFn: async ({ taskId, updates }: { taskId: string; updates: UpdateDealTaskInput }) => {
       const { data, error } = await supabase
-        .from("deal_tasks")
+        .from('deal_tasks')
         .update(updates)
-        .eq("id", taskId)
-        .select(`
+        .eq('id', taskId)
+        .select(
+          `
           *,
           assigned_profile:profiles!deal_tasks_assigned_to_fkey (
             id,
@@ -169,19 +174,20 @@ export const useDealTasks = (dealId?: string) => {
             full_name,
             avatar_url
           )
-        `)
+        `
+        )
         .single();
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deal-tasks", dealId] });
-      queryClient.invalidateQueries({ queryKey: ["deal-activities", dealId] });
-      toast.success("Tarefa atualizada!");
+      queryClient.invalidateQueries({ queryKey: ['deal-tasks', dealId] });
+      queryClient.invalidateQueries({ queryKey: ['deal-activities', dealId] });
+      toast.success('Tarefa atualizada!');
     },
     onError: (error: Error) => {
-      toast.error("Erro ao atualizar tarefa: " + error.message);
+      toast.error('Erro ao atualizar tarefa: ' + error.message);
     },
   });
 
@@ -189,9 +195,9 @@ export const useDealTasks = (dealId?: string) => {
   const completeTask = useMutation({
     mutationFn: async (taskId: string) => {
       const { data, error } = await supabase
-        .from("deal_tasks")
-        .update({ status: "completed" })
-        .eq("id", taskId)
+        .from('deal_tasks')
+        .update({ status: 'completed' })
+        .eq('id', taskId)
         .select()
         .single();
 
@@ -199,12 +205,12 @@ export const useDealTasks = (dealId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deal-tasks", dealId] });
-      queryClient.invalidateQueries({ queryKey: ["deal-activities", dealId] });
-      toast.success("Tarefa concluída!");
+      queryClient.invalidateQueries({ queryKey: ['deal-tasks', dealId] });
+      queryClient.invalidateQueries({ queryKey: ['deal-activities', dealId] });
+      toast.success('Tarefa concluída!');
     },
     onError: (error: Error) => {
-      toast.error("Erro ao concluir tarefa: " + error.message);
+      toast.error('Erro ao concluir tarefa: ' + error.message);
     },
   });
 
@@ -212,9 +218,9 @@ export const useDealTasks = (dealId?: string) => {
   const reopenTask = useMutation({
     mutationFn: async (taskId: string) => {
       const { data, error } = await supabase
-        .from("deal_tasks")
-        .update({ status: "pending" })
-        .eq("id", taskId)
+        .from('deal_tasks')
+        .update({ status: 'pending' })
+        .eq('id', taskId)
         .select()
         .single();
 
@@ -222,30 +228,27 @@ export const useDealTasks = (dealId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deal-tasks", dealId] });
-      toast.success("Tarefa reaberta!");
+      queryClient.invalidateQueries({ queryKey: ['deal-tasks', dealId] });
+      toast.success('Tarefa reaberta!');
     },
     onError: (error: Error) => {
-      toast.error("Erro ao reabrir tarefa: " + error.message);
+      toast.error('Erro ao reabrir tarefa: ' + error.message);
     },
   });
 
   // Mutation para deletar tarefa
   const deleteTask = useMutation({
     mutationFn: async (taskId: string) => {
-      const { error } = await supabase
-        .from("deal_tasks")
-        .delete()
-        .eq("id", taskId);
+      const { error } = await supabase.from('deal_tasks').delete().eq('id', taskId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deal-tasks", dealId] });
-      toast.success("Tarefa excluída!");
+      queryClient.invalidateQueries({ queryKey: ['deal-tasks', dealId] });
+      toast.success('Tarefa excluída!');
     },
     onError: (error: Error) => {
-      toast.error("Erro ao excluir tarefa: " + error.message);
+      toast.error('Erro ao excluir tarefa: ' + error.message);
     },
   });
 

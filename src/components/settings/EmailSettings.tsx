@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Plus, Trash2 } from "lucide-react";
-import { useEmailTemplates } from "@/hooks/useEmailTemplates";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mail, Plus, Trash2 } from 'lucide-react';
+import { useEmailTemplates } from '@/hooks/useEmailTemplates';
 import {
   Dialog,
   DialogContent,
@@ -13,23 +13,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const EmailSettings = () => {
   const { templates, isLoading, createTemplate, deleteTemplate } = useEmailTemplates();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTemplate, setNewTemplate] = useState({
-    name: "",
-    subject: "",
-    body: "",
-    category: "",
+    name: '',
+    subject: '',
+    body: '',
+    category: '',
   });
 
   const handleCreateTemplate = async () => {
     await createTemplate.mutateAsync(newTemplate);
     setIsModalOpen(false);
-    setNewTemplate({ name: "", subject: "", body: "", category: "" });
+    setNewTemplate({ name: '', subject: '', body: '', category: '' });
   };
 
   return (
@@ -40,9 +40,7 @@ export const EmailSettings = () => {
             <Mail className="h-5 w-5" />
             Configurações de Email
           </CardTitle>
-          <CardDescription>
-            Configure templates de email e gerenciamento de envios
-          </CardDescription>
+          <CardDescription>Configure templates de email e gerenciamento de envios</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -54,7 +52,8 @@ export const EmailSettings = () => {
               disabled
             />
             <p className="text-sm text-muted-foreground">
-              Usando Resend para envio de emails. Configure seu domínio no Resend para usar seu próprio email.
+              Usando Resend para envio de emails. Configure seu domínio no Resend para usar seu
+              próprio email.
             </p>
           </div>
 
@@ -96,9 +95,7 @@ export const EmailSettings = () => {
                     <Label>Nome do Template</Label>
                     <Input
                       value={newTemplate.name}
-                      onChange={(e) =>
-                        setNewTemplate({ ...newTemplate, name: e.target.value })
-                      }
+                      onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
                       placeholder="Ex: Proposta Comercial"
                     />
                   </div>
@@ -106,9 +103,7 @@ export const EmailSettings = () => {
                     <Label>Categoria</Label>
                     <Input
                       value={newTemplate.category}
-                      onChange={(e) =>
-                        setNewTemplate({ ...newTemplate, category: e.target.value })
-                      }
+                      onChange={(e) => setNewTemplate({ ...newTemplate, category: e.target.value })}
                       placeholder="Ex: Vendas"
                     />
                   </div>
@@ -116,9 +111,7 @@ export const EmailSettings = () => {
                     <Label>Assunto</Label>
                     <Input
                       value={newTemplate.subject}
-                      onChange={(e) =>
-                        setNewTemplate({ ...newTemplate, subject: e.target.value })
-                      }
+                      onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
                       placeholder="Ex: Proposta para {{empresa}}"
                     />
                   </div>
@@ -126,9 +119,7 @@ export const EmailSettings = () => {
                     <Label>Corpo do Email (HTML)</Label>
                     <Textarea
                       value={newTemplate.body}
-                      onChange={(e) =>
-                        setNewTemplate({ ...newTemplate, body: e.target.value })
-                      }
+                      onChange={(e) => setNewTemplate({ ...newTemplate, body: e.target.value })}
                       placeholder="<p>Olá {{nome}},</p><p>Segue nossa proposta...</p>"
                       rows={10}
                     />
@@ -147,9 +138,7 @@ export const EmailSettings = () => {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Carregando templates...
-            </div>
+            <div className="text-center py-8 text-muted-foreground">Carregando templates...</div>
           ) : templates.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               Nenhum template criado ainda
@@ -168,16 +157,11 @@ export const EmailSettings = () => {
                               {template.category}
                             </span>
                           )}
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {template.subject}
-                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">{template.subject}</p>
                           {template.variables && template.variables.length > 0 && (
                             <div className="flex gap-1 mt-2">
                               {template.variables.map((v) => (
-                                <span
-                                  key={v}
-                                  className="text-xs bg-muted px-2 py-1 rounded"
-                                >
+                                <span key={v} className="text-xs bg-muted px-2 py-1 rounded">
                                   {`{{${v}}}`}
                                 </span>
                               ))}

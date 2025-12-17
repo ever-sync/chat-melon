@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
-import { Settings, Volume2, Bell, Moon, Users } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { Settings, Volume2, Bell, Moon, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type NotificationSettings = {
   volume: number;
@@ -51,7 +51,9 @@ export const NotificationSettingsDialog = () => {
 
   const loadSettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: companyData } = await supabase
@@ -92,7 +94,9 @@ export const NotificationSettingsDialog = () => {
   const saveSettings = async () => {
     setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: companyData } = await supabase
@@ -104,15 +108,16 @@ export const NotificationSettingsDialog = () => {
 
       if (!companyData) return;
 
-      const { error } = await supabase
-        .from('notification_settings')
-        .upsert({
+      const { error } = await supabase.from('notification_settings').upsert(
+        {
           user_id: user.id,
           company_id: companyData.company_id,
           ...settings,
-        }, {
-          onConflict: 'user_id,company_id'
-        });
+        },
+        {
+          onConflict: 'user_id,company_id',
+        }
+      );
 
       if (error) throw error;
 
@@ -127,7 +132,7 @@ export const NotificationSettingsDialog = () => {
 
   const addMutedContact = () => {
     if (newMutedContact.trim() && !settings.muted_contacts.includes(newMutedContact)) {
-      setSettings(prev => ({
+      setSettings((prev) => ({
         ...prev,
         muted_contacts: [...prev.muted_contacts, newMutedContact.trim()],
       }));
@@ -136,9 +141,9 @@ export const NotificationSettingsDialog = () => {
   };
 
   const removeMutedContact = (contact: string) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      muted_contacts: prev.muted_contacts.filter(c => c !== contact),
+      muted_contacts: prev.muted_contacts.filter((c) => c !== contact),
     }));
   };
 
@@ -166,7 +171,7 @@ export const NotificationSettingsDialog = () => {
                   id="enabled"
                   checked={settings.enabled}
                   onCheckedChange={(checked) =>
-                    setSettings(prev => ({ ...prev, enabled: checked }))
+                    setSettings((prev) => ({ ...prev, enabled: checked }))
                   }
                 />
               </div>
@@ -177,7 +182,7 @@ export const NotificationSettingsDialog = () => {
                   id="sound"
                   checked={settings.sound_enabled}
                   onCheckedChange={(checked) =>
-                    setSettings(prev => ({ ...prev, sound_enabled: checked }))
+                    setSettings((prev) => ({ ...prev, sound_enabled: checked }))
                   }
                   disabled={!settings.enabled}
                 />
@@ -189,7 +194,7 @@ export const NotificationSettingsDialog = () => {
                   id="badge"
                   checked={settings.badge_enabled}
                   onCheckedChange={(checked) =>
-                    setSettings(prev => ({ ...prev, badge_enabled: checked }))
+                    setSettings((prev) => ({ ...prev, badge_enabled: checked }))
                   }
                   disabled={!settings.enabled}
                 />
@@ -204,9 +209,7 @@ export const NotificationSettingsDialog = () => {
               </div>
               <Slider
                 value={[settings.volume]}
-                onValueChange={([value]) =>
-                  setSettings(prev => ({ ...prev, volume: value }))
-                }
+                onValueChange={([value]) => setSettings((prev) => ({ ...prev, volume: value }))}
                 min={0}
                 max={1}
                 step={0.1}
@@ -225,7 +228,7 @@ export const NotificationSettingsDialog = () => {
                   id="dnd"
                   checked={settings.do_not_disturb_enabled}
                   onCheckedChange={(checked) =>
-                    setSettings(prev => ({ ...prev, do_not_disturb_enabled: checked }))
+                    setSettings((prev) => ({ ...prev, do_not_disturb_enabled: checked }))
                   }
                 />
               </div>
@@ -239,7 +242,7 @@ export const NotificationSettingsDialog = () => {
                       type="time"
                       value={settings.do_not_disturb_start}
                       onChange={(e) =>
-                        setSettings(prev => ({
+                        setSettings((prev) => ({
                           ...prev,
                           do_not_disturb_start: e.target.value,
                         }))
@@ -253,7 +256,7 @@ export const NotificationSettingsDialog = () => {
                       type="time"
                       value={settings.do_not_disturb_end}
                       onChange={(e) =>
-                        setSettings(prev => ({
+                        setSettings((prev) => ({
                           ...prev,
                           do_not_disturb_end: e.target.value,
                         }))
@@ -270,7 +273,7 @@ export const NotificationSettingsDialog = () => {
                 <Users className="h-4 w-4" />
                 <Label>Contatos Silenciados</Label>
               </div>
-              
+
               <div className="flex gap-2">
                 <Input
                   placeholder="Número do contato"

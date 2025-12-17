@@ -5,11 +5,11 @@ interface ProgressRingProps {
   children?: React.ReactNode;
 }
 
-export const ProgressRing = ({ 
-  progress, 
-  size = 120, 
+export const ProgressRing = ({
+  progress,
+  size = 120,
   strokeWidth = 8,
-  children 
+  children,
 }: ProgressRingProps) => {
   const center = size / 2;
   const radius = center - strokeWidth / 2;
@@ -44,11 +44,7 @@ export const ProgressRing = ({
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        {children || (
-          <span className="text-2xl font-bold">
-            {Math.round(progress)}%
-          </span>
-        )}
+        {children || <span className="text-2xl font-bold">{Math.round(progress)}%</span>}
       </div>
     </div>
   );

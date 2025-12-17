@@ -1,35 +1,49 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
-  X, Ban, Archive, Copy, ChevronDown, ChevronRight,
-  Plus, Check, Pencil, Save, FileText, Image, FileAudio,
-  DollarSign, CheckSquare, Mail, Eye, MoreHorizontal
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ContactAvatar } from "@/components/ContactAvatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { Conversation } from "@/types/chat";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
-import { toast } from "sonner";
-import { LabelBadge } from "./LabelBadge";
-import { LabelsManager } from "./LabelsManager";
-import { EmailComposer } from "@/components/crm/EmailComposer";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+  X,
+  Ban,
+  Archive,
+  Copy,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Check,
+  Pencil,
+  Save,
+  FileText,
+  Image,
+  FileAudio,
+  DollarSign,
+  CheckSquare,
+  Mail,
+  Eye,
+  MoreHorizontal,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ContactAvatar } from '@/components/ContactAvatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { Conversation } from '@/types/chat';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
+import { toast } from 'sonner';
+import { LabelBadge } from './LabelBadge';
+import { LabelsManager } from './LabelsManager';
+import { EmailComposer } from '@/components/crm/EmailComposer';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 // CRM Integration
-import { useDeals, type Deal } from "@/hooks/crm/useDeals";
-import { usePipelines } from "@/hooks/crm/usePipelines";
-import { DealModal } from "@/components/crm/DealModal";
-import { DealDetail } from "@/components/crm/DealDetail";
-import { useContactCRMData } from "@/hooks/crm/useContactCRMData";
-
+import { useDeals, type Deal } from '@/hooks/crm/useDeals';
+import { usePipelines } from '@/hooks/crm/usePipelines';
+import { DealModal } from '@/components/crm/DealModal';
+import { DealDetail } from '@/components/crm/DealDetail';
+import { useContactCRMData } from '@/hooks/crm/useContactCRMData';
 
 type ContactDetailPanelProps = {
   conversation: Conversation;
@@ -37,7 +51,11 @@ type ContactDetailPanelProps = {
   onConversationUpdated: () => void;
 };
 
-const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: ContactDetailPanelProps) => {
+const ContactDetailPanel = ({
+  conversation,
+  onClose,
+  onConversationUpdated,
+}: ContactDetailPanelProps) => {
   const { currentCompany } = useCompany();
   const [isOnline, setIsOnline] = useState(conversation.is_online || false);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -46,7 +64,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
   const [contactData, setContactData] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
-  const [newNote, setNewNote] = useState("");
+  const [newNote, setNewNote] = useState('');
   const [mediaFiles, setMediaFiles] = useState<any[]>([]);
 
   // CRM Integration Hook
@@ -57,7 +75,11 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
   // CRM Integration - useDeals hook instead of manual loading
   const { pipelines, defaultPipeline } = usePipelines();
-  const { deals, createDeal, isLoading: isDealsLoading } = useDeals(undefined, conversation.contact_id);
+  const {
+    deals,
+    createDeal,
+    isLoading: isDealsLoading,
+  } = useDeals(undefined, conversation.contact_id);
 
   // Deal Modal & Detail states
   const [showDealModal, setShowDealModal] = useState(false);
@@ -70,11 +92,10 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
     deals: true,
     tasks: true,
     notes: true,
-    files: false
+    files: false,
   });
 
-  const [mediaFilter, setMediaFilter] = useState<"all" | "image" | "document" | "audio">("all");
-
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'document' | 'audio'>('all');
 
   useEffect(() => {
     if (conversation.contact_id) {
@@ -86,41 +107,39 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
     }
   }, [conversation.contact_id]);
 
-
   const loadContactData = async () => {
     try {
       const { data, error } = await supabase
-        .from("contacts")
-        .select("*")
-        .eq("id", conversation.contact_id)
+        .from('contacts')
+        .select('*')
+        .eq('id', conversation.contact_id)
         .single();
 
       if (error) throw error;
       setContactData(data);
     } catch (error) {
-      console.error("Erro ao carregar dados do contato:", error);
+      console.error('Erro ao carregar dados do contato:', error);
     }
   };
 
   // loadDeals removed - now using useDeals hook
-
 
   const loadTasks = async () => {
     if (!currentCompany?.id || !conversation.contact_id) return;
 
     try {
       const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("company_id", currentCompany.id)
-        .eq("contact_id", conversation.contact_id)
-        .eq("status", "pending")
-        .order("due_date", { ascending: true });
+        .from('tasks')
+        .select('*')
+        .eq('company_id', currentCompany.id)
+        .eq('contact_id', conversation.contact_id)
+        .eq('status', 'pending')
+        .order('due_date', { ascending: true });
 
       if (error) throw error;
       setTasks(data || []);
     } catch (error) {
-      console.error("Erro ao carregar tarefas:", error);
+      console.error('Erro ao carregar tarefas:', error);
     }
   };
 
@@ -129,19 +148,21 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
     try {
       const { data, error } = await supabase
-        .from("contact_notes")
-        .select(`
+        .from('contact_notes')
+        .select(
+          `
           *,
           profiles(full_name)
-        `)
-        .eq("company_id", currentCompany.id)
-        .eq("contact_id", conversation.contact_id)
-        .order("created_at", { ascending: false });
+        `
+        )
+        .eq('company_id', currentCompany.id)
+        .eq('contact_id', conversation.contact_id)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setNotes(data || []);
     } catch (error) {
-      console.error("Erro ao carregar notas:", error);
+      console.error('Erro ao carregar notas:', error);
     }
   };
 
@@ -150,41 +171,41 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
     try {
       const { data, error } = await supabase
-        .from("messages")
-        .select("id, media_url, media_type, message_type, timestamp, content")
-        .eq("conversation_id", conversation.id)
-        .not("media_url", "is", null)
-        .order("timestamp", { ascending: false })
+        .from('messages')
+        .select('id, media_url, media_type, message_type, timestamp, content')
+        .eq('conversation_id', conversation.id)
+        .not('media_url', 'is', null)
+        .order('timestamp', { ascending: false })
         .limit(50);
 
       if (error) throw error;
       setMediaFiles(data || []);
     } catch (error) {
-      console.error("Erro ao carregar arquivos:", error);
+      console.error('Erro ao carregar arquivos:', error);
     }
   };
-
-
 
   const loadLabels = async () => {
     try {
       const { data, error } = await supabase
-        .from("conversation_labels")
-        .select(`
+        .from('conversation_labels')
+        .select(
+          `
           labels(id, name, color, icon)
-        `)
-        .eq("conversation_id", conversation.id);
+        `
+        )
+        .eq('conversation_id', conversation.id);
 
       if (error) throw error;
       setLabels(data?.map((item: any) => item.labels) || []);
     } catch (error) {
-      console.error("Erro ao carregar labels:", error);
+      console.error('Erro ao carregar labels:', error);
     }
   };
 
   const handleCopyPhone = () => {
     navigator.clipboard.writeText(conversation.contact_number);
-    toast.success("Telefone copiado!");
+    toast.success('Telefone copiado!');
   };
 
   const handleUpdateContact = async (field: string, value: string) => {
@@ -192,22 +213,22 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
 
     try {
       const { error } = await supabase
-        .from("contacts")
+        .from('contacts')
         .update({ [field]: value })
-        .eq("id", conversation.contact_id);
+        .eq('id', conversation.contact_id);
 
       if (error) throw error;
 
       setContactData({ ...contactData, [field]: value });
-      toast.success("Contato atualizado!");
+      toast.success('Contato atualizado!');
 
-      if (field === "name") {
+      if (field === 'name') {
         setIsEditingName(false);
         onConversationUpdated();
       }
     } catch (error) {
-      console.error("Erro ao atualizar contato:", error);
-      toast.error("Erro ao atualizar");
+      console.error('Erro ao atualizar contato:', error);
+      toast.error('Erro ao atualizar');
     }
   };
 
@@ -215,112 +236,112 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
     if (!newNote.trim() || !currentCompany?.id || !conversation.contact_id) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from("contact_notes")
-        .insert({
-          contact_id: conversation.contact_id,
-          user_id: user.id,
-          company_id: currentCompany.id,
-          note: newNote
-        });
+      const { error } = await supabase.from('contact_notes').insert({
+        contact_id: conversation.contact_id,
+        user_id: user.id,
+        company_id: currentCompany.id,
+        note: newNote,
+      });
 
       if (error) throw error;
 
-      setNewNote("");
+      setNewNote('');
       loadNotes();
-      toast.success("Nota adicionada!");
+      toast.success('Nota adicionada!');
     } catch (error) {
-      console.error("Erro ao adicionar nota:", error);
-      toast.error("Erro ao adicionar nota");
+      console.error('Erro ao adicionar nota:', error);
+      toast.error('Erro ao adicionar nota');
     }
   };
 
   const handleCompleteTask = async (taskId: string) => {
     try {
       const { error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .update({
-          status: "completed",
-          completed_at: new Date().toISOString()
+          status: 'completed',
+          completed_at: new Date().toISOString(),
         })
-        .eq("id", taskId);
+        .eq('id', taskId);
 
       if (error) throw error;
 
       loadTasks();
-      toast.success("Tarefa concluída!");
+      toast.success('Tarefa concluída!');
     } catch (error) {
-      console.error("Erro ao concluir tarefa:", error);
-      toast.error("Erro ao concluir tarefa");
+      console.error('Erro ao concluir tarefa:', error);
+      toast.error('Erro ao concluir tarefa');
     }
   };
 
   const handleBlockContact = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || !currentCompany?.id) return;
 
-      const { error } = await supabase
-        .from("blocked_contacts")
-        .insert({
-          company_id: currentCompany.id,
-          user_id: user.id,
-          blocked_number: conversation.contact_number,
-          reason: "Bloqueado via painel de detalhes"
-        });
+      const { error } = await supabase.from('blocked_contacts').insert({
+        company_id: currentCompany.id,
+        user_id: user.id,
+        blocked_number: conversation.contact_number,
+        reason: 'Bloqueado via painel de detalhes',
+      });
 
       if (error) throw error;
 
-      toast.success("Contato bloqueado!");
+      toast.success('Contato bloqueado!');
       onClose();
     } catch (error) {
-      console.error("Erro ao bloquear contato:", error);
-      toast.error("Erro ao bloquear");
+      console.error('Erro ao bloquear contato:', error);
+      toast.error('Erro ao bloquear');
     }
   };
 
   const handleArchiveConversation = async () => {
     try {
       const { error } = await supabase
-        .from("conversations")
-        .update({ status: "closed" })
-        .eq("id", conversation.id);
+        .from('conversations')
+        .update({ status: 'closed' })
+        .eq('id', conversation.id);
 
       if (error) throw error;
 
-      toast.success("Conversa arquivada!");
+      toast.success('Conversa arquivada!');
       onConversationUpdated();
       onClose();
     } catch (error) {
-      console.error("Erro ao arquivar:", error);
-      toast.error("Erro ao arquivar");
+      console.error('Erro ao arquivar:', error);
+      toast.error('Erro ao arquivar');
     }
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL"
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
-  const filteredMedia = mediaFiles.filter(file => {
-    if (mediaFilter === "all") return true;
-    if (mediaFilter === "image") return file.message_type === "image";
-    if (mediaFilter === "document") return file.message_type === "document";
-    if (mediaFilter === "audio") return file.message_type === "audio";
+  const filteredMedia = mediaFiles.filter((file) => {
+    if (mediaFilter === 'all') return true;
+    if (mediaFilter === 'image') return file.message_type === 'image';
+    if (mediaFilter === 'document') return file.message_type === 'document';
+    if (mediaFilter === 'audio') return file.message_type === 'audio';
     return true;
   });
 
@@ -360,14 +381,16 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handleUpdateContact("name", contactData?.name)}
+                      onClick={() => handleUpdateContact('name', contactData?.name)}
                     >
                       <Save className="w-4 h-4" />
                     </Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-2">
-                    <h4 className="font-semibold">{contactData?.name || conversation.contact_name}</h4>
+                    <h4 className="font-semibold">
+                      {contactData?.name || conversation.contact_name}
+                    </h4>
                     <Button
                       size="icon"
                       variant="ghost"
@@ -382,12 +405,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                 {/* Telefone com copiar */}
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-1">
                   <span>{conversation.contact_number}</span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={handleCopyPhone}
-                    className="h-6 w-6"
-                  >
+                  <Button size="icon" variant="ghost" onClick={handleCopyPhone} className="h-6 w-6">
                     <Copy className="w-3 h-3" />
                   </Button>
                 </div>
@@ -400,7 +418,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                 <div>
                   <span className="text-muted-foreground">Cliente desde:</span>
                   <p className="font-medium">
-                    {format(new Date(contactData.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(contactData.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                   </p>
                 </div>
               )}
@@ -408,7 +426,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                 <div>
                   <span className="text-muted-foreground">Última interação:</span>
                   <p className="font-medium">
-                    {format(new Date(conversation.last_message_time), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(conversation.last_message_time), 'dd/MM/yyyy', {
+                      locale: ptBR,
+                    })}
                   </p>
                 </div>
               )}
@@ -418,7 +438,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
               </div>
               <div>
                 <span className="text-muted-foreground">Total gasto:</span>
-                <p className="font-medium text-green-600">{formatCurrency(Number(crmMetrics?.total_spent || 0))}</p>
+                <p className="font-medium text-green-600">
+                  {formatCurrency(Number(crmMetrics?.total_spent || 0))}
+                </p>
               </div>
             </div>
           </div>
@@ -466,11 +488,19 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-sm">Dados da Empresa</h4>
                   <Badge
-                    variant={contactData.enrichment_status === "enriched" ? "default" :
-                      contactData.enrichment_status === "pending" ? "secondary" : "outline"}
+                    variant={
+                      contactData.enrichment_status === 'enriched'
+                        ? 'default'
+                        : contactData.enrichment_status === 'pending'
+                          ? 'secondary'
+                          : 'outline'
+                    }
                   >
-                    {contactData.enrichment_status === "enriched" ? "✅ Enriquecido" :
-                      contactData.enrichment_status === "pending" ? "⏳ Pendente" : "❌ Não encontrado"}
+                    {contactData.enrichment_status === 'enriched'
+                      ? '✅ Enriquecido'
+                      : contactData.enrichment_status === 'pending'
+                        ? '⏳ Pendente'
+                        : '❌ Não encontrado'}
                   </Badge>
                 </div>
 
@@ -494,7 +524,11 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                       <div>
                         <span className="text-muted-foreground">Situação:</span>
                         <Badge
-                          variant={contactData.company_data.situacao_cadastral === "ATIVA" ? "default" : "destructive"}
+                          variant={
+                            contactData.company_data.situacao_cadastral === 'ATIVA'
+                              ? 'default'
+                              : 'destructive'
+                          }
                           className="ml-2"
                         >
                           {contactData.company_data.situacao_cadastral}
@@ -510,7 +544,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                     {contactData.company_data.cnae_descricao && (
                       <div>
                         <span className="text-muted-foreground">CNAE:</span>
-                        <p className="font-medium text-xs">{contactData.company_data.cnae_descricao}</p>
+                        <p className="font-medium text-xs">
+                          {contactData.company_data.cnae_descricao}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -522,15 +558,15 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                   className="w-full"
                   onClick={async () => {
                     try {
-                      const { error } = await supabase.functions.invoke("enrich-contact", {
-                        body: { contact_id: conversation.contact_id }
+                      const { error } = await supabase.functions.invoke('enrich-contact', {
+                        body: { contact_id: conversation.contact_id },
                       });
                       if (error) throw error;
-                      toast.success("Buscando dados da empresa...");
+                      toast.success('Buscando dados da empresa...');
                       setTimeout(loadContactData, 2000);
                     } catch (error) {
                       console.error(error);
-                      toast.error("Erro ao buscar dados");
+                      toast.error('Erro ao buscar dados');
                     }
                   }}
                 >
@@ -544,20 +580,14 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           {/* 🏷️ Etiquetas */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h5 className="text-sm font-semibold flex items-center gap-2">
-                🏷️ Etiquetas
-              </h5>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setShowLabelsManager(true)}
-              >
+              <h5 className="text-sm font-semibold flex items-center gap-2">🏷️ Etiquetas</h5>
+              <Button size="sm" variant="ghost" onClick={() => setShowLabelsManager(true)}>
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               {labels.length > 0 ? (
-                labels.map(label => (
+                labels.map((label) => (
                   <LabelBadge
                     key={label.id}
                     name={label.name}
@@ -583,15 +613,21 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                 <DollarSign className="w-4 h-4" />
                 Negócios ({deals.length})
               </h5>
-              {openSections.deals ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {openSections.deals ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
               {isDealsLoading ? (
                 <p className="text-xs text-muted-foreground text-center py-2">Carregando...</p>
               ) : deals.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-2">Nenhum negócio encontrado</p>
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  Nenhum negócio encontrado
+                </p>
               ) : (
-                deals.map(deal => (
+                deals.map((deal) => (
                   <div
                     key={deal.id}
                     className="p-3 border border-border rounded-xl space-y-2 cursor-pointer hover:bg-muted/50 transition-colors group"
@@ -601,7 +637,9 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                     }}
                   >
                     <div className="flex items-start justify-between">
-                      <p className="text-sm font-medium group-hover:text-primary transition-colors">{deal.title}</p>
+                      <p className="text-sm font-medium group-hover:text-primary transition-colors">
+                        {deal.title}
+                      </p>
                       <Badge
                         style={{ backgroundColor: deal.pipeline_stages?.color }}
                         className="text-xs text-white"
@@ -644,7 +682,6 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
             </CollapsibleContent>
           </Collapsible>
 
-
           <Separator />
 
           {/* ✅ Tarefas */}
@@ -657,19 +694,26 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                 <CheckSquare className="w-4 h-4" />
                 Tarefas ({tasks.length})
               </h5>
-              {openSections.tasks ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {openSections.tasks ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
-              {tasks.map(task => (
-                <div key={task.id} className="flex items-start gap-2 p-2 border border-border rounded-lg">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-start gap-2 p-2 border border-border rounded-lg"
+                >
                   <Checkbox
-                    checked={task.status === "completed"}
+                    checked={task.status === 'completed'}
                     onCheckedChange={() => handleCompleteTask(task.id)}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">{task.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(task.due_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      {format(new Date(task.due_date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                     </p>
                   </div>
                 </div>
@@ -693,7 +737,11 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                 <FileText className="w-4 h-4" />
                 Notas ({notes.length})
               </h5>
-              {openSections.notes ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {openSections.notes ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
               <div className="space-y-2">
@@ -712,13 +760,15 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                   Adicionar Nota
                 </Button>
               </div>
-              {notes.map(note => (
+              {notes.map((note) => (
                 <div key={note.id} className="p-2 border border-border rounded-lg space-y-1">
                   <p className="text-sm">{note.note}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{note.profiles?.full_name || "Desconhecido"}</span>
+                    <span>{note.profiles?.full_name || 'Desconhecido'}</span>
                     <span>•</span>
-                    <span>{format(new Date(note.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                    <span>
+                      {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -734,51 +784,55 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           >
             <CollapsibleTrigger className="flex items-center justify-between w-full">
               <h5 className="text-sm font-semibold">📎 Arquivos ({mediaFiles.length})</h5>
-              {openSections.files ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {openSections.files ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant={mediaFilter === "all" ? "default" : "outline"}
-                  onClick={() => setMediaFilter("all")}
+                  variant={mediaFilter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setMediaFilter('all')}
                   className="flex-1"
                 >
                   Todos
                 </Button>
                 <Button
                   size="sm"
-                  variant={mediaFilter === "image" ? "default" : "outline"}
-                  onClick={() => setMediaFilter("image")}
+                  variant={mediaFilter === 'image' ? 'default' : 'outline'}
+                  onClick={() => setMediaFilter('image')}
                   className="flex-1"
                 >
                   <Image className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
-                  variant={mediaFilter === "document" ? "default" : "outline"}
-                  onClick={() => setMediaFilter("document")}
+                  variant={mediaFilter === 'document' ? 'default' : 'outline'}
+                  onClick={() => setMediaFilter('document')}
                   className="flex-1"
                 >
                   <FileText className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
-                  variant={mediaFilter === "audio" ? "default" : "outline"}
-                  onClick={() => setMediaFilter("audio")}
+                  variant={mediaFilter === 'audio' ? 'default' : 'outline'}
+                  onClick={() => setMediaFilter('audio')}
                   className="flex-1"
                 >
                   <FileAudio className="w-4 h-4" />
                 </Button>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {filteredMedia.map(file => (
+                {filteredMedia.map((file) => (
                   <button
                     key={file.id}
                     className="aspect-square rounded-lg overflow-hidden border border-border hover:opacity-80 transition-opacity"
-                    onClick={() => window.open(file.media_url, "_blank")}
+                    onClick={() => window.open(file.media_url, '_blank')}
                   >
-                    {file.message_type === "image" ? (
+                    {file.message_type === 'image' ? (
                       <img
                         src={file.media_url}
                         alt="Media"
@@ -786,8 +840,8 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-muted">
-                        {file.message_type === "document" && <FileText className="w-6 h-6" />}
-                        {file.message_type === "audio" && <FileAudio className="w-6 h-6" />}
+                        {file.message_type === 'document' && <FileText className="w-6 h-6" />}
+                        {file.message_type === 'audio' && <FileAudio className="w-6 h-6" />}
                       </div>
                     )}
                   </button>
@@ -826,7 +880,7 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
           createDeal.mutate({
             ...data,
             created_from_conversation_id: conversation.id,
-            source: 'chat'
+            source: 'chat',
           } as any);
           setShowDealModal(false);
         }}
@@ -843,7 +897,6 @@ const ContactDetailPanel = ({ conversation, onClose, onConversationUpdated }: Co
         }}
       />
     </div>
-
   );
 };
 

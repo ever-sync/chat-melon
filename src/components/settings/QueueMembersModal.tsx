@@ -1,29 +1,29 @@
-import { useState, useEffect } from "react";
-import { useQueueMembers } from "@/hooks/useQueues";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
+import { useState, useEffect } from 'react';
+import { useQueueMembers } from '@/hooks/useQueues';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { UserPlus, Trash2 } from "lucide-react";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { UserPlus, Trash2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface QueueMembersModalProps {
   open: boolean;
@@ -31,26 +31,21 @@ interface QueueMembersModalProps {
   queueId: string;
 }
 
-export const QueueMembersModal = ({
-  open,
-  onClose,
-  queueId,
-}: QueueMembersModalProps) => {
-  const { members, addMember, updateMember, removeMember } =
-    useQueueMembers(queueId);
+export const QueueMembersModal = ({ open, onClose, queueId }: QueueMembersModalProps) => {
+  const { members, addMember, updateMember, removeMember } = useQueueMembers(queueId);
   const { getCompanyId } = useCompanyQuery();
 
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [maxConversations, setMaxConversations] = useState<number | null>(null);
 
   const { data: availableUsers } = useQuery({
-    queryKey: ["company-users", getCompanyId()],
+    queryKey: ['company-users', getCompanyId()],
     queryFn: async () => {
       // Get all user_ids from company_users
       const { data: companyUsers, error: companyError } = await supabase
-        .from("company_users")
-        .select("user_id")
-        .eq("company_id", getCompanyId());
+        .from('company_users')
+        .select('user_id')
+        .eq('company_id', getCompanyId());
 
       if (companyError) throw companyError;
 
@@ -58,13 +53,16 @@ export const QueueMembersModal = ({
 
       // Get profiles for those users
       const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .in("id", companyUsers.map(cu => cu.user_id));
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in(
+          'id',
+          companyUsers.map((cu) => cu.user_id)
+        );
 
       if (profilesError) throw profilesError;
 
-      return profiles.map(profile => ({
+      return profiles.map((profile) => ({
         user_id: profile.id,
         profiles: profile,
       }));
@@ -73,8 +71,7 @@ export const QueueMembersModal = ({
   });
 
   const usersNotInQueue = availableUsers?.filter(
-    (user) =>
-      !members?.some((member) => member.user_id === user.profiles.id)
+    (user) => !members?.some((member) => member.user_id === user.profiles.id)
   );
 
   const handleAddMember = async () => {
@@ -87,7 +84,7 @@ export const QueueMembersModal = ({
       is_active: true,
     });
 
-    setSelectedUserId("");
+    setSelectedUserId('');
     setMaxConversations(null);
   };
 
@@ -117,10 +114,7 @@ export const QueueMembersModal = ({
                 </SelectTrigger>
                 <SelectContent>
                   {usersNotInQueue?.map((user) => (
-                    <SelectItem
-                      key={user.profiles.id}
-                      value={user.profiles.id || ""}
-                    >
+                    <SelectItem key={user.profiles.id} value={user.profiles.id || ''}>
                       {user.profiles.full_name}
                     </SelectItem>
                   ))}
@@ -134,20 +128,14 @@ export const QueueMembersModal = ({
                 type="number"
                 min="1"
                 placeholder="Deixe vazio para usar o padrão da fila"
-                value={maxConversations || ""}
+                value={maxConversations || ''}
                 onChange={(e) =>
-                  setMaxConversations(
-                    e.target.value ? parseInt(e.target.value) : null
-                  )
+                  setMaxConversations(e.target.value ? parseInt(e.target.value) : null)
                 }
               />
             </div>
 
-            <Button
-              onClick={handleAddMember}
-              disabled={!selectedUserId}
-              className="w-full"
-            >
+            <Button onClick={handleAddMember} disabled={!selectedUserId} className="w-full">
               <UserPlus className="mr-2 h-4 w-4" />
               Adicionar
             </Button>
@@ -155,9 +143,7 @@ export const QueueMembersModal = ({
 
           {/* Members List */}
           <div className="space-y-3">
-            <h3 className="font-semibold">
-              Membros Atuais ({members?.length || 0})
-            </h3>
+            <h3 className="font-semibold">Membros Atuais ({members?.length || 0})</h3>
 
             {!members || members.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
@@ -172,19 +158,13 @@ export const QueueMembersModal = ({
                   >
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={member.profiles?.avatar_url || ""} />
-                        <AvatarFallback>
-                          {member.profiles?.full_name.charAt(0)}
-                        </AvatarFallback>
+                        <AvatarImage src={member.profiles?.avatar_url || ''} />
+                        <AvatarFallback>{member.profiles?.full_name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">
-                          {member.profiles?.full_name}
-                        </p>
+                        <p className="font-medium">{member.profiles?.full_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          Máx:{" "}
-                          {member.max_conversations || "Padrão da fila"}{" "}
-                          conversas
+                          Máx: {member.max_conversations || 'Padrão da fila'} conversas
                         </p>
                       </div>
                     </div>
@@ -199,11 +179,7 @@ export const QueueMembersModal = ({
                           })
                         }
                       />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeMember(member.id)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => removeMember(member.id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>

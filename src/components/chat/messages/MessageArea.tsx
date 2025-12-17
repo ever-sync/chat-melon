@@ -1,37 +1,48 @@
-import { useEffect, useState, useRef } from "react";
-import { ArrowLeft, Send, Info, RotateCcw, Tag, ArrowRightLeft, EyeOff, Bot, AlarmClock, HelpCircle } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import type { Conversation } from "@/types/chat";
-import { cn } from "@/lib/utils";
-import { MediaUpload } from "./MediaUpload";
-import { LabelsManager } from "@/components/chat/LabelsManager";
-import { MessageActions } from "./MessageActions";
-import { InteractiveMessageSender } from "./InteractiveMessageSender";
-import { PresenceIndicator } from "@/components/chat/PresenceIndicator";
-import ReopenConversationDialog from "@/components/chat/dialogs/ReopenConversationDialog";
-import TransferDialog from "@/components/chat/dialogs/TransferDialog";
-import { AudioRecorder } from "@/components/chat/AudioRecorder";
-import { QuickReplies } from "@/components/chat/QuickReplies";
-import { FAQSelector } from "@/components/chat/FAQSelector";
-import { DocumentSelector } from "@/components/chat/DocumentSelector";
-import { AIAssistant } from "@/components/chat/AIAssistant";
-import { ProductSelector } from "@/components/chat/ProductSelector";
-import { MessageStatus } from "./MessageStatus";
-import { useSendPresence } from "@/hooks/useSendPresence";
-import { useMarkAsRead } from "@/hooks/chat/useMarkAsRead";
-import { MessageBubble } from "./MessageBubble";
-import { ChatLegend } from "@/components/chat/sidebar/ChatLegend";
-import { useSendTextMessage } from "@/hooks/api/useEvolutionApi";
-import { useCompany } from "@/contexts/CompanyContext";
-import { ShortcutSuggestions } from "@/components/chat/ShortcutSuggestions";
-import { ShortcutHelpModal } from "@/components/chat/ShortcutHelpModal";
-import { SnoozeMenu } from "@/components/chat/SnoozeMenu";
-import { useQuickResponses, useShortcutNavigation } from "@/hooks/chat/useQuickResponses";
+import { useEffect, useState, useRef } from 'react';
+import {
+  ArrowLeft,
+  Send,
+  Info,
+  RotateCcw,
+  Tag,
+  ArrowRightLeft,
+  EyeOff,
+  Bot,
+  AlarmClock,
+  HelpCircle,
+} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import type { Conversation } from '@/types/chat';
+import { cn } from '@/lib/utils';
+import { MediaUpload } from './MediaUpload';
+import { LabelsManager } from '@/components/chat/LabelsManager';
+import { MessageActions } from './MessageActions';
+import { InteractiveMessageSender } from './InteractiveMessageSender';
+import { PresenceIndicator } from '@/components/chat/PresenceIndicator';
+import ReopenConversationDialog from '@/components/chat/dialogs/ReopenConversationDialog';
+import TransferDialog from '@/components/chat/dialogs/TransferDialog';
+import { AudioRecorder } from '@/components/chat/AudioRecorder';
+import { QuickReplies } from '@/components/chat/QuickReplies';
+import { FAQSelector } from '@/components/chat/FAQSelector';
+import { DocumentSelector } from '@/components/chat/DocumentSelector';
+import { AIAssistant } from '@/components/chat/AIAssistant';
+import { ProductSelector } from '@/components/chat/ProductSelector';
+import { MessageStatus } from './MessageStatus';
+import { useSendPresence } from '@/hooks/useSendPresence';
+import { useMarkAsRead } from '@/hooks/chat/useMarkAsRead';
+import { MessageBubble } from './MessageBubble';
+import { ChatLegend } from '@/components/chat/sidebar/ChatLegend';
+import { useSendTextMessage } from '@/hooks/api/useEvolutionApi';
+import { useCompany } from '@/contexts/CompanyContext';
+import { ShortcutSuggestions } from '@/components/chat/ShortcutSuggestions';
+import { ShortcutHelpModal } from '@/components/chat/ShortcutHelpModal';
+import { SnoozeMenu } from '@/components/chat/SnoozeMenu';
+import { useQuickResponses, useShortcutNavigation } from '@/hooks/chat/useQuickResponses';
 
 type Message = {
   id: string;
@@ -65,10 +76,18 @@ type MessageAreaProps = {
   showAIAssistant?: boolean;
 };
 
-const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPanel, onToggleAIPanel, showAIPanel = false, showAIAssistant = true }: MessageAreaProps) => {
+const MessageArea = ({
+  conversation,
+  onBack,
+  searchQuery = '',
+  onToggleDetailPanel,
+  onToggleAIPanel,
+  showAIPanel = false,
+  showAIAssistant = true,
+}: MessageAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isInternalNote, setIsInternalNote] = useState(false);
   const [showReopenDialog, setShowReopenDialog] = useState(false);
@@ -97,7 +116,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
   } = useShortcutNavigation(suggestions.length);
 
   // Hook de presença (digitando/gravando)
-  const { startTyping, startRecording, stopPresence } = useSendPresence(conversation?.id || "");
+  const { startTyping, startRecording, stopPresence } = useSendPresence(conversation?.id || '');
   const { markAsRead } = useMarkAsRead();
 
   // Hooks Evolution API
@@ -113,7 +132,14 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 
       // L para abrir labels
-      if (e.key.toLowerCase() === 'l' && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !isTyping) {
+      if (
+        e.key.toLowerCase() === 'l' &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.shiftKey &&
+        !e.altKey &&
+        !isTyping
+      ) {
         e.preventDefault();
         setShowLabelsManager(true);
       }
@@ -121,7 +147,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
       // Ctrl+Shift+N para toggle nota interna
       if (e.key.toLowerCase() === 'n' && e.ctrlKey && e.shiftKey) {
         e.preventDefault();
-        setIsInternalNote(prev => !prev);
+        setIsInternalNote((prev) => !prev);
       }
     };
 
@@ -134,9 +160,9 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
     if (!conversation) return text;
 
     return text
-      .replace(/\{\{nome\}\}/g, conversation.contact_name || "Cliente")
-      .replace(/\{\{empresa\}\}/g, conversation.contact_name || "")
-      .replace(/\{\{telefone\}\}/g, conversation.contact_number || "");
+      .replace(/\{\{nome\}\}/g, conversation.contact_name || 'Cliente')
+      .replace(/\{\{empresa\}\}/g, conversation.contact_name || '')
+      .replace(/\{\{telefone\}\}/g, conversation.contact_number || '');
   };
 
   useEffect(() => {
@@ -151,58 +177,56 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
     const channel = supabase
       .channel(`messages-${conversation.id}`)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
           filter: `conversation_id=eq.${conversation.id}`,
         },
         (payload) => {
-          console.log("Realtime: New message", payload);
+          console.log('Realtime: New message', payload);
           const newMsg = payload.new as Message;
 
           // Add message only if it doesn't exist (prevent duplicates)
           setMessages((prev) => {
-            const exists = prev.some(m => m.id === newMsg.id);
+            const exists = prev.some((m) => m.id === newMsg.id);
             if (exists) return prev;
             return [...prev, newMsg];
           });
 
           // Scroll to bottom on new message
           setTimeout(() => {
-            scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+            scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
           }, 100);
         }
       )
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "messages",
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
           filter: `conversation_id=eq.${conversation.id}`,
         },
         (payload) => {
-          console.log("Realtime: Message updated", payload);
+          console.log('Realtime: Message updated', payload);
           const updatedMsg = payload.new as Message;
 
           // Update message in list
-          setMessages((prev) =>
-            prev.map((m) => (m.id === updatedMsg.id ? updatedMsg : m))
-          );
+          setMessages((prev) => prev.map((m) => (m.id === updatedMsg.id ? updatedMsg : m)));
         }
       )
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "DELETE",
-          schema: "public",
-          table: "messages",
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
           filter: `conversation_id=eq.${conversation.id}`,
         },
         (payload) => {
-          console.log("Realtime: Message deleted", payload);
+          console.log('Realtime: Message deleted', payload);
           const deletedMsg = payload.old as Message;
 
           // Remove message from list
@@ -210,12 +234,12 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
         }
       )
       .subscribe((status) => {
-        console.log("Realtime subscription status:", status);
+        console.log('Realtime subscription status:', status);
         if (status === 'SUBSCRIBED') {
-          console.log("✅ Realtime conectado com sucesso!");
+          console.log('✅ Realtime conectado com sucesso!');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.error('❌ Erro na subscription de mensagens');
-          toast.error("Falha ao conectar ao sistema de mensagens em tempo real");
+          toast.error('Falha ao conectar ao sistema de mensagens em tempo real');
         }
       });
 
@@ -234,16 +258,12 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
     // Filtrar por busca
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((msg) =>
-        msg.content.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter((msg) => msg.content.toLowerCase().includes(query));
     }
 
     // Filtrar notas internas
     if (!showInternalNotes) {
-      filtered = filtered.filter((msg) =>
-        msg.message_type !== 'internal_note'
-      );
+      filtered = filtered.filter((msg) => msg.message_type !== 'internal_note');
     }
 
     setFilteredMessages(filtered);
@@ -257,32 +277,34 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
 
   const loadMessages = async () => {
     if (!conversation) {
-      console.log("❌ loadMessages: Nenhuma conversa selecionada");
+      console.log('❌ loadMessages: Nenhuma conversa selecionada');
       return;
     }
 
-    console.log("🔍 loadMessages: Carregando mensagens para conversa:", conversation.id);
-    console.log("📋 Dados da conversa:", {
+    console.log('🔍 loadMessages: Carregando mensagens para conversa:', conversation.id);
+    console.log('📋 Dados da conversa:', {
       id: conversation.id,
       contact_name: conversation.contact_name,
-      unread_count: conversation.unread_count
+      unread_count: conversation.unread_count,
     });
 
     try {
       const { data, error } = await supabase
-        .from("messages")
-        .select("id, content, is_from_me, is_from_ai, ai_model, ai_confidence, ai_intent_detected, ai_sentiment, timestamp, status, media_url, media_type, message_type, edited_at, deleted_at, delivered_at, read_at, played_at, external_id, poll_data, list_data, location_data, contact_data, reaction")
-        .eq("conversation_id", conversation.id)
-        .is("deleted_at", null)
-        .order("timestamp", { ascending: true });
+        .from('messages')
+        .select(
+          'id, content, is_from_me, is_from_ai, ai_model, ai_confidence, ai_intent_detected, ai_sentiment, timestamp, status, media_url, media_type, message_type, edited_at, deleted_at, delivered_at, read_at, played_at, external_id, poll_data, list_data, location_data, contact_data, reaction'
+        )
+        .eq('conversation_id', conversation.id)
+        .is('deleted_at', null)
+        .order('timestamp', { ascending: true });
 
       if (error) {
-        console.error("❌ Erro na query:", error);
+        console.error('❌ Erro na query:', error);
         throw error;
       }
 
-      console.log("✅ Mensagens carregadas:", data?.length || 0);
-      console.log("📨 Primeiras 3 mensagens:", data?.slice(0, 3));
+      console.log('✅ Mensagens carregadas:', data?.length || 0);
+      console.log('📨 Primeiras 3 mensagens:', data?.slice(0, 3));
 
       setMessages(data || []);
 
@@ -291,7 +313,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
         markAsRead(conversation.id);
       }
     } catch (error) {
-      console.error("❌ Erro ao carregar mensagens:", error);
+      console.error('❌ Erro ao carregar mensagens:', error);
     }
   };
 
@@ -302,43 +324,44 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
     setIsSending(true);
     const processedMessage = replaceVariables(newMessage);
     const messageToSend = processedMessage;
-    setNewMessage("");
+    setNewMessage('');
     setSelectedTemplateId(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
 
       // Se for nota interna, salvar direto no banco
       if (isInternalNote) {
         // Buscar company_id do usuário
         const { data: companyUser } = await supabase
-          .from("company_users")
-          .select("company_id")
-          .eq("user_id", user.id)
-          .eq("is_default", true)
+          .from('company_users')
+          .select('company_id')
+          .eq('user_id', user.id)
+          .eq('is_default', true)
           .maybeSingle();
 
-        const { error } = await supabase.from("messages").insert({
+        const { error } = await supabase.from('messages').insert({
           conversation_id: conversation.id,
           user_id: user.id,
           company_id: companyUser?.company_id || null,
           content: messageToSend,
           is_from_me: true,
-          message_type: "internal_note",
-          status: "sent",
+          message_type: 'internal_note',
+          status: 'sent',
         });
 
         if (error) throw error;
 
-        toast.success("Nota interna adicionada", {
-          description: "Sua nota foi salva e só é visível para a equipe"
+        toast.success('Nota interna adicionada', {
+          description: 'Sua nota foi salva e só é visível para a equipe',
         });
 
         setIsInternalNote(false);
         return;
       }
-
 
       // Mensagem normal via Edge Function (seguro)
       // Verificação removida para permitir envio quando configurado via Secrets/Evolution Settings
@@ -351,19 +374,22 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
         content: messageToSend,
         is_from_me: true,
         timestamp: new Date().toISOString(),
-        status: "sending",
+        status: 'sending',
       };
 
       setMessages((prev) => [...prev, tempMessage]);
 
       // Enviar via Edge Function (seguro - não expõe credenciais)
-      const { data: sendResult, error: sendError } = await supabase.functions.invoke('send-message', {
-        body: {
-          conversationId: conversation.id,
-          content: messageToSend,
-          messageType: 'text'
+      const { data: sendResult, error: sendError } = await supabase.functions.invoke(
+        'send-message',
+        {
+          body: {
+            conversationId: conversation.id,
+            content: messageToSend,
+            messageType: 'text',
+          },
         }
-      });
+      );
 
       if (sendError || !sendResult?.success) {
         throw new Error(sendResult?.error || 'Erro ao enviar mensagem');
@@ -371,63 +397,58 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
 
       // Salvar no banco de dados
       const { data: companyUser } = await supabase
-        .from("company_members")
-        .select("company_id")
-        .eq("user_id", user.id)
+        .from('company_members')
+        .select('company_id')
+        .eq('user_id', user.id)
         .maybeSingle();
 
-      await supabase.from("messages").insert({
+      await supabase.from('messages').insert({
         conversation_id: conversation.id,
         user_id: user.id,
         company_id: companyUser?.company_id || null,
         content: messageToSend,
         is_from_me: true,
-        message_type: "text",
-        status: "sent",
+        message_type: 'text',
+        status: 'sent',
       });
 
       // Atualizar última mensagem da conversa
       await supabase
-        .from("conversations")
+        .from('conversations')
         .update({
           last_message: messageToSend,
           last_message_time: new Date().toISOString(),
         })
-        .eq("id", conversation.id);
+        .eq('id', conversation.id);
 
       // Remover mensagem temporária
-      setMessages((prev) => prev.filter((m) => !m.id.startsWith("temp-")));
+      setMessages((prev) => prev.filter((m) => !m.id.startsWith('temp-')));
 
-      toast.success("Mensagem enviada!");
+      toast.success('Mensagem enviada!');
     } catch (error) {
-      console.error("Erro ao enviar mensagem:", error);
+      console.error('Erro ao enviar mensagem:', error);
       setNewMessage(messageToSend);
 
-      setMessages((prev) =>
-        prev.filter((m) => !m.id.startsWith("temp-"))
-      );
+      setMessages((prev) => prev.filter((m) => !m.id.startsWith('temp-')));
 
-      toast.error(error instanceof Error ? error.message : "Não foi possível enviar a mensagem");
+      toast.error(error instanceof Error ? error.message : 'Não foi possível enviar a mensagem');
     } finally {
       setIsSending(false);
     }
   };
 
-
-
-
   const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
+    return new Date(timestamp).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -498,11 +519,11 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
             }
           />
           <Button
-            variant={showInternalNotes ? "default" : "ghost"}
+            variant={showInternalNotes ? 'default' : 'ghost'}
             size="icon"
             className="hover:bg-primary/10"
             onClick={() => setShowInternalNotes(!showInternalNotes)}
-            title={showInternalNotes ? "Ocultar notas internas" : "Mostrar notas internas"}
+            title={showInternalNotes ? 'Ocultar notas internas' : 'Mostrar notas internas'}
           >
             <EyeOff className="w-5 h-5" />
           </Button>
@@ -517,9 +538,9 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           </Button>
           {onToggleAIPanel && (
             <Button
-              variant={showAIPanel ? "default" : "ghost"}
+              variant={showAIPanel ? 'default' : 'ghost'}
               size="icon"
-              className={showAIPanel ? "bg-violet-600 hover:bg-violet-700" : "hover:bg-primary/10"}
+              className={showAIPanel ? 'bg-violet-600 hover:bg-violet-700' : 'hover:bg-primary/10'}
               onClick={onToggleAIPanel}
               title="Painel de IA"
             >
@@ -559,10 +580,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           </div>
         </ScrollArea>
 
-        <form
-          onSubmit={handleSendMessage}
-          className="p-4 border-t border-border bg-card space-y-2"
-        >
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card space-y-2">
           {conversation.status === 'closed' ? (
             <div className="text-center py-2 text-muted-foreground bg-muted rounded-lg">
               Esta conversa está encerrada. Clique em "Reabrir" para continuar o atendimento.
@@ -599,7 +617,7 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                 />
                 <DocumentSelector
                   onSelect={(link) => {
-                    setNewMessage(prev => prev + (prev ? " " : "") + link);
+                    setNewMessage((prev) => prev + (prev ? ' ' : '') + link);
                   }}
                 />
                 <ProductSelector
@@ -610,12 +628,12 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                 <Button
                   type="button"
                   size="icon"
-                  variant={isInternalNote ? "default" : "ghost"}
+                  variant={isInternalNote ? 'default' : 'ghost'}
                   onClick={() => setIsInternalNote(!isInternalNote)}
                   title="Nota interna (Ctrl+Shift+N)"
                   className={cn(
-                    "rounded-full",
-                    isInternalNote && "bg-yellow-500 hover:bg-yellow-600 text-white"
+                    'rounded-full',
+                    isInternalNote && 'bg-yellow-500 hover:bg-yellow-600 text-white'
                   )}
                 >
                   <EyeOff className="w-5 h-5" />
@@ -664,10 +682,15 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
                     }
                   }}
                   onBlur={stopPresence}
-                  placeholder={isInternalNote ? "Escreva uma nota interna (só a equipe verá)..." : "Digite / para atalhos ou sua mensagem..."}
+                  placeholder={
+                    isInternalNote
+                      ? 'Escreva uma nota interna (só a equipe verá)...'
+                      : 'Digite / para atalhos ou sua mensagem...'
+                  }
                   className={cn(
-                    "flex-1 rounded-full",
-                    isInternalNote && "bg-yellow-50 dark:bg-yellow-950 border-yellow-300 dark:border-yellow-700"
+                    'flex-1 rounded-full',
+                    isInternalNote &&
+                      'bg-yellow-50 dark:bg-yellow-950 border-yellow-300 dark:border-yellow-700'
                   )}
                   disabled={isSending}
                 />
@@ -715,28 +738,23 @@ const MessageArea = ({ conversation, onBack, searchQuery = "", onToggleDetailPan
           onSuccess={loadMessages}
         />
 
-        <ShortcutHelpModal
-          open={showShortcutHelp}
-          onOpenChange={setShowShortcutHelp}
-        />
+        <ShortcutHelpModal open={showShortcutHelp} onOpenChange={setShowShortcutHelp} />
       </div>
 
-      {
-        showAIAssistant && conversation && (
-          <AIAssistant
-            conversation={conversation}
-            messages={messages}
-            onUseSuggestion={(text) => setNewMessage(text)}
-            onCreateTask={() => {
-              toast.info("Em breve: Criação rápida de tarefa em desenvolvimento");
-            }}
-            onCreateProposal={() => {
-              toast.info("Em breve: Criação rápida de proposta em desenvolvimento");
-            }}
-          />
-        )
-      }
-    </div >
+      {showAIAssistant && conversation && (
+        <AIAssistant
+          conversation={conversation}
+          messages={messages}
+          onUseSuggestion={(text) => setNewMessage(text)}
+          onCreateTask={() => {
+            toast.info('Em breve: Criação rápida de tarefa em desenvolvimento');
+          }}
+          onCreateProposal={() => {
+            toast.info('Em breve: Criação rápida de proposta em desenvolvimento');
+          }}
+        />
+      )}
+    </div>
   );
 };
 

@@ -1,13 +1,19 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCompany } from "@/contexts/CompanyContext";
-import { Separator } from "@/components/ui/separator";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCompany } from '@/contexts/CompanyContext';
+import { Separator } from '@/components/ui/separator';
 
 type VisibilityOption = 'everyone' | 'contacts' | 'nobody';
 
@@ -37,7 +43,9 @@ export function PrivacySettings() {
   const loadSettings = async () => {
     if (!currentCompany) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data, error } = await supabase
@@ -65,29 +73,32 @@ export function PrivacySettings() {
 
   const handleSave = async () => {
     if (!currentCompany) {
-      toast.error("Nenhuma empresa selecionada");
+      toast.error('Nenhuma empresa selecionada');
       return;
     }
 
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
-      .from('privacy_settings')
-      .upsert({
+    const { error } = await supabase.from('privacy_settings').upsert(
+      {
         user_id: user.id,
         company_id: currentCompany.id,
         ...settings,
-      }, {
-        onConflict: 'user_id,company_id'
-      });
+      },
+      {
+        onConflict: 'user_id,company_id',
+      }
+    );
 
     if (error) {
-      toast.error("Erro ao salvar configurações de privacidade");
+      toast.error('Erro ao salvar configurações de privacidade');
       console.error('Error saving privacy settings:', error);
     } else {
-      toast.success("Configurações de privacidade atualizadas");
+      toast.success('Configurações de privacidade atualizadas');
     }
     setLoading(false);
   };
@@ -106,7 +117,9 @@ export function PrivacySettings() {
             <Label htmlFor="profile-picture">Foto de Perfil</Label>
             <Select
               value={settings.show_profile_picture}
-              onValueChange={(value) => setSettings({ ...settings, show_profile_picture: value as VisibilityOption })}
+              onValueChange={(value) =>
+                setSettings({ ...settings, show_profile_picture: value as VisibilityOption })
+              }
             >
               <SelectTrigger id="profile-picture">
                 <SelectValue />
@@ -117,16 +130,16 @@ export function PrivacySettings() {
                 <SelectItem value="nobody">Ninguém</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              Quem pode ver sua foto de perfil
-            </p>
+            <p className="text-xs text-muted-foreground">Quem pode ver sua foto de perfil</p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="status">Recados/Status</Label>
             <Select
               value={settings.show_status}
-              onValueChange={(value) => setSettings({ ...settings, show_status: value as VisibilityOption })}
+              onValueChange={(value) =>
+                setSettings({ ...settings, show_status: value as VisibilityOption })
+              }
             >
               <SelectTrigger id="status">
                 <SelectValue />
@@ -137,16 +150,16 @@ export function PrivacySettings() {
                 <SelectItem value="nobody">Ninguém</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              Quem pode ver seus recados e status
-            </p>
+            <p className="text-xs text-muted-foreground">Quem pode ver seus recados e status</p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="last-seen">Visto por Último</Label>
             <Select
               value={settings.show_last_seen}
-              onValueChange={(value) => setSettings({ ...settings, show_last_seen: value as VisibilityOption })}
+              onValueChange={(value) =>
+                setSettings({ ...settings, show_last_seen: value as VisibilityOption })
+              }
             >
               <SelectTrigger id="last-seen">
                 <SelectValue />
@@ -175,7 +188,9 @@ export function PrivacySettings() {
           <Switch
             id="read-receipts"
             checked={settings.read_receipts_enabled}
-            onCheckedChange={(checked) => setSettings({ ...settings, read_receipts_enabled: checked })}
+            onCheckedChange={(checked) =>
+              setSettings({ ...settings, read_receipts_enabled: checked })
+            }
           />
         </div>
 
@@ -185,7 +200,9 @@ export function PrivacySettings() {
           <Label htmlFor="groups">Grupos</Label>
           <Select
             value={settings.who_can_add_to_groups}
-            onValueChange={(value) => setSettings({ ...settings, who_can_add_to_groups: value as VisibilityOption })}
+            onValueChange={(value) =>
+              setSettings({ ...settings, who_can_add_to_groups: value as VisibilityOption })
+            }
           >
             <SelectTrigger id="groups">
               <SelectValue />
@@ -196,15 +213,13 @@ export function PrivacySettings() {
               <SelectItem value="nobody">Ninguém</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">
-            Quem pode adicionar você em grupos
-          </p>
+          <p className="text-xs text-muted-foreground">Quem pode adicionar você em grupos</p>
         </div>
 
         <Separator />
 
         <Button onClick={handleSave} disabled={loading}>
-          {loading ? "Salvando..." : "Salvar Configurações"}
+          {loading ? 'Salvando...' : 'Salvar Configurações'}
         </Button>
       </CardContent>
     </Card>

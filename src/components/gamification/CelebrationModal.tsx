@@ -1,12 +1,12 @@
-import { useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import confetti from "canvas-confetti";
+import { useEffect } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import confetti from 'canvas-confetti';
 
 interface CelebrationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  type: "deal_won" | "goal_achieved" | "achievement";
+  type: 'deal_won' | 'goal_achieved' | 'achievement';
   data: {
     title: string;
     value?: number;
@@ -16,7 +16,6 @@ interface CelebrationModalProps {
 }
 
 export const CelebrationModal = ({ open, onOpenChange, type, data }: CelebrationModalProps) => {
-  
   useEffect(() => {
     if (open) {
       // Confetti explosion
@@ -74,36 +73,36 @@ export const CelebrationModal = ({ open, onOpenChange, type, data }: Celebration
 
   const getTitle = () => {
     switch (type) {
-      case "deal_won":
-        return "🎉 Negócio Fechado!";
-      case "goal_achieved":
-        return "🏆 Meta Atingida!";
-      case "achievement":
-        return `${data.icon || "⭐"} Achievement Desbloqueado!`;
+      case 'deal_won':
+        return '🎉 Negócio Fechado!';
+      case 'goal_achieved':
+        return '🏆 Meta Atingida!';
+      case 'achievement':
+        return `${data.icon || '⭐'} Achievement Desbloqueado!`;
       default:
-        return "🎊 Parabéns!";
+        return '🎊 Parabéns!';
     }
   };
 
   const getMessage = () => {
     if (data.message) return data.message;
-    
+
     switch (type) {
-      case "deal_won":
+      case 'deal_won':
         return `Você fechou: ${data.title}${data.value ? ` - ${formatCurrency(data.value)}` : ''}`;
-      case "goal_achieved":
+      case 'goal_achieved':
         return `Você bateu sua meta: ${data.title}`;
-      case "achievement":
+      case 'achievement':
         return data.title;
       default:
-        return "Continue assim!";
+        return 'Continue assim!';
     }
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
@@ -112,15 +111,11 @@ export const CelebrationModal = ({ open, onOpenChange, type, data }: Celebration
       <DialogContent className="sm:max-w-md text-center">
         <div className="py-8 space-y-4">
           <div className="text-6xl animate-bounce">
-            {type === "deal_won" ? "🎉" : type === "goal_achieved" ? "🏆" : data.icon || "⭐"}
+            {type === 'deal_won' ? '🎉' : type === 'goal_achieved' ? '🏆' : data.icon || '⭐'}
           </div>
           <h2 className="text-2xl font-bold">{getTitle()}</h2>
           <p className="text-lg text-muted-foreground">{getMessage()}</p>
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button size="lg" className="w-full" onClick={() => onOpenChange(false)}>
             Continuar
           </Button>
         </div>

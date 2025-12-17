@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useQueues, useQueueMembers } from "@/hooks/useQueues";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Settings, Users, Clock } from "lucide-react";
-import { QueueModal } from "./QueueModal";
-import { QueueMembersModal } from "./QueueMembersModal";
+import { useState } from 'react';
+import { useQueues, useQueueMembers } from '@/hooks/useQueues';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Settings, Users, Clock } from 'lucide-react';
+import { QueueModal } from './QueueModal';
+import { QueueMembersModal } from './QueueMembersModal';
 
 export const QueueManager = () => {
   const { queues, isLoading } = useQueues();
@@ -115,27 +115,20 @@ const QueueCard = ({ queue, onEdit, onManageMembers }: QueueCardProps) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div
-              className="h-3 w-3 rounded-full"
-              style={{ backgroundColor: queue.color }}
-            />
+            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: queue.color }} />
             <CardTitle className="text-lg">{queue.name}</CardTitle>
           </div>
-          <Badge variant={queue.is_active ? "default" : "secondary"}>
-            {queue.is_active ? "Ativa" : "Inativa"}
+          <Badge variant={queue.is_active ? 'default' : 'secondary'}>
+            {queue.is_active ? 'Ativa' : 'Inativa'}
           </Badge>
         </div>
-        {queue.description && (
-          <CardDescription>{queue.description}</CardDescription>
-        )}
+        {queue.description && <CardDescription>{queue.description}</CardDescription>}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {members?.length || 0} membros
-            </span>
+            <span className="text-muted-foreground">{members?.length || 0} membros</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -147,20 +140,18 @@ const QueueCard = ({ queue, onEdit, onManageMembers }: QueueCardProps) => {
 
         <div className="space-y-2">
           <div className="text-sm">
-            <span className="font-medium">Distribuição:</span>{" "}
+            <span className="font-medium">Distribuição:</span>{' '}
             <span className="text-muted-foreground">
-              {queue.assignment_method === "round_robin"
-                ? "Rodízio"
-                : queue.assignment_method === "least_busy"
-                ? "Menos ocupado"
-                : "Aleatório"}
+              {queue.assignment_method === 'round_robin'
+                ? 'Rodízio'
+                : queue.assignment_method === 'least_busy'
+                  ? 'Menos ocupado'
+                  : 'Aleatório'}
             </span>
           </div>
           <div className="text-sm">
-            <span className="font-medium">Auto-atribuir:</span>{" "}
-            <span className="text-muted-foreground">
-              {queue.auto_assign ? "Sim" : "Não"}
-            </span>
+            <span className="font-medium">Auto-atribuir:</span>{' '}
+            <span className="text-muted-foreground">{queue.auto_assign ? 'Sim' : 'Não'}</span>
           </div>
         </div>
 
@@ -174,12 +165,7 @@ const QueueCard = ({ queue, onEdit, onManageMembers }: QueueCardProps) => {
             <Users className="mr-2 h-4 w-4" />
             Membros
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onEdit(queue)}
-          >
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => onEdit(queue)}>
             <Settings className="mr-2 h-4 w-4" />
             Configurar
           </Button>

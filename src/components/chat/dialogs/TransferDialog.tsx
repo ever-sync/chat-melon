@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,19 +6,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useQueues } from "@/hooks/useQueues";
-import { Search, Users, ArrowRight } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useQueues } from '@/hooks/useQueues';
+import { Search, Users, ArrowRight } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 type Agent = {
   id: string;
@@ -46,12 +46,12 @@ const TransferDialog = ({
   const { queues } = useQueues();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [filteredAgents, setFilteredAgents] = useState<Agent[]>([]);
-  const [selectedAgent, setSelectedAgent] = useState<string>("");
-  const [selectedQueue, setSelectedQueue] = useState<string>("");
-  const [transferNote, setTransferNote] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState<string>('');
+  const [selectedQueue, setSelectedQueue] = useState<string>('');
+  const [transferNote, setTransferNote] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentUserName, setCurrentUserName] = useState("");
+  const [currentUserName, setCurrentUserName] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -63,9 +63,7 @@ const TransferDialog = ({
   useEffect(() => {
     if (searchQuery) {
       setFilteredAgents(
-        agents.filter((agent) =>
-          agent.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+        agents.filter((agent) => agent.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     } else {
       setFilteredAgents(agents);
@@ -74,43 +72,47 @@ const TransferDialog = ({
 
   const loadCurrentUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", user.id)
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
           .single();
-        
+
         if (profile) {
           setCurrentUserName(profile.full_name);
         }
       }
     } catch (error) {
-      console.error("Erro ao carregar usuário atual:", error);
+      console.error('Erro ao carregar usuário atual:', error);
     }
   };
 
   const loadAgents = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Buscar empresa do usuário
       const { data: companyUser } = await supabase
-        .from("company_users")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .eq("is_default", true)
+        .from('company_users')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
         .single();
 
       if (!companyUser) return;
 
       // Buscar todos os usuários da empresa
       const { data: companyUsers, error: usersError } = await supabase
-        .from("company_users")
-        .select("user_id")
-        .eq("company_id", companyUser.company_id);
+        .from('company_users')
+        .select('user_id')
+        .eq('company_id', companyUser.company_id);
 
       if (usersError) throw usersError;
 
@@ -118,39 +120,45 @@ const TransferDialog = ({
 
       // Buscar perfis dos usuários
       const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .in("id", userIds);
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
 
       if (profilesError) throw profilesError;
 
       // Buscar status online
       const { data: statuses } = await supabase
-        .from("agent_status")
-        .select("user_id, status")
-        .in("user_id", userIds);
+        .from('agent_status')
+        .select('user_id, status')
+        .in('user_id', userIds);
 
       // Contar conversas por atendente
       const { data: conversations } = await supabase
-        .from("conversations")
-        .select("assigned_to")
-        .eq("company_id", companyUser.company_id)
-        .in("status", ["active", "waiting"]);
+        .from('conversations')
+        .select('assigned_to')
+        .eq('company_id', companyUser.company_id)
+        .in('status', ['active', 'waiting']);
 
-      const conversationCounts = conversations?.reduce((acc, conv) => {
-        if (conv.assigned_to) {
-          acc[conv.assigned_to] = (acc[conv.assigned_to] || 0) + 1;
-        }
-        return acc;
-      }, {} as Record<string, number>) || {};
+      const conversationCounts =
+        conversations?.reduce(
+          (acc, conv) => {
+            if (conv.assigned_to) {
+              acc[conv.assigned_to] = (acc[conv.assigned_to] || 0) + 1;
+            }
+            return acc;
+          },
+          {} as Record<string, number>
+        ) || {};
 
-      const agentsData: Agent[] = profiles?.map((profile) => ({
-        id: profile.id,
-        full_name: profile.full_name,
-        avatar_url: profile.avatar_url,
-        is_online: statuses?.some((s) => s.user_id === profile.id && s.status === "online") || false,
-        conversation_count: conversationCounts[profile.id] || 0,
-      })) || [];
+      const agentsData: Agent[] =
+        profiles?.map((profile) => ({
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+          is_online:
+            statuses?.some((s) => s.user_id === profile.id && s.status === 'online') || false,
+          conversation_count: conversationCounts[profile.id] || 0,
+        })) || [];
 
       // Ordenar: online primeiro, depois por menor carga
       agentsData.sort((a, b) => {
@@ -163,76 +171,76 @@ const TransferDialog = ({
       setAgents(agentsData);
       setFilteredAgents(agentsData);
     } catch (error) {
-      console.error("Erro ao carregar atendentes:", error);
+      console.error('Erro ao carregar atendentes:', error);
     }
   };
 
   const handleTransferToAgent = async () => {
     if (!selectedAgent) {
-      toast.error("Selecione um atendente");
+      toast.error('Selecione um atendente');
       return;
     }
 
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       // Atualizar conversa
       const { error: updateError } = await supabase
-        .from("conversations")
-        .update({ 
+        .from('conversations')
+        .update({
           assigned_to: selectedAgent,
-          status: "active" as const,
-          queue_id: null
+          status: 'active' as const,
+          queue_id: null,
         })
-        .eq("id", conversationId);
+        .eq('id', conversationId);
 
       if (updateError) throw updateError;
 
       // Buscar nome do novo atendente
       const { data: newAgent } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", selectedAgent)
+        .from('profiles')
+        .select('full_name')
+        .eq('id', selectedAgent)
         .single();
 
       // Criar nota de transferência
-      const noteContent = `Conversa transferida de ${currentUserName} para ${newAgent?.full_name || "outro atendente"}${transferNote ? `\nMotivo: ${transferNote}` : ""}`;
-      
-      const { error: noteError } = await supabase
-        .from("conversation_notes")
-        .insert({
-          conversation_id: conversationId,
-          user_id: user?.id,
-          note_type: "transfer",
-          content: noteContent,
-          metadata: {
-            from_user: currentAssignedTo,
-            to_user: selectedAgent,
-            transfer_reason: transferNote || null
-          }
-        });
+      const noteContent = `Conversa transferida de ${currentUserName} para ${newAgent?.full_name || 'outro atendente'}${transferNote ? `\nMotivo: ${transferNote}` : ''}`;
+
+      const { error: noteError } = await supabase.from('conversation_notes').insert({
+        conversation_id: conversationId,
+        user_id: user?.id,
+        note_type: 'transfer',
+        content: noteContent,
+        metadata: {
+          from_user: currentAssignedTo,
+          to_user: selectedAgent,
+          transfer_reason: transferNote || null,
+        },
+      });
 
       if (noteError) throw noteError;
 
       // Notificar novo atendente
       const { data: companyUser } = await supabase
-        .from("company_users")
-        .select("company_id")
-        .eq("user_id", user?.id)
-        .eq("is_default", true)
+        .from('company_users')
+        .select('company_id')
+        .eq('user_id', user?.id)
+        .eq('is_default', true)
         .single();
 
       if (companyUser) {
-        await supabase.from("notifications").insert({
+        await supabase.from('notifications').insert({
           user_id: selectedAgent,
           company_id: companyUser.company_id,
-          title: "Nova conversa transferida",
-          message: `${currentUserName} transferiu uma conversa para você${transferNote ? `: ${transferNote}` : ""}`,
-          type: "info",
-          entity_type: "conversation",
+          title: 'Nova conversa transferida',
+          message: `${currentUserName} transferiu uma conversa para você${transferNote ? `: ${transferNote}` : ''}`,
+          type: 'info',
+          entity_type: 'conversation',
           entity_id: conversationId,
-          action_url: "/chat"
+          action_url: '/chat',
         });
       }
 
@@ -242,8 +250,8 @@ const TransferDialog = ({
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      console.error("Erro ao transferir conversa:", error);
-      toast.error("Não foi possível transferir a conversa");
+      console.error('Erro ao transferir conversa:', error);
+      toast.error('Não foi possível transferir a conversa');
     } finally {
       setIsLoading(false);
     }
@@ -251,22 +259,24 @@ const TransferDialog = ({
 
   const handleTransferToQueue = async () => {
     if (!selectedQueue) {
-      toast.error("Selecione uma fila");
+      toast.error('Selecione uma fila');
       return;
     }
 
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       const { error: updateError } = await supabase
-        .from("conversations")
-        .update({ 
+        .from('conversations')
+        .update({
           queue_id: selectedQueue,
           assigned_to: null,
-          status: "waiting"
+          status: 'waiting',
         })
-        .eq("id", conversationId);
+        .eq('id', conversationId);
 
       if (updateError) throw updateError;
 
@@ -274,21 +284,19 @@ const TransferDialog = ({
       const queue = queues?.find((q) => q.id === selectedQueue);
 
       // Criar nota de transferência
-      const noteContent = `Conversa transferida de ${currentUserName} para fila "${queue?.name}"${transferNote ? `\nMotivo: ${transferNote}` : ""}`;
-      
-      const { error: noteError } = await supabase
-        .from("conversation_notes")
-        .insert({
-          conversation_id: conversationId,
-          user_id: user?.id,
-          note_type: "transfer",
-          content: noteContent,
-          metadata: {
-            from_user: currentAssignedTo,
-            to_queue: selectedQueue,
-            transfer_reason: transferNote || null
-          }
-        });
+      const noteContent = `Conversa transferida de ${currentUserName} para fila "${queue?.name}"${transferNote ? `\nMotivo: ${transferNote}` : ''}`;
+
+      const { error: noteError } = await supabase.from('conversation_notes').insert({
+        conversation_id: conversationId,
+        user_id: user?.id,
+        note_type: 'transfer',
+        content: noteContent,
+        metadata: {
+          from_user: currentAssignedTo,
+          to_queue: selectedQueue,
+          transfer_reason: transferNote || null,
+        },
+      });
 
       if (noteError) throw noteError;
 
@@ -298,18 +306,18 @@ const TransferDialog = ({
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      console.error("Erro ao transferir conversa:", error);
-      toast.error("Não foi possível transferir a conversa");
+      console.error('Erro ao transferir conversa:', error);
+      toast.error('Não foi possível transferir a conversa');
     } finally {
       setIsLoading(false);
     }
   };
 
   const resetForm = () => {
-    setSelectedAgent("");
-    setSelectedQueue("");
-    setTransferNote("");
-    setSearchQuery("");
+    setSelectedAgent('');
+    setSelectedQueue('');
+    setTransferNote('');
+    setSearchQuery('');
   };
 
   return (
@@ -346,10 +354,10 @@ const TransferDialog = ({
                     key={agent.id}
                     onClick={() => setSelectedAgent(agent.id)}
                     className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors",
+                      'w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors',
                       selectedAgent === agent.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
                     )}
                   >
                     <div className="relative">
@@ -370,7 +378,10 @@ const TransferDialog = ({
                       </div>
                     </div>
                     {agent.is_online && (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      <Badge
+                        variant="outline"
+                        className="bg-green-50 text-green-700 border-green-200"
+                      >
                         Online
                       </Badge>
                     )}
@@ -385,7 +396,9 @@ const TransferDialog = ({
             </ScrollArea>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Nota para o próximo atendente (opcional)</label>
+              <label className="text-sm font-medium">
+                Nota para o próximo atendente (opcional)
+              </label>
               <Textarea
                 placeholder="Ex: Cliente quer falar sobre renovação de contrato..."
                 value={transferNote}
@@ -399,7 +412,7 @@ const TransferDialog = ({
                 Cancelar
               </Button>
               <Button onClick={handleTransferToAgent} disabled={isLoading || !selectedAgent}>
-                {isLoading ? "Transferindo..." : "Transferir"}
+                {isLoading ? 'Transferindo...' : 'Transferir'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </DialogFooter>
@@ -408,37 +421,35 @@ const TransferDialog = ({
           <TabsContent value="queue" className="space-y-4">
             <ScrollArea className="h-[300px] pr-4">
               <div className="space-y-2">
-                {queues?.filter((q) => q.is_active).map((queue) => (
-                  <button
-                    key={queue.id}
-                    onClick={() => setSelectedQueue(queue.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-colors",
-                      selectedQueue === queue.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div
-                      className="w-4 h-4 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: queue.color }}
-                    />
-                    <div className="flex-1 text-left">
-                      <div className="font-medium">{queue.name}</div>
-                      {queue.description && (
-                        <div className="text-sm text-muted-foreground">
-                          {queue.description}
-                        </div>
+                {queues
+                  ?.filter((q) => q.is_active)
+                  .map((queue) => (
+                    <button
+                      key={queue.id}
+                      onClick={() => setSelectedQueue(queue.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-colors',
+                        selectedQueue === queue.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
                       )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Atribuição automática
-                      </span>
-                    </div>
-                  </button>
-                ))}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: queue.color }}
+                      />
+                      <div className="flex-1 text-left">
+                        <div className="font-medium">{queue.name}</div>
+                        {queue.description && (
+                          <div className="text-sm text-muted-foreground">{queue.description}</div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Atribuição automática</span>
+                      </div>
+                    </button>
+                  ))}
                 {(!queues || queues.filter((q) => q.is_active).length === 0) && (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhuma fila ativa encontrada
@@ -462,7 +473,7 @@ const TransferDialog = ({
                 Cancelar
               </Button>
               <Button onClick={handleTransferToQueue} disabled={isLoading || !selectedQueue}>
-                {isLoading ? "Transferindo..." : "Transferir para Fila"}
+                {isLoading ? 'Transferindo...' : 'Transferir para Fila'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </DialogFooter>

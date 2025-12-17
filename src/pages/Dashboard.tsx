@@ -1,16 +1,24 @@
-import { MainLayout } from "@/components/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, DollarSign, TrendingUp, CheckSquare, ArrowUpRight, ArrowDownRight, MoreHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { RevenueChart } from "@/components/analytics/RevenueChart";
-import { useAnalytics } from "@/hooks/useAnalytics";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { MainLayout } from '@/components/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  MessageSquare,
+  DollarSign,
+  TrendingUp,
+  CheckSquare,
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreHorizontal,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { RevenueChart } from '@/components/analytics/RevenueChart';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 export default function Dashboard() {
   const { companyId } = useCompanyQuery();
@@ -45,10 +53,7 @@ export default function Dashboard() {
           .from('conversations')
           .select('*', { count: 'exact', head: true })
           .eq('company_id', companyId),
-        supabase
-          .from('deals')
-          .select('value, status')
-          .eq('company_id', companyId),
+        supabase.from('deals').select('value, status').eq('company_id', companyId),
         supabase
           .from('tasks')
           .select('*', { count: 'exact', head: true })
@@ -56,10 +61,11 @@ export default function Dashboard() {
           .eq('status', 'pending'),
       ]);
 
-      const openDeals = dealsData.data?.filter(d => d.status === 'open').length || 0;
-      const revenue = dealsData.data
-        ?.filter(d => d.status === 'won')
-        .reduce((sum, d) => sum + (d.value || 0), 0) || 0;
+      const openDeals = dealsData.data?.filter((d) => d.status === 'open').length || 0;
+      const revenue =
+        dealsData.data
+          ?.filter((d) => d.status === 'won')
+          .reduce((sum, d) => sum + (d.value || 0), 0) || 0;
 
       setStats({
         totalConversations: conversationsData.count || 0,
@@ -68,7 +74,7 @@ export default function Dashboard() {
         pendingTasks: tasksData.count || 0,
       });
     } catch (error) {
-      console.error("Erro ao buscar estatísticas:", error);
+      console.error('Erro ao buscar estatísticas:', error);
     } finally {
       setLoading(false);
     }
@@ -87,7 +93,7 @@ export default function Dashboard() {
 
       setRecentConversations(data || []);
     } catch (error) {
-      console.error("Erro ao buscar conversas:", error);
+      console.error('Erro ao buscar conversas:', error);
     }
   };
 
@@ -111,64 +117,64 @@ export default function Dashboard() {
 
       setTodayTasks(data || []);
     } catch (error) {
-      console.error("Erro ao buscar tarefas:", error);
+      console.error('Erro ao buscar tarefas:', error);
     }
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
   const allCards = [
     {
-      title: "Total de Conversas",
+      title: 'Total de Conversas',
       value: stats.totalConversations,
       icon: MessageSquare,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-600/10",
-      path: "/chat",
-      trend: "+12%",
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-600/10',
+      path: '/chat',
+      trend: '+12%',
       trendUp: true,
-      feature: "chat" as const
+      feature: 'chat' as const,
     },
     {
-      title: "Receita Total",
+      title: 'Receita Total',
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-600/10",
-      path: "/crm",
-      trend: "+8%",
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-600/10',
+      path: '/crm',
+      trend: '+8%',
       trendUp: true,
-      feature: "deals_pipeline" as const
+      feature: 'deals_pipeline' as const,
     },
     {
-      title: "Negócios Abertos",
+      title: 'Negócios Abertos',
       value: stats.openDeals,
       icon: TrendingUp,
-      color: "text-violet-500",
-      bgColor: "bg-violet-500/10",
-      path: "/crm",
-      trend: "-2%",
+      color: 'text-violet-500',
+      bgColor: 'bg-violet-500/10',
+      path: '/crm',
+      trend: '-2%',
       trendUp: false,
-      feature: "deals_pipeline" as const
+      feature: 'deals_pipeline' as const,
     },
     {
-      title: "Tarefas Pendentes",
+      title: 'Tarefas Pendentes',
       value: stats.pendingTasks,
       icon: CheckSquare,
-      color: "text-orange-500",
-      bgColor: "bg-orange-500/10",
-      path: "/tasks",
-      trend: "+5%",
-      trendUp: true
+      color: 'text-orange-500',
+      bgColor: 'bg-orange-500/10',
+      path: '/tasks',
+      trend: '+5%',
+      trendUp: true,
     },
   ];
 
-  const cards = allCards.filter(card => !card.feature || isFeatureEnabled(card.feature));
+  const cards = allCards.filter((card) => !card.feature || isFeatureEnabled(card.feature));
 
   return (
     <MainLayout>
@@ -176,12 +182,13 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-            <p className="text-gray-500 mt-2 text-lg">
-              Visão geral das suas métricas e atividades
-            </p>
+            <p className="text-gray-500 mt-2 text-lg">Visão geral das suas métricas e atividades</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="rounded-xl h-11 px-6 border-gray-200 text-gray-600 hover:bg-gray-50">
+            <Button
+              variant="outline"
+              className="rounded-xl h-11 px-6 border-gray-200 text-gray-600 hover:bg-gray-50"
+            >
               Últimos 7 dias
             </Button>
             <Button className="rounded-xl h-11 px-6 bg-black hover:bg-gray-800 text-white shadow-lg shadow-black/20">
@@ -199,21 +206,25 @@ export default function Dashboard() {
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-6">
-                  <div className={`p-3.5 rounded-2xl ${card.bgColor} transition-colors group-hover:scale-110 duration-300`}>
+                  <div
+                    className={`p-3.5 rounded-2xl ${card.bgColor} transition-colors group-hover:scale-110 duration-300`}
+                  >
                     <card.icon className={`h-6 w-6 ${card.color}`} />
                   </div>
-                  <div className={`flex items-center gap-1 text-sm font-medium ${card.trendUp ? 'text-emerald-600' : 'text-rose-600'} bg-gray-50 px-2 py-1 rounded-lg`}>
-                    {card.trendUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                  <div
+                    className={`flex items-center gap-1 text-sm font-medium ${card.trendUp ? 'text-emerald-600' : 'text-rose-600'} bg-gray-50 px-2 py-1 rounded-lg`}
+                  >
+                    {card.trendUp ? (
+                      <ArrowUpRight className="h-4 w-4" />
+                    ) : (
+                      <ArrowDownRight className="h-4 w-4" />
+                    )}
                     {card.trend}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-medium text-gray-500">
-                    {card.title}
-                  </h3>
-                  <p className="text-3xl font-bold text-gray-900 tracking-tight">
-                    {card.value}
-                  </p>
+                  <h3 className="text-sm font-medium text-gray-500">{card.title}</h3>
+                  <p className="text-3xl font-bold text-gray-900 tracking-tight">{card.value}</p>
                 </div>
               </CardContent>
             </Card>
@@ -248,8 +259,13 @@ export default function Dashboard() {
           {isFeatureEnabled('chat') && (
             <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden h-full">
               <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">
-                <CardTitle className="text-xl font-bold text-gray-900">Conversas Recentes</CardTitle>
-                <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
+                <CardTitle className="text-xl font-bold text-gray-900">
+                  Conversas Recentes
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  className="text-sm text-gray-500 hover:text-gray-900 font-medium"
+                >
                   Ver todas
                 </Button>
               </CardHeader>
@@ -295,7 +311,10 @@ export default function Dashboard() {
           <Card className="border-0 shadow-sm rounded-[32px] bg-white overflow-hidden h-full">
             <CardHeader className="flex flex-row items-center justify-between p-8 pb-4">
               <CardTitle className="text-xl font-bold text-gray-900">Tarefas de Hoje</CardTitle>
-              <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
+              <Button
+                variant="ghost"
+                className="text-sm text-gray-500 hover:text-gray-900 font-medium"
+              >
                 Ver todas
               </Button>
             </CardHeader>

@@ -1,20 +1,20 @@
-import { useState } from "react";
-import { useDealTasks, type DealTaskPriority } from "@/hooks/crm/useDealTasks";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Trash2, ChevronDown, ChevronRight, AlertCircle, Clock } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { TaskModal } from "@/components/tasks/TaskModal";
-import type { TablesInsert } from "@/integrations/supabase/types";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useState } from 'react';
+import { useDealTasks, type DealTaskPriority } from '@/hooks/crm/useDealTasks';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Plus, Trash2, ChevronDown, ChevronRight, AlertCircle, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { TaskModal } from '@/components/tasks/TaskModal';
+import type { TablesInsert } from '@/integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface DealTasksSectionProps {
   dealId: string;
@@ -38,7 +38,7 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
   const [showCompletedTasks, setShowCompletedTasks] = useState(false);
 
   // TaskModal expects a function that returns Promise<Task>
-  const handleCreateTask = async (data: TablesInsert<"tasks">) => {
+  const handleCreateTask = async (data: TablesInsert<'tasks'>) => {
     // Add deal_id to the task data
     const taskData = {
       ...data,
@@ -48,7 +48,7 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
 
     // Insert task directly through supabase and return it
     const { data: newTask, error } = await supabase
-      .from("tasks")
+      .from('tasks')
       .insert(taskData)
       .select()
       .single();
@@ -63,30 +63,30 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
 
   const getPriorityColor = (priority: DealTaskPriority) => {
     const colors = {
-      low: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100",
-      medium: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
-      high: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
-      urgent: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
+      low: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
+      medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
+      high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
+      urgent: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
     };
     return colors[priority];
   };
 
   const getPriorityLabel = (priority: DealTaskPriority) => {
     const labels = {
-      low: "Baixa",
-      medium: "Média",
-      high: "Alta",
-      urgent: "Urgente",
+      low: 'Baixa',
+      medium: 'Média',
+      high: 'Alta',
+      urgent: 'Urgente',
     };
     return labels[priority];
   };
 
   const getInitials = (name: string | null) => {
-    if (!name) return "??";
+    if (!name) return '??';
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -122,9 +122,7 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
       {/* Tarefas pendentes */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-sm">
-            Tarefas Pendentes ({pendingTasks.length})
-          </h4>
+          <h4 className="font-semibold text-sm">Tarefas Pendentes ({pendingTasks.length})</h4>
           <Button size="sm" onClick={() => setShowCreateModal(true)}>
             <Plus className="w-4 h-4 mr-1" />
             Nova Tarefa
@@ -142,8 +140,8 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
               <div
                 key={task.id}
                 className={cn(
-                  "flex items-start gap-3 p-3 border rounded-lg transition-colors hover:bg-muted/50",
-                  isOverdue(task.due_date) && "border-red-200 bg-red-50/50 dark:bg-red-900/10"
+                  'flex items-start gap-3 p-3 border rounded-lg transition-colors hover:bg-muted/50',
+                  isOverdue(task.due_date) && 'border-red-200 bg-red-50/50 dark:bg-red-900/10'
                 )}
               >
                 <Checkbox
@@ -156,9 +154,7 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
                   <p className="font-medium text-sm">{task.title}</p>
 
                   {task.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {task.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{task.description}</p>
                   )}
 
                   <div className="flex flex-wrap items-center gap-2">
@@ -170,13 +166,13 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-xs",
+                          'text-xs',
                           isOverdue(task.due_date) &&
-                            "border-red-500 text-red-600 dark:text-red-400"
+                            'border-red-500 text-red-600 dark:text-red-400'
                         )}
                       >
                         <Clock className="w-3 h-3 mr-1" />
-                        {format(new Date(task.due_date), "dd/MM/yyyy HH:mm", {
+                        {format(new Date(task.due_date), 'dd/MM/yyyy HH:mm', {
                           locale: ptBR,
                         })}
                       </Badge>
@@ -185,9 +181,7 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
                     {task.assigned_profile && (
                       <div className="flex items-center gap-1">
                         <Avatar className="h-5 w-5">
-                          <AvatarImage
-                            src={task.assigned_profile.avatar_url || undefined}
-                          />
+                          <AvatarImage src={task.assigned_profile.avatar_url || undefined} />
                           <AvatarFallback className="text-xs">
                             {getInitials(task.assigned_profile.full_name)}
                           </AvatarFallback>
@@ -241,19 +235,15 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
                   <p className="font-medium text-sm line-through">{task.title}</p>
                   {task.completed_at && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Concluída em{" "}
-                      {format(new Date(task.completed_at), "dd/MM/yyyy HH:mm", {
+                      Concluída em{' '}
+                      {format(new Date(task.completed_at), 'dd/MM/yyyy HH:mm', {
                         locale: ptBR,
                       })}
                     </p>
                   )}
                 </div>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => reopenTask.mutate(task.id)}
-                >
+                <Button size="sm" variant="ghost" onClick={() => reopenTask.mutate(task.id)}>
                   Reabrir
                 </Button>
               </div>

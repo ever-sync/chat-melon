@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AlarmClock, Clock, X } from 'lucide-react';
@@ -53,10 +49,7 @@ export const SnoozedConversationsBadge = ({
         >
           <AlarmClock className="h-4 w-4" />
           <span className="hidden sm:inline">Adiadas</span>
-          <Badge
-            variant="secondary"
-            className="h-5 min-w-5 px-1.5 bg-amber-100 text-amber-700"
-          >
+          <Badge variant="secondary" className="h-5 min-w-5 px-1.5 bg-amber-100 text-amber-700">
             {snoozedCount}
           </Badge>
         </Button>
@@ -91,9 +84,7 @@ export const SnoozedConversationsBadge = ({
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">
-                    {conv.contact_name}
-                  </div>
+                  <div className="font-medium text-sm truncate">{conv.contact_name}</div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
                     {formatDistanceToNow(new Date(conv.snoozed_until), {

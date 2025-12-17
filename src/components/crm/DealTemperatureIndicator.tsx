@@ -1,16 +1,11 @@
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Flame, Snowflake, ThermometerSun } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Flame, Snowflake, ThermometerSun } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DealTemperatureIndicatorProps {
-  temperature: "cold" | "warm" | "hot" | null;
+  temperature: 'cold' | 'warm' | 'hot' | null;
   temperatureScore?: number | null;
   budgetConfirmed?: boolean;
   timelineConfirmed?: boolean;
@@ -30,33 +25,33 @@ export const DealTemperatureIndicator = ({
 }: DealTemperatureIndicatorProps) => {
   const getTemperatureConfig = () => {
     switch (temperature) {
-      case "hot":
+      case 'hot':
         return {
-          label: "Quente",
+          label: 'Quente',
           icon: Flame,
-          color: "text-red-600 dark:text-red-400",
-          bgColor: "bg-red-100 dark:bg-red-900/20",
-          borderColor: "border-red-200 dark:border-red-800",
-          progressColor: "bg-red-500",
+          color: 'text-red-600 dark:text-red-400',
+          bgColor: 'bg-red-100 dark:bg-red-900/20',
+          borderColor: 'border-red-200 dark:border-red-800',
+          progressColor: 'bg-red-500',
         };
-      case "warm":
+      case 'warm':
         return {
-          label: "Morno",
+          label: 'Morno',
           icon: ThermometerSun,
-          color: "text-yellow-600 dark:text-yellow-400",
-          bgColor: "bg-yellow-100 dark:bg-yellow-900/20",
-          borderColor: "border-yellow-200 dark:border-yellow-800",
-          progressColor: "bg-yellow-500",
+          color: 'text-yellow-600 dark:text-yellow-400',
+          bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
+          borderColor: 'border-yellow-200 dark:border-yellow-800',
+          progressColor: 'bg-yellow-500',
         };
-      case "cold":
+      case 'cold':
       default:
         return {
-          label: "Frio",
+          label: 'Frio',
           icon: Snowflake,
-          color: "text-blue-600 dark:text-blue-400",
-          bgColor: "bg-blue-100 dark:bg-blue-900/20",
-          borderColor: "border-blue-200 dark:border-blue-800",
-          progressColor: "bg-blue-500",
+          color: 'text-blue-600 dark:text-blue-400',
+          bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+          borderColor: 'border-blue-200 dark:border-blue-800',
+          progressColor: 'bg-blue-500',
         };
     }
   };
@@ -69,15 +64,10 @@ export const DealTemperatureIndicator = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn("inline-flex items-center gap-2", className)}>
+          <div className={cn('inline-flex items-center gap-2', className)}>
             <Badge
               variant="outline"
-              className={cn(
-                "gap-1.5 px-3 py-1",
-                config.bgColor,
-                config.borderColor,
-                config.color
-              )}
+              className={cn('gap-1.5 px-3 py-1', config.bgColor, config.borderColor, config.color)}
             >
               <Icon className="w-3.5 h-3.5" />
               <span className="font-semibold">{config.label}</span>
@@ -93,13 +83,11 @@ export const DealTemperatureIndicator = ({
             <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-semibold">Score de Temperatura</span>
-                <span className={cn("text-lg font-bold", config.color)}>
-                  {score}/100
-                </span>
+                <span className={cn('text-lg font-bold', config.color)}>{score}/100</span>
               </div>
               <Progress value={score} className="h-2">
                 <div
-                  className={cn("h-full transition-all", config.progressColor)}
+                  className={cn('h-full transition-all', config.progressColor)}
                   style={{ width: `${score}%` }}
                 />
               </Progress>
@@ -124,9 +112,7 @@ export const DealTemperatureIndicator = ({
                   ) : (
                     <>
                       <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                      <span className="text-muted-foreground">
-                        Orçamento não confirmado
-                      </span>
+                      <span className="text-muted-foreground">Orçamento não confirmado</span>
                     </>
                   )}
                 </div>
@@ -143,9 +129,7 @@ export const DealTemperatureIndicator = ({
                   ) : (
                     <>
                       <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                      <span className="text-muted-foreground">
-                        Timeline não confirmado
-                      </span>
+                      <span className="text-muted-foreground">Timeline não confirmado</span>
                     </>
                   )}
                 </div>
@@ -230,29 +214,29 @@ export const DealTemperatureIcon = ({
   temperature,
   className,
 }: {
-  temperature: "cold" | "warm" | "hot" | null;
+  temperature: 'cold' | 'warm' | 'hot' | null;
   className?: string;
 }) => {
   const getConfig = () => {
     switch (temperature) {
-      case "hot":
+      case 'hot':
         return {
           icon: Flame,
-          color: "text-red-500",
-          title: "Negócio quente",
+          color: 'text-red-500',
+          title: 'Negócio quente',
         };
-      case "warm":
+      case 'warm':
         return {
           icon: ThermometerSun,
-          color: "text-yellow-500",
-          title: "Negócio morno",
+          color: 'text-yellow-500',
+          title: 'Negócio morno',
         };
-      case "cold":
+      case 'cold':
       default:
         return {
           icon: Snowflake,
-          color: "text-blue-500",
-          title: "Negócio frio",
+          color: 'text-blue-500',
+          title: 'Negócio frio',
         };
     }
   };
@@ -264,7 +248,7 @@ export const DealTemperatureIcon = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Icon className={cn("w-4 h-4", config.color, className)} />
+          <Icon className={cn('w-4 h-4', config.color, className)} />
         </TooltipTrigger>
         <TooltipContent>
           <p className="text-xs">{config.title}</p>

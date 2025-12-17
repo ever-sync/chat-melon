@@ -1,8 +1,14 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface ProposalVersionDialogProps {
   open: boolean;
@@ -17,12 +23,12 @@ export const ProposalVersionDialog = ({
   onConfirm,
   proposalTitle,
 }: ProposalVersionDialogProps) => {
-  const [changeNotes, setChangeNotes] = useState("");
+  const [changeNotes, setChangeNotes] = useState('');
 
   const handleConfirm = () => {
     if (!changeNotes.trim()) return;
     onConfirm(changeNotes);
-    setChangeNotes("");
+    setChangeNotes('');
     onOpenChange(false);
   };
 
@@ -37,11 +43,9 @@ export const ProposalVersionDialog = ({
           <p className="text-sm text-muted-foreground">
             Você está criando uma nova versão de: <strong>{proposalTitle}</strong>
           </p>
-          
+
           <div>
-            <Label htmlFor="change-notes">
-              Descreva as alterações desta versão *
-            </Label>
+            <Label htmlFor="change-notes">Descreva as alterações desta versão *</Label>
             <Textarea
               id="change-notes"
               value={changeNotes}

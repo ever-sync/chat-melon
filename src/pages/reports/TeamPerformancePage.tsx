@@ -3,13 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCompany } from '@/contexts/CompanyContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PermissionGate } from '@/components/auth/PermissionGate';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,15 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   Trophy,
   Clock,
@@ -57,7 +43,7 @@ interface SellerMetrics {
   avatar_url: string;
   role: string;
   team_name: string;
-  
+
   // Chat
   conversations_total: number;
   conversations_resolved: number;
@@ -65,7 +51,7 @@ interface SellerMetrics {
   avg_first_response_time: number;
   avg_response_time: number;
   resolution_rate: number;
-  
+
   // CRM
   deals_created: number;
   deals_won: number;
@@ -73,11 +59,11 @@ interface SellerMetrics {
   deals_value_won: number;
   conversion_rate: number;
   avg_ticket: number;
-  
+
   // Satisfaction
   csat_avg: number;
   nps_score: number;
-  
+
   // Goals
   goal_progress: number;
   goal_value: number;
@@ -97,7 +83,7 @@ export default function TeamPerformancePage() {
   const { currentCompany } = useCompany();
   const companyId = currentCompany?.id;
   const { can } = usePermissions();
-  
+
   const [period, setPeriod] = useState('month');
   const [teamFilter, setTeamFilter] = useState('all');
   const [sellers, setSellers] = useState<SellerMetrics[]>([]);
@@ -120,7 +106,10 @@ export default function TeamPerformancePage() {
       case 'week':
         return { start: format(subDays(now, 7), 'yyyy-MM-dd'), end: format(now, 'yyyy-MM-dd') };
       case 'month':
-        return { start: format(startOfMonth(now), 'yyyy-MM-dd'), end: format(endOfMonth(now), 'yyyy-MM-dd') };
+        return {
+          start: format(startOfMonth(now), 'yyyy-MM-dd'),
+          end: format(endOfMonth(now), 'yyyy-MM-dd'),
+        };
       default:
         return { start: format(subDays(now, 30), 'yyyy-MM-dd'), end: format(now, 'yyyy-MM-dd') };
     }
@@ -134,13 +123,15 @@ export default function TeamPerformancePage() {
       // Buscar membros
       const { data: members } = await supabase
         .from('company_members')
-        .select(`
+        .select(
+          `
           id,
           display_name,
           avatar_url,
           role,
           team_id
-        `)
+        `
+        )
         .eq('company_id', companyId)
         .eq('is_active', true);
 
@@ -158,7 +149,7 @@ export default function TeamPerformancePage() {
         .gte('created_at', start)
         .lte('created_at', end);
 
-      // Buscar conversas por membro  
+      // Buscar conversas por membro
       const { data: conversations } = await supabase
         .from('conversations')
         .select('assigned_to, status, created_at, updated_at')
@@ -167,18 +158,18 @@ export default function TeamPerformancePage() {
         .lte('created_at', end);
 
       // Agregar métricas por vendedor
-      const aggregated = members.map(m => {
-        const memberDeals = deals?.filter(d => d.assigned_to === m.id) || [];
-        const memberConvs = conversations?.filter(c => c.assigned_to === m.id) || [];
-        
-        const dealsWon = memberDeals.filter(d => d.status === 'won').length;
-        const dealsLost = memberDeals.filter(d => d.status === 'lost').length;
+      const aggregated = members.map((m) => {
+        const memberDeals = deals?.filter((d) => d.assigned_to === m.id) || [];
+        const memberConvs = conversations?.filter((c) => c.assigned_to === m.id) || [];
+
+        const dealsWon = memberDeals.filter((d) => d.status === 'won').length;
+        const dealsLost = memberDeals.filter((d) => d.status === 'lost').length;
         const totalDeals = dealsWon + dealsLost;
         const valueWon = memberDeals
-          .filter(d => d.status === 'won')
+          .filter((d) => d.status === 'won')
           .reduce((sum, d) => sum + Number(d.value || 0), 0);
-        
-        const convsResolved = memberConvs.filter(c => c.status === 'closed').length;
+
+        const convsResolved = memberConvs.filter((c) => c.status === 'closed').length;
 
         return {
           member_id: m.id,
@@ -186,28 +177,25 @@ export default function TeamPerformancePage() {
           avatar_url: m.avatar_url || '',
           role: m.role,
           team_name: '-',
-          
+
           conversations_total: memberConvs.length,
           conversations_resolved: convsResolved,
           messages_sent: 0,
           avg_first_response_time: 0,
           avg_response_time: 0,
-          resolution_rate: memberConvs.length > 0 
-            ? Math.round((convsResolved / memberConvs.length) * 100) 
-            : 0,
-          
+          resolution_rate:
+            memberConvs.length > 0 ? Math.round((convsResolved / memberConvs.length) * 100) : 0,
+
           deals_created: memberDeals.length,
           deals_won: dealsWon,
           deals_lost: dealsLost,
           deals_value_won: valueWon,
-          conversion_rate: totalDeals > 0 
-            ? Math.round((dealsWon / totalDeals) * 100) 
-            : 0,
+          conversion_rate: totalDeals > 0 ? Math.round((dealsWon / totalDeals) * 100) : 0,
           avg_ticket: dealsWon > 0 ? valueWon / dealsWon : 0,
-          
+
           csat_avg: 0,
           nps_score: 0,
-          
+
           goal_progress: 0,
           goal_value: 0,
           current_value: 0,
@@ -215,9 +203,8 @@ export default function TeamPerformancePage() {
       });
 
       // Filtrar por equipe se necessário
-      const filtered = teamFilter === 'all' 
-        ? aggregated 
-        : aggregated.filter(s => s.team_name === teamFilter);
+      const filtered =
+        teamFilter === 'all' ? aggregated : aggregated.filter((s) => s.team_name === teamFilter);
 
       // Ordenar por valor vendido
       filtered.sort((a, b) => b.deals_value_won - a.deals_value_won);
@@ -229,15 +216,24 @@ export default function TeamPerformancePage() {
         total_conversations: filtered.reduce((acc, s) => acc + s.conversations_total, 0),
         total_deals_won: filtered.reduce((acc, s) => acc + s.deals_won, 0),
         total_value: filtered.reduce((acc, s) => acc + s.deals_value_won, 0),
-        avg_response_time: filtered.length > 0 
-          ? Math.round(filtered.reduce((acc, s) => acc + s.avg_response_time, 0) / filtered.length)
-          : 0,
-        avg_csat: filtered.length > 0
-          ? Number((filtered.reduce((acc, s) => acc + Number(s.csat_avg), 0) / filtered.length).toFixed(1))
-          : 0,
-        avg_conversion: filtered.length > 0
-          ? Math.round(filtered.reduce((acc, s) => acc + s.conversion_rate, 0) / filtered.length)
-          : 0,
+        avg_response_time:
+          filtered.length > 0
+            ? Math.round(
+                filtered.reduce((acc, s) => acc + s.avg_response_time, 0) / filtered.length
+              )
+            : 0,
+        avg_csat:
+          filtered.length > 0
+            ? Number(
+                (
+                  filtered.reduce((acc, s) => acc + Number(s.csat_avg), 0) / filtered.length
+                ).toFixed(1)
+              )
+            : 0,
+        avg_conversion:
+          filtered.length > 0
+            ? Math.round(filtered.reduce((acc, s) => acc + s.conversion_rate, 0) / filtered.length)
+            : 0,
       };
 
       setSummary(summaryData);
@@ -249,10 +245,7 @@ export default function TeamPerformancePage() {
   };
 
   const loadTeams = async () => {
-    const { data } = await supabase
-      .from('teams')
-      .select('id, name')
-      .eq('company_id', companyId);
+    const { data } = await supabase.from('teams').select('id, name').eq('company_id', companyId);
     setTeams(data || []);
   };
 
@@ -270,7 +263,7 @@ export default function TeamPerformancePage() {
   };
 
   // Preparar dados para gráficos
-  const chartData = sellers.slice(0, 10).map(s => ({
+  const chartData = sellers.slice(0, 10).map((s) => ({
     name: s.display_name.split(' ')[0],
     vendas: s.deals_value_won,
     conversas: s.conversations_total,
@@ -278,9 +271,7 @@ export default function TeamPerformancePage() {
   }));
 
   return (
-    <PermissionGate 
-      permissions={['reports.view_all', 'reports.view_team', 'reports.view_own']}
-    >
+    <PermissionGate permissions={['reports.view_all', 'reports.view_team', 'reports.view_own']}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -290,7 +281,7 @@ export default function TeamPerformancePage() {
               Acompanhe as métricas e resultados dos vendedores
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <Select value={period} onValueChange={setPeriod}>
               <SelectTrigger className="w-[150px]">
@@ -303,7 +294,7 @@ export default function TeamPerformancePage() {
                 <SelectItem value="month">Este Mês</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Select value={teamFilter} onValueChange={setTeamFilter}>
               <SelectTrigger className="w-[150px]">
                 <Users className="h-4 w-4 mr-2" />
@@ -311,12 +302,14 @@ export default function TeamPerformancePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas Equipes</SelectItem>
-                {teams.map(t => (
-                  <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                {teams.map((t) => (
+                  <SelectItem key={t.id} value={t.name}>
+                    {t.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            
+
             <PermissionGate permission="reports.export">
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
@@ -338,18 +331,20 @@ export default function TeamPerformancePage() {
               <p className="text-sm text-muted-foreground">Conversas</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <Clock className="h-8 w-8 text-orange-500" />
                 <Badge variant="outline">Tempo</Badge>
               </div>
-              <p className="text-2xl font-bold mt-2">{formatTime(summary?.avg_response_time || 0)}</p>
+              <p className="text-2xl font-bold mt-2">
+                {formatTime(summary?.avg_response_time || 0)}
+              </p>
               <p className="text-sm text-muted-foreground">Tempo Resposta</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -360,7 +355,7 @@ export default function TeamPerformancePage() {
               <p className="text-sm text-muted-foreground">Deals Ganhos</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -371,7 +366,7 @@ export default function TeamPerformancePage() {
               <p className="text-sm text-muted-foreground">Valor Total</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -382,7 +377,7 @@ export default function TeamPerformancePage() {
               <p className="text-sm text-muted-foreground">Conversão Média</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -408,15 +403,13 @@ export default function TeamPerformancePage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip 
-                    formatter={(value: number) => formatCurrency(value)}
-                  />
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Bar dataKey="vendas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Taxa de Conversão</CardTitle>
@@ -468,7 +461,7 @@ export default function TeamPerformancePage() {
                       {index === 2 && <span className="text-2xl">🥉</span>}
                       {index > 2 && <span className="text-muted-foreground">{index + 1}</span>}
                     </TableCell>
-                    
+
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -481,7 +474,7 @@ export default function TeamPerformancePage() {
                         </div>
                       </div>
                     </TableCell>
-                    
+
                     <TableCell className="text-center">
                       <div>
                         <p className="font-medium">{seller.conversations_total}</p>
@@ -490,13 +483,13 @@ export default function TeamPerformancePage() {
                         </p>
                       </div>
                     </TableCell>
-                    
+
                     <TableCell className="text-center">
                       <Badge variant={seller.avg_response_time < 300 ? 'default' : 'secondary'}>
                         {formatTime(seller.avg_response_time)}
                       </Badge>
                     </TableCell>
-                    
+
                     <TableCell className="text-center">
                       <div>
                         <span className="text-green-600 font-medium">{seller.deals_won}</span>
@@ -504,33 +497,30 @@ export default function TeamPerformancePage() {
                         <span className="text-red-600">{seller.deals_lost}</span>
                       </div>
                     </TableCell>
-                    
+
                     <TableCell className="text-center">
                       <Badge variant={seller.conversion_rate >= 50 ? 'default' : 'secondary'}>
                         {seller.conversion_rate}%
                       </Badge>
                     </TableCell>
-                    
+
                     <TableCell className="text-right font-medium">
                       {formatCurrency(seller.deals_value_won)}
                     </TableCell>
-                    
+
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                         <span>{seller.csat_avg}</span>
                       </div>
                     </TableCell>
-                    
+
                     <TableCell>
                       <div className="w-24">
                         <div className="flex items-center justify-between text-xs mb-1">
                           <span>{seller.goal_progress}%</span>
                         </div>
-                        <Progress 
-                          value={Math.min(seller.goal_progress, 100)} 
-                          className="h-2"
-                        />
+                        <Progress value={Math.min(seller.goal_progress, 100)} className="h-2" />
                       </div>
                     </TableCell>
                   </TableRow>

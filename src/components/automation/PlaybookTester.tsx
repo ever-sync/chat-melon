@@ -1,18 +1,24 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useContacts } from "@/hooks/crm/useContacts";
-import { Node, Edge } from "reactflow";
-import { Play, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useContacts } from '@/hooks/crm/useContacts';
+import { Node, Edge } from 'reactflow';
+import { Play, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 type ExecutionLog = {
   nodeId: string;
   label: string;
-  status: "pending" | "running" | "success" | "error";
+  status: 'pending' | 'running' | 'success' | 'error';
   message?: string;
   timestamp: Date;
 };
@@ -31,7 +37,7 @@ export const PlaybookTester = ({
   playbookName: string;
 }) => {
   const { contacts } = useContacts();
-  const [selectedContactId, setSelectedContactId] = useState<string>("");
+  const [selectedContactId, setSelectedContactId] = useState<string>('');
   const [isRunning, setIsRunning] = useState(false);
   const [executionLogs, setExecutionLogs] = useState<ExecutionLog[]>([]);
 
@@ -43,7 +49,7 @@ export const PlaybookTester = ({
 
     // Simulate execution flow
     const sortedNodes = [...nodes].sort((a, b) => a.position.y - b.position.y);
-    
+
     for (const node of sortedNodes) {
       // Add pending log
       setExecutionLogs((prev) => [
@@ -51,7 +57,7 @@ export const PlaybookTester = ({
         {
           nodeId: node.id,
           label: node.data.label,
-          status: "pending",
+          status: 'pending',
           timestamp: new Date(),
         },
       ]);
@@ -61,11 +67,7 @@ export const PlaybookTester = ({
 
       // Update to running
       setExecutionLogs((prev) =>
-        prev.map((log) =>
-          log.nodeId === node.id
-            ? { ...log, status: "running" }
-            : log
-        )
+        prev.map((log) => (log.nodeId === node.id ? { ...log, status: 'running' } : log))
       );
 
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -78,10 +80,8 @@ export const PlaybookTester = ({
           log.nodeId === node.id
             ? {
                 ...log,
-                status: success ? "success" : "error",
-                message: success
-                  ? getSuccessMessage(node)
-                  : "Erro ao executar ação",
+                status: success ? 'success' : 'error',
+                message: success ? getSuccessMessage(node) : 'Erro ao executar ação',
               }
             : log
         )
@@ -95,42 +95,42 @@ export const PlaybookTester = ({
 
   const getSuccessMessage = (node: Node): string => {
     switch (node.data.nodeType) {
-      case "send_whatsapp":
-        return "Mensagem enviada com sucesso";
-      case "create_task":
-        return "Tarefa criada";
-      case "move_stage":
-        return "Deal movido para novo stage";
-      case "wait":
-        return `Aguardando ${node.data.config?.wait_value || 1} ${node.data.config?.wait_unit || "dias"}`;
-      case "call_webhook":
-        return "Webhook chamado com sucesso";
+      case 'send_whatsapp':
+        return 'Mensagem enviada com sucesso';
+      case 'create_task':
+        return 'Tarefa criada';
+      case 'move_stage':
+        return 'Deal movido para novo stage';
+      case 'wait':
+        return `Aguardando ${node.data.config?.wait_value || 1} ${node.data.config?.wait_unit || 'dias'}`;
+      case 'call_webhook':
+        return 'Webhook chamado com sucesso';
       default:
-        return "Ação executada";
+        return 'Ação executada';
     }
   };
 
-  const getStatusIcon = (status: ExecutionLog["status"]) => {
+  const getStatusIcon = (status: ExecutionLog['status']) => {
     switch (status) {
-      case "pending":
+      case 'pending':
         return <Clock className="h-4 w-4 text-muted-foreground" />;
-      case "running":
+      case 'running':
         return <Clock className="h-4 w-4 text-blue-500 animate-spin" />;
-      case "success":
+      case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "error":
+      case 'error':
         return <XCircle className="h-4 w-4 text-red-500" />;
     }
   };
 
-  const getStatusBadge = (status: ExecutionLog["status"]) => {
-    const variants: Record<ExecutionLog["status"], string> = {
-      pending: "secondary",
-      running: "default",
-      success: "default",
-      error: "destructive",
+  const getStatusBadge = (status: ExecutionLog['status']) => {
+    const variants: Record<ExecutionLog['status'], string> = {
+      pending: 'secondary',
+      running: 'default',
+      success: 'default',
+      error: 'destructive',
     };
-    return variants[status] || "secondary";
+    return variants[status] || 'secondary';
   };
 
   return (
@@ -165,7 +165,7 @@ export const PlaybookTester = ({
             className="w-full"
           >
             <Play className="h-4 w-4 mr-2" />
-            {isRunning ? "Executando..." : "Iniciar Simulação"}
+            {isRunning ? 'Executando...' : 'Iniciar Simulação'}
           </Button>
 
           {executionLogs.length > 0 && (
@@ -183,10 +183,10 @@ export const PlaybookTester = ({
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-sm">{log.label}</span>
                           <Badge variant={getStatusBadge(log.status) as any}>
-                            {log.status === "pending" && "Pendente"}
-                            {log.status === "running" && "Executando"}
-                            {log.status === "success" && "Sucesso"}
-                            {log.status === "error" && "Erro"}
+                            {log.status === 'pending' && 'Pendente'}
+                            {log.status === 'running' && 'Executando'}
+                            {log.status === 'success' && 'Sucesso'}
+                            {log.status === 'error' && 'Erro'}
                           </Badge>
                         </div>
                         {log.message && (

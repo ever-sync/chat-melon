@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import type { Json } from "@/integrations/supabase/types";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import type { Json } from '@/integrations/supabase/types';
 
 interface Company {
   id: string;
@@ -36,7 +36,7 @@ const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 export const useCompany = () => {
   const context = useContext(CompanyContext);
   if (!context) {
-    throw new Error("useCompany must be used within CompanyProvider");
+    throw new Error('useCompany must be used within CompanyProvider');
   }
   return context;
 };
@@ -53,17 +53,19 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
   const fetchCompanies = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
       }
 
       const { data, error } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        .from('companies')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -71,14 +73,15 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
       const companiesWithSettings = await Promise.all(
         (data || []).map(async (company) => {
           const { data: evolutionSettings } = await supabase
-            .from("evolution_settings")
-            .select("instance_name")
-            .eq("company_id", company.id)
+            .from('evolution_settings')
+            .select('instance_name')
+            .eq('company_id', company.id)
             .single();
 
           return {
             ...company,
-            evolution_instance_name: evolutionSettings?.instance_name || company.evolution_instance_name
+            evolution_instance_name:
+              evolutionSettings?.instance_name || company.evolution_instance_name,
           };
         })
       );
@@ -88,7 +91,7 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
       // Selecionar empresa automaticamente ao logar
       // 1. Primeiro verifica se há empresa salva no localStorage
       // 2. Se não houver ou não for válida, seleciona a primeira empresa disponível
-      const savedCompanyId = localStorage.getItem("currentCompanyId");
+      const savedCompanyId = localStorage.getItem('currentCompanyId');
 
       if (companiesWithSettings && companiesWithSettings.length > 0) {
         let selectedCompany: Company | undefined;
@@ -101,15 +104,15 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
         // Se não encontrou, seleciona a primeira empresa
         if (!selectedCompany) {
           selectedCompany = companiesWithSettings[0];
-          console.log("🏢 Selecionando empresa automaticamente:", selectedCompany.name);
+          console.log('🏢 Selecionando empresa automaticamente:', selectedCompany.name);
         }
 
         setCurrentCompany(selectedCompany);
-        localStorage.setItem("currentCompanyId", selectedCompany.id);
+        localStorage.setItem('currentCompanyId', selectedCompany.id);
       }
     } catch (error: any) {
-      console.error("Error fetching companies:", error);
-      toast.error("Erro ao carregar empresas");
+      console.error('Error fetching companies:', error);
+      toast.error('Erro ao carregar empresas');
     } finally {
       setLoading(false);
     }
@@ -119,7 +122,7 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
     const company = companies.find((c) => c.id === companyId);
     if (company) {
       setCurrentCompany(company);
-      localStorage.setItem("currentCompanyId", companyId);
+      localStorage.setItem('currentCompanyId', companyId);
       toast.success(`Empresa alterada para ${company.name}`);
       // Reload to refresh all data for the new company
       window.location.reload();
@@ -135,16 +138,18 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
     fetchCompanies();
 
     // Escutar mudanças de autenticação para recarregar empresas quando usuário logar
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
         // Usuário acabou de logar - recarregar empresas
-        console.log("🔐 Login detectado - carregando empresas...");
+        console.log('🔐 Login detectado - carregando empresas...');
         fetchCompanies();
-      } else if (event === "SIGNED_OUT") {
+      } else if (event === 'SIGNED_OUT') {
         // Usuário deslogou - limpar estado
         setCurrentCompany(null);
         setCompanies([]);
-        localStorage.removeItem("currentCompanyId");
+        localStorage.removeItem('currentCompanyId');
       }
     });
 

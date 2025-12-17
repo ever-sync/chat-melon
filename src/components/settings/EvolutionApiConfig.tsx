@@ -228,10 +228,7 @@ export function EvolutionApiConfig() {
               </Button>
             ) : (
               <>
-                <Button
-                  onClick={handleSaveConfig}
-                  disabled={saveConfigMutation.isPending}
-                >
+                <Button onClick={handleSaveConfig} disabled={saveConfigMutation.isPending}>
                   <Save className="h-4 w-4 mr-2" />
                   {saveConfigMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
                 </Button>
@@ -274,9 +271,7 @@ export function EvolutionApiConfig() {
           </CardHeader>
           <CardContent className="space-y-4">
             {isLoadingInstances ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Carregando instâncias...
-              </div>
+              <div className="text-center py-8 text-muted-foreground">Carregando instâncias...</div>
             ) : currentInstance ? (
               <>
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -288,15 +283,15 @@ export function EvolutionApiConfig() {
                           currentInstance.status === 'open'
                             ? 'default'
                             : currentInstance.status === 'connecting'
-                            ? 'secondary'
-                            : 'outline'
+                              ? 'secondary'
+                              : 'outline'
                         }
                       >
                         {currentInstance.status === 'open'
                           ? 'Conectado'
                           : currentInstance.status === 'connecting'
-                          ? 'Conectando...'
-                          : 'Desconectado'}
+                            ? 'Conectando...'
+                            : 'Desconectado'}
                       </Badge>
                     </div>
                   </div>
@@ -352,7 +347,9 @@ export function EvolutionApiConfig() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Deletar instância?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta ação não pode ser desfeita. A instância será deletada da Evolution API e todos os dados de configuração serão removidos do banco de dados (URL, API Key, nome da instância e cache de fotos).
+                            Esta ação não pode ser desfeita. A instância será deletada da Evolution
+                            API e todos os dados de configuração serão removidos do banco de dados
+                            (URL, API Key, nome da instância e cache de fotos).
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -425,11 +422,7 @@ export function EvolutionApiConfig() {
               </p>
             </div>
             <Button variant="outline" asChild>
-              <a
-                href="https://doc.evolution-api.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href="https://doc.evolution-api.com" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Abrir Docs
               </a>

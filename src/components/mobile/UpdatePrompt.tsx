@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { usePWA } from "@/hooks/usePWA";
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { usePWA } from '@/hooks/usePWA';
 
 /**
  * Prompt para atualizar quando nova versão disponível

@@ -1,28 +1,37 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { CheckCircle2, XCircle, Clock, MessageSquare, MoreVertical, Eye, RefreshCw, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { useCampaigns } from "@/hooks/useCampaigns";
+} from '@/components/ui/dropdown-menu';
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  MessageSquare,
+  MoreVertical,
+  Eye,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useCampaigns } from '@/hooks/useCampaigns';
 
 interface CampaignContactsListProps {
   campaignId: string;
@@ -33,8 +42,8 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
   const { resendToContact } = useCampaigns();
   const [contacts, setContacts] = useState<any[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -49,7 +58,7 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
           event: '*',
           schema: 'public',
           table: 'campaign_contacts',
-          filter: `campaign_id=eq.${campaignId}`
+          filter: `campaign_id=eq.${campaignId}`,
         },
         () => {
           fetchContacts();
@@ -89,14 +98,15 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
 
     // Filter by tab
     if (activeTab !== 'all') {
-      filtered = filtered.filter(c => c.status === activeTab);
+      filtered = filtered.filter((c) => c.status === activeTab);
     }
 
     // Filter by search
     if (searchQuery) {
-      filtered = filtered.filter(c => 
-        c.contacts?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.contacts?.phone_number?.includes(searchQuery)
+      filtered = filtered.filter(
+        (c) =>
+          c.contacts?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.contacts?.phone_number?.includes(searchQuery)
       );
     }
 
@@ -114,7 +124,7 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
     };
 
     const { icon: Icon, label, variant } = config[status] || config.pending;
-    
+
     return (
       <Badge variant={variant} className="gap-1">
         <Icon className="h-3 w-3" />
@@ -148,10 +158,7 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
   const handleRemove = async (campaignContactId: string) => {
     if (!confirm('Remover este contato da campanha?')) return;
 
-    const { error } = await supabase
-      .from('campaign_contacts')
-      .delete()
-      .eq('id', campaignContactId);
+    const { error } = await supabase.from('campaign_contacts').delete().eq('id', campaignContactId);
 
     if (error) {
       toast.error('Erro ao remover contato');
@@ -163,7 +170,7 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
 
   const getTabCount = (status: string) => {
     if (status === 'all') return contacts.length;
-    return contacts.filter(c => c.status === status).length;
+    return contacts.filter((c) => c.status === status).length;
   };
 
   return (
@@ -182,31 +189,17 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="all">
-              Todas ({getTabCount('all')})
-            </TabsTrigger>
-            <TabsTrigger value="sent">
-              Enviadas ({getTabCount('sent')})
-            </TabsTrigger>
-            <TabsTrigger value="delivered">
-              Entregues ({getTabCount('delivered')})
-            </TabsTrigger>
-            <TabsTrigger value="read">
-              Lidas ({getTabCount('read')})
-            </TabsTrigger>
-            <TabsTrigger value="replied">
-              Responderam ({getTabCount('replied')})
-            </TabsTrigger>
-            <TabsTrigger value="failed">
-              Falharam ({getTabCount('failed')})
-            </TabsTrigger>
+            <TabsTrigger value="all">Todas ({getTabCount('all')})</TabsTrigger>
+            <TabsTrigger value="sent">Enviadas ({getTabCount('sent')})</TabsTrigger>
+            <TabsTrigger value="delivered">Entregues ({getTabCount('delivered')})</TabsTrigger>
+            <TabsTrigger value="read">Lidas ({getTabCount('read')})</TabsTrigger>
+            <TabsTrigger value="replied">Responderam ({getTabCount('replied')})</TabsTrigger>
+            <TabsTrigger value="failed">Falharam ({getTabCount('failed')})</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-4">
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Carregando contatos...
-              </div>
+              <div className="text-center py-8 text-muted-foreground">Carregando contatos...</div>
             ) : filteredContacts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 Nenhum contato encontrado
@@ -230,23 +223,35 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
                       <TableRow key={contact.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{contact.contacts?.name || 'Sem nome'}</div>
-                            <div className="text-xs text-muted-foreground">{contact.contacts?.phone_number}</div>
+                            <div className="font-medium">
+                              {contact.contacts?.name || 'Sem nome'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {contact.contacts?.phone_number}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>{getStatusBadge(contact.status)}</TableCell>
                         <TableCell>
-                          {contact.sent_at ? new Date(contact.sent_at).toLocaleString('pt-BR') : '-'}
+                          {contact.sent_at
+                            ? new Date(contact.sent_at).toLocaleString('pt-BR')
+                            : '-'}
                         </TableCell>
                         <TableCell>
-                          {contact.delivered_at ? new Date(contact.delivered_at).toLocaleString('pt-BR') : '-'}
+                          {contact.delivered_at
+                            ? new Date(contact.delivered_at).toLocaleString('pt-BR')
+                            : '-'}
                         </TableCell>
                         <TableCell>
-                          {contact.read_at ? new Date(contact.read_at).toLocaleString('pt-BR') : '-'}
+                          {contact.read_at
+                            ? new Date(contact.read_at).toLocaleString('pt-BR')
+                            : '-'}
                         </TableCell>
                         <TableCell>
                           {contact.error_message && (
-                            <span className="text-xs text-destructive">{contact.error_message}</span>
+                            <span className="text-xs text-destructive">
+                              {contact.error_message}
+                            </span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -258,7 +263,9 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               {contact.status === 'replied' && (
-                                <DropdownMenuItem onClick={() => handleViewConversation(contact.contact_id)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleViewConversation(contact.contact_id)}
+                                >
                                   <MessageSquare className="h-4 w-4 mr-2" />
                                   Ver conversa
                                 </DropdownMenuItem>
@@ -269,7 +276,7 @@ export function CampaignContactsList({ campaignId }: CampaignContactsListProps) 
                                   Reenviar
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 onClick={() => handleRemove(contact.id)}
                                 className="text-destructive"
                               >

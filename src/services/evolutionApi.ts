@@ -200,17 +200,14 @@ class EvolutionApiClient {
   /**
    * Generic request method
    */
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
     const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'apikey': this.apiKey,
+        apikey: this.apiKey,
         ...options.headers,
       },
     });
@@ -272,80 +269,56 @@ class EvolutionApiClient {
   // MESSAGE SENDING
   // ============================================
 
-  async sendTextMessage(
-    instanceName: string,
-    data: SendTextMessageRequest
-  ): Promise<any> {
+  async sendTextMessage(instanceName: string, data: SendTextMessageRequest): Promise<any> {
     return this.request(`/message/sendText/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async sendMediaMessage(
-    instanceName: string,
-    data: SendMediaMessageRequest
-  ): Promise<any> {
+  async sendMediaMessage(instanceName: string, data: SendMediaMessageRequest): Promise<any> {
     return this.request(`/message/sendMedia/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async sendAudioMessage(
-    instanceName: string,
-    data: SendAudioMessageRequest
-  ): Promise<any> {
+  async sendAudioMessage(instanceName: string, data: SendAudioMessageRequest): Promise<any> {
     return this.request(`/message/sendWhatsAppAudio/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async sendLocationMessage(
-    instanceName: string,
-    data: SendLocationMessageRequest
-  ): Promise<any> {
+  async sendLocationMessage(instanceName: string, data: SendLocationMessageRequest): Promise<any> {
     return this.request(`/message/sendLocation/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async sendContactMessage(
-    instanceName: string,
-    data: SendContactMessageRequest
-  ): Promise<any> {
+  async sendContactMessage(instanceName: string, data: SendContactMessageRequest): Promise<any> {
     return this.request(`/message/sendContact/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async sendReactionMessage(
-    instanceName: string,
-    data: SendReactionMessageRequest
-  ): Promise<any> {
+  async sendReactionMessage(instanceName: string, data: SendReactionMessageRequest): Promise<any> {
     return this.request(`/message/sendReaction/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async sendPollMessage(
-    instanceName: string,
-    data: SendPollMessageRequest
-  ): Promise<any> {
+  async sendPollMessage(instanceName: string, data: SendPollMessageRequest): Promise<any> {
     return this.request(`/message/sendPoll/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async sendListMessage(
-    instanceName: string,
-    data: SendListMessageRequest
-  ): Promise<any> {
+  async sendListMessage(instanceName: string, data: SendListMessageRequest): Promise<any> {
     return this.request(`/message/sendList/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -356,20 +329,14 @@ class EvolutionApiClient {
   // CHAT MANAGEMENT
   // ============================================
 
-  async whatsappNumbers(
-    instanceName: string,
-    numbers: string[]
-  ): Promise<any> {
+  async whatsappNumbers(instanceName: string, numbers: string[]): Promise<any> {
     return this.request(`/chat/whatsappNumbers/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify({ numbers }),
     });
   }
 
-  async markAsRead(
-    instanceName: string,
-    remoteJid: string
-  ): Promise<any> {
+  async markAsRead(instanceName: string, remoteJid: string): Promise<any> {
     return this.request(`/chat/markMessageAsRead/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({
@@ -380,11 +347,7 @@ class EvolutionApiClient {
     });
   }
 
-  async archiveChat(
-    instanceName: string,
-    remoteJid: string,
-    archive: boolean
-  ): Promise<any> {
+  async archiveChat(instanceName: string, remoteJid: string, archive: boolean): Promise<any> {
     return this.request(`/chat/archiveChat/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({
@@ -439,20 +402,14 @@ class EvolutionApiClient {
     );
   }
 
-  async findContacts(
-    instanceName: string,
-    data?: FindContactsRequest
-  ): Promise<Contact[]> {
+  async findContacts(instanceName: string, data?: FindContactsRequest): Promise<Contact[]> {
     return this.request<Contact[]>(`/chat/findContacts/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data || {}),
     });
   }
 
-  async findMessages(
-    instanceName: string,
-    data?: FindMessagesRequest
-  ): Promise<any[]> {
+  async findMessages(instanceName: string, data?: FindMessagesRequest): Promise<any[]> {
     return this.request<any[]>(`/chat/findMessages/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data || {}),
@@ -463,10 +420,7 @@ class EvolutionApiClient {
   // WEBHOOK CONFIGURATION
   // ============================================
 
-  async setWebhook(
-    instanceName: string,
-    config: WebhookConfig
-  ): Promise<any> {
+  async setWebhook(instanceName: string, config: WebhookConfig): Promise<any> {
     return this.request(`/webhook/set/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(config),
@@ -483,10 +437,7 @@ class EvolutionApiClient {
   // SETTINGS
   // ============================================
 
-  async setSettings(
-    instanceName: string,
-    settings: InstanceSettings
-  ): Promise<any> {
+  async setSettings(instanceName: string, settings: InstanceSettings): Promise<any> {
     return this.request(`/settings/set/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(settings),
@@ -503,30 +454,21 @@ class EvolutionApiClient {
   // PROFILE SETTINGS
   // ============================================
 
-  async updateProfileName(
-    instanceName: string,
-    name: string
-  ): Promise<any> {
+  async updateProfileName(instanceName: string, name: string): Promise<any> {
     return this.request(`/chat/updateProfileName/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({ name }),
     });
   }
 
-  async updateProfileStatus(
-    instanceName: string,
-    status: string
-  ): Promise<any> {
+  async updateProfileStatus(instanceName: string, status: string): Promise<any> {
     return this.request(`/chat/updateProfileStatus/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
     });
   }
 
-  async updateProfilePicture(
-    instanceName: string,
-    picture: string
-  ): Promise<any> {
+  async updateProfilePicture(instanceName: string, picture: string): Promise<any> {
     return this.request(`/chat/updateProfilePicture/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({ picture }),
@@ -562,32 +504,21 @@ class EvolutionApiClient {
   // GROUP MANAGEMENT
   // ============================================
 
-  async createGroup(
-    instanceName: string,
-    data: CreateGroupRequest
-  ): Promise<any> {
+  async createGroup(instanceName: string, data: CreateGroupRequest): Promise<any> {
     return this.request(`/group/create/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateGroupPicture(
-    instanceName: string,
-    groupJid: string,
-    image: string
-  ): Promise<any> {
+  async updateGroupPicture(instanceName: string, groupJid: string, image: string): Promise<any> {
     return this.request(`/group/updateGroupPicture/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({ groupJid, image }),
     });
   }
 
-  async updateGroupSubject(
-    instanceName: string,
-    groupJid: string,
-    subject: string
-  ): Promise<any> {
+  async updateGroupSubject(instanceName: string, groupJid: string, subject: string): Promise<any> {
     return this.request(`/group/updateGroupSubject/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({ groupJid, subject }),
@@ -605,10 +536,7 @@ class EvolutionApiClient {
     });
   }
 
-  async findGroup(
-    instanceName: string,
-    groupJid: string
-  ): Promise<any> {
+  async findGroup(instanceName: string, groupJid: string): Promise<any> {
     return this.request(`/group/findGroupInfos/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify({ groupJid }),
@@ -621,30 +549,21 @@ class EvolutionApiClient {
     });
   }
 
-  async inviteCode(
-    instanceName: string,
-    groupJid: string
-  ): Promise<any> {
+  async inviteCode(instanceName: string, groupJid: string): Promise<any> {
     return this.request(`/group/inviteCode/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify({ groupJid }),
     });
   }
 
-  async revokeInviteCode(
-    instanceName: string,
-    groupJid: string
-  ): Promise<any> {
+  async revokeInviteCode(instanceName: string, groupJid: string): Promise<any> {
     return this.request(`/group/revokeInviteCode/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({ groupJid }),
     });
   }
 
-  async findParticipants(
-    instanceName: string,
-    groupJid: string
-  ): Promise<any[]> {
+  async findParticipants(instanceName: string, groupJid: string): Promise<any[]> {
     return this.request<any[]>(`/group/findParticipants/${instanceName}`, {
       method: 'POST',
       body: JSON.stringify({ groupJid }),
@@ -674,21 +593,14 @@ class EvolutionApiClient {
     });
   }
 
-  async toggleEphemeral(
-    instanceName: string,
-    groupJid: string,
-    expiration: number
-  ): Promise<any> {
+  async toggleEphemeral(instanceName: string, groupJid: string, expiration: number): Promise<any> {
     return this.request(`/group/toggleEphemeral/${instanceName}`, {
       method: 'PUT',
       body: JSON.stringify({ groupJid, expiration }),
     });
   }
 
-  async leaveGroup(
-    instanceName: string,
-    groupJid: string
-  ): Promise<any> {
+  async leaveGroup(instanceName: string, groupJid: string): Promise<any> {
     return this.request(`/group/leaveGroup/${instanceName}`, {
       method: 'DELETE',
       body: JSON.stringify({ groupJid }),

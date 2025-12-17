@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { MainLayout } from "@/components/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Pause, Play, X, Download, FileText } from "lucide-react";
-import { useCampaigns } from "@/hooks/useCampaigns";
-import { supabase } from "@/integrations/supabase/client";
-import { CampaignMetricsCards } from "@/components/campaigns/CampaignMetricsCards";
-import { CampaignProgress } from "@/components/campaigns/CampaignProgress";
-import { CampaignChart } from "@/components/campaigns/CampaignChart";
-import { CampaignContactsList } from "@/components/campaigns/CampaignContactsList";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { MainLayout } from '@/components/MainLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Pause, Play, X, Download, FileText } from 'lucide-react';
+import { useCampaigns } from '@/hooks/useCampaigns';
+import { supabase } from '@/integrations/supabase/client';
+import { CampaignMetricsCards } from '@/components/campaigns/CampaignMetricsCards';
+import { CampaignProgress } from '@/components/campaigns/CampaignProgress';
+import { CampaignChart } from '@/components/campaigns/CampaignChart';
+import { CampaignContactsList } from '@/components/campaigns/CampaignContactsList';
+import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CampaignDetail() {
   const { id } = useParams();
@@ -23,7 +23,7 @@ export default function CampaignDetail() {
 
   useEffect(() => {
     const loadCampaign = () => {
-      const found = campaigns.find(c => c.id === id);
+      const found = campaigns.find((c) => c.id === id);
       if (found) {
         setCampaign(found);
         setIsLoading(false);
@@ -41,7 +41,7 @@ export default function CampaignDetail() {
           event: 'UPDATE',
           schema: 'public',
           table: 'campaigns',
-          filter: `id=eq.${id}`
+          filter: `id=eq.${id}`,
         },
         (payload) => {
           setCampaign(payload.new);
@@ -58,9 +58,9 @@ export default function CampaignDetail() {
     if (!campaign) return;
     try {
       await pauseCampaign.mutateAsync(campaign.id);
-      toast.success("Campanha pausada");
+      toast.success('Campanha pausada');
     } catch (error) {
-      toast.error("Erro ao pausar campanha");
+      toast.error('Erro ao pausar campanha');
     }
   };
 
@@ -68,25 +68,25 @@ export default function CampaignDetail() {
     if (!campaign) return;
     try {
       await resumeCampaign.mutateAsync(campaign.id);
-      toast.success("Campanha retomada");
+      toast.success('Campanha retomada');
     } catch (error) {
-      toast.error("Erro ao retomar campanha");
+      toast.error('Erro ao retomar campanha');
     }
   };
 
   const handleCancel = async () => {
     if (!campaign) return;
-    if (!confirm("Tem certeza que deseja cancelar esta campanha?")) return;
-    
+    if (!confirm('Tem certeza que deseja cancelar esta campanha?')) return;
+
     try {
       await updateCampaign.mutateAsync({
         id: campaign.id,
-        status: 'cancelled'
+        status: 'cancelled',
       });
-      toast.success("Campanha cancelada");
+      toast.success('Campanha cancelada');
       navigate('/campaigns');
     } catch (error) {
-      toast.error("Erro ao cancelar campanha");
+      toast.error('Erro ao cancelar campanha');
     }
   };
 
@@ -101,8 +101,17 @@ export default function CampaignDetail() {
     if (!contacts) return;
 
     const csv = [
-      ['Nome', 'Telefone', 'Status', 'Enviada em', 'Entregue em', 'Lida em', 'Respondeu em', 'Erro'],
-      ...contacts.map(c => [
+      [
+        'Nome',
+        'Telefone',
+        'Status',
+        'Enviada em',
+        'Entregue em',
+        'Lida em',
+        'Respondeu em',
+        'Erro',
+      ],
+      ...contacts.map((c) => [
         c.contacts?.name || '',
         c.contacts?.phone_number || '',
         c.status || '',
@@ -110,9 +119,11 @@ export default function CampaignDetail() {
         c.delivered_at ? new Date(c.delivered_at).toLocaleString('pt-BR') : '',
         c.read_at ? new Date(c.read_at).toLocaleString('pt-BR') : '',
         c.replied_at ? new Date(c.replied_at).toLocaleString('pt-BR') : '',
-        c.error_message || ''
-      ])
-    ].map(row => row.join(',')).join('\n');
+        c.error_message || '',
+      ]),
+    ]
+      .map((row) => row.join(','))
+      .join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -121,7 +132,7 @@ export default function CampaignDetail() {
     a.download = `campanha_${campaign.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
 
-    toast.success("CSV exportado com sucesso");
+    toast.success('CSV exportado com sucesso');
   };
 
   const getStatusBadge = (status: string) => {
@@ -133,7 +144,7 @@ export default function CampaignDetail() {
       completed: { variant: 'default', label: 'Concluída', icon: '✅' },
       cancelled: { variant: 'destructive', label: 'Cancelada', icon: '❌' },
     };
-    
+
     const config = variants[status] || variants.draft;
     return (
       <Badge variant={config.variant}>

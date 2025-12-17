@@ -4,7 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -69,11 +76,7 @@ export default function Upgrade() {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="gap-2"
-          >
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
@@ -148,10 +151,7 @@ export default function Upgrade() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
           {plans.map((plan, index) => {
             const Icon = getPlanIcon(index);
-            const price =
-              billingPeriod === 'monthly'
-                ? plan.price_monthly
-                : plan.price_yearly / 12;
+            const price = billingPeriod === 'monthly' ? plan.price_monthly : plan.price_yearly / 12;
             const totalYearly = plan.price_yearly;
             const isRecommended = index === 2; // Professional
             const isFree = plan.is_free_plan;
@@ -175,9 +175,7 @@ export default function Upgrade() {
                     <div className="p-2 rounded-lg bg-primary/10">
                       <Icon className="h-6 w-6 text-primary" />
                     </div>
-                    {isFree && (
-                      <Badge variant="outline">Gratuito</Badge>
-                    )}
+                    {isFree && <Badge variant="outline">Gratuito</Badge>}
                   </div>
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <CardDescription className="min-h-[48px]">
@@ -214,15 +212,12 @@ export default function Upgrade() {
                     <div className="flex items-center gap-2 text-sm">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                       <span>
-                        {plan.max_companies}{' '}
-                        {plan.max_companies === 1 ? 'empresa' : 'empresas'}
+                        {plan.max_companies} {plan.max_companies === 1 ? 'empresa' : 'empresas'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>
-                        {plan.max_users || '∞'} usuários
-                      </span>
+                      <span>{plan.max_users || '∞'} usuários</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <MessageCircle className="h-4 w-4 text-muted-foreground" />
@@ -249,9 +244,7 @@ export default function Upgrade() {
                         .map(([key]) => (
                           <div key={key} className="flex items-center gap-2 text-sm">
                             <Check className="h-4 w-4 text-primary" />
-                            <span className="capitalize">
-                              {key.replace(/_/g, ' ')}
-                            </span>
+                            <span className="capitalize">{key.replace(/_/g, ' ')}</span>
                           </div>
                         ))}
                     </div>
@@ -266,11 +259,7 @@ export default function Upgrade() {
                     onClick={() => handleSelectPlan(plan.id, plan.slug)}
                     disabled={isFree && status === 'trial'}
                   >
-                    {isFree
-                      ? 'Plano Atual'
-                      : isTrialExpired
-                      ? 'Escolher Plano'
-                      : 'Fazer Upgrade'}
+                    {isFree ? 'Plano Atual' : isTrialExpired ? 'Escolher Plano' : 'Fazer Upgrade'}
                   </Button>
                 </CardFooter>
               </Card>
@@ -307,9 +296,7 @@ export default function Upgrade() {
                 <Users className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-semibold">Suporte dedicado</h3>
-              <p className="text-sm text-muted-foreground">
-                Nossa equipe pronta para ajudar
-              </p>
+              <p className="text-sm text-muted-foreground">Nossa equipe pronta para ajudar</p>
             </div>
           </div>
         </div>

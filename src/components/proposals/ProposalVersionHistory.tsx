@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Proposal } from "@/hooks/chat/useProposals";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { FileText, Eye, GitCompare } from "lucide-react";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Proposal } from '@/hooks/chat/useProposals';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { FileText, Eye, GitCompare } from 'lucide-react';
 
 interface ProposalVersionHistoryProps {
   open: boolean;
@@ -18,21 +18,21 @@ interface ProposalVersionHistoryProps {
 }
 
 const statusColors = {
-  draft: "bg-gray-500",
-  sent: "bg-blue-500",
-  viewed: "bg-yellow-500",
-  accepted: "bg-green-500",
-  rejected: "bg-red-500",
-  expired: "bg-gray-400",
+  draft: 'bg-gray-500',
+  sent: 'bg-blue-500',
+  viewed: 'bg-yellow-500',
+  accepted: 'bg-green-500',
+  rejected: 'bg-red-500',
+  expired: 'bg-gray-400',
 };
 
 const statusLabels = {
-  draft: "Rascunho",
-  sent: "Enviada",
-  viewed: "Visualizada",
-  accepted: "Aceita",
-  rejected: "Rejeitada",
-  expired: "Expirada",
+  draft: 'Rascunho',
+  sent: 'Enviada',
+  viewed: 'Visualizada',
+  accepted: 'Aceita',
+  rejected: 'Rejeitada',
+  expired: 'Expirada',
 };
 
 export const ProposalVersionHistory = ({
@@ -74,8 +74,8 @@ export const ProposalVersionHistory = ({
                 <div
                   key={version.id}
                   className={`border rounded-lg p-4 ${
-                    isCurrent ? "border-primary bg-primary/5" : "border-border"
-                  } ${isSelectedForComparison ? "ring-2 ring-primary" : ""}`}
+                    isCurrent ? 'border-primary bg-primary/5' : 'border-border'
+                  } ${isSelectedForComparison ? 'ring-2 ring-primary' : ''}`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -115,10 +115,10 @@ export const ProposalVersionHistory = ({
 
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                     <span>
-                      Total:{" "}
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
+                      Total:{' '}
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
                       }).format(version.total)}
                     </span>
                     <span>•</span>
@@ -126,26 +126,22 @@ export const ProposalVersionHistory = ({
                   </div>
 
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onViewVersion(version.id)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => onViewVersion(version.id)}>
                       <Eye className="h-4 w-4 mr-2" />
                       Visualizar
                     </Button>
                     {!isPrevious && (
                       <Button
-                        variant={isSelectedForComparison ? "default" : "outline"}
+                        variant={isSelectedForComparison ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handleCompareClick(version.id)}
                       >
                         <GitCompare className="h-4 w-4 mr-2" />
                         {isSelectedForComparison
-                          ? "Selecionado"
+                          ? 'Selecionado'
                           : selectedForComparison
-                          ? "Comparar"
-                          : "Comparar com anterior"}
+                            ? 'Comparar'
+                            : 'Comparar com anterior'}
                       </Button>
                     )}
                   </div>

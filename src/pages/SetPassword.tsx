@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Lock } from 'lucide-react';
 
 const SetPassword = () => {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -19,21 +19,21 @@ const SetPassword = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
+      toast.error('As senhas não coincidem');
       return;
     }
 
     if (password.length < 6) {
-      toast.error("A senha deve ter no mínimo 6 caracteres");
+      toast.error('A senha deve ter no mínimo 6 caracteres');
       return;
     }
 
     setLoading(true);
     try {
-      const token = searchParams.get("token");
-      
+      const token = searchParams.get('token');
+
       if (!token) {
-        toast.error("Token inválido");
+        toast.error('Token inválido');
         return;
       }
 
@@ -43,11 +43,11 @@ const SetPassword = () => {
 
       if (error) throw error;
 
-      toast.success("Senha criada com sucesso!");
-      navigate("/dashboard");
+      toast.success('Senha criada com sucesso!');
+      navigate('/dashboard');
     } catch (error: any) {
-      console.error("Error setting password:", error);
-      toast.error("Erro ao criar senha. Tente novamente.");
+      console.error('Error setting password:', error);
+      toast.error('Erro ao criar senha. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -61,9 +61,7 @@ const SetPassword = () => {
             <Lock className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Crie sua Senha</h1>
-          <p className="text-muted-foreground">
-            Defina uma senha segura para acessar sua conta
-          </p>
+          <p className="text-muted-foreground">Defina uma senha segura para acessar sua conta</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -78,9 +76,7 @@ const SetPassword = () => {
               required
               minLength={6}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Mínimo de 6 caracteres
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Mínimo de 6 caracteres</p>
           </div>
 
           <div>
@@ -97,7 +93,7 @@ const SetPassword = () => {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Criando..." : "Criar Senha"}
+            {loading ? 'Criando...' : 'Criar Senha'}
           </Button>
         </form>
       </Card>

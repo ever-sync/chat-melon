@@ -1,36 +1,36 @@
-import { MainLayout } from "@/components/MainLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GoalTracker } from "@/components/gamification/GoalTracker";
-import { AchievementsBadges } from "@/components/gamification/AchievementsBadges";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Trophy, Target, Award } from "lucide-react";
-import { useGamification } from "@/hooks/useGamification";
+import { MainLayout } from '@/components/MainLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GoalTracker } from '@/components/gamification/GoalTracker';
+import { AchievementsBadges } from '@/components/gamification/AchievementsBadges';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Trophy, Target, Award } from 'lucide-react';
+import { useGamification } from '@/hooks/useGamification';
 
 const Gamification = () => {
   const { leaderboard, userAchievements } = useGamification();
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
   const getMedalIcon = (position: number) => {
-    if (position === 1) return "🥇";
-    if (position === 2) return "🥈";
-    if (position === 3) return "🥉";
+    if (position === 1) return '🥇';
+    if (position === 2) return '🥈';
+    if (position === 3) return '🥉';
     return `${position}º`;
   };
 
@@ -89,17 +89,15 @@ const Gamification = () => {
                       key={index}
                       className="flex items-center gap-4 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                     >
-                      <div className="text-2xl w-12 text-center">
-                        {getMedalIcon(index + 1)}
-                      </div>
+                      <div className="text-2xl w-12 text-center">{getMedalIcon(index + 1)}</div>
                       <Avatar>
                         <AvatarImage src={entry.user?.avatar_url} />
                         <AvatarFallback className="bg-primary/20 text-primary">
-                          {getInitials(entry.user?.full_name || "User")}
+                          {getInitials(entry.user?.full_name || 'User')}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-semibold">{entry.user?.full_name || "Usuário"}</p>
+                        <p className="font-semibold">{entry.user?.full_name || 'Usuário'}</p>
                         <p className="text-sm text-muted-foreground">
                           {entry.dealsCount} negócios fechados
                         </p>

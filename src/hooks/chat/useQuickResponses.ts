@@ -41,9 +41,9 @@ export const useQuickResponses = (options: UseQuickResponsesOptions = {}) => {
       // Show all templates with shortcuts when just typing /
       if (isShortcutMode && !shortcutSearch) {
         return templates
-          .filter(t => t.shortcut)
+          .filter((t) => t.shortcut)
           .slice(0, maxSuggestions)
-          .map(t => ({
+          .map((t) => ({
             shortcut: t.shortcut!,
             name: t.name,
             content: t.content,
@@ -59,8 +59,8 @@ export const useQuickResponses = (options: UseQuickResponsesOptions = {}) => {
 
     // First, find exact shortcut matches
     const exactMatches = templates
-      .filter(t => t.shortcut?.toLowerCase() === searchLower)
-      .map(t => ({
+      .filter((t) => t.shortcut?.toLowerCase() === searchLower)
+      .map((t) => ({
         shortcut: t.shortcut!,
         name: t.name,
         content: t.content,
@@ -71,11 +71,12 @@ export const useQuickResponses = (options: UseQuickResponsesOptions = {}) => {
 
     // Then, find partial matches (shortcut starts with search)
     const partialMatches = templates
-      .filter(t =>
-        t.shortcut?.toLowerCase().startsWith(searchLower) &&
-        t.shortcut?.toLowerCase() !== searchLower
+      .filter(
+        (t) =>
+          t.shortcut?.toLowerCase().startsWith(searchLower) &&
+          t.shortcut?.toLowerCase() !== searchLower
       )
-      .map(t => ({
+      .map((t) => ({
         shortcut: t.shortcut!,
         name: t.name,
         content: t.content,
@@ -86,13 +87,14 @@ export const useQuickResponses = (options: UseQuickResponsesOptions = {}) => {
 
     // Also search by name/content if no shortcut matches
     const contentMatches = templates
-      .filter(t =>
-        !t.shortcut?.toLowerCase().startsWith(searchLower) &&
-        (t.name.toLowerCase().includes(searchLower) ||
-          t.content.toLowerCase().includes(searchLower))
+      .filter(
+        (t) =>
+          !t.shortcut?.toLowerCase().startsWith(searchLower) &&
+          (t.name.toLowerCase().includes(searchLower) ||
+            t.content.toLowerCase().includes(searchLower))
       )
       .slice(0, maxSuggestions - exactMatches.length - partialMatches.length)
-      .map(t => ({
+      .map((t) => ({
         shortcut: t.shortcut || `#${t.name.slice(0, 10)}`,
         name: t.name,
         content: t.content,
@@ -105,35 +107,44 @@ export const useQuickResponses = (options: UseQuickResponsesOptions = {}) => {
   }, [templates, isShortcutMode, shortcutSearch, maxSuggestions]);
 
   // Handle input change
-  const handleInputChange = useCallback((value: string) => {
-    setInputValue(value);
-    const { isShortcut, search } = detectShortcut(value);
-    setIsShortcutMode(isShortcut);
-    setShortcutSearch(search);
-  }, [detectShortcut]);
+  const handleInputChange = useCallback(
+    (value: string) => {
+      setInputValue(value);
+      const { isShortcut, search } = detectShortcut(value);
+      setIsShortcutMode(isShortcut);
+      setShortcutSearch(search);
+    },
+    [detectShortcut]
+  );
 
   // Select a suggestion and replace the shortcut in the input
-  const selectSuggestion = useCallback((suggestion: ShortcutSuggestion): string => {
-    // Find the template to increment usage
-    const template = templates.find(t => t.shortcut === suggestion.shortcut);
-    if (template) {
-      incrementUsage.mutate(template.id);
-    }
+  const selectSuggestion = useCallback(
+    (suggestion: ShortcutSuggestion): string => {
+      // Find the template to increment usage
+      const template = templates.find((t) => t.shortcut === suggestion.shortcut);
+      if (template) {
+        incrementUsage.mutate(template.id);
+      }
 
-    // Replace the /shortcut with the content
-    const lastSlashIndex = inputValue.lastIndexOf('/');
-    if (lastSlashIndex !== -1) {
-      const beforeSlash = inputValue.substring(0, lastSlashIndex);
-      return beforeSlash + suggestion.content;
-    }
+      // Replace the /shortcut with the content
+      const lastSlashIndex = inputValue.lastIndexOf('/');
+      if (lastSlashIndex !== -1) {
+        const beforeSlash = inputValue.substring(0, lastSlashIndex);
+        return beforeSlash + suggestion.content;
+      }
 
-    return suggestion.content;
-  }, [inputValue, templates, incrementUsage]);
+      return suggestion.content;
+    },
+    [inputValue, templates, incrementUsage]
+  );
 
   // Check if Enter should select suggestion or send message
-  const shouldSelectSuggestion = useCallback((selectedIndex: number): boolean => {
-    return isShortcutMode && suggestions.length > 0 && selectedIndex >= 0;
-  }, [isShortcutMode, suggestions.length]);
+  const shouldSelectSuggestion = useCallback(
+    (selectedIndex: number): boolean => {
+      return isShortcutMode && suggestions.length > 0 && selectedIndex >= 0;
+    },
+    [isShortcutMode, suggestions.length]
+  );
 
   // Reset shortcut mode
   const resetShortcutMode = useCallback(() => {
@@ -157,47 +168,46 @@ export const useQuickResponses = (options: UseQuickResponsesOptions = {}) => {
 export const useShortcutNavigation = (suggestionsCount: number) => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent): 'select' | 'navigate' | 'none' => {
-    if (suggestionsCount === 0) return 'none';
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent): 'select' | 'navigate' | 'none' => {
+      if (suggestionsCount === 0) return 'none';
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev =>
-          prev < suggestionsCount - 1 ? prev + 1 : 0
-        );
-        return 'navigate';
-
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev =>
-          prev > 0 ? prev - 1 : suggestionsCount - 1
-        );
-        return 'navigate';
-
-      case 'Enter':
-        if (selectedIndex >= 0) {
+      switch (e.key) {
+        case 'ArrowDown':
           e.preventDefault();
-          return 'select';
-        }
-        return 'none';
+          setSelectedIndex((prev) => (prev < suggestionsCount - 1 ? prev + 1 : 0));
+          return 'navigate';
 
-      case 'Tab':
-        if (selectedIndex >= 0) {
+        case 'ArrowUp':
           e.preventDefault();
-          return 'select';
-        }
-        return 'none';
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : suggestionsCount - 1));
+          return 'navigate';
 
-      case 'Escape':
-        e.preventDefault();
-        setSelectedIndex(-1);
-        return 'navigate';
+        case 'Enter':
+          if (selectedIndex >= 0) {
+            e.preventDefault();
+            return 'select';
+          }
+          return 'none';
 
-      default:
-        return 'none';
-    }
-  }, [suggestionsCount, selectedIndex]);
+        case 'Tab':
+          if (selectedIndex >= 0) {
+            e.preventDefault();
+            return 'select';
+          }
+          return 'none';
+
+        case 'Escape':
+          e.preventDefault();
+          setSelectedIndex(-1);
+          return 'navigate';
+
+        default:
+          return 'none';
+      }
+    },
+    [suggestionsCount, selectedIndex]
+  );
 
   const resetSelection = useCallback(() => {
     setSelectedIndex(-1);

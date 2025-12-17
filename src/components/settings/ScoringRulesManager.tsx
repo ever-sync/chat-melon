@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit } from "lucide-react";
-import { useScoringRules } from "@/hooks/useScoringRules";
-import { ScoringRuleModal } from "./ScoringRuleModal";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Plus, Trash2, Edit } from 'lucide-react';
+import { useScoringRules } from '@/hooks/useScoringRules';
+import { ScoringRuleModal } from './ScoringRuleModal';
 
 export const ScoringRulesManager = () => {
   const { rules, isLoading, updateRule, deleteRule } = useScoringRules();
@@ -58,7 +58,12 @@ export const ScoringRulesManager = () => {
             Configure as regras para calcular automaticamente o score dos contatos
           </p>
         </div>
-        <Button onClick={() => { setEditingRule(null); setShowModal(true); }}>
+        <Button
+          onClick={() => {
+            setEditingRule(null);
+            setShowModal(true);
+          }}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nova Regra
         </Button>
@@ -72,12 +77,14 @@ export const ScoringRulesManager = () => {
                 <div className="space-y-1">
                   <CardTitle className="text-base flex items-center gap-2">
                     {rule.name}
-                    <Badge variant={rule.points > 0 ? "default" : "destructive"}>
-                      {rule.points > 0 ? '+' : ''}{rule.points} pts
+                    <Badge variant={rule.points > 0 ? 'default' : 'destructive'}>
+                      {rule.points > 0 ? '+' : ''}
+                      {rule.points} pts
                     </Badge>
                   </CardTitle>
                   <CardDescription>
-                    {rule.description || getConditionLabel(rule.condition_type, rule.condition_value)}
+                    {rule.description ||
+                      getConditionLabel(rule.condition_type, rule.condition_value)}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
@@ -85,11 +92,7 @@ export const ScoringRulesManager = () => {
                     checked={rule.is_active}
                     onCheckedChange={() => handleToggleActive(rule)}
                   />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(rule)}
-                  >
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(rule)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button

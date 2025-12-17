@@ -1,15 +1,21 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, ShoppingCart, Headphones, Users, Handshake } from "lucide-react";
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Briefcase, ShoppingCart, Headphones, Users, Handshake } from 'lucide-react';
 
 interface PipelineModalProps {
   open: boolean;
@@ -19,76 +25,136 @@ interface PipelineModalProps {
 
 const PIPELINE_TEMPLATES = [
   {
-    id: "b2b",
-    name: "Vendas B2B",
-    description: "Pipeline para vendas corporativas complexas",
+    id: 'b2b',
+    name: 'Vendas B2B',
+    description: 'Pipeline para vendas corporativas complexas',
     icon: Briefcase,
     stages: [
-      { name: "Prospecção", color: "#6B7280", order_index: 0, probability_default: 10 },
-      { name: "Qualificação", color: "#3B82F6", order_index: 1, probability_default: 25 },
-      { name: "Apresentação", color: "#8B5CF6", order_index: 2, probability_default: 40 },
-      { name: "Proposta", color: "#F59E0B", order_index: 3, probability_default: 60 },
-      { name: "Negociação", color: "#EF4444", order_index: 4, probability_default: 80 },
-      { name: "Fechado Ganho", color: "#10B981", order_index: 5, probability_default: 100, is_closed_won: true },
-      { name: "Fechado Perdido", color: "#EF4444", order_index: 6, probability_default: 0, is_closed_lost: true },
+      { name: 'Prospecção', color: '#6B7280', order_index: 0, probability_default: 10 },
+      { name: 'Qualificação', color: '#3B82F6', order_index: 1, probability_default: 25 },
+      { name: 'Apresentação', color: '#8B5CF6', order_index: 2, probability_default: 40 },
+      { name: 'Proposta', color: '#F59E0B', order_index: 3, probability_default: 60 },
+      { name: 'Negociação', color: '#EF4444', order_index: 4, probability_default: 80 },
+      {
+        name: 'Fechado Ganho',
+        color: '#10B981',
+        order_index: 5,
+        probability_default: 100,
+        is_closed_won: true,
+      },
+      {
+        name: 'Fechado Perdido',
+        color: '#EF4444',
+        order_index: 6,
+        probability_default: 0,
+        is_closed_lost: true,
+      },
     ],
   },
   {
-    id: "b2c",
-    name: "Vendas B2C",
-    description: "Pipeline para vendas diretas ao consumidor",
+    id: 'b2c',
+    name: 'Vendas B2C',
+    description: 'Pipeline para vendas diretas ao consumidor',
     icon: ShoppingCart,
     stages: [
-      { name: "Novo Lead", color: "#6B7280", order_index: 0, probability_default: 20 },
-      { name: "Contato Feito", color: "#3B82F6", order_index: 1, probability_default: 40 },
-      { name: "Interessado", color: "#8B5CF6", order_index: 2, probability_default: 60 },
-      { name: "Negociando", color: "#F59E0B", order_index: 3, probability_default: 80 },
-      { name: "Fechado Ganho", color: "#10B981", order_index: 4, probability_default: 100, is_closed_won: true },
-      { name: "Fechado Perdido", color: "#EF4444", order_index: 5, probability_default: 0, is_closed_lost: true },
+      { name: 'Novo Lead', color: '#6B7280', order_index: 0, probability_default: 20 },
+      { name: 'Contato Feito', color: '#3B82F6', order_index: 1, probability_default: 40 },
+      { name: 'Interessado', color: '#8B5CF6', order_index: 2, probability_default: 60 },
+      { name: 'Negociando', color: '#F59E0B', order_index: 3, probability_default: 80 },
+      {
+        name: 'Fechado Ganho',
+        color: '#10B981',
+        order_index: 4,
+        probability_default: 100,
+        is_closed_won: true,
+      },
+      {
+        name: 'Fechado Perdido',
+        color: '#EF4444',
+        order_index: 5,
+        probability_default: 0,
+        is_closed_lost: true,
+      },
     ],
   },
   {
-    id: "customer_success",
-    name: "Sucesso do Cliente",
-    description: "Pipeline para pós-venda e retenção",
+    id: 'customer_success',
+    name: 'Sucesso do Cliente',
+    description: 'Pipeline para pós-venda e retenção',
     icon: Headphones,
     stages: [
-      { name: "Onboarding", color: "#3B82F6", order_index: 0, probability_default: 30 },
-      { name: "Ativo", color: "#10B981", order_index: 1, probability_default: 80 },
-      { name: "Em Risco", color: "#F59E0B", order_index: 2, probability_default: 50 },
-      { name: "Renovação", color: "#8B5CF6", order_index: 3, probability_default: 70 },
-      { name: "Renovado", color: "#10B981", order_index: 4, probability_default: 100, is_closed_won: true },
-      { name: "Churn", color: "#EF4444", order_index: 5, probability_default: 0, is_closed_lost: true },
+      { name: 'Onboarding', color: '#3B82F6', order_index: 0, probability_default: 30 },
+      { name: 'Ativo', color: '#10B981', order_index: 1, probability_default: 80 },
+      { name: 'Em Risco', color: '#F59E0B', order_index: 2, probability_default: 50 },
+      { name: 'Renovação', color: '#8B5CF6', order_index: 3, probability_default: 70 },
+      {
+        name: 'Renovado',
+        color: '#10B981',
+        order_index: 4,
+        probability_default: 100,
+        is_closed_won: true,
+      },
+      {
+        name: 'Churn',
+        color: '#EF4444',
+        order_index: 5,
+        probability_default: 0,
+        is_closed_lost: true,
+      },
     ],
   },
   {
-    id: "recruitment",
-    name: "Recrutamento",
-    description: "Pipeline para processo seletivo",
+    id: 'recruitment',
+    name: 'Recrutamento',
+    description: 'Pipeline para processo seletivo',
     icon: Users,
     stages: [
-      { name: "Triagem", color: "#6B7280", order_index: 0, probability_default: 20 },
-      { name: "Entrevista RH", color: "#3B82F6", order_index: 1, probability_default: 40 },
-      { name: "Entrevista Técnica", color: "#8B5CF6", order_index: 2, probability_default: 60 },
-      { name: "Entrevista Final", color: "#F59E0B", order_index: 3, probability_default: 80 },
-      { name: "Proposta", color: "#10B981", order_index: 4, probability_default: 90 },
-      { name: "Contratado", color: "#10B981", order_index: 5, probability_default: 100, is_closed_won: true },
-      { name: "Rejeitado", color: "#EF4444", order_index: 6, probability_default: 0, is_closed_lost: true },
+      { name: 'Triagem', color: '#6B7280', order_index: 0, probability_default: 20 },
+      { name: 'Entrevista RH', color: '#3B82F6', order_index: 1, probability_default: 40 },
+      { name: 'Entrevista Técnica', color: '#8B5CF6', order_index: 2, probability_default: 60 },
+      { name: 'Entrevista Final', color: '#F59E0B', order_index: 3, probability_default: 80 },
+      { name: 'Proposta', color: '#10B981', order_index: 4, probability_default: 90 },
+      {
+        name: 'Contratado',
+        color: '#10B981',
+        order_index: 5,
+        probability_default: 100,
+        is_closed_won: true,
+      },
+      {
+        name: 'Rejeitado',
+        color: '#EF4444',
+        order_index: 6,
+        probability_default: 0,
+        is_closed_lost: true,
+      },
     ],
   },
   {
-    id: "partnerships",
-    name: "Parcerias",
-    description: "Pipeline para desenvolvimento de parcerias",
+    id: 'partnerships',
+    name: 'Parcerias',
+    description: 'Pipeline para desenvolvimento de parcerias',
     icon: Handshake,
     stages: [
-      { name: "Identificação", color: "#6B7280", order_index: 0, probability_default: 10 },
-      { name: "Primeiro Contato", color: "#3B82F6", order_index: 1, probability_default: 30 },
-      { name: "Análise de Fit", color: "#8B5CF6", order_index: 2, probability_default: 50 },
-      { name: "Negociação", color: "#F59E0B", order_index: 3, probability_default: 70 },
-      { name: "Contrato", color: "#10B981", order_index: 4, probability_default: 90 },
-      { name: "Parceria Ativa", color: "#10B981", order_index: 5, probability_default: 100, is_closed_won: true },
-      { name: "Não Avançou", color: "#EF4444", order_index: 6, probability_default: 0, is_closed_lost: true },
+      { name: 'Identificação', color: '#6B7280', order_index: 0, probability_default: 10 },
+      { name: 'Primeiro Contato', color: '#3B82F6', order_index: 1, probability_default: 30 },
+      { name: 'Análise de Fit', color: '#8B5CF6', order_index: 2, probability_default: 50 },
+      { name: 'Negociação', color: '#F59E0B', order_index: 3, probability_default: 70 },
+      { name: 'Contrato', color: '#10B981', order_index: 4, probability_default: 90 },
+      {
+        name: 'Parceria Ativa',
+        color: '#10B981',
+        order_index: 5,
+        probability_default: 100,
+        is_closed_won: true,
+      },
+      {
+        name: 'Não Avançou',
+        color: '#EF4444',
+        order_index: 6,
+        probability_default: 0,
+        is_closed_lost: true,
+      },
     ],
   },
 ];
@@ -97,21 +163,21 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
   const { companyId } = useCompanyQuery();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
+    name: '',
+    description: '',
   });
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
   useEffect(() => {
     if (pipeline) {
       setFormData({
-        name: pipeline.name || "",
-        description: pipeline.description || "",
+        name: pipeline.name || '',
+        description: pipeline.description || '',
       });
     } else {
       setFormData({
-        name: "",
-        description: "",
+        name: '',
+        description: '',
       });
       setSelectedTemplate(null);
     }
@@ -127,19 +193,19 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
       if (pipeline) {
         // Update existing pipeline
         const { error } = await supabase
-          .from("pipelines")
+          .from('pipelines')
           .update({
             name: formData.name,
             description: formData.description,
           })
-          .eq("id", pipeline.id);
+          .eq('id', pipeline.id);
 
         if (error) throw error;
-        toast.success("Pipeline atualizado com sucesso!");
+        toast.success('Pipeline atualizado com sucesso!');
       } else {
         // Create new pipeline
         const { data: newPipeline, error: pipelineError } = await supabase
-          .from("pipelines")
+          .from('pipelines')
           .insert({
             company_id: companyId,
             name: formData.name,
@@ -160,20 +226,18 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
             ...stage,
           }));
 
-          const { error: stagesError } = await supabase
-            .from("pipeline_stages")
-            .insert(stages);
+          const { error: stagesError } = await supabase.from('pipeline_stages').insert(stages);
 
           if (stagesError) throw stagesError;
         }
 
-        toast.success("Pipeline criado com sucesso!");
+        toast.success('Pipeline criado com sucesso!');
       }
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving pipeline:", error);
-      toast.error("Erro ao salvar pipeline");
+      console.error('Error saving pipeline:', error);
+      toast.error('Erro ao salvar pipeline');
     } finally {
       setLoading(false);
     }
@@ -183,13 +247,11 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {pipeline ? "Editar Pipeline" : "Novo Pipeline"}
-          </DialogTitle>
+          <DialogTitle>{pipeline ? 'Editar Pipeline' : 'Novo Pipeline'}</DialogTitle>
           <DialogDescription>
             {pipeline
-              ? "Atualize as informações do pipeline"
-              : "Crie um novo pipeline ou use um template"}
+              ? 'Atualize as informações do pipeline'
+              : 'Crie um novo pipeline ou use um template'}
           </DialogDescription>
         </DialogHeader>
 
@@ -234,8 +296,8 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
                         key={template.id}
                         className={`cursor-pointer transition-all ${
                           selectedTemplate === template.id
-                            ? "ring-2 ring-primary"
-                            : "hover:border-primary"
+                            ? 'ring-2 ring-primary'
+                            : 'hover:border-primary'
                         }`}
                         onClick={() => {
                           setSelectedTemplate(template.id);
@@ -259,9 +321,7 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-sm text-muted-foreground">
-                            {template.description}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{template.description}</p>
                         </CardContent>
                       </Card>
                     );
@@ -302,7 +362,7 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : pipeline ? "Atualizar" : "Criar"}
+              {loading ? 'Salvando...' : pipeline ? 'Atualizar' : 'Criar'}
             </Button>
           </div>
         </form>

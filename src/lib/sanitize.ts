@@ -172,10 +172,7 @@ export function sanitizeEmail(email: string): string | null {
  * @param sanitizer - Função de sanitização (padrão: sanitizeText)
  * @returns Objeto com strings sanitizadas
  */
-export function sanitizeObject<T>(
-  obj: T,
-  sanitizer: (str: string) => string = sanitizeText
-): T {
+export function sanitizeObject<T>(obj: T, sanitizer: (str: string) => string = sanitizeText): T {
   if (typeof obj === 'string') {
     return sanitizer(obj) as T;
   }

@@ -1,16 +1,22 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
-import { useCustomFields, type CustomField } from "@/hooks/useCustomFields";
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { X, Plus } from 'lucide-react';
+import { useCustomFields, type CustomField } from '@/hooks/useCustomFields';
 
-type EntityType = "contact" | "deal" | "company";
+type EntityType = 'contact' | 'deal' | 'company';
 
 interface CustomFieldModalProps {
   open: boolean;
@@ -20,28 +26,32 @@ interface CustomFieldModalProps {
 }
 
 const fieldTypes = [
-  { value: "text", label: "Texto", description: "Campo de texto livre" },
-  { value: "number", label: "Número", description: "Valores numéricos" },
-  { value: "date", label: "Data", description: "Seletor de data" },
-  { value: "select", label: "Seleção", description: "Lista de opções (uma escolha)" },
-  { value: "multiselect", label: "Múltipla Escolha", description: "Lista de opções (várias escolhas)" },
-  { value: "boolean", label: "Sim/Não", description: "Checkbox verdadeiro/falso" },
-  { value: "url", label: "URL", description: "Link web" },
-  { value: "email", label: "Email", description: "Endereço de email" },
-  { value: "phone", label: "Telefone", description: "Número de telefone" },
-  { value: "currency", label: "Moeda", description: "Valor monetário" },
+  { value: 'text', label: 'Texto', description: 'Campo de texto livre' },
+  { value: 'number', label: 'Número', description: 'Valores numéricos' },
+  { value: 'date', label: 'Data', description: 'Seletor de data' },
+  { value: 'select', label: 'Seleção', description: 'Lista de opções (uma escolha)' },
+  {
+    value: 'multiselect',
+    label: 'Múltipla Escolha',
+    description: 'Lista de opções (várias escolhas)',
+  },
+  { value: 'boolean', label: 'Sim/Não', description: 'Checkbox verdadeiro/falso' },
+  { value: 'url', label: 'URL', description: 'Link web' },
+  { value: 'email', label: 'Email', description: 'Endereço de email' },
+  { value: 'phone', label: 'Telefone', description: 'Número de telefone' },
+  { value: 'currency', label: 'Moeda', description: 'Valor monetário' },
 ];
 
 export function CustomFieldModal({ open, onOpenChange, entityType, field }: CustomFieldModalProps) {
   const { createField, updateField } = useCustomFields(entityType);
-  
-  const [fieldLabel, setFieldLabel] = useState("");
-  const [fieldName, setFieldName] = useState("");
-  const [fieldType, setFieldType] = useState<string>("text");
+
+  const [fieldLabel, setFieldLabel] = useState('');
+  const [fieldName, setFieldName] = useState('');
+  const [fieldType, setFieldType] = useState<string>('text');
   const [isRequired, setIsRequired] = useState(false);
-  const [defaultValue, setDefaultValue] = useState("");
+  const [defaultValue, setDefaultValue] = useState('');
   const [options, setOptions] = useState<string[]>([]);
-  const [newOption, setNewOption] = useState("");
+  const [newOption, setNewOption] = useState('');
 
   useEffect(() => {
     if (field) {
@@ -49,7 +59,7 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
       setFieldName(field.field_name);
       setFieldType(field.field_type);
       setIsRequired(field.is_required);
-      setDefaultValue(field.default_value || "");
+      setDefaultValue(field.default_value || '');
       setOptions((field.options as string[]) || []);
     } else {
       resetForm();
@@ -57,22 +67,22 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
   }, [field, open]);
 
   const resetForm = () => {
-    setFieldLabel("");
-    setFieldName("");
-    setFieldType("text");
+    setFieldLabel('');
+    setFieldName('');
+    setFieldType('text');
     setIsRequired(false);
-    setDefaultValue("");
+    setDefaultValue('');
     setOptions([]);
-    setNewOption("");
+    setNewOption('');
   };
 
   const generateFieldName = (label: string) => {
     return label
       .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
   };
 
   const handleLabelChange = (value: string) => {
@@ -85,7 +95,7 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
   const handleAddOption = () => {
     if (newOption.trim()) {
       setOptions([...options, newOption.trim()]);
-      setNewOption("");
+      setNewOption('');
     }
   };
 
@@ -100,7 +110,7 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
       field_type: fieldType as any,
       is_required: isRequired,
       default_value: defaultValue || undefined,
-      options: ["select", "multiselect"].includes(fieldType) ? (options as any) : undefined,
+      options: ['select', 'multiselect'].includes(fieldType) ? (options as any) : undefined,
     } as any;
 
     if (field) {
@@ -113,15 +123,13 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
     resetForm();
   };
 
-  const isSelectType = ["select", "multiselect"].includes(fieldType);
+  const isSelectType = ['select', 'multiselect'].includes(fieldType);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {field ? "Editar Campo" : "Novo Campo Customizado"}
-          </DialogTitle>
+          <DialogTitle>{field ? 'Editar Campo' : 'Novo Campo Customizado'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -181,7 +189,7 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
                   value={newOption}
                   onChange={(e) => setNewOption(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === 'Enter') {
                       e.preventDefault();
                       handleAddOption();
                     }
@@ -211,10 +219,10 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
           {/* Valor padrão */}
           <div className="space-y-2">
             <Label htmlFor="default-value">Valor Padrão (opcional)</Label>
-            {fieldType === "boolean" ? (
+            {fieldType === 'boolean' ? (
               <Switch
-                checked={defaultValue === "true"}
-                onCheckedChange={(checked) => setDefaultValue(checked ? "true" : "false")}
+                checked={defaultValue === 'true'}
+                onCheckedChange={(checked) => setDefaultValue(checked ? 'true' : 'false')}
               />
             ) : isSelectType ? (
               <Select value={defaultValue} onValueChange={setDefaultValue}>
@@ -232,7 +240,7 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
             ) : (
               <Input
                 id="default-value"
-                type={fieldType === "number" ? "number" : fieldType === "date" ? "date" : "text"}
+                type={fieldType === 'number' ? 'number' : fieldType === 'date' ? 'date' : 'text'}
                 value={defaultValue}
                 onChange={(e) => setDefaultValue(e.target.value)}
               />
@@ -243,9 +251,7 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label>Campo Obrigatório</Label>
-              <p className="text-xs text-muted-foreground">
-                Usuários devem preencher este campo
-              </p>
+              <p className="text-xs text-muted-foreground">Usuários devem preencher este campo</p>
             </div>
             <Switch checked={isRequired} onCheckedChange={setIsRequired} />
           </div>
@@ -255,18 +261,18 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
             <Label className="text-sm text-muted-foreground">Preview</Label>
             <div className="mt-2 p-4 border rounded-lg bg-muted/30">
               <Label>
-                {fieldLabel || "Nome do Campo"}
+                {fieldLabel || 'Nome do Campo'}
                 {isRequired && <span className="text-destructive ml-1">*</span>}
               </Label>
               <div className="mt-2">
-                {fieldType === "text" && <Input placeholder="Texto..." disabled />}
-                {fieldType === "number" && <Input type="number" placeholder="0" disabled />}
-                {fieldType === "date" && <Input type="date" disabled />}
-                {fieldType === "boolean" && <Switch disabled />}
-                {fieldType === "url" && <Input placeholder="https://..." disabled />}
-                {fieldType === "email" && <Input placeholder="email@exemplo.com" disabled />}
-                {fieldType === "phone" && <Input placeholder="(00) 00000-0000" disabled />}
-                {fieldType === "currency" && <Input placeholder="R$ 0,00" disabled />}
+                {fieldType === 'text' && <Input placeholder="Texto..." disabled />}
+                {fieldType === 'number' && <Input type="number" placeholder="0" disabled />}
+                {fieldType === 'date' && <Input type="date" disabled />}
+                {fieldType === 'boolean' && <Switch disabled />}
+                {fieldType === 'url' && <Input placeholder="https://..." disabled />}
+                {fieldType === 'email' && <Input placeholder="email@exemplo.com" disabled />}
+                {fieldType === 'phone' && <Input placeholder="(00) 00000-0000" disabled />}
+                {fieldType === 'currency' && <Input placeholder="R$ 0,00" disabled />}
                 {isSelectType && (
                   <Select disabled>
                     <SelectTrigger>
@@ -287,7 +293,7 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
             onClick={handleSubmit}
             disabled={!fieldLabel || !fieldName || (isSelectType && options.length === 0)}
           >
-            {field ? "Atualizar" : "Criar"} Campo
+            {field ? 'Atualizar' : 'Criar'} Campo
           </Button>
         </div>
       </DialogContent>

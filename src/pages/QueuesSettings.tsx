@@ -1,4 +1,4 @@
-import { QueueManager } from "@/components/settings/QueueManager";
+import { QueueManager } from '@/components/settings/QueueManager';
 
 const QueuesSettings = () => {
   return (

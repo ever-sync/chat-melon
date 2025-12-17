@@ -1,7 +1,7 @@
-import { useCallback, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface NotificationSettings {
   enabled: boolean;
@@ -21,7 +21,7 @@ const createBeepSound = (audioContext: AudioContext, volume: number): void => {
   gainNode.connect(audioContext.destination);
 
   oscillator.frequency.value = 880; // Frequência em Hz (nota A5)
-  oscillator.type = "sine";
+  oscillator.type = 'sine';
 
   gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
@@ -37,20 +37,22 @@ export const useNotificationSound = () => {
 
   // Buscar configurações de notificação do usuário
   const { data: notificationSettings } = useQuery({
-    queryKey: ["notification-settings", currentCompany?.id],
+    queryKey: ['notification-settings', currentCompany?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || !currentCompany) return null;
 
       const { data, error } = await supabase
-        .from("notification_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("company_id", currentCompany.id)
+        .from('notification_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id)
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching notification settings:", error);
+        console.error('Error fetching notification settings:', error);
         return null;
       }
 
@@ -66,8 +68,12 @@ export const useNotificationSound = () => {
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
 
-    const [startHour, startMin] = (notificationSettings.do_not_disturb_start || "22:00").split(":").map(Number);
-    const [endHour, endMin] = (notificationSettings.do_not_disturb_end || "08:00").split(":").map(Number);
+    const [startHour, startMin] = (notificationSettings.do_not_disturb_start || '22:00')
+      .split(':')
+      .map(Number);
+    const [endHour, endMin] = (notificationSettings.do_not_disturb_end || '08:00')
+      .split(':')
+      .map(Number);
 
     const startTime = startHour * 60 + startMin;
     const endTime = endHour * 60 + endMin;
@@ -92,7 +98,7 @@ export const useNotificationSound = () => {
     // Tentar tocar arquivo de áudio primeiro
     try {
       if (!audioRef.current) {
-        audioRef.current = new Audio("/notification.mp3");
+        audioRef.current = new Audio('/notification.mp3');
       }
 
       audioRef.current.volume = volume;
@@ -115,13 +121,13 @@ export const useNotificationSound = () => {
       }
 
       // Resumir contexto se estiver suspenso
-      if (audioContextRef.current.state === "suspended") {
+      if (audioContextRef.current.state === 'suspended') {
         audioContextRef.current.resume();
       }
 
       createBeepSound(audioContextRef.current, volume);
     } catch (error) {
-      console.error("Error playing beep:", error);
+      console.error('Error playing beep:', error);
     }
   }, []);
 
@@ -131,7 +137,7 @@ export const useNotificationSound = () => {
 
     try {
       if (!audioRef.current) {
-        audioRef.current = new Audio("/notification.mp3");
+        audioRef.current = new Audio('/notification.mp3');
       }
 
       audioRef.current.volume = volume;

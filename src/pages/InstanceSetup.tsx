@@ -1,38 +1,40 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { EvolutionQRCodeModal } from "@/components/evolution/EvolutionQRCodeModal";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { EvolutionQRCodeModal } from '@/components/evolution/EvolutionQRCodeModal';
 
 export default function InstanceSetup() {
   const navigate = useNavigate();
-  const [instanceName, setInstanceName] = useState("");
+  const [instanceName, setInstanceName] = useState('');
   const [loading, setLoading] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
 
   // Pegar companyId do localStorage
-  const companyId = localStorage.getItem("currentCompanyId");
+  const companyId = localStorage.getItem('currentCompanyId');
 
   const handleCreate = async () => {
     if (!instanceName.trim()) {
-      toast.error("Digite um nome para a instância");
+      toast.error('Digite um nome para a instância');
       return;
     }
 
     if (!companyId) {
-      toast.error("Empresa não identificada. Por favor, selecione uma empresa primeiro.");
-      navigate("/companies");
+      toast.error('Empresa não identificada. Por favor, selecione uma empresa primeiro.');
+      navigate('/companies');
       return;
     }
 
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       const response = await supabase.functions.invoke('evolution-instance-manager', {
         body: {
@@ -51,22 +53,21 @@ export default function InstanceSetup() {
         if (errorData?.error) {
           toast.error(errorData.error);
         } else {
-          toast.error(response.error.message || "Erro ao criar instância");
+          toast.error(response.error.message || 'Erro ao criar instância');
         }
         return;
       }
 
       if (!response.data?.success) {
-        toast.error(response.data?.error || "Erro ao criar instância");
+        toast.error(response.data?.error || 'Erro ao criar instância');
         return;
       }
 
-      toast.success("Instância criada! Escaneie o QR Code para conectar.");
+      toast.success('Instância criada! Escaneie o QR Code para conectar.');
       setShowQRModal(true);
-
     } catch (error: any) {
-      console.error("Erro ao criar instância:", error);
-      const errorMessage = error?.message || "Erro ao criar instância. Tente novamente.";
+      console.error('Erro ao criar instância:', error);
+      const errorMessage = error?.message || 'Erro ao criar instância. Tente novamente.';
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -75,7 +76,7 @@ export default function InstanceSetup() {
 
   const handleQRModalClose = () => {
     setShowQRModal(false);
-    navigate("/settings");
+    navigate('/settings');
   };
 
   return (

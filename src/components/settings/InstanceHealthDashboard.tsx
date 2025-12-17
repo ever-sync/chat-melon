@@ -1,10 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Clock, MessageSquare } from "lucide-react";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  MessageSquare,
+} from 'lucide-react';
+import { useCompany } from '@/contexts/CompanyContext';
 
 export function InstanceHealthDashboard() {
   const { currentCompany } = useCompany();
@@ -13,7 +20,7 @@ export function InstanceHealthDashboard() {
     queryKey: ['instance-health', currentCompany?.id],
     queryFn: async () => {
       if (!currentCompany?.id) return [];
-      
+
       const { data, error } = await supabase
         .from('evolution_settings')
         .select('*')
@@ -47,10 +54,12 @@ export function InstanceHealthDashboard() {
         const isHealthy = instance.delivery_rate >= 90;
         const isWarning = instance.delivery_rate >= 70 && instance.delivery_rate < 90;
         const isDanger = instance.delivery_rate < 70;
-        
+
         // Check if instance is new (created < 7 days ago)
         const createdAt = new Date(instance.created_at);
-        const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+        const daysSinceCreation = Math.floor(
+          (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+        );
         const isNewInstance = daysSinceCreation < 7;
 
         return (
@@ -65,7 +74,10 @@ export function InstanceHealthDashboard() {
                 </div>
                 <div className="flex items-center gap-2">
                   {isNewInstance && (
-                    <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-500/10 text-blue-500 border-blue-500/20"
+                    >
                       🆕 Instância Nova ({daysSinceCreation} dias)
                     </Badge>
                   )}
@@ -104,9 +116,15 @@ export function InstanceHealthDashboard() {
                   </div>
                   <div className="text-2xl font-bold flex items-center gap-2">
                     {instance.delivery_rate?.toFixed(1)}%
-                    {instance.delivery_rate >= 95 && <TrendingUp className="h-4 w-4 text-green-500" />}
-                    {instance.delivery_rate < 95 && instance.delivery_rate >= 85 && <TrendingUp className="h-4 w-4 text-yellow-500" />}
-                    {instance.delivery_rate < 85 && <TrendingDown className="h-4 w-4 text-red-500" />}
+                    {instance.delivery_rate >= 95 && (
+                      <TrendingUp className="h-4 w-4 text-green-500" />
+                    )}
+                    {instance.delivery_rate < 95 && instance.delivery_rate >= 85 && (
+                      <TrendingUp className="h-4 w-4 text-yellow-500" />
+                    )}
+                    {instance.delivery_rate < 85 && (
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                    )}
                   </div>
                 </div>
 
@@ -115,9 +133,7 @@ export function InstanceHealthDashboard() {
                     <MessageSquare className="h-4 w-4" />
                     Taxa de Resposta
                   </div>
-                  <div className="text-2xl font-bold">
-                    {instance.response_rate?.toFixed(1)}%
-                  </div>
+                  <div className="text-2xl font-bold">{instance.response_rate?.toFixed(1)}%</div>
                 </div>
               </div>
 
@@ -127,9 +143,12 @@ export function InstanceHealthDashboard() {
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="h-5 w-5 text-blue-500 mt-0.5" />
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-blue-500">Instância Nova - Warmup Recomendado</p>
+                      <p className="text-sm font-medium text-blue-500">
+                        Instância Nova - Warmup Recomendado
+                      </p>
                       <p className="text-xs text-blue-600 dark:text-blue-400">
-                        Recomendamos começar com taxa menor (5-10 msgs/min) e aumentar gradualmente nos próximos dias para evitar bloqueios.
+                        Recomendamos começar com taxa menor (5-10 msgs/min) e aumentar gradualmente
+                        nos próximos dias para evitar bloqueios.
                       </p>
                     </div>
                   </div>
@@ -143,7 +162,8 @@ export function InstanceHealthDashboard() {
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-red-500">Alerta de Risco</p>
                       <p className="text-xs text-red-600 dark:text-red-400">
-                        Taxa de entrega baixa detectada. Verifique se há muitos números inválidos ou bloqueios.
+                        Taxa de entrega baixa detectada. Verifique se há muitos números inválidos ou
+                        bloqueios.
                       </p>
                     </div>
                   </div>
@@ -157,7 +177,8 @@ export function InstanceHealthDashboard() {
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-yellow-500">Limite Diário Próximo</p>
                       <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                        Você já usou {usagePercent.toFixed(0)}% do limite diário. Novos envios serão pausados automaticamente ao atingir 100%.
+                        Você já usou {usagePercent.toFixed(0)}% do limite diário. Novos envios serão
+                        pausados automaticamente ao atingir 100%.
                       </p>
                     </div>
                   </div>

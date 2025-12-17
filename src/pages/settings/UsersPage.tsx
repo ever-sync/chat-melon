@@ -4,13 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCompany } from '@/contexts/CompanyContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PermissionGate } from '@/components/auth/PermissionGate';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -141,10 +135,12 @@ export default function UsersPage() {
     try {
       const { data, error } = await supabase
         .from('company_members')
-        .select(`
+        .select(
+          `
           *,
           team:teams(id, name)
-        `)
+        `
+        )
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
@@ -163,7 +159,7 @@ export default function UsersPage() {
       .from('teams')
       .select('id, name, color')
       .eq('company_id', companyId);
-    setTeams((data || []).map(t => ({ ...t, member_count: 0 })));
+    setTeams((data || []).map((t) => ({ ...t, member_count: 0 })));
   };
 
   const handleInvite = async () => {
@@ -177,14 +173,16 @@ export default function UsersPage() {
       // 1. Criar o convite no banco de dados
       const { data: inviteData, error: inviteError } = await supabase
         .from('company_invites')
-        .insert([{
-          company_id: companyId,
-          email: inviteEmail,
-          role: inviteRole as any,
-          team_id: inviteTeam || null,
-          status: 'pending',
-          invited_by: (await supabase.auth.getUser()).data.user?.id
-        }])
+        .insert([
+          {
+            company_id: companyId,
+            email: inviteEmail,
+            role: inviteRole as any,
+            team_id: inviteTeam || null,
+            status: 'pending',
+            invited_by: (await supabase.auth.getUser()).data.user?.id,
+          },
+        ])
         .select()
         .single();
 
@@ -197,8 +195,8 @@ export default function UsersPage() {
           email: inviteEmail,
           role: inviteRole,
           company_name: currentCompany?.name || 'Nossa Empresa',
-          invited_by_name: (await supabase.auth.getUser()).data.user?.user_metadata?.full_name
-        }
+          invited_by_name: (await supabase.auth.getUser()).data.user?.user_metadata?.full_name,
+        },
       });
 
       if (emailError) {
@@ -245,12 +243,13 @@ export default function UsersPage() {
     await handleUpdateMember(member.id, { is_active: !member.is_active });
   };
 
-  const filteredMembers = members.filter(member => {
+  const filteredMembers = members.filter((member) => {
     const matchesSearch =
       member.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || member.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' ||
+    const matchesStatus =
+      statusFilter === 'all' ||
       (statusFilter === 'active' && member.is_active) ||
       (statusFilter === 'inactive' && !member.is_active) ||
       (statusFilter === 'online' && member.is_online);
@@ -260,13 +259,16 @@ export default function UsersPage() {
 
   const stats = {
     total: members.length,
-    active: members.filter(m => m.is_active).length,
-    online: members.filter(m => m.is_online).length,
+    active: members.filter((m) => m.is_active).length,
+    online: members.filter((m) => m.is_online).length,
     byRole: Object.entries(
-      members.reduce((acc, m) => {
-        acc[m.role] = (acc[m.role] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
+      members.reduce(
+        (acc, m) => {
+          acc[m.role] = (acc[m.role] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      )
     ),
   };
 
@@ -367,7 +369,9 @@ export default function UsersPage() {
                 <SelectContent>
                   <SelectItem value="all">Todos os cargos</SelectItem>
                   {Object.entries(ROLE_LABELS).map(([role, { label }]) => (
-                    <SelectItem key={role} value={role}>{label}</SelectItem>
+                    <SelectItem key={role} value={role}>
+                      {label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -408,9 +412,7 @@ export default function UsersPage() {
                       <div className="relative">
                         <Avatar>
                           <AvatarImage src={member.avatar_url} />
-                          <AvatarFallback>
-                            {member.display_name?.charAt(0) || '?'}
-                          </AvatarFallback>
+                          <AvatarFallback>{member.display_name?.charAt(0) || '?'}</AvatarFallback>
                         </Avatar>
                         {member.is_online && (
                           <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white" />
@@ -439,10 +441,13 @@ export default function UsersPage() {
 
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${member.is_online
-                          ? STATUS_LABELS[member.current_status]?.color || 'bg-green-500'
-                          : 'bg-gray-400'
-                        }`} />
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          member.is_online
+                            ? STATUS_LABELS[member.current_status]?.color || 'bg-green-500'
+                            : 'bg-gray-400'
+                        }`}
+                      />
                       <span className="text-sm">
                         {member.is_online
                           ? STATUS_LABELS[member.current_status]?.label || 'Online'
@@ -467,18 +472,22 @@ export default function UsersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedMember(member);
-                          setIsEditOpen(true);
-                        }}>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedMember(member);
+                            setIsEditOpen(true);
+                          }}
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedMember(member);
-                          setIsPermissionsOpen(true);
-                        }}>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedMember(member);
+                            setIsPermissionsOpen(true);
+                          }}
+                        >
                           <Key className="h-4 w-4 mr-2" />
                           Permissões
                         </DropdownMenuItem>
@@ -540,9 +549,10 @@ export default function UsersPage() {
                     {Object.entries(ROLE_LABELS)
                       .filter(([role]) => role !== 'owner')
                       .map(([role, { label }]) => (
-                        <SelectItem key={role} value={role}>{label}</SelectItem>
-                      ))
-                    }
+                        <SelectItem key={role} value={role}>
+                          {label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -556,7 +566,9 @@ export default function UsersPage() {
                   <SelectContent>
                     <SelectItem value="">Nenhuma</SelectItem>
                     {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -586,9 +598,7 @@ function AccessDenied() {
     <div className="flex flex-col items-center justify-center h-[60vh] text-center">
       <Shield className="h-16 w-16 text-muted-foreground mb-4" />
       <h2 className="text-2xl font-bold">Acesso Negado</h2>
-      <p className="text-muted-foreground mt-2">
-        Você não tem permissão para acessar esta página.
-      </p>
+      <p className="text-muted-foreground mt-2">Você não tem permissão para acessar esta página.</p>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useRef, useCallback } from "react";
-import { toast } from "sonner";
-import { useCompany } from "@/contexts/CompanyContext";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useRef, useCallback } from 'react';
+import { toast } from 'sonner';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface NotificationSettings {
   enabled: boolean;
@@ -22,7 +22,7 @@ const createBeepSound = (audioContext: AudioContext, volume: number): void => {
   gainNode.connect(audioContext.destination);
 
   oscillator.frequency.value = 880; // Frequência em Hz (nota A5)
-  oscillator.type = "sine";
+  oscillator.type = 'sine';
 
   gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
@@ -37,7 +37,7 @@ export interface Notification {
   user_id: string;
   title: string;
   message: string;
-  type: "message" | "task" | "deal" | "inactivity" | "system";
+  type: 'message' | 'task' | 'deal' | 'inactivity' | 'system';
   entity_type: string | null;
   entity_id: string | null;
   is_read: boolean;
@@ -55,20 +55,22 @@ export const useNotifications = () => {
 
   // Buscar configurações de notificação do usuário
   const { data: notificationSettings } = useQuery({
-    queryKey: ["notification-settings", currentCompany?.id],
+    queryKey: ['notification-settings', currentCompany?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || !currentCompany) return null;
 
       const { data, error } = await supabase
-        .from("notification_settings")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("company_id", currentCompany.id)
+        .from('notification_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id)
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching notification settings:", error);
+        console.error('Error fetching notification settings:', error);
         return null;
       }
 
@@ -84,8 +86,12 @@ export const useNotifications = () => {
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
 
-    const [startHour, startMin] = (notificationSettings.do_not_disturb_start || "22:00").split(":").map(Number);
-    const [endHour, endMin] = (notificationSettings.do_not_disturb_end || "08:00").split(":").map(Number);
+    const [startHour, startMin] = (notificationSettings.do_not_disturb_start || '22:00')
+      .split(':')
+      .map(Number);
+    const [endHour, endMin] = (notificationSettings.do_not_disturb_end || '08:00')
+      .split(':')
+      .map(Number);
 
     const startTime = startHour * 60 + startMin;
     const endTime = endHour * 60 + endMin;
@@ -106,13 +112,13 @@ export const useNotifications = () => {
       }
 
       // Resumir contexto se estiver suspenso
-      if (audioContextRef.current.state === "suspended") {
+      if (audioContextRef.current.state === 'suspended') {
         audioContextRef.current.resume();
       }
 
       createBeepSound(audioContextRef.current, volume);
     } catch (error) {
-      console.error("Error playing beep:", error);
+      console.error('Error playing beep:', error);
     }
   }, []);
 
@@ -127,7 +133,7 @@ export const useNotifications = () => {
 
     try {
       if (!audioRef.current) {
-        audioRef.current = new Audio("/notification.mp3");
+        audioRef.current = new Audio('/notification.mp3');
       }
 
       audioRef.current.volume = volume;
@@ -144,16 +150,18 @@ export const useNotifications = () => {
 
   // Buscar notificações
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ['notifications'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -162,94 +170,95 @@ export const useNotifications = () => {
   });
 
   // Contagem de não lidas
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   // Marcar como lida
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
       const { error } = await supabase
-        .from("notifications")
+        .from('notifications')
         .update({
           is_read: true,
           read_at: new Date().toISOString(),
         })
-        .eq("id", notificationId);
+        .eq('id', notificationId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
   // Marcar todas como lidas
   const markAllAsRead = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
       const { error } = await supabase
-        .from("notifications")
+        .from('notifications')
         .update({
           is_read: true,
           read_at: new Date().toISOString(),
         })
-        .eq("user_id", user.id)
-        .eq("is_read", false);
+        .eq('user_id', user.id)
+        .eq('is_read', false);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast.success("Todas as notificações marcadas como lidas");
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast.success('Todas as notificações marcadas como lidas');
     },
   });
 
   // Deletar notificação
   const deleteNotification = useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
-        .from("notifications")
-        .delete()
-        .eq("id", notificationId);
+      const { error } = await supabase.from('notifications').delete().eq('id', notificationId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
   // Limpar todas as notificações lidas
   const clearAllRead = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
       const { error } = await supabase
-        .from("notifications")
+        .from('notifications')
         .delete()
-        .eq("user_id", user.id)
-        .eq("is_read", true);
+        .eq('user_id', user.id)
+        .eq('is_read', true);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast.success("Notificações limpas");
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast.success('Notificações limpas');
     },
   });
 
   // Realtime - escutar novas notificações
   useEffect(() => {
     const channel = supabase
-      .channel("notifications-realtime")
+      .channel('notifications-realtime')
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
         },
         (payload) => {
           const newNotification = payload.new as Notification;
@@ -261,17 +270,17 @@ export const useNotifications = () => {
           if (isDoNotDisturbActive()) return;
 
           // Adicionar na lista
-          queryClient.setQueryData(
-            ["notifications"],
-            (old: Notification[] = []) => [newNotification, ...old]
-          );
+          queryClient.setQueryData(['notifications'], (old: Notification[] = []) => [
+            newNotification,
+            ...old,
+          ]);
 
           // Mostrar toast
           toast(newNotification.title, {
             description: newNotification.message,
             action: newNotification.action_url
               ? {
-                  label: "Ver",
+                  label: 'Ver',
                   onClick: () => {
                     window.location.href = newNotification.action_url!;
                   },

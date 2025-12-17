@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompanyQuery } from "./crm/useCompanyQuery";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanyQuery } from './crm/useCompanyQuery';
+import { toast } from 'sonner';
 
 export interface Queue {
   id: string;
@@ -38,13 +38,13 @@ export const useQueues = () => {
   const queryClient = useQueryClient();
 
   const { data: queues, isLoading } = useQuery({
-    queryKey: ["queues", getCompanyId()],
+    queryKey: ['queues', getCompanyId()],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("queues")
-        .select("*")
-        .eq("company_id", getCompanyId())
-        .order("display_order");
+        .from('queues')
+        .select('*')
+        .eq('company_id', getCompanyId())
+        .order('display_order');
 
       if (error) throw error;
       return data as Queue[];
@@ -55,19 +55,21 @@ export const useQueues = () => {
   const createQueue = useMutation({
     mutationFn: async (queue: Partial<Queue> & { name: string }) => {
       const { data, error } = await supabase
-        .from("queues")
-        .insert([{
-          name: queue.name,
-          description: queue.description,
-          color: queue.color || "#3B82F6",
-          max_conversations_per_agent: queue.max_conversations_per_agent || 5,
-          auto_assign: queue.auto_assign !== undefined ? queue.auto_assign : true,
-          assignment_method: queue.assignment_method || "round_robin",
-          working_hours: queue.working_hours,
-          is_active: queue.is_active !== undefined ? queue.is_active : true,
-          display_order: queue.display_order || 0,
-          company_id: getCompanyId(),
-        }])
+        .from('queues')
+        .insert([
+          {
+            name: queue.name,
+            description: queue.description,
+            color: queue.color || '#3B82F6',
+            max_conversations_per_agent: queue.max_conversations_per_agent || 5,
+            auto_assign: queue.auto_assign !== undefined ? queue.auto_assign : true,
+            assignment_method: queue.assignment_method || 'round_robin',
+            working_hours: queue.working_hours,
+            is_active: queue.is_active !== undefined ? queue.is_active : true,
+            display_order: queue.display_order || 0,
+            company_id: getCompanyId(),
+          },
+        ])
         .select()
         .single();
 
@@ -75,8 +77,8 @@ export const useQueues = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["queues"] });
-      toast.success("Fila criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['queues'] });
+      toast.success('Fila criada com sucesso!');
     },
     onError: (error: any) => {
       toast.error(`Erro ao criar fila: ${error.message}`);
@@ -86,9 +88,9 @@ export const useQueues = () => {
   const updateQueue = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Queue> & { id: string }) => {
       const { data, error } = await supabase
-        .from("queues")
+        .from('queues')
         .update(updates)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -96,8 +98,8 @@ export const useQueues = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["queues"] });
-      toast.success("Fila atualizada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['queues'] });
+      toast.success('Fila atualizada com sucesso!');
     },
     onError: (error: any) => {
       toast.error(`Erro ao atualizar fila: ${error.message}`);
@@ -106,12 +108,12 @@ export const useQueues = () => {
 
   const deleteQueue = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("queues").delete().eq("id", id);
+      const { error } = await supabase.from('queues').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["queues"] });
-      toast.success("Fila excluída com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['queues'] });
+      toast.success('Fila excluída com sucesso!');
     },
     onError: (error: any) => {
       toast.error(`Erro ao excluir fila: ${error.message}`);
@@ -131,12 +133,12 @@ export const useQueueMembers = (queueId?: string) => {
   const queryClient = useQueryClient();
 
   const { data: members, isLoading } = useQuery({
-    queryKey: ["queue-members", queueId],
+    queryKey: ['queue-members', queueId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("queue_members")
-        .select("*, profiles(id, full_name, avatar_url)")
-        .eq("queue_id", queueId!);
+        .from('queue_members')
+        .select('*, profiles(id, full_name, avatar_url)')
+        .eq('queue_id', queueId!);
 
       if (error) throw error;
       return data as QueueMember[];
@@ -145,15 +147,22 @@ export const useQueueMembers = (queueId?: string) => {
   });
 
   const addMember = useMutation({
-    mutationFn: async (member: { queue_id: string; user_id: string; is_active?: boolean; max_conversations?: number | null }) => {
+    mutationFn: async (member: {
+      queue_id: string;
+      user_id: string;
+      is_active?: boolean;
+      max_conversations?: number | null;
+    }) => {
       const { data, error } = await supabase
-        .from("queue_members")
-        .insert([{
-          queue_id: member.queue_id,
-          user_id: member.user_id,
-          is_active: member.is_active !== undefined ? member.is_active : true,
-          max_conversations: member.max_conversations,
-        }])
+        .from('queue_members')
+        .insert([
+          {
+            queue_id: member.queue_id,
+            user_id: member.user_id,
+            is_active: member.is_active !== undefined ? member.is_active : true,
+            max_conversations: member.max_conversations,
+          },
+        ])
         .select()
         .single();
 
@@ -161,12 +170,12 @@ export const useQueueMembers = (queueId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["queue-members"] });
-      toast.success("Membro adicionado à fila!");
+      queryClient.invalidateQueries({ queryKey: ['queue-members'] });
+      toast.success('Membro adicionado à fila!');
     },
     onError: (error: any) => {
-      if (error.code === "23505") {
-        toast.error("Este usuário já está nesta fila!");
+      if (error.code === '23505') {
+        toast.error('Este usuário já está nesta fila!');
       } else {
         toast.error(`Erro ao adicionar membro: ${error.message}`);
       }
@@ -176,9 +185,9 @@ export const useQueueMembers = (queueId?: string) => {
   const updateMember = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<QueueMember> & { id: string }) => {
       const { data, error } = await supabase
-        .from("queue_members")
+        .from('queue_members')
         .update(updates)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -186,8 +195,8 @@ export const useQueueMembers = (queueId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["queue-members"] });
-      toast.success("Membro atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['queue-members'] });
+      toast.success('Membro atualizado!');
     },
     onError: (error: any) => {
       toast.error(`Erro ao atualizar membro: ${error.message}`);
@@ -196,12 +205,12 @@ export const useQueueMembers = (queueId?: string) => {
 
   const removeMember = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("queue_members").delete().eq("id", id);
+      const { error } = await supabase.from('queue_members').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["queue-members"] });
-      toast.success("Membro removido da fila!");
+      queryClient.invalidateQueries({ queryKey: ['queue-members'] });
+      toast.success('Membro removido da fila!');
     },
     onError: (error: any) => {
       toast.error(`Erro ao remover membro: ${error.message}`);

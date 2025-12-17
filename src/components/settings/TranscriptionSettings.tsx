@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, FileAudio } from 'lucide-react';
 import { useToast } from '@/hooks/ui/use-toast';
@@ -72,12 +78,10 @@ export function TranscriptionSettings() {
     try {
       setSaving(true);
 
-      const { error } = await supabase
-        .from('transcription_configs')
-        .upsert({
-          ...config,
-          company_id: currentCompany.id,
-        });
+      const { error } = await supabase.from('transcription_configs').upsert({
+        ...config,
+        company_id: currentCompany.id,
+      });
 
       if (error) throw error;
 
@@ -130,9 +134,7 @@ export function TranscriptionSettings() {
           <Switch
             id="auto-transcribe"
             checked={config.auto_transcribe}
-            onCheckedChange={(checked) =>
-              setConfig({ ...config, auto_transcribe: checked })
-            }
+            onCheckedChange={(checked) => setConfig({ ...config, auto_transcribe: checked })}
           />
         </div>
 
@@ -149,15 +151,9 @@ export function TranscriptionSettings() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="groq">
-                Groq (Whisper Large V3) - Recomendado
-              </SelectItem>
-              <SelectItem value="openai">
-                OpenAI (Whisper V1)
-              </SelectItem>
-              <SelectItem value="assemblyai">
-                AssemblyAI
-              </SelectItem>
+              <SelectItem value="groq">Groq (Whisper Large V3) - Recomendado</SelectItem>
+              <SelectItem value="openai">OpenAI (Whisper V1)</SelectItem>
+              <SelectItem value="assemblyai">AssemblyAI</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
@@ -170,9 +166,7 @@ export function TranscriptionSettings() {
           <Label htmlFor="language">Idioma Padrão</Label>
           <Select
             value={config.language}
-            onValueChange={(value) =>
-              setConfig({ ...config, language: value })
-            }
+            onValueChange={(value) => setConfig({ ...config, language: value })}
           >
             <SelectTrigger id="language">
               <SelectValue />
@@ -198,9 +192,7 @@ export function TranscriptionSettings() {
             <Label htmlFor="model">Modelo</Label>
             <Select
               value={config.model}
-              onValueChange={(value) =>
-                setConfig({ ...config, model: value })
-              }
+              onValueChange={(value) => setConfig({ ...config, model: value })}
             >
               <SelectTrigger id="model">
                 <SelectValue />
@@ -209,9 +201,7 @@ export function TranscriptionSettings() {
                 <SelectItem value="whisper-large-v3">
                   Whisper Large V3 (Melhor qualidade)
                 </SelectItem>
-                <SelectItem value="whisper-large-v2">
-                  Whisper Large V2
-                </SelectItem>
+                <SelectItem value="whisper-large-v2">Whisper Large V2</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -10,11 +10,7 @@ interface UseLongPressOptions {
  * Hook para detectar long press em elementos
  * Útil para menus de contexto no mobile
  */
-export const useLongPress = ({
-  onLongPress,
-  onClick,
-  delay = 500,
-}: UseLongPressOptions) => {
+export const useLongPress = ({ onLongPress, onClick, delay = 500 }: UseLongPressOptions) => {
   const timerRef = useRef<NodeJS.Timeout>();
   const isLongPressRef = useRef(false);
 

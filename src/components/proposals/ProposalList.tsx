@@ -1,32 +1,32 @@
-import { useState } from "react";
-import { useProposals, Proposal } from "@/hooks/chat/useProposals";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { FileText, Link as LinkIcon, Eye, History, GitCompare } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
-import { ProposalVersionHistory } from "./ProposalVersionHistory";
-import { ProposalComparison } from "./ProposalComparison";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useProposals, Proposal } from '@/hooks/chat/useProposals';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { FileText, Link as LinkIcon, Eye, History, GitCompare } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
+import { ProposalVersionHistory } from './ProposalVersionHistory';
+import { ProposalComparison } from './ProposalComparison';
+import { useQuery } from '@tanstack/react-query';
 
 const statusColors = {
-  draft: "bg-gray-500",
-  sent: "bg-blue-500",
-  viewed: "bg-yellow-500",
-  accepted: "bg-green-500",
-  rejected: "bg-red-500",
-  expired: "bg-gray-400",
+  draft: 'bg-gray-500',
+  sent: 'bg-blue-500',
+  viewed: 'bg-yellow-500',
+  accepted: 'bg-green-500',
+  rejected: 'bg-red-500',
+  expired: 'bg-gray-400',
 };
 
 const statusLabels = {
-  draft: "Rascunho",
-  sent: "Enviada",
-  viewed: "Visualizada",
-  accepted: "Aceita",
-  rejected: "Rejeitada",
-  expired: "Expirada",
+  draft: 'Rascunho',
+  sent: 'Enviada',
+  viewed: 'Visualizada',
+  accepted: 'Aceita',
+  rejected: 'Rejeitada',
+  expired: 'Expirada',
 };
 
 export const ProposalList = () => {
@@ -40,10 +40,10 @@ export const ProposalList = () => {
 
   // Get versions for selected proposal
   const { data: versions = [] } = useQuery({
-    queryKey: ["proposal-versions", selectedProposal],
+    queryKey: ['proposal-versions', selectedProposal],
     queryFn: () => {
       if (!selectedProposal) return [];
-      const proposal = proposals.find(p => p.id === selectedProposal);
+      const proposal = proposals.find((p) => p.id === selectedProposal);
       if (!proposal) return [];
       return getVersionHistory(proposal.deal_id);
     },
@@ -55,11 +55,11 @@ export const ProposalList = () => {
       const updated = await generatePublicLink(proposal.id);
       const publicUrl = `${window.location.origin}/p/${updated.public_link}`;
       navigator.clipboard.writeText(publicUrl);
-      toast.success("Link gerado e copiado!");
+      toast.success('Link gerado e copiado!');
     } else {
       const publicUrl = `${window.location.origin}/p/${proposal.public_link}`;
       navigator.clipboard.writeText(publicUrl);
-      toast.success("Link copiado!");
+      toast.success('Link copiado!');
     }
   };
 
@@ -70,13 +70,13 @@ export const ProposalList = () => {
 
   const handleViewVersion = (versionId: string) => {
     // In a real implementation, would navigate to proposal detail
-    toast.info("Visualização de versão específica será implementada");
+    toast.info('Visualização de versão específica será implementada');
   };
 
   const handleCompareVersions = async (versionId1: string, versionId2: string) => {
-    const v1 = versions.find(v => v.id === versionId1);
-    const v2 = versions.find(v => v.id === versionId2);
-    
+    const v1 = versions.find((v) => v.id === versionId1);
+    const v2 = versions.find((v) => v.id === versionId2);
+
     if (v1 && v2) {
       setComparisonVersions({ version1: v1, version2: v2 });
       setShowVersionHistory(false);
@@ -84,19 +84,22 @@ export const ProposalList = () => {
   };
 
   // Group proposals by deal and get latest version
-  const groupedProposals = proposals.reduce((acc, proposal) => {
-    const key = proposal.deal_id;
-    if (!acc[key] || proposal.version > acc[key].version) {
-      acc[key] = proposal;
-    }
-    return acc;
-  }, {} as Record<string, Proposal>);
+  const groupedProposals = proposals.reduce(
+    (acc, proposal) => {
+      const key = proposal.deal_id;
+      if (!acc[key] || proposal.version > acc[key].version) {
+        acc[key] = proposal;
+      }
+      return acc;
+    },
+    {} as Record<string, Proposal>
+  );
 
   const latestProposals = Object.values(groupedProposals);
 
   // Get version count for each proposal
   const getVersionCount = (dealId: string) => {
-    return proposals.filter(p => p.deal_id === dealId).length;
+    return proposals.filter((p) => p.deal_id === dealId).length;
   };
 
   if (isLoading) {
@@ -122,7 +125,7 @@ export const ProposalList = () => {
       <div className="space-y-4">
         {latestProposals.map((proposal) => {
           const versionCount = getVersionCount(proposal.deal_id);
-          
+
           return (
             <Card key={proposal.id}>
               <CardHeader>
@@ -149,13 +152,14 @@ export const ProposalList = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
                       }).format(proposal.total)}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      Criada {formatDistanceToNow(new Date(proposal.created_at), {
+                      Criada{' '}
+                      {formatDistanceToNow(new Date(proposal.created_at), {
                         addSuffix: true,
                         locale: ptBR,
                       })}
@@ -163,7 +167,8 @@ export const ProposalList = () => {
                     {proposal.viewed_at && (
                       <div className="text-sm text-muted-foreground">
                         <Eye className="inline h-3 w-3 mr-1" />
-                        Visualizada {formatDistanceToNow(new Date(proposal.viewed_at), {
+                        Visualizada{' '}
+                        {formatDistanceToNow(new Date(proposal.viewed_at), {
                           addSuffix: true,
                           locale: ptBR,
                         })}
@@ -182,21 +187,17 @@ export const ProposalList = () => {
                         Histórico ({versionCount})
                       </Button>
                     )}
-                    {(proposal.status === "draft" || proposal.status === "sent") && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyPublicLink(proposal)}
-                      >
+                    {(proposal.status === 'draft' || proposal.status === 'sent') && (
+                      <Button variant="outline" size="sm" onClick={() => copyPublicLink(proposal)}>
                         <LinkIcon className="h-4 w-4 mr-2" />
-                        {proposal.public_link ? "Copiar Link" : "Gerar Link"}
+                        {proposal.public_link ? 'Copiar Link' : 'Gerar Link'}
                       </Button>
                     )}
                   </div>
                 </div>
 
                 <div className="mt-4 text-sm text-muted-foreground">
-                  {proposal.items.length} {proposal.items.length === 1 ? "item" : "itens"} • 
+                  {proposal.items.length} {proposal.items.length === 1 ? 'item' : 'itens'} •
                   Validade: {proposal.validity_days} dias
                 </div>
               </CardContent>
@@ -209,7 +210,7 @@ export const ProposalList = () => {
         open={showVersionHistory}
         onOpenChange={setShowVersionHistory}
         versions={versions}
-        currentVersionId={selectedProposal || ""}
+        currentVersionId={selectedProposal || ''}
         onViewVersion={handleViewVersion}
         onCompareVersions={handleCompareVersions}
       />

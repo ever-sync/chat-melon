@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useProposalTemplates } from "@/hooks/useProposalTemplates";
-import { Plus, FileText, Trash2, Edit, Copy } from "lucide-react";
+import { useState } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useProposalTemplates } from '@/hooks/useProposalTemplates';
+import { Plus, FileText, Trash2, Edit, Copy } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 export default function ProposalTemplates() {
   const { templates, isLoading, deleteTemplate } = useProposalTemplates();
@@ -87,9 +87,7 @@ export default function ProposalTemplates() {
                         )}
                       </CardTitle>
                       {template.description && (
-                        <CardDescription className="mt-1">
-                          {template.description}
-                        </CardDescription>
+                        <CardDescription className="mt-1">{template.description}</CardDescription>
                       )}
                     </div>
                   </div>
@@ -149,7 +147,10 @@ export default function ProposalTemplates() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

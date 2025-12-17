@@ -1,17 +1,17 @@
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import SignatureCanvas from "react-signature-canvas";
-import { toast } from "sonner";
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import SignatureCanvas from 'react-signature-canvas';
+import { toast } from 'sonner';
 
 export const ProposalPublic = () => {
   const { slug } = useParams();
@@ -20,9 +20,9 @@ export const ProposalPublic = () => {
   const [loading, setLoading] = useState(true);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const [clientName, setClientName] = useState("");
-  const [clientDocument, setClientDocument] = useState("");
-  const [rejectionReason, setRejectionReason] = useState("");
+  const [clientName, setClientName] = useState('');
+  const [clientDocument, setClientDocument] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
   const [processing, setProcessing] = useState(false);
   const signatureRef = useRef<SignatureCanvas>(null);
 
@@ -36,8 +36,9 @@ export const ProposalPublic = () => {
   const loadProposal = async () => {
     try {
       const { data, error } = await supabase
-        .from("proposals")
-        .select(`
+        .from('proposals')
+        .select(
+          `
           *,
           deals (
             id,
@@ -48,15 +49,16 @@ export const ProposalPublic = () => {
               company_id
             )
           )
-        `)
-        .eq("public_link", slug)
+        `
+        )
+        .eq('public_link', slug)
         .maybeSingle();
 
       if (error) throw error;
       setProposal(data);
     } catch (error) {
-      console.error("Erro ao carregar proposta:", error);
-      toast.error("Proposta não encontrada");
+      console.error('Erro ao carregar proposta:', error);
+      toast.error('Proposta não encontrada');
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ export const ProposalPublic = () => {
   const trackView = async () => {
     try {
       // Registrar visualização
-      await supabase.from("proposal_views").insert({
+      await supabase.from('proposal_views').insert({
         proposal_id: proposal?.id,
         session_id: crypto.randomUUID(),
       });
@@ -73,21 +75,21 @@ export const ProposalPublic = () => {
       // Se é primeira visualização, atualizar status
       if (proposal && !proposal.viewed_at) {
         await supabase
-          .from("proposals")
+          .from('proposals')
           .update({
             viewed_at: new Date().toISOString(),
-            status: "viewed",
+            status: 'viewed',
           })
-          .eq("id", proposal.id);
+          .eq('id', proposal.id);
       }
     } catch (error) {
-      console.error("Erro ao registrar visualização:", error);
+      console.error('Erro ao registrar visualização:', error);
     }
   };
 
   const handleApprove = async () => {
     if (!clientName.trim() || !signatureRef.current?.isEmpty()) {
-      toast.error("Preencha todos os campos e assine");
+      toast.error('Preencha todos os campos e assine');
       return;
     }
 
@@ -95,7 +97,7 @@ export const ProposalPublic = () => {
     try {
       const signatureData = signatureRef.current?.toDataURL();
 
-      const { error } = await supabase.functions.invoke("approve-proposal", {
+      const { error } = await supabase.functions.invoke('approve-proposal', {
         body: {
           proposalId: proposal.id,
           clientName,
@@ -106,12 +108,12 @@ export const ProposalPublic = () => {
 
       if (error) throw error;
 
-      toast.success("Proposta aprovada com sucesso!");
+      toast.success('Proposta aprovada com sucesso!');
       setShowApproveDialog(false);
       loadProposal();
     } catch (error) {
-      console.error("Erro ao aprovar:", error);
-      toast.error("Erro ao aprovar proposta");
+      console.error('Erro ao aprovar:', error);
+      toast.error('Erro ao aprovar proposta');
     } finally {
       setProcessing(false);
     }
@@ -119,38 +121,38 @@ export const ProposalPublic = () => {
 
   const handleReject = async () => {
     if (!rejectionReason.trim()) {
-      toast.error("Informe o motivo da rejeição");
+      toast.error('Informe o motivo da rejeição');
       return;
     }
 
     setProcessing(true);
     try {
       const { error } = await supabase
-        .from("proposals")
+        .from('proposals')
         .update({
-          status: "rejected",
+          status: 'rejected',
           rejected_at: new Date().toISOString(),
           rejection_reason: rejectionReason,
         })
-        .eq("id", proposal.id);
+        .eq('id', proposal.id);
 
       if (error) throw error;
 
-      toast.success("Resposta enviada ao vendedor");
+      toast.success('Resposta enviada ao vendedor');
       setShowRejectDialog(false);
       loadProposal();
     } catch (error) {
-      console.error("Erro ao rejeitar:", error);
-      toast.error("Erro ao processar solicitação");
+      console.error('Erro ao rejeitar:', error);
+      toast.error('Erro ao processar solicitação');
     } finally {
       setProcessing(false);
     }
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
@@ -174,8 +176,10 @@ export const ProposalPublic = () => {
   }
 
   const items = Array.isArray(proposal.items) ? proposal.items : [];
-  const isExpired = proposal.validity_days && 
-    new Date(proposal.created_at).getTime() + (proposal.validity_days * 24 * 60 * 60 * 1000) < Date.now();
+  const isExpired =
+    proposal.validity_days &&
+    new Date(proposal.created_at).getTime() + proposal.validity_days * 24 * 60 * 60 * 1000 <
+      Date.now();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-8 px-4">
@@ -186,12 +190,22 @@ export const ProposalPublic = () => {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-2xl mb-2">{proposal.title}</CardTitle>
-                <p className="text-muted-foreground">
-                  Para: {proposal.deals?.contacts?.name}
-                </p>
+                <p className="text-muted-foreground">Para: {proposal.deals?.contacts?.name}</p>
               </div>
-              <Badge variant={proposal.status === 'accepted' ? 'default' : proposal.status === 'rejected' ? 'destructive' : 'secondary'}>
-                {proposal.status === 'accepted' ? '✓ Aprovada' : proposal.status === 'rejected' ? '✗ Rejeitada' : 'Pendente'}
+              <Badge
+                variant={
+                  proposal.status === 'accepted'
+                    ? 'default'
+                    : proposal.status === 'rejected'
+                      ? 'destructive'
+                      : 'secondary'
+                }
+              >
+                {proposal.status === 'accepted'
+                  ? '✓ Aprovada'
+                  : proposal.status === 'rejected'
+                    ? '✗ Rejeitada'
+                    : 'Pendente'}
               </Badge>
             </div>
           </CardHeader>
@@ -205,7 +219,10 @@ export const ProposalPublic = () => {
           <CardContent>
             <div className="space-y-3">
               {items.map((item: any, index: number) => (
-                <div key={index} className="flex justify-between items-start p-3 bg-muted/30 rounded-lg">
+                <div
+                  key={index}
+                  className="flex justify-between items-start p-3 bg-muted/30 rounded-lg"
+                >
                   <div className="flex-1">
                     <p className="font-medium">{item.name}</p>
                     {item.description && (
@@ -272,7 +289,9 @@ export const ProposalPublic = () => {
         )}
 
         {/* Ações */}
-        {proposal.status === 'draft' || proposal.status === 'sent' || proposal.status === 'viewed' ? (
+        {proposal.status === 'draft' ||
+        proposal.status === 'sent' ||
+        proposal.status === 'viewed' ? (
           <div className="flex gap-4">
             <Button
               size="lg"
@@ -301,14 +320,18 @@ export const ProposalPublic = () => {
               <p className="text-sm text-green-700 mt-1">Em breve entraremos em contato</p>
             </CardContent>
           </Card>
-        ) : proposal.status === 'rejected' && (
-          <Card className="bg-orange-50 border-orange-200">
-            <CardContent className="pt-6 text-center">
-              <XCircle className="w-12 h-12 text-orange-600 mx-auto mb-2" />
-              <p className="font-semibold text-orange-900">Ajustes Solicitados</p>
-              <p className="text-sm text-orange-700 mt-1">O vendedor está revisando sua solicitação</p>
-            </CardContent>
-          </Card>
+        ) : (
+          proposal.status === 'rejected' && (
+            <Card className="bg-orange-50 border-orange-200">
+              <CardContent className="pt-6 text-center">
+                <XCircle className="w-12 h-12 text-orange-600 mx-auto mb-2" />
+                <p className="font-semibold text-orange-900">Ajustes Solicitados</p>
+                <p className="text-sm text-orange-700 mt-1">
+                  O vendedor está revisando sua solicitação
+                </p>
+              </CardContent>
+            </Card>
+          )
         )}
 
         {isExpired && (
@@ -347,7 +370,7 @@ export const ProposalPublic = () => {
                 <SignatureCanvas
                   ref={signatureRef}
                   canvasProps={{
-                    className: "w-full h-40",
+                    className: 'w-full h-40',
                   }}
                 />
               </div>
@@ -361,12 +384,8 @@ export const ProposalPublic = () => {
               </Button>
             </div>
             <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                onClick={handleApprove}
-                disabled={processing}
-              >
-                {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirmar Aprovação"}
+              <Button className="flex-1" onClick={handleApprove} disabled={processing}>
+                {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar Aprovação'}
               </Button>
               <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
                 Cancelar
@@ -393,12 +412,8 @@ export const ProposalPublic = () => {
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                onClick={handleReject}
-                disabled={processing}
-              >
-                {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar Solicitação"}
+              <Button className="flex-1" onClick={handleReject} disabled={processing}>
+                {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Solicitação'}
               </Button>
               <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
                 Cancelar

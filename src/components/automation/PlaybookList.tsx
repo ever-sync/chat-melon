@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { usePlaybooks } from "@/hooks/usePlaybooks";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { useState } from 'react';
+import { usePlaybooks } from '@/hooks/usePlaybooks';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Zap,
   Plus,
@@ -20,9 +20,9 @@ import {
   Clock,
   Target,
   MessageSquare,
-} from "lucide-react";
-import { PlaybookFlowBuilder } from "./PlaybookFlowBuilder";
-import { Skeleton } from "@/components/ui/skeleton";
+} from 'lucide-react';
+import { PlaybookFlowBuilder } from './PlaybookFlowBuilder';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const triggerIcons = {
   manual: Play,
@@ -33,11 +33,11 @@ const triggerIcons = {
 };
 
 const triggerLabels = {
-  manual: "Manual",
-  stage_change: "Mudança de Stage",
-  time_inactive: "Tempo Inativo",
-  keyword: "Palavra-chave",
-  deal_created: "Deal Criado",
+  manual: 'Manual',
+  stage_change: 'Mudança de Stage',
+  time_inactive: 'Tempo Inativo',
+  keyword: 'Palavra-chave',
+  deal_created: 'Deal Criado',
 };
 
 export const PlaybookList = () => {
@@ -56,7 +56,7 @@ export const PlaybookList = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este playbook?")) {
+    if (confirm('Tem certeza que deseja excluir este playbook?')) {
       deletePlaybook.mutate(id);
     }
   };
@@ -93,9 +93,7 @@ export const PlaybookList = () => {
       {playbooks.length === 0 ? (
         <Card className="p-12 text-center">
           <Zap className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
-            Nenhum playbook criado ainda
-          </h3>
+          <h3 className="text-lg font-semibold mb-2">Nenhum playbook criado ainda</h3>
           <p className="text-muted-foreground mb-4">
             Crie seu primeiro playbook para automatizar tarefas repetitivas
           </p>
@@ -116,26 +114,22 @@ export const PlaybookList = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold">{playbook.name}</h3>
-                      <Badge
-                        variant={playbook.is_active ? "default" : "secondary"}
-                      >
-                        {playbook.is_active ? "Ativo" : "Inativo"}
+                      <Badge variant={playbook.is_active ? 'default' : 'secondary'}>
+                        {playbook.is_active ? 'Ativo' : 'Inativo'}
                       </Badge>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <TriggerIcon className="h-4 w-4" />
                         {triggerLabels[playbook.trigger_type as keyof typeof triggerLabels]}
                       </div>
                     </div>
-                    
+
                     {playbook.description && (
-                      <p className="text-muted-foreground mb-3">
-                        {playbook.description}
-                      </p>
+                      <p className="text-muted-foreground mb-3">{playbook.description}</p>
                     )}
 
                     <div className="flex items-center gap-4 text-sm">
                       <span className="text-muted-foreground">
-                        {stepsCount} {stepsCount === 1 ? "ação" : "ações"}
+                        {stepsCount} {stepsCount === 1 ? 'ação' : 'ações'}
                       </span>
                       <span className="text-muted-foreground">•</span>
                       <span className="text-muted-foreground">

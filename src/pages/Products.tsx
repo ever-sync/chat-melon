@@ -1,32 +1,92 @@
-import { MainLayout } from "@/components/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { MainLayout } from '@/components/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
-  Search, Plus, Pencil, Trash2, Package, Filter, X, Settings, FolderOpen, GripVertical,
-  BookOpen, ShoppingBag, Gift, Briefcase, Wrench, Heart, Star, Zap, Coffee, Music,
-  Camera, Film, Gamepad2, Headphones, Laptop, Smartphone, Watch, Car, Home, Plane
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { useProducts } from "@/hooks/crm/useProducts";
-import { useProductSettings } from "@/hooks/useProductSettings";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { supabase } from "@/integrations/supabase/client";
-import { useCompany } from "@/contexts/CompanyContext";
-import { toast } from "sonner";
-import type { TablesInsert } from "@/integrations/supabase/types";
+  Search,
+  Plus,
+  Pencil,
+  Trash2,
+  Package,
+  Filter,
+  X,
+  Settings,
+  FolderOpen,
+  GripVertical,
+  BookOpen,
+  ShoppingBag,
+  Gift,
+  Briefcase,
+  Wrench,
+  Heart,
+  Star,
+  Zap,
+  Coffee,
+  Music,
+  Camera,
+  Film,
+  Gamepad2,
+  Headphones,
+  Laptop,
+  Smartphone,
+  Watch,
+  Car,
+  Home,
+  Plane,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useProducts } from '@/hooks/crm/useProducts';
+import { useProductSettings } from '@/hooks/useProductSettings';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompany } from '@/contexts/CompanyContext';
+import { toast } from 'sonner';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 // Icon mapping for dynamic icons
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Package, BookOpen, ShoppingBag, Gift, Briefcase, Wrench, Heart, Star, Zap, Coffee,
-  Music, Camera, Film, Gamepad2, Headphones, Laptop, Smartphone, Watch, Car, Home, Plane, Settings, FolderOpen
+  Package,
+  BookOpen,
+  ShoppingBag,
+  Gift,
+  Briefcase,
+  Wrench,
+  Heart,
+  Star,
+  Zap,
+  Coffee,
+  Music,
+  Camera,
+  Film,
+  Gamepad2,
+  Headphones,
+  Laptop,
+  Smartphone,
+  Watch,
+  Car,
+  Home,
+  Plane,
+  Settings,
+  FolderOpen,
 };
 
 const AVAILABLE_ICONS = [
@@ -74,16 +134,21 @@ type ProductCustomField = {
 };
 
 export default function Products() {
-  const { products, isLoading, createProduct, updateProduct, deleteProduct, refetch } = useProducts();
-  const { settings: productSettings, updateSettings: updateProductSettings, isUpdating: isUpdatingSettings } = useProductSettings();
+  const { products, isLoading, createProduct, updateProduct, deleteProduct, refetch } =
+    useProducts();
+  const {
+    settings: productSettings,
+    updateSettings: updateProductSettings,
+    isUpdating: isUpdatingSettings,
+  } = useProductSettings();
   const { currentCompany } = useCompany();
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState('products');
 
   // Settings form state
   const [configForm, setConfigForm] = useState({
-    entity_name: "",
-    entity_name_plural: "",
-    entity_icon: "Package",
+    entity_name: '',
+    entity_name_plural: '',
+    entity_icon: 'Package',
   });
   const [configInitialized, setConfigInitialized] = useState(false);
 
@@ -103,14 +168,14 @@ export default function Products() {
   const EntityIcon = ICON_MAP[productSettings.entity_icon] || Package;
 
   // Products state
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    category: "",
-    minPrice: "",
-    maxPrice: "",
+    category: '',
+    minPrice: '',
+    maxPrice: '',
   });
 
   // Categories state
@@ -118,9 +183,9 @@ export default function Products() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
   const [categoryForm, setCategoryForm] = useState({
-    name: "",
-    description: "",
-    color: "#6366F1",
+    name: '',
+    description: '',
+    color: '#6366F1',
   });
 
   // Custom Fields state
@@ -128,18 +193,18 @@ export default function Products() {
   const [showFieldModal, setShowFieldModal] = useState(false);
   const [editingField, setEditingField] = useState<ProductCustomField | null>(null);
   const [fieldForm, setFieldForm] = useState({
-    name: "",
-    label: "",
-    field_type: "text" as ProductCustomField['field_type'],
-    options: "",
+    name: '',
+    label: '',
+    field_type: 'text' as ProductCustomField['field_type'],
+    options: '',
     is_required: false,
-    default_value: "",
+    default_value: '',
   });
 
   // Product form
   const [productForm, setProductForm] = useState<Record<string, any>>({
-    name: "",
-    category_id: "",
+    name: '',
+    category_id: '',
   });
 
   // Load categories and custom fields
@@ -191,12 +256,12 @@ export default function Products() {
       setEditingCategory(category);
       setCategoryForm({
         name: category.name,
-        description: category.description || "",
-        color: category.color || "#6366F1",
+        description: category.description || '',
+        color: category.color || '#6366F1',
       });
     } else {
       setEditingCategory(null);
-      setCategoryForm({ name: "", description: "", color: "#6366F1" });
+      setCategoryForm({ name: '', description: '', color: '#6366F1' });
     }
     setShowCategoryModal(true);
   };
@@ -218,14 +283,12 @@ export default function Products() {
         if (error) throw error;
         toast.success('Categoria atualizada!');
       } else {
-        const { error } = await supabase
-          .from('product_categories')
-          .insert({
-            company_id: currentCompany.id,
-            name: categoryForm.name,
-            description: categoryForm.description || null,
-            color: categoryForm.color,
-          });
+        const { error } = await supabase.from('product_categories').insert({
+          company_id: currentCompany.id,
+          name: categoryForm.name,
+          description: categoryForm.description || null,
+          color: categoryForm.color,
+        });
 
         if (error) throw error;
         toast.success('Categoria criada!');
@@ -242,10 +305,7 @@ export default function Products() {
     if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
 
     try {
-      const { error } = await supabase
-        .from('product_categories')
-        .delete()
-        .eq('id', categoryId);
+      const { error } = await supabase.from('product_categories').delete().eq('id', categoryId);
 
       if (error) throw error;
       toast.success('Categoria excluída!');
@@ -263,19 +323,19 @@ export default function Products() {
         name: field.name,
         label: field.label,
         field_type: field.field_type,
-        options: field.options?.join(', ') || "",
+        options: field.options?.join(', ') || '',
         is_required: field.is_required,
-        default_value: field.default_value || "",
+        default_value: field.default_value || '',
       });
     } else {
       setEditingField(null);
       setFieldForm({
-        name: "",
-        label: "",
-        field_type: "text",
-        options: "",
+        name: '',
+        label: '',
+        field_type: 'text',
+        options: '',
         is_required: false,
-        default_value: "",
+        default_value: '',
       });
     }
     setShowFieldModal(true);
@@ -289,9 +349,10 @@ export default function Products() {
         name: fieldForm.name.toLowerCase().replace(/\s+/g, '_'),
         label: fieldForm.label,
         field_type: fieldForm.field_type,
-        options: fieldForm.field_type === 'select' && fieldForm.options
-          ? fieldForm.options.split(',').map(o => o.trim())
-          : null,
+        options:
+          fieldForm.field_type === 'select' && fieldForm.options
+            ? fieldForm.options.split(',').map((o) => o.trim())
+            : null,
         is_required: fieldForm.is_required,
         default_value: fieldForm.default_value || null,
       };
@@ -305,13 +366,11 @@ export default function Products() {
         if (error) throw error;
         toast.success('Campo atualizado!');
       } else {
-        const { error } = await supabase
-          .from('product_custom_fields')
-          .insert({
-            ...fieldData,
-            company_id: currentCompany.id,
-            sort_order: customFields.length,
-          });
+        const { error } = await supabase.from('product_custom_fields').insert({
+          ...fieldData,
+          company_id: currentCompany.id,
+          sort_order: customFields.length,
+        });
 
         if (error) throw error;
         toast.success('Campo criado!');
@@ -328,10 +387,7 @@ export default function Products() {
     if (!confirm('Tem certeza que deseja excluir este campo?')) return;
 
     try {
-      const { error } = await supabase
-        .from('product_custom_fields')
-        .delete()
-        .eq('id', fieldId);
+      const { error } = await supabase.from('product_custom_fields').delete().eq('id', fieldId);
 
       if (error) throw error;
       toast.success('Campo excluído!');
@@ -346,8 +402,8 @@ export default function Products() {
     if (product) {
       setEditingProduct(product);
       const formValues: Record<string, any> = {
-        name: product.name || "",
-        category_id: product.category_id || "",
+        name: product.name || '',
+        category_id: product.category_id || '',
       };
       // Load custom field values
       if (product.custom_field_values) {
@@ -358,10 +414,10 @@ export default function Products() {
       setProductForm(formValues);
     } else {
       setEditingProduct(null);
-      const formValues: Record<string, any> = { name: "", category_id: "" };
+      const formValues: Record<string, any> = { name: '', category_id: '' };
       // Set default values for custom fields
-      customFields.forEach(field => {
-        formValues[field.name] = field.default_value || "";
+      customFields.forEach((field) => {
+        formValues[field.name] = field.default_value || '';
       });
       setProductForm(formValues);
     }
@@ -384,8 +440,8 @@ export default function Products() {
 
     // Extract custom field values
     const customFieldValues: Record<string, any> = {};
-    customFields.forEach(field => {
-      if (productForm[field.name] !== undefined && productForm[field.name] !== "") {
+    customFields.forEach((field) => {
+      if (productForm[field.name] !== undefined && productForm[field.name] !== '') {
         customFieldValues[field.name] = productForm[field.name];
       }
     });
@@ -394,7 +450,7 @@ export default function Products() {
       name: productForm.name,
       category_id: productForm.category_id || null,
       custom_field_values: customFieldValues,
-      price: parseFloat(customFieldValues.preco || customFieldValues.price || "0") || 0,
+      price: parseFloat(customFieldValues.preco || customFieldValues.price || '0') || 0,
       description: customFieldValues.descricao || customFieldValues.description || null,
       is_active: true,
     };
@@ -409,12 +465,10 @@ export default function Products() {
         if (error) throw error;
         toast.success('Produto atualizado!');
       } else {
-        const { error } = await supabase
-          .from('products')
-          .insert({
-            ...productData,
-            company_id: currentCompany.id,
-          });
+        const { error } = await supabase.from('products').insert({
+          ...productData,
+          company_id: currentCompany.id,
+        });
 
         if (error) throw error;
         toast.success('Produto criado!');
@@ -428,44 +482,47 @@ export default function Products() {
   };
 
   const handleDeleteProduct = (productId: string) => {
-    if (confirm("Tem certeza que deseja excluir este produto?")) {
+    if (confirm('Tem certeza que deseja excluir este produto?')) {
       deleteProduct(productId);
     }
   };
 
   // Filter products
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = searchQuery === "" ||
-      product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = filters.category === "" || product.category_id === filters.category;
-    const matchesMinPrice = filters.minPrice === "" || product.price >= parseFloat(filters.minPrice);
-    const matchesMaxPrice = filters.maxPrice === "" || product.price <= parseFloat(filters.maxPrice);
+    const matchesSearch =
+      searchQuery === '' || product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filters.category === '' || product.category_id === filters.category;
+    const matchesMinPrice =
+      filters.minPrice === '' || product.price >= parseFloat(filters.minPrice);
+    const matchesMaxPrice =
+      filters.maxPrice === '' || product.price <= parseFloat(filters.maxPrice);
     return matchesSearch && matchesCategory && matchesMinPrice && matchesMaxPrice;
   });
 
-  const hasActiveFilters = filters.category !== "" || filters.minPrice !== "" || filters.maxPrice !== "";
+  const hasActiveFilters =
+    filters.category !== '' || filters.minPrice !== '' || filters.maxPrice !== '';
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
   const getCategoryName = (categoryId: string | null) => {
     if (!categoryId) return null;
-    const category = categories.find(c => c.id === categoryId);
+    const category = categories.find((c) => c.id === categoryId);
     return category?.name || null;
   };
 
   const getCategoryColor = (categoryId: string | null) => {
-    if (!categoryId) return "#6366F1";
-    const category = categories.find(c => c.id === categoryId);
-    return category?.color || "#6366F1";
+    if (!categoryId) return '#6366F1';
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.color || '#6366F1';
   };
 
   const renderCustomFieldInput = (field: ProductCustomField) => {
-    const value = productForm[field.name] || "";
+    const value = productForm[field.name] || '';
 
     switch (field.field_type) {
       case 'textarea':
@@ -482,10 +539,10 @@ export default function Products() {
         return (
           <Input
             type="number"
-            step={field.field_type === 'currency' ? "0.01" : "1"}
+            step={field.field_type === 'currency' ? '0.01' : '1'}
             value={value}
             onChange={(e) => setProductForm({ ...productForm, [field.name]: e.target.value })}
-            placeholder={field.field_type === 'currency' ? "0.00" : "0"}
+            placeholder={field.field_type === 'currency' ? '0.00' : '0'}
           />
         );
       case 'date':
@@ -501,7 +558,9 @@ export default function Products() {
           <div className="flex items-center space-x-2">
             <Switch
               checked={value === 'true' || value === true}
-              onCheckedChange={(checked) => setProductForm({ ...productForm, [field.name]: checked })}
+              onCheckedChange={(checked) =>
+                setProductForm({ ...productForm, [field.name]: checked })
+              }
             />
             <span className="text-sm text-muted-foreground">
               {value === 'true' || value === true ? 'Sim' : 'Não'}
@@ -554,7 +613,9 @@ export default function Products() {
           <div className="flex items-center gap-3">
             <EntityIcon className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">{productSettings.entity_name_plural}</h1>
+              <h1 className="text-3xl font-bold tracking-tight">
+                {productSettings.entity_name_plural}
+              </h1>
               <p className="text-muted-foreground">
                 Gerencie seu catálogo de {productSettings.entity_name_plural.toLowerCase()}
               </p>
@@ -602,7 +663,7 @@ export default function Products() {
                       Filtros
                       {hasActiveFilters && (
                         <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                          {Object.values(filters).filter(v => v !== "").length}
+                          {Object.values(filters).filter((v) => v !== '').length}
                         </span>
                       )}
                     </Button>
@@ -612,7 +673,11 @@ export default function Products() {
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium">Filtros</h4>
                         {hasActiveFilters && (
-                          <Button variant="ghost" size="sm" onClick={() => setFilters({ category: "", minPrice: "", maxPrice: "" })}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFilters({ category: '', minPrice: '', maxPrice: '' })}
+                          >
                             <X className="h-4 w-4 mr-1" />
                             Limpar
                           </Button>
@@ -673,7 +738,7 @@ export default function Products() {
                   <div className="text-center py-8">
                     <Package className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
                     <p className="text-muted-foreground">
-                      {searchQuery ? "Nenhum produto encontrado" : "Nenhum produto cadastrado"}
+                      {searchQuery ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
                     </p>
                   </div>
                 ) : (
@@ -689,7 +754,10 @@ export default function Products() {
                             {product.category_id && (
                               <Badge
                                 variant="outline"
-                                style={{ borderColor: getCategoryColor(product.category_id), color: getCategoryColor(product.category_id) }}
+                                style={{
+                                  borderColor: getCategoryColor(product.category_id),
+                                  color: getCategoryColor(product.category_id),
+                                }}
                               >
                                 {getCategoryName(product.category_id)}
                               </Badge>
@@ -697,7 +765,7 @@ export default function Products() {
                           </div>
                           {/* Mostrar campos customizados */}
                           <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
-                            {customFields.slice(0, 3).map(field => {
+                            {customFields.slice(0, 3).map((field) => {
                               const value = product.custom_field_values?.[field.name];
                               if (!value) return null;
                               return (
@@ -706,7 +774,9 @@ export default function Products() {
                                   {field.field_type === 'currency'
                                     ? formatCurrency(parseFloat(value))
                                     : field.field_type === 'boolean'
-                                      ? (value === 'true' || value === true ? 'Sim' : 'Não')
+                                      ? value === 'true' || value === true
+                                        ? 'Sim'
+                                        : 'Não'
                                       : value}
                                 </span>
                               );
@@ -740,9 +810,7 @@ export default function Products() {
           {/* ===== TAB: CATEGORIAS ===== */}
           <TabsContent value="categories" className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-muted-foreground">
-                Organize seus produtos em categorias
-              </p>
+              <p className="text-muted-foreground">Organize seus produtos em categorias</p>
               <Button onClick={() => handleOpenCategoryModal()}>
                 <Plus className="mr-2 h-4 w-4" />
                 Nova Categoria
@@ -771,7 +839,9 @@ export default function Products() {
                           <div>
                             <p className="font-medium">{category.name}</p>
                             {category.description && (
-                              <p className="text-sm text-muted-foreground">{category.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {category.description}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -884,7 +954,9 @@ export default function Products() {
                     <Input
                       id="entity-name"
                       value={configForm.entity_name}
-                      onChange={(e) => setConfigForm({ ...configForm, entity_name: e.target.value })}
+                      onChange={(e) =>
+                        setConfigForm({ ...configForm, entity_name: e.target.value })
+                      }
                       placeholder="Ex: Produto, Curso, Serviço"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -896,7 +968,9 @@ export default function Products() {
                     <Input
                       id="entity-name-plural"
                       value={configForm.entity_name_plural}
-                      onChange={(e) => setConfigForm({ ...configForm, entity_name_plural: e.target.value })}
+                      onChange={(e) =>
+                        setConfigForm({ ...configForm, entity_name_plural: e.target.value })
+                      }
                       placeholder="Ex: Produtos, Cursos, Serviços"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -916,13 +990,16 @@ export default function Products() {
                           key={name}
                           type="button"
                           onClick={() => setConfigForm({ ...configForm, entity_icon: name })}
-                          className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${isSelected
-                            ? 'border-primary bg-primary/10'
-                            : 'border-border hover:border-primary/50'
-                            }`}
+                          className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+                            isSelected
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
                           title={label}
                         >
-                          <IconComponent className={`h-6 w-6 ${isSelected ? 'text-primary' : ''}`} />
+                          <IconComponent
+                            className={`h-6 w-6 ${isSelected ? 'text-primary' : ''}`}
+                          />
                           <span className="text-[10px] text-muted-foreground truncate w-full text-center">
                             {label}
                           </span>
@@ -940,7 +1017,9 @@ export default function Products() {
                         const PreviewIcon = ICON_MAP[configForm.entity_icon] || Package;
                         return <PreviewIcon className="h-6 w-6 text-primary" />;
                       })()}
-                      <span className="font-medium">{configForm.entity_name_plural || 'Produtos'}</span>
+                      <span className="font-medium">
+                        {configForm.entity_name_plural || 'Produtos'}
+                      </span>
                     </div>
                     <Button
                       onClick={() => updateProductSettings(configForm)}
@@ -961,7 +1040,9 @@ export default function Products() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingProduct ? `Editar ${productSettings.entity_name}` : `Novo ${productSettings.entity_name}`}
+              {editingProduct
+                ? `Editar ${productSettings.entity_name}`
+                : `Novo ${productSettings.entity_name}`}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -1018,7 +1099,8 @@ export default function Products() {
 
             {customFields.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4 border-t">
-                💡 Adicione campos customizados na aba "Campos Customizados" para personalizar este formulário
+                💡 Adicione campos customizados na aba "Campos Customizados" para personalizar este
+                formulário
               </p>
             )}
           </div>
@@ -1026,9 +1108,7 @@ export default function Products() {
             <Button variant="outline" onClick={() => setShowProductModal(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSubmitProduct}>
-              {editingProduct ? "Salvar" : "Criar"}
-            </Button>
+            <Button onClick={handleSubmitProduct}>{editingProduct ? 'Salvar' : 'Criar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1037,9 +1117,7 @@ export default function Products() {
       <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingCategory ? "Editar Categoria" : "Nova Categoria"}
-            </DialogTitle>
+            <DialogTitle>{editingCategory ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1083,9 +1161,7 @@ export default function Products() {
             <Button variant="outline" onClick={() => setShowCategoryModal(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveCategory}>
-              {editingCategory ? "Salvar" : "Criar"}
-            </Button>
+            <Button onClick={handleSaveCategory}>{editingCategory ? 'Salvar' : 'Criar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1094,9 +1170,7 @@ export default function Products() {
       <Dialog open={showFieldModal} onOpenChange={setShowFieldModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingField ? "Editar Campo" : "Novo Campo Customizado"}
-            </DialogTitle>
+            <DialogTitle>{editingField ? 'Editar Campo' : 'Novo Campo Customizado'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1109,7 +1183,10 @@ export default function Products() {
                   setFieldForm({
                     ...fieldForm,
                     label,
-                    name: label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+                    name: label
+                      .toLowerCase()
+                      .replace(/\s+/g, '_')
+                      .replace(/[^a-z0-9_]/g, ''),
                   });
                 }}
                 placeholder="Ex: Preço de Venda"
@@ -1117,18 +1194,15 @@ export default function Products() {
             </div>
             <div>
               <Label htmlFor="field-name">Nome do Campo (automático)</Label>
-              <Input
-                id="field-name"
-                value={fieldForm.name}
-                disabled
-                className="bg-muted"
-              />
+              <Input id="field-name" value={fieldForm.name} disabled className="bg-muted" />
             </div>
             <div>
               <Label htmlFor="field-type">Tipo de Campo *</Label>
               <Select
                 value={fieldForm.field_type}
-                onValueChange={(value: ProductCustomField['field_type']) => setFieldForm({ ...fieldForm, field_type: value })}
+                onValueChange={(value: ProductCustomField['field_type']) =>
+                  setFieldForm({ ...fieldForm, field_type: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -1176,9 +1250,7 @@ export default function Products() {
             <Button variant="outline" onClick={() => setShowFieldModal(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveField}>
-              {editingField ? "Salvar" : "Criar"}
-            </Button>
+            <Button onClick={handleSaveField}>{editingField ? 'Salvar' : 'Criar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -90,14 +90,16 @@ export const useSnooze = () => {
 
       const { data, error } = await supabase
         .from('conversations')
-        .select(`
+        .select(
+          `
           id,
           contact_name,
           contact_number,
           snoozed_until,
           snooze_reason,
           snoozed_by
-        `)
+        `
+        )
         .eq('company_id', companyId)
         .not('snoozed_until', 'is', null)
         .gt('snoozed_until', new Date().toISOString())

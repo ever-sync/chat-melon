@@ -1,23 +1,17 @@
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { toast } from "sonner";
-import { MessageSquare, Send, User, Search, X } from "lucide-react";
-import { useCompany } from "@/contexts/CompanyContext";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { toast } from 'sonner';
+import { MessageSquare, Send, User, Search, X } from 'lucide-react';
+import { useCompany } from '@/contexts/CompanyContext';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface TeamMember {
   id: string;
@@ -47,8 +41,8 @@ export function InternalChatPanel() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [messages, setMessages] = useState<InternalMessage[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [newMessage, setNewMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [totalUnread, setTotalUnread] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -77,11 +71,11 @@ export function InternalChatPanel() {
     const channel = supabase
       .channel(`internal-chat-${currentUserId}`)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "INSERT",
-          schema: "public",
-          table: "internal_messages",
+          event: 'INSERT',
+          schema: 'public',
+          table: 'internal_messages',
           filter: `recipient_id=eq.${currentUserId}`,
         },
         (payload) => {
@@ -106,11 +100,11 @@ export function InternalChatPanel() {
         }
       )
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "internal_messages",
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'internal_messages',
           filter: `recipient_id=eq.${currentUserId}`,
         },
         () => {
@@ -134,10 +128,10 @@ export function InternalChatPanel() {
   const loadTeamMembers = async () => {
     try {
       const { data, error } = await supabase
-        .from("online_users")
-        .select("*")
-        .eq("company_id", currentCompany!.id)
-        .neq("id", currentUserId);
+        .from('online_users')
+        .select('*')
+        .eq('company_id', currentCompany!.id)
+        .neq('id', currentUserId);
 
       if (error) throw error;
 
@@ -145,11 +139,11 @@ export function InternalChatPanel() {
       const membersWithUnread = await Promise.all(
         data.map(async (member) => {
           const { count } = await supabase
-            .from("internal_messages")
-            .select("*", { count: "exact", head: true })
-            .eq("sender_id", member.id)
-            .eq("recipient_id", currentUserId)
-            .is("read_at", null);
+            .from('internal_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('sender_id', member.id)
+            .eq('recipient_id', currentUserId)
+            .is('read_at', null);
 
           return { ...member, unread_count: count || 0 };
         })
@@ -158,17 +152,17 @@ export function InternalChatPanel() {
       setTeamMembers(membersWithUnread);
       updateTotalUnread();
     } catch (error) {
-      console.error("Error loading team members:", error);
-      toast.error("Erro ao carregar equipe");
+      console.error('Error loading team members:', error);
+      toast.error('Erro ao carregar equipe');
     }
   };
 
   const updateTotalUnread = async () => {
     const { count } = await supabase
-      .from("internal_messages")
-      .select("*", { count: "exact", head: true })
-      .eq("recipient_id", currentUserId)
-      .is("read_at", null);
+      .from('internal_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', currentUserId)
+      .is('read_at', null);
 
     setTotalUnread(count || 0);
   };
@@ -178,22 +172,22 @@ export function InternalChatPanel() {
 
     try {
       const { data, error } = await supabase
-        .from("internal_messages")
-        .select("*")
+        .from('internal_messages')
+        .select('*')
         .or(
           `and(sender_id.eq.${currentUserId},recipient_id.eq.${selectedMember.id}),and(sender_id.eq.${selectedMember.id},recipient_id.eq.${currentUserId})`
         )
-        .order("created_at", { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       setMessages(data);
 
       setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } catch (error) {
-      console.error("Error loading messages:", error);
-      toast.error("Erro ao carregar mensagens");
+      console.error('Error loading messages:', error);
+      toast.error('Erro ao carregar mensagens');
     }
   };
 
@@ -201,11 +195,11 @@ export function InternalChatPanel() {
     if (!selectedMember || !currentUserId) return;
 
     await supabase
-      .from("internal_messages")
+      .from('internal_messages')
       .update({ read_at: new Date().toISOString() })
-      .eq("sender_id", selectedMember.id)
-      .eq("recipient_id", currentUserId)
-      .is("read_at", null);
+      .eq('sender_id', selectedMember.id)
+      .eq('recipient_id', currentUserId)
+      .is('read_at', null);
 
     // Update unread count locally
     setTeamMembers((prev) =>
@@ -225,21 +219,21 @@ export function InternalChatPanel() {
     }
 
     try {
-      const { error } = await supabase.from("internal_messages").insert({
+      const { error } = await supabase.from('internal_messages').insert({
         company_id: currentCompany.id,
         sender_id: currentUserId,
         recipient_id: selectedMember.id,
         content: newMessage.trim(),
-        message_type: "text",
+        message_type: 'text',
       });
 
       if (error) throw error;
 
-      setNewMessage("");
-      toast.success("Mensagem enviada!");
+      setNewMessage('');
+      toast.success('Mensagem enviada!');
     } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Erro ao enviar mensagem");
+      console.error('Error sending message:', error);
+      toast.error('Erro ao enviar mensagem');
     }
   };
 
@@ -260,7 +254,7 @@ export function InternalChatPanel() {
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
             >
-              {totalUnread > 9 ? "9+" : totalUnread}
+              {totalUnread > 9 ? '9+' : totalUnread}
             </Badge>
           )}
         </Button>
@@ -350,9 +344,11 @@ export function InternalChatPanel() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{selectedMember.display_name || selectedMember.full_name}</p>
+                  <p className="font-medium">
+                    {selectedMember.display_name || selectedMember.full_name}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedMember.is_online ? "Online" : "Offline"}
+                    {selectedMember.is_online ? 'Online' : 'Offline'}
                   </p>
                 </div>
               </div>
@@ -372,20 +368,18 @@ export function InternalChatPanel() {
                       return (
                         <div
                           key={message.id}
-                          className={cn("flex", isFromMe ? "justify-end" : "justify-start")}
+                          className={cn('flex', isFromMe ? 'justify-end' : 'justify-start')}
                         >
                           <div
                             className={cn(
-                              "max-w-[70%] rounded-lg px-4 py-2",
-                              isFromMe
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted"
+                              'max-w-[70%] rounded-lg px-4 py-2',
+                              isFromMe ? 'bg-primary text-primary-foreground' : 'bg-muted'
                             )}
                           >
                             <p className="break-words">{message.content}</p>
                             <p className="text-xs opacity-70 mt-1">
-                              {format(new Date(message.created_at), "HH:mm", { locale: ptBR })}
-                              {isFromMe && message.read_at && " • Lido"}
+                              {format(new Date(message.created_at), 'HH:mm', { locale: ptBR })}
+                              {isFromMe && message.read_at && ' • Lido'}
                             </p>
                           </div>
                         </div>

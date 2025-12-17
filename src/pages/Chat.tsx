@@ -1,20 +1,20 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { MainLayout } from "@/components/MainLayout";
-import { supabase } from "@/integrations/supabase/client";
-import ConversationList from "@/components/chat/sidebar/ConversationList";
-import MessageArea from "@/components/chat/messages/MessageArea";
-import ContactDetailPanel from "@/components/chat/ContactDetailPanel";
-import { AIControlPanel } from "@/components/chat/AIControlPanel";
-import { BulkActionsToolbar } from "@/components/chat/BulkActionsToolbar";
-import { SnoozedConversationsBadge } from "@/components/chat/sidebar/SnoozedConversationsBadge";
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { supabase } from '@/integrations/supabase/client';
+import ConversationList from '@/components/chat/sidebar/ConversationList';
+import MessageArea from '@/components/chat/messages/MessageArea';
+import ContactDetailPanel from '@/components/chat/ContactDetailPanel';
+import { AIControlPanel } from '@/components/chat/AIControlPanel';
+import { BulkActionsToolbar } from '@/components/chat/BulkActionsToolbar';
+import { SnoozedConversationsBadge } from '@/components/chat/sidebar/SnoozedConversationsBadge';
 
-import { toast } from "sonner";
-import { useNotifications } from "@/hooks/ui/useNotifications";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
-import { ChatFilters, getDefaultFilters } from "@/types/chatFilters";
-import { useBulkConversationActions } from "@/hooks/chat/useBulkConversationActions";
+import { toast } from 'sonner';
+import { useNotifications } from '@/hooks/ui/useNotifications';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
+import { ChatFilters, getDefaultFilters } from '@/types/chatFilters';
+import { useBulkConversationActions } from '@/hooks/chat/useBulkConversationActions';
 
-import type { Conversation } from "@/types/chat";
+import type { Conversation } from '@/types/chat';
 
 const Chat = () => {
   const { withCompanyFilter, companyId } = useCompanyQuery();
@@ -22,7 +22,7 @@ const Chat = () => {
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
@@ -52,7 +52,7 @@ const Chat = () => {
   }, [filters]);
 
   const handleFilterChange = (newFilters: Partial<ChatFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   const handleClearFilters = () => {
@@ -60,7 +60,9 @@ const Chat = () => {
   };
 
   const loadCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) setCurrentUserId(user.id);
   };
 
@@ -73,29 +75,27 @@ const Chat = () => {
 
     try {
       const { data, error } = await withCompanyFilter(
-        supabase
-          .from("conversations")
-          .select(`
+        supabase.from('conversations').select(`
             *,
             contacts (
               profile_pic_url
             )
           `)
-      ).order("last_message_time", { ascending: false });
+      ).order('last_message_time', { ascending: false });
 
       if (error) throw error;
 
       // Mesclar profile_pic_url do contact na conversation
       const conversationsWithPhotos = (data || []).map((conv: any) => ({
         ...conv,
-        profile_pic_url: conv.contacts?.profile_pic_url || conv.profile_pic_url
+        profile_pic_url: conv.contacts?.profile_pic_url || conv.profile_pic_url,
       }));
 
       setConversations(conversationsWithPhotos || []);
       setFilteredConversations(conversationsWithPhotos || []);
     } catch (error) {
-      console.error("Erro ao carregar conversas:", error);
-      toast.error("Não foi possível carregar as conversas");
+      console.error('Erro ao carregar conversas:', error);
+      toast.error('Não foi possível carregar as conversas');
     } finally {
       setIsLoading(false);
     }
@@ -120,54 +120,50 @@ const Chat = () => {
     const channel = supabase
       .channel(`conversations-${companyId}`)
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "INSERT",
-          schema: "public",
-          table: "conversations",
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversations',
           filter: `company_id=eq.${companyId}`,
         },
         (payload) => {
-          console.log("Realtime: New conversation", payload);
+          console.log('Realtime: New conversation', payload);
           setConversations((prev) => [payload.new as Conversation, ...prev]);
         }
       )
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "UPDATE",
-          schema: "public",
-          table: "conversations",
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
           filter: `company_id=eq.${companyId}`,
         },
         (payload) => {
-          console.log("Realtime: Conversation updated", payload);
+          console.log('Realtime: Conversation updated', payload);
           setConversations((prev) =>
-            prev.map((conv) =>
-              conv.id === payload.new.id ? (payload.new as Conversation) : conv
-            )
+            prev.map((conv) => (conv.id === payload.new.id ? (payload.new as Conversation) : conv))
           );
         }
       )
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "DELETE",
-          schema: "public",
-          table: "conversations",
+          event: 'DELETE',
+          schema: 'public',
+          table: 'conversations',
           filter: `company_id=eq.${companyId}`,
         },
         (payload) => {
-          console.log("Realtime: Conversation deleted", payload);
-          setConversations((prev) =>
-            prev.filter((conv) => conv.id !== payload.old.id)
-          );
+          console.log('Realtime: Conversation deleted', payload);
+          setConversations((prev) => prev.filter((conv) => conv.id !== payload.old.id));
         }
       )
       .subscribe((status) => {
-        console.log("Realtime conversations status:", status);
-        if (status === "SUBSCRIBED") {
-          console.log("✅ Realtime conversations conectado!");
+        console.log('Realtime conversations status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Realtime conversations conectado!');
         }
       });
 
@@ -186,26 +182,26 @@ const Chat = () => {
 
     // Filtro por status (múltiplos)
     if (filters.status.length > 0) {
-      filtered = filtered.filter(conv => filters.status.includes(conv.status || ''));
+      filtered = filtered.filter((conv) => filters.status.includes(conv.status || ''));
     }
 
     // Filtro por atribuição
-    if (filters.assignedTo !== "all") {
-      if (filters.assignedTo === "me") {
-        filtered = filtered.filter(conv => conv.assigned_to === currentUserId);
-      } else if (filters.assignedTo === "unassigned") {
-        filtered = filtered.filter(conv => !conv.assigned_to);
+    if (filters.assignedTo !== 'all') {
+      if (filters.assignedTo === 'me') {
+        filtered = filtered.filter((conv) => conv.assigned_to === currentUserId);
+      } else if (filters.assignedTo === 'unassigned') {
+        filtered = filtered.filter((conv) => !conv.assigned_to);
       }
     }
 
     // Filtro por não lidas
     if (filters.hasUnread) {
-      filtered = filtered.filter(conv => conv.unread_count > 0);
+      filtered = filtered.filter((conv) => conv.unread_count > 0);
     }
 
     // Filtro por setor
     if (filters.sector) {
-      filtered = filtered.filter(conv => conv.sector_id === filters.sector);
+      filtered = filtered.filter((conv) => conv.sector_id === filters.sector);
     }
 
     // Filtro por labels (múltiplas)
@@ -216,8 +212,9 @@ const Chat = () => {
           .select('conversation_id')
           .in('label_id', filters.labels);
 
-        const conversationIdsWithLabel = conversationsWithLabel?.map(cl => cl.conversation_id) || [];
-        filtered = filtered.filter(conv => conversationIdsWithLabel.includes(conv.id));
+        const conversationIdsWithLabel =
+          conversationsWithLabel?.map((cl) => cl.conversation_id) || [];
+        filtered = filtered.filter((conv) => conversationIdsWithLabel.includes(conv.id));
       } catch (error) {
         console.error('Erro ao filtrar por label:', error);
       }
@@ -244,7 +241,7 @@ const Chat = () => {
           break;
       }
 
-      filtered = filtered.filter(conv => {
+      filtered = filtered.filter((conv) => {
         if (!conv.last_message_time) return false;
         return new Date(conv.last_message_time) >= cutoffDate;
       });
@@ -257,7 +254,7 @@ const Chat = () => {
       const hoursAgo = hourLimits[filters.noResponseTime];
       const cutoff = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
 
-      filtered = filtered.filter(conv => {
+      filtered = filtered.filter((conv) => {
         if (!conv.last_message_time) return false;
         return new Date(conv.last_message_time) < cutoff;
       });
@@ -297,18 +294,18 @@ const Chat = () => {
 
   const conversationCounts = useMemo(() => {
     return {
-      myAttendances: conversations.filter(c => c.assigned_to === currentUserId).length,
-      unread: conversations.filter(c => c.unread_count > 0).length,
-      waiting: conversations.filter(c => c.status === "waiting").length,
-      reEntry: conversations.filter(c => c.status === "re_entry").length,
-      active: conversations.filter(c => c.status === "active").length,
-      chatbot: conversations.filter(c => c.status === "chatbot").length,
-      closed: conversations.filter(c => c.status === "closed").length,
+      myAttendances: conversations.filter((c) => c.assigned_to === currentUserId).length,
+      unread: conversations.filter((c) => c.unread_count > 0).length,
+      waiting: conversations.filter((c) => c.status === 'waiting').length,
+      reEntry: conversations.filter((c) => c.status === 're_entry').length,
+      active: conversations.filter((c) => c.status === 'active').length,
+      chatbot: conversations.filter((c) => c.status === 'chatbot').length,
+      closed: conversations.filter((c) => c.status === 'closed').length,
     };
   }, [conversations, currentUserId]);
 
   const handleSearch = (query: string) => {
-    setFilters(prev => ({ ...prev, search: query }));
+    setFilters((prev) => ({ ...prev, search: query }));
     setSearchQuery(query);
   };
 
@@ -342,21 +339,21 @@ const Chat = () => {
     if (!companyId) return;
 
     const channel = supabase
-      .channel("conversations-changes")
+      .channel('conversations-changes')
       .on(
-        "postgres_changes",
+        'postgres_changes',
         {
-          event: "*",
-          schema: "public",
-          table: "conversations",
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
         },
         (payload) => {
-          console.log("Realtime: Conversation changed", payload);
+          console.log('Realtime: Conversation changed', payload);
           loadConversations();
         }
       )
       .subscribe((status) => {
-        console.log("Realtime subscription status:", status);
+        console.log('Realtime subscription status:', status);
       });
 
     return () => {
@@ -368,11 +365,9 @@ const Chat = () => {
     if (!companyId) return;
 
     try {
-      const { data, error } = await withCompanyFilter(
-        supabase
-          .from('conversations')
-          .select('*')
-      ).eq('id', conversationId).maybeSingle();
+      const { data, error } = await withCompanyFilter(supabase.from('conversations').select('*'))
+        .eq('id', conversationId)
+        .maybeSingle();
 
       if (error) throw error;
       if (data) {
@@ -398,10 +393,10 @@ const Chat = () => {
         if (error) throw error;
 
         // Atualizar localmente
-        setConversations(prev =>
-          prev.map(c => c.id === conversation.id ? { ...c, status: 'active' } : c)
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conversation.id ? { ...c, status: 'active' } : c))
         );
-        setSelectedConversation(prev => prev ? { ...prev, status: 'active' } : prev);
+        setSelectedConversation((prev) => (prev ? { ...prev, status: 'active' } : prev));
       } catch (error) {
         console.error('Erro ao marcar conversa como lida:', error);
       }
@@ -411,8 +406,8 @@ const Chat = () => {
   // Get available labels for bulk actions
   const availableLabels = useMemo(() => {
     const labels = new Set<string>();
-    conversations.forEach(c => {
-      c.tags?.forEach(tag => labels.add(tag));
+    conversations.forEach((c) => {
+      c.tags?.forEach((tag) => labels.add(tag));
     });
     return Array.from(labels);
   }, [conversations]);
@@ -450,11 +445,9 @@ const Chat = () => {
             onToggleSelectionMode={toggleSelectionMode}
             onToggleSelection={toggleSelection}
             isSelected={isSelected}
-            onSelectAll={() => selectAll(filteredConversations.map(c => c.id))}
+            onSelectAll={() => selectAll(filteredConversations.map((c) => c.id))}
             snoozedBadge={
-              <SnoozedConversationsBadge
-                onSelectConversation={handleSelectFromNotification}
-              />
+              <SnoozedConversationsBadge onSelectConversation={handleSelectFromNotification} />
             }
           />
           <MessageArea

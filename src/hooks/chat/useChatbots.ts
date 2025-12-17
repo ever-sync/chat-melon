@@ -93,10 +93,7 @@ export function useChatbots() {
 
   const deleteChatbot = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('chatbots')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('chatbots').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -169,11 +166,7 @@ export function useChatbot(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
 
-      const { data, error } = await supabase
-        .from('chatbots')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('chatbots').select('*').eq('id', id).single();
 
       if (error) throw error;
       return data as Chatbot;
@@ -208,19 +201,17 @@ export function useChatbot(id: string | undefined) {
       if (!chatbot) throw new Error('Chatbot not found');
 
       // Create a new version
-      const { error: versionError } = await supabase
-        .from('chatbot_versions')
-        .insert({
-          chatbot_id: id,
-          version: chatbot.version + 1,
-          nodes: chatbot.nodes,
-          edges: chatbot.edges,
-          variables: chatbot.variables,
-          settings: chatbot.settings,
-          triggers: chatbot.triggers,
-          published_by: profile.id,
-          release_notes: input.release_notes,
-        });
+      const { error: versionError } = await supabase.from('chatbot_versions').insert({
+        chatbot_id: id,
+        version: chatbot.version + 1,
+        nodes: chatbot.nodes,
+        edges: chatbot.edges,
+        variables: chatbot.variables,
+        settings: chatbot.settings,
+        triggers: chatbot.triggers,
+        published_by: profile.id,
+        release_notes: input.release_notes,
+      });
 
       if (versionError) throw versionError;
 
@@ -340,10 +331,12 @@ export function useChatbotExecutions(chatbotId?: string) {
 
       let query = supabase
         .from('chatbot_executions')
-        .select(`
+        .select(
+          `
           *,
           chatbot:chatbots(name)
-        `)
+        `
+        )
         .order('started_at', { ascending: false })
         .limit(100);
 
@@ -513,40 +506,50 @@ export function useChatbotAnalytics(chatbotId: string | undefined, days = 30) {
       const totalExecutions = executions.length;
       const completedExecutions = executions.filter((e) => e.status === 'completed').length;
       const handoffExecutions = executions.filter((e) => e.status === 'handoff').length;
-      const failedExecutions = executions.filter((e) => e.status === 'failed' || e.status === 'timeout').length;
+      const failedExecutions = executions.filter(
+        (e) => e.status === 'failed' || e.status === 'timeout'
+      ).length;
 
-      const completionRate = totalExecutions > 0 ? (completedExecutions / totalExecutions) * 100 : 0;
+      const completionRate =
+        totalExecutions > 0 ? (completedExecutions / totalExecutions) * 100 : 0;
       const handoffRate = totalExecutions > 0 ? (handoffExecutions / totalExecutions) * 100 : 0;
 
       // Average session duration (for completed executions)
       const completedWithDuration = executions.filter(
         (e) => e.status === 'completed' && e.completed_at && e.started_at
       );
-      const avgDurationMs = completedWithDuration.length > 0
-        ? completedWithDuration.reduce((sum, e) => {
-          const duration = new Date(e.completed_at!).getTime() - new Date(e.started_at).getTime();
-          return sum + duration;
-        }, 0) / completedWithDuration.length
-        : 0;
+      const avgDurationMs =
+        completedWithDuration.length > 0
+          ? completedWithDuration.reduce((sum, e) => {
+              const duration =
+                new Date(e.completed_at!).getTime() - new Date(e.started_at).getTime();
+              return sum + duration;
+            }, 0) / completedWithDuration.length
+          : 0;
 
       // Messages per execution
       const totalMessagesSent = executions.reduce((sum, e) => sum + (e.messages_sent || 0), 0);
-      const totalMessagesReceived = executions.reduce((sum, e) => sum + (e.messages_received || 0), 0);
-      const avgMessagesPerExecution = totalExecutions > 0
-        ? (totalMessagesSent + totalMessagesReceived) / totalExecutions
-        : 0;
+      const totalMessagesReceived = executions.reduce(
+        (sum, e) => sum + (e.messages_received || 0),
+        0
+      );
+      const avgMessagesPerExecution =
+        totalExecutions > 0 ? (totalMessagesSent + totalMessagesReceived) / totalExecutions : 0;
 
       // Daily breakdown
-      const dailyData = executions.reduce((acc, e) => {
-        const date = new Date(e.started_at).toISOString().split('T')[0];
-        if (!acc[date]) {
-          acc[date] = { total: 0, completed: 0, handoff: 0 };
-        }
-        acc[date].total++;
-        if (e.status === 'completed') acc[date].completed++;
-        if (e.status === 'handoff') acc[date].handoff++;
-        return acc;
-      }, {} as Record<string, { total: number; completed: number; handoff: number }>);
+      const dailyData = executions.reduce(
+        (acc, e) => {
+          const date = new Date(e.started_at).toISOString().split('T')[0];
+          if (!acc[date]) {
+            acc[date] = { total: 0, completed: 0, handoff: 0 };
+          }
+          acc[date].total++;
+          if (e.status === 'completed') acc[date].completed++;
+          if (e.status === 'handoff') acc[date].handoff++;
+          return acc;
+        },
+        {} as Record<string, { total: number; completed: number; handoff: number }>
+      );
 
       return {
         totalExecutions,

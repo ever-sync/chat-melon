@@ -1,12 +1,12 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { Header } from "@/components/Header";
-import { TrialBanner } from "@/components/TrialBanner";
-import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/ui/use-mobile";
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
+import { Header } from '@/components/Header';
+import { TrialBanner } from '@/components/TrialBanner';
+import { MobileBottomNav } from '@/components/mobile/MobileBottomNav';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -21,7 +21,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         navigate('/auth');
       } else {
@@ -31,7 +33,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate('/auth');
       }
@@ -60,10 +64,10 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             <main
               className={
                 isMobile
-                  ? "flex-1 overflow-auto"
+                  ? 'flex-1 overflow-auto'
                   : isFullHeightPage
-                    ? "flex-1 overflow-auto"
-                    : "flex-1 p-6 overflow-auto"
+                    ? 'flex-1 overflow-auto'
+                    : 'flex-1 p-6 overflow-auto'
               }
             >
               {children}

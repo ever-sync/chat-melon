@@ -3,13 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -56,7 +50,12 @@ import {
   Check,
   AlertTriangle,
 } from 'lucide-react';
-import { useApiKeys, API_PERMISSIONS, API_SCOPES, type ApiKeyWithSecret } from '@/hooks/api/useApiKeys';
+import {
+  useApiKeys,
+  API_PERMISSIONS,
+  API_SCOPES,
+  type ApiKeyWithSecret,
+} from '@/hooks/api/useApiKeys';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -79,12 +78,12 @@ export const ApiKeyManager = () => {
   const [selectedScopes, setSelectedScopes] = useState<string[]>(['*']);
 
   const handleCreate = async () => {
-    const result = await createApiKey.mutateAsync({
+    const result = (await createApiKey.mutateAsync({
       name,
       description,
       permissions: selectedPermissions,
       scopes: selectedScopes,
-    }) as ApiKeyWithSecret;
+    })) as ApiKeyWithSecret;
 
     setNewKeySecret(result.secret);
     setShowCreateDialog(false);
@@ -113,9 +112,7 @@ export const ApiKeyManager = () => {
 
   const togglePermission = (permission: string) => {
     setSelectedPermissions((prev) =>
-      prev.includes(permission)
-        ? prev.filter((p) => p !== permission)
-        : [...prev, permission]
+      prev.includes(permission) ? prev.filter((p) => p !== permission) : [...prev, permission]
     );
   };
 
@@ -125,9 +122,7 @@ export const ApiKeyManager = () => {
     } else {
       setSelectedScopes((prev) => {
         const newScopes = prev.filter((s) => s !== '*');
-        return prev.includes(scope)
-          ? newScopes.filter((s) => s !== scope)
-          : [...newScopes, scope];
+        return prev.includes(scope) ? newScopes.filter((s) => s !== scope) : [...newScopes, scope];
       });
     }
   };
@@ -137,9 +132,7 @@ export const ApiKeyManager = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">API Keys</h2>
-          <p className="text-muted-foreground">
-            Gerencie chaves de API para integrações externas
-          </p>
+          <p className="text-muted-foreground">Gerencie chaves de API para integrações externas</p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
@@ -151,9 +144,7 @@ export const ApiKeyManager = () => {
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Criar API Key</DialogTitle>
-              <DialogDescription>
-                Crie uma chave de API para integrações externas
-              </DialogDescription>
+              <DialogDescription>Crie uma chave de API para integrações externas</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
@@ -194,9 +185,7 @@ export const ApiKeyManager = () => {
                         >
                           {perm.label}
                         </label>
-                        <p className="text-xs text-muted-foreground">
-                          {perm.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{perm.description}</p>
                       </div>
                     </div>
                   ))}
@@ -220,9 +209,7 @@ export const ApiKeyManager = () => {
                         >
                           {scope.label}
                         </label>
-                        <p className="text-xs text-muted-foreground">
-                          {scope.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{scope.description}</p>
                       </div>
                     </div>
                   ))}
@@ -234,13 +221,8 @@ export const ApiKeyManager = () => {
               <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                 Cancelar
               </Button>
-              <Button
-                onClick={handleCreate}
-                disabled={!name || createApiKey.isPending}
-              >
-                {createApiKey.isPending && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
+              <Button onClick={handleCreate} disabled={!name || createApiKey.isPending}>
+                {createApiKey.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Criar
               </Button>
             </DialogFooter>
@@ -268,34 +250,22 @@ export const ApiKeyManager = () => {
                 readOnly
                 className="font-mono text-sm"
               />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowSecret(!showSecret)}
-              >
+              <Button variant="outline" size="icon" onClick={() => setShowSecret(!showSecret)}>
                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleCopySecret}
-              >
+              <Button variant="outline" size="icon" onClick={handleCopySecret}>
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
 
             <div className="flex items-center gap-2 text-amber-600 bg-amber-50 dark:bg-amber-950 p-3 rounded-lg">
               <AlertTriangle className="h-5 w-5 shrink-0" />
-              <p className="text-sm">
-                Esta é a única vez que você verá esta chave. Copie-a agora!
-              </p>
+              <p className="text-sm">Esta é a única vez que você verá esta chave. Copie-a agora!</p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button onClick={() => setShowSecretDialog(false)}>
-              Entendi, fechar
-            </Button>
+            <Button onClick={() => setShowSecretDialog(false)}>Entendi, fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -306,8 +276,8 @@ export const ApiKeyManager = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Revogar API Key?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Todas as integrações que usam
-              esta chave deixarão de funcionar imediatamente.
+              Esta ação não pode ser desfeita. Todas as integrações que usam esta chave deixarão de
+              funcionar imediatamente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -357,9 +327,7 @@ export const ApiKeyManager = () => {
                       <div>
                         <div className="font-medium">{key.name}</div>
                         {key.description && (
-                          <div className="text-sm text-muted-foreground">
-                            {key.description}
-                          </div>
+                          <div className="text-sm text-muted-foreground">{key.description}</div>
                         )}
                       </div>
                     </TableCell>
@@ -387,9 +355,7 @@ export const ApiKeyManager = () => {
                         <span className="text-muted-foreground">Nunca</span>
                       )}
                     </TableCell>
-                    <TableCell>
-                      {key.total_requests.toLocaleString()}
-                    </TableCell>
+                    <TableCell>{key.total_requests.toLocaleString()}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -431,15 +397,11 @@ export const ApiKeyManager = () => {
           <div className="space-y-2">
             <p className="text-sm">
               <strong>Base URL:</strong>{' '}
-              <code className="bg-muted px-2 py-1 rounded">
-                {window.location.origin}/api/v1
-              </code>
+              <code className="bg-muted px-2 py-1 rounded">{window.location.origin}/api/v1</code>
             </p>
             <p className="text-sm">
               <strong>Autenticação:</strong>{' '}
-              <code className="bg-muted px-2 py-1 rounded">
-                Authorization: Bearer YOUR_API_KEY
-              </code>
+              <code className="bg-muted px-2 py-1 rounded">Authorization: Bearer YOUR_API_KEY</code>
             </p>
           </div>
         </CardContent>

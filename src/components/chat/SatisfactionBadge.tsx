@@ -1,5 +1,5 @@
-import { Star } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Star } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface SatisfactionBadgeProps {
   score: number;
@@ -21,13 +21,9 @@ export const SatisfactionBadge = ({ score, surveyType }: SatisfactionBadgeProps)
 
   const renderStars = () => {
     const maxStars = surveyType === 'csat' ? 5 : 10;
-    
+
     if (surveyType === 'nps') {
-      return (
-        <span className="font-bold">
-          {score}/10
-        </span>
-      );
+      return <span className="font-bold">{score}/10</span>;
     }
 
     return (
@@ -35,11 +31,7 @@ export const SatisfactionBadge = ({ score, surveyType }: SatisfactionBadgeProps)
         {[...Array(maxStars)].map((_, i) => (
           <Star
             key={i}
-            className={`h-3 w-3 ${
-              i < score
-                ? 'text-yellow-500 fill-yellow-500'
-                : 'text-gray-300'
-            }`}
+            className={`h-3 w-3 ${i < score ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
           />
         ))}
         <span className="ml-1 text-xs font-medium">({score})</span>

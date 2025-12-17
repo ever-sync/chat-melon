@@ -1,5 +1,5 @@
-import { AlertTriangle, CheckCircle, Info } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ValidationIssue {
   type: 'error' | 'warning' | 'info';
@@ -64,10 +64,8 @@ export function CampaignValidation({
     const estimatedMinutes = Math.ceil(totalContacts / sendingRate);
     const hours = Math.floor(estimatedMinutes / 60);
     const minutes = estimatedMinutes % 60;
-    
-    const timeStr = hours > 0 
-      ? `${hours}h ${minutes}min` 
-      : `${minutes} minutos`;
+
+    const timeStr = hours > 0 ? `${hours}h ${minutes}min` : `${minutes} minutos`;
 
     issues.push({
       type: 'info',
@@ -96,44 +94,43 @@ export function CampaignValidation({
   return (
     <div className="space-y-2">
       {issues.map((issue, index) => {
-        const Icon = issue.type === 'error' 
-          ? AlertTriangle 
-          : issue.type === 'warning' 
-          ? AlertTriangle 
-          : Info;
-        
-        const colorClass = issue.type === 'error'
-          ? 'border-red-500/20 bg-red-500/10'
-          : issue.type === 'warning'
-          ? 'border-yellow-500/20 bg-yellow-500/10'
-          : 'border-blue-500/20 bg-blue-500/10';
-        
-        const iconColor = issue.type === 'error'
-          ? 'text-red-500'
-          : issue.type === 'warning'
-          ? 'text-yellow-500'
-          : 'text-blue-500';
-        
-        const textColor = issue.type === 'error'
-          ? 'text-red-500'
-          : issue.type === 'warning'
-          ? 'text-yellow-500'
-          : 'text-blue-500';
-        
-        const descColor = issue.type === 'error'
-          ? 'text-red-600 dark:text-red-400'
-          : issue.type === 'warning'
-          ? 'text-yellow-600 dark:text-yellow-400'
-          : 'text-blue-600 dark:text-blue-400';
+        const Icon =
+          issue.type === 'error' ? AlertTriangle : issue.type === 'warning' ? AlertTriangle : Info;
+
+        const colorClass =
+          issue.type === 'error'
+            ? 'border-red-500/20 bg-red-500/10'
+            : issue.type === 'warning'
+              ? 'border-yellow-500/20 bg-yellow-500/10'
+              : 'border-blue-500/20 bg-blue-500/10';
+
+        const iconColor =
+          issue.type === 'error'
+            ? 'text-red-500'
+            : issue.type === 'warning'
+              ? 'text-yellow-500'
+              : 'text-blue-500';
+
+        const textColor =
+          issue.type === 'error'
+            ? 'text-red-500'
+            : issue.type === 'warning'
+              ? 'text-yellow-500'
+              : 'text-blue-500';
+
+        const descColor =
+          issue.type === 'error'
+            ? 'text-red-600 dark:text-red-400'
+            : issue.type === 'warning'
+              ? 'text-yellow-600 dark:text-yellow-400'
+              : 'text-blue-600 dark:text-blue-400';
 
         return (
           <Card key={index} className={`border ${colorClass}`}>
             <CardContent className="pt-6">
               <div className="flex items-start gap-2">
                 <Icon className={`h-5 w-5 ${iconColor} mt-0.5`} />
-                <p className={`text-sm ${descColor}`}>
-                  {issue.message}
-                </p>
+                <p className={`text-sm ${descColor}`}>{issue.message}</p>
               </div>
             </CardContent>
           </Card>

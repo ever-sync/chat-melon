@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, X, Calendar, Sliders, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { AdvancedFiltersDialog } from "@/components/chat/dialogs/AdvancedFiltersDialog";
-import { ChatFilters } from "@/types/chatFilters";
+import { useState, useEffect, useRef } from 'react';
+import { Search, X, Calendar, Sliders, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { AdvancedFiltersDialog } from '@/components/chat/dialogs/AdvancedFiltersDialog';
+import { ChatFilters } from '@/types/chatFilters';
 
 type SearchBarProps = {
   onSearch: (query: string) => void;
@@ -79,7 +79,7 @@ const SearchBar = ({
 
       // Adicionar ao histórico se tiver texto
       if (value.trim()) {
-        const newHistory = [value, ...searchHistory.filter(s => s !== value)].slice(0, 10);
+        const newHistory = [value, ...searchHistory.filter((s) => s !== value)].slice(0, 10);
         setSearchHistory(newHistory);
         localStorage.setItem('search-history', JSON.stringify(newHistory));
       }
@@ -87,8 +87,8 @@ const SearchBar = ({
   };
 
   const handleClearSearch = () => {
-    setLocalQuery("");
-    onSearch("");
+    setLocalQuery('');
+    onSearch('');
     setShowHistory(false);
   };
 
@@ -134,16 +134,9 @@ const SearchBar = ({
           className="pl-10 pr-20"
         />
         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          {isSearching && (
-            <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
-          )}
+          {isSearching && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
           {localQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClearSearch}
-              className="h-7 w-7"
-            >
+            <Button variant="ghost" size="icon" onClick={handleClearSearch} className="h-7 w-7">
               <X className="w-4 h-4" />
             </Button>
           )}
@@ -194,7 +187,9 @@ const SearchBar = ({
               className="flex-1 justify-start text-left font-normal"
             >
               <Calendar className="mr-2 h-4 w-4" />
-              {localStartDate ? format(localStartDate, "dd/MM/yyyy", { locale: ptBR }) : "Data início"}
+              {localStartDate
+                ? format(localStartDate, 'dd/MM/yyyy', { locale: ptBR })
+                : 'Data início'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -216,7 +211,7 @@ const SearchBar = ({
               className="flex-1 justify-start text-left font-normal"
             >
               <Calendar className="mr-2 h-4 w-4" />
-              {localEndDate ? format(localEndDate, "dd/MM/yyyy", { locale: ptBR }) : "Data fim"}
+              {localEndDate ? format(localEndDate, 'dd/MM/yyyy', { locale: ptBR }) : 'Data fim'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -231,12 +226,7 @@ const SearchBar = ({
         </Popover>
 
         {(localStartDate || localEndDate) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClearDates}
-            className="px-2"
-          >
+          <Button variant="ghost" size="sm" onClick={handleClearDates} className="px-2">
             <X className="w-4 h-4" />
           </Button>
         )}

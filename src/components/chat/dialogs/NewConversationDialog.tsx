@@ -1,30 +1,27 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useCompanyQuery } from "@/hooks/crm/useCompanyQuery";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 
 type NewConversationDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-const NewConversationDialog = ({
-  open,
-  onOpenChange,
-}: NewConversationDialogProps) => {
+const NewConversationDialog = ({ open, onOpenChange }: NewConversationDialogProps) => {
   const { getCompanyId } = useCompanyQuery();
-  const [contactName, setContactName] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
+  const [contactName, setContactName] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
 
@@ -34,8 +31,10 @@ const NewConversationDialog = ({
 
     setIsCreating(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
 
       // Validate WhatsApp number first
       setIsValidating(true);
@@ -53,11 +52,11 @@ const NewConversationDialog = ({
       }
 
       if (!validationData?.valid) {
-        toast.error("Este número não está registrado no WhatsApp");
+        toast.error('Este número não está registrado no WhatsApp');
         return;
       }
 
-      const { error } = await supabase.from("conversations").insert({
+      const { error } = await supabase.from('conversations').insert({
         user_id: user.id,
         company_id: getCompanyId(),
         contact_name: contactName,
@@ -66,14 +65,14 @@ const NewConversationDialog = ({
 
       if (error) throw error;
 
-      toast.success("Conversa criada com sucesso");
+      toast.success('Conversa criada com sucesso');
 
-      setContactName("");
-      setContactNumber("");
+      setContactName('');
+      setContactNumber('');
       onOpenChange(false);
     } catch (error) {
-      console.error("Erro ao criar conversa:", error);
-      toast.error(error instanceof Error ? error.message : "Não foi possível criar a conversa");
+      console.error('Erro ao criar conversa:', error);
+      toast.error(error instanceof Error ? error.message : 'Não foi possível criar a conversa');
     } finally {
       setIsCreating(false);
       setIsValidating(false);
@@ -85,9 +84,7 @@ const NewConversationDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nova Conversa</DialogTitle>
-          <DialogDescription>
-            Adicione um novo contato para iniciar uma conversa
-          </DialogDescription>
+          <DialogDescription>Adicione um novo contato para iniciar uma conversa</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="space-y-2">
@@ -115,7 +112,7 @@ const NewConversationDialog = ({
             className="w-full"
             disabled={isCreating || isValidating || !contactName.trim() || !contactNumber.trim()}
           >
-            {isValidating ? "Validando número..." : isCreating ? "Criando..." : "Criar Conversa"}
+            {isValidating ? 'Validando número...' : isCreating ? 'Criando...' : 'Criar Conversa'}
           </Button>
         </form>
       </DialogContent>

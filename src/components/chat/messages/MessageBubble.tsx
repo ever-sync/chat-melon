@@ -2,7 +2,18 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Bot, User, Clock, Check, CheckCheck, AlertCircle, EyeOff, BarChart3, ListOrdered, MapPin } from 'lucide-react';
+import {
+  Bot,
+  User,
+  Clock,
+  Check,
+  CheckCheck,
+  AlertCircle,
+  EyeOff,
+  BarChart3,
+  ListOrdered,
+  MapPin,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageActions } from './MessageActions';
@@ -49,7 +60,14 @@ interface MessageBubbleProps {
   onUpdated?: () => void;
 }
 
-export function MessageBubble({ message, showSender = false, contactAvatar, contactName, contactPhone, onUpdated }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  showSender = false,
+  contactAvatar,
+  contactName,
+  contactPhone,
+  onUpdated,
+}: MessageBubbleProps) {
   const { currentCompany } = useCompany();
   const isFromMe = message.is_from_me;
   const isFromAI = message.is_from_ai;
@@ -142,10 +160,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
 
   return (
     <TooltipProvider>
-      <div className={cn(
-        'flex gap-2 mb-4',
-        isFromMe ? 'justify-end' : 'justify-start'
-      )}>
+      <div className={cn('flex gap-2 mb-4', isFromMe ? 'justify-end' : 'justify-start')}>
         {/* Avatar do lead (esquerda) */}
         {!isFromMe && contactPhone && (
           <ContactAvatar
@@ -157,10 +172,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
           />
         )}
 
-        <div className={cn(
-          'max-w-[70%] flex flex-col',
-          isFromMe ? 'items-end' : 'items-start'
-        )}>
+        <div className={cn('max-w-[70%] flex flex-col', isFromMe ? 'items-end' : 'items-start')}>
           {/* Header com nome e indicador IA */}
           {(showSender || isFromAI) && isFromMe && (
             <div className="flex items-center gap-2 mb-1">
@@ -179,25 +191,23 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Modelo: {message.ai_model || 'Não especificado'}</p>
-                    {message.ai_intent_detected && (
-                      <p>Intenção: {message.ai_intent_detected}</p>
-                    )}
+                    {message.ai_intent_detected && <p>Intenção: {message.ai_intent_detected}</p>}
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <span className="text-xs text-gray-500">
-                  {message.sender?.name || 'Atendente'}
-                </span>
+                <span className="text-xs text-gray-500">{message.sender?.name || 'Atendente'}</span>
               )}
             </div>
           )}
 
           {/* Bolha da mensagem */}
-          <div className={cn(
-            'px-4 py-2 rounded-2xl shadow-sm',
-            getBubbleStyle(),
-            isFromMe ? 'rounded-br-md' : 'rounded-bl-md'
-          )}>
+          <div
+            className={cn(
+              'px-4 py-2 rounded-2xl shadow-sm',
+              getBubbleStyle(),
+              isFromMe ? 'rounded-br-md' : 'rounded-bl-md'
+            )}
+          >
             {/* Media attachments */}
             {message.media_url && (
               <div className="mb-2">
@@ -209,11 +219,7 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
                   />
                 )}
                 {message.media_type?.startsWith('video/') && (
-                  <video
-                    src={message.media_url}
-                    controls
-                    className="max-w-full rounded max-h-64"
-                  />
+                  <video src={message.media_url} controls className="max-w-full rounded max-h-64" />
                 )}
                 {message.media_type?.startsWith('audio/') && (
                   <>
@@ -332,10 +338,12 @@ export function MessageBubble({ message, showSender = false, contactAvatar, cont
 
         {/* Avatar do atendente/IA (direita) */}
         {isFromMe && (
-          <Avatar className={cn(
-            'h-8 w-8 flex-shrink-0',
-            isFromAI ? 'ring-2 ring-emerald-500' : 'ring-2 ring-indigo-500'
-          )}>
+          <Avatar
+            className={cn(
+              'h-8 w-8 flex-shrink-0',
+              isFromAI ? 'ring-2 ring-emerald-500' : 'ring-2 ring-indigo-500'
+            )}
+          >
             {isFromAI ? (
               <AvatarFallback className="bg-emerald-100">
                 <Bot className="h-4 w-4 text-emerald-600" />

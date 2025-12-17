@@ -64,4 +64,4 @@ export const TEMPLATE_CATEGORIES = [
   { value: 'outros', label: 'Outros' },
 ] as const;
 
-export type TemplateCategory = typeof TEMPLATE_CATEGORIES[number]['value'];
+export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number]['value'];

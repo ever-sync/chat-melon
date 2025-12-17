@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Trophy, Medal } from "lucide-react";
-import { UserRanking } from "@/hooks/useAnalytics";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Trophy, Medal } from 'lucide-react';
+import { UserRanking } from '@/hooks/useAnalytics';
 
 interface LeaderboardCardProps {
   data: UserRanking[];
@@ -9,9 +9,9 @@ interface LeaderboardCardProps {
 
 export const LeaderboardCard = ({ data }: LeaderboardCardProps) => {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
       minimumFractionDigits: 0,
     }).format(value);
   };
@@ -25,9 +25,9 @@ export const LeaderboardCard = ({ data }: LeaderboardCardProps) => {
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -56,14 +56,12 @@ export const LeaderboardCard = ({ data }: LeaderboardCardProps) => {
                 <div className="flex-1">
                   <p className="font-medium">{user.user_name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {user.deals_count} {user.deals_count === 1 ? "negócio" : "negócios"}
+                    {user.deals_count} {user.deals_count === 1 ? 'negócio' : 'negócios'}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-primary">
-                  {formatCurrency(user.total_value)}
-                </p>
+                <p className="font-bold text-primary">{formatCurrency(user.total_value)}</p>
                 <p className="text-sm text-muted-foreground">
                   Média: {formatCurrency(user.avg_value)}
                 </p>

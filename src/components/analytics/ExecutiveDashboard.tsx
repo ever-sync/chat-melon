@@ -1,13 +1,33 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDown, ArrowUp, TrendingUp, DollarSign, Target, Clock, Calendar } from "lucide-react";
-import { useExecutiveReport } from "@/hooks/useExecutiveReport";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
-import { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip, LineChart, Line } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowDown, ArrowUp, TrendingUp, DollarSign, Target, Clock, Calendar } from 'lucide-react';
+import { useExecutiveReport } from '@/hooks/useExecutiveReport';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { FileText } from 'lucide-react';
+import { useState } from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  Tooltip,
+  LineChart,
+  Line,
+} from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 type Period = 'current_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'last_12_months';
 
@@ -16,9 +36,9 @@ export const ExecutiveDashboard = () => {
   const { data: metrics, isLoading } = useExecutiveReport(period);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
       minimumFractionDigits: 0,
     }).format(value);
   };
@@ -33,15 +53,15 @@ export const ExecutiveDashboard = () => {
   };
 
   const getChangeIndicator = (current: number, previous: number, inverse = false) => {
-    if (previous === 0) return { icon: null, color: "", text: "" };
-    
+    if (previous === 0) return { icon: null, color: '', text: '' };
+
     const change = ((current - previous) / previous) * 100;
     const isPositive = inverse ? change < 0 : change > 0;
-    
+
     return {
       icon: isPositive ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />,
-      color: isPositive ? "text-green-600" : "text-red-600",
-      text: `${Math.abs(change).toFixed(1)}%`
+      color: isPositive ? 'text-green-600' : 'text-red-600',
+      text: `${Math.abs(change).toFixed(1)}%`,
     };
   };
 
@@ -58,9 +78,20 @@ export const ExecutiveDashboard = () => {
   if (!metrics) return null;
 
   const revenueChange = getChangeIndicator(metrics.revenue.current, metrics.revenue.previous);
-  const firstResponseChange = getChangeIndicator(metrics.performance.avgFirstResponse, metrics.performance.avgFirstResponsePrevious, true);
-  const closingTimeChange = getChangeIndicator(metrics.performance.avgClosingTime, metrics.performance.avgClosingTimePrevious, true);
-  const ticketChange = getChangeIndicator(metrics.performance.avgTicket, metrics.performance.avgTicketPrevious);
+  const firstResponseChange = getChangeIndicator(
+    metrics.performance.avgFirstResponse,
+    metrics.performance.avgFirstResponsePrevious,
+    true
+  );
+  const closingTimeChange = getChangeIndicator(
+    metrics.performance.avgClosingTime,
+    metrics.performance.avgClosingTimePrevious,
+    true
+  );
+  const ticketChange = getChangeIndicator(
+    metrics.performance.avgTicket,
+    metrics.performance.avgTicketPrevious
+  );
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#6B7280'];
 
@@ -104,20 +135,41 @@ export const ExecutiveDashboard = () => {
           <div className="space-y-4">
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-bold">{formatCurrency(metrics.revenue.current)}</span>
-              <span className="text-muted-foreground">vs {formatCurrency(metrics.revenue.previous)} (período anterior)</span>
+              <span className="text-muted-foreground">
+                vs {formatCurrency(metrics.revenue.previous)} (período anterior)
+              </span>
             </div>
             <div className={`flex items-center gap-2 ${revenueChange.color}`}>
               {revenueChange.icon}
-              <span className="font-semibold">{revenueChange.text} {metrics.revenue.growth > 0 ? 'crescimento' : 'queda'}</span>
+              <span className="font-semibold">
+                {revenueChange.text} {metrics.revenue.growth > 0 ? 'crescimento' : 'queda'}
+              </span>
             </div>
-            <ChartContainer config={{ value: { label: "Receita", color: "hsl(var(--primary))" } }} className="h-[200px]">
+            <ChartContainer
+              config={{ value: { label: 'Receita', color: 'hsl(var(--primary))' } }}
+              className="h-[200px]"
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={metrics.revenueHistory}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v/1000}k`} />
+                  <XAxis
+                    dataKey="month"
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    tickFormatter={(v) => `${v / 1000}k`}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))", r: 4 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -142,7 +194,9 @@ export const ExecutiveDashboard = () => {
             <div>
               <p className="text-sm text-muted-foreground">Previsão</p>
               <p className="text-2xl font-bold">{formatCurrency(metrics.pipeline.forecast)}</p>
-              <p className="text-sm text-muted-foreground">{((metrics.pipeline.forecast / metrics.pipeline.goal) * 100).toFixed(0)}% da meta</p>
+              <p className="text-sm text-muted-foreground">
+                {((metrics.pipeline.forecast / metrics.pipeline.goal) * 100).toFixed(0)}% da meta
+              </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Meta</p>
@@ -168,11 +222,13 @@ export const ExecutiveDashboard = () => {
                 <div key={index}>
                   <div className="flex justify-between mb-1">
                     <span className="text-sm font-medium">{stage.stage}</span>
-                    <span className="text-sm text-muted-foreground">{stage.count} ({stage.percentage.toFixed(0)}%)</span>
+                    <span className="text-sm text-muted-foreground">
+                      {stage.count} ({stage.percentage.toFixed(0)}%)
+                    </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all" 
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
                       style={{ width: `${stage.percentage}%` }}
                     />
                   </div>
@@ -195,7 +251,9 @@ export const ExecutiveDashboard = () => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Tempo 1ª Resposta</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold">{formatMinutes(metrics.performance.avgFirstResponse)}</span>
+                  <span className="text-2xl font-bold">
+                    {formatMinutes(metrics.performance.avgFirstResponse)}
+                  </span>
                   <span className={`flex items-center gap-1 text-sm ${firstResponseChange.color}`}>
                     {firstResponseChange.icon}
                     {firstResponseChange.text}
@@ -206,7 +264,9 @@ export const ExecutiveDashboard = () => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Tempo Fechamento</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold">{formatDays(metrics.performance.avgClosingTime)}</span>
+                  <span className="text-2xl font-bold">
+                    {formatDays(metrics.performance.avgClosingTime)}
+                  </span>
                   <span className={`flex items-center gap-1 text-sm ${closingTimeChange.color}`}>
                     {closingTimeChange.icon}
                     {closingTimeChange.text}
@@ -217,7 +277,9 @@ export const ExecutiveDashboard = () => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Ticket Médio</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold">{formatCurrency(metrics.performance.avgTicket)}</span>
+                  <span className="text-2xl font-bold">
+                    {formatCurrency(metrics.performance.avgTicket)}
+                  </span>
                   <span className={`flex items-center gap-1 text-sm ${ticketChange.color}`}>
                     {ticketChange.icon}
                     {ticketChange.text}
@@ -237,12 +299,23 @@ export const ExecutiveDashboard = () => {
             <CardTitle>Top Vendedores</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{ revenue: { label: "Receita", color: "hsl(var(--primary))" } }} className="h-[250px]">
+            <ChartContainer
+              config={{ revenue: { label: 'Receita', color: 'hsl(var(--primary))' } }}
+              className="h-[250px]"
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={metrics.topSellers}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v/1000}k`} />
+                  <XAxis
+                    dataKey="name"
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    tickFormatter={(v) => `${v / 1000}k`}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
