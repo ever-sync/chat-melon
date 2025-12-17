@@ -19,6 +19,7 @@ $$;
 
 DROP POLICY IF EXISTS "Users can manage AI settings for their company" ON public.ai_settings;
 
+DROP POLICY IF EXISTS "Users can manage AI settings for their company" ON public;
 CREATE POLICY "Users can manage AI settings for their company"
 ON public.ai_settings
 FOR ALL
@@ -32,6 +33,7 @@ WITH CHECK (company_id = ANY(public.get_user_company_ids(auth.uid())));
 
 DROP POLICY IF EXISTS "Users can view metrics for their company" ON public.ai_metrics_daily;
 
+DROP POLICY IF EXISTS "Users can view metrics for their company" ON public;
 CREATE POLICY "Users can view metrics for their company"
 ON public.ai_metrics_daily
 FOR SELECT
@@ -45,12 +47,14 @@ USING (company_id = ANY(public.get_user_company_ids(auth.uid())));
 DROP POLICY IF EXISTS "Users can view suggestions for their company" ON public.ai_suggestions;
 DROP POLICY IF EXISTS "Users can update suggestions for their company" ON public.ai_suggestions;
 
+DROP POLICY IF EXISTS "Users can view suggestions for their company" ON public;
 CREATE POLICY "Users can view suggestions for their company"
 ON public.ai_suggestions
 FOR SELECT
 TO authenticated
 USING (company_id = ANY(public.get_user_company_ids(auth.uid())));
 
+DROP POLICY IF EXISTS "Users can update suggestions for their company" ON public;
 CREATE POLICY "Users can update suggestions for their company"
 ON public.ai_suggestions
 FOR UPDATE
@@ -65,12 +69,14 @@ WITH CHECK (company_id = ANY(public.get_user_company_ids(auth.uid())));
 DROP POLICY IF EXISTS "Users can view invites for their companies" ON public.company_invites;
 DROP POLICY IF EXISTS "Admins and managers can manage invites" ON public.company_invites;
 
+DROP POLICY IF EXISTS "Users can view invites for their companies" ON public;
 CREATE POLICY "Users can view invites for their companies"
 ON public.company_invites
 FOR SELECT
 TO authenticated
 USING (company_id = ANY(public.get_user_company_ids(auth.uid())));
 
+DROP POLICY IF EXISTS "Admins and managers can manage invites" ON public;
 CREATE POLICY "Admins and managers can manage invites"
 ON public.company_invites
 FOR ALL
@@ -96,6 +102,7 @@ WITH CHECK (
 
 DROP POLICY IF EXISTS "Users can view insights for their company" ON public.lead_insights;
 
+DROP POLICY IF EXISTS "Users can view insights for their company" ON public;
 CREATE POLICY "Users can view insights for their company"
 ON public.lead_insights
 FOR SELECT
@@ -109,12 +116,14 @@ USING (company_id = ANY(public.get_user_company_ids(auth.uid())));
 DROP POLICY IF EXISTS "Users can view qualifications for their company" ON public.lead_qualification;
 DROP POLICY IF EXISTS "Users can update qualifications for their company" ON public.lead_qualification;
 
+DROP POLICY IF EXISTS "Users can view qualifications for their company" ON public;
 CREATE POLICY "Users can view qualifications for their company"
 ON public.lead_qualification
 FOR SELECT
 TO authenticated
 USING (company_id = ANY(public.get_user_company_ids(auth.uid())));
 
+DROP POLICY IF EXISTS "Users can update qualifications for their company" ON public;
 CREATE POLICY "Users can update qualifications for their company"
 ON public.lead_qualification
 FOR UPDATE
@@ -132,6 +141,7 @@ DROP POLICY IF EXISTS "Admins can insert permissions" ON public.member_permissio
 DROP POLICY IF EXISTS "Admins can update permissions" ON public.member_permissions;
 DROP POLICY IF EXISTS "Admins can delete permissions" ON public.member_permissions;
 
+DROP POLICY IF EXISTS "Users can view their own permissions" ON public;
 CREATE POLICY "Users can view their own permissions"
 ON public.member_permissions
 FOR SELECT
@@ -143,6 +153,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can view all permissions" ON public;
 CREATE POLICY "Admins can view all permissions"
 ON public.member_permissions
 FOR SELECT
@@ -158,6 +169,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can insert permissions" ON public;
 CREATE POLICY "Admins can insert permissions"
 ON public.member_permissions
 FOR INSERT
@@ -173,6 +185,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can update permissions" ON public;
 CREATE POLICY "Admins can update permissions"
 ON public.member_permissions
 FOR UPDATE
@@ -188,6 +201,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can delete permissions" ON public;
 CREATE POLICY "Admins can delete permissions"
 ON public.member_permissions
 FOR DELETE
@@ -210,12 +224,14 @@ USING (
 DROP POLICY IF EXISTS "Users can view teams for their companies" ON public.teams;
 DROP POLICY IF EXISTS "Admins and managers can manage teams" ON public.teams;
 
+DROP POLICY IF EXISTS "Users can view teams for their companies" ON public;
 CREATE POLICY "Users can view teams for their companies"
 ON public.teams
 FOR SELECT
 TO authenticated
 USING (company_id = ANY(public.get_user_company_ids(auth.uid())));
 
+DROP POLICY IF EXISTS "Admins and managers can manage teams" ON public;
 CREATE POLICY "Admins and managers can manage teams"
 ON public.teams
 FOR ALL

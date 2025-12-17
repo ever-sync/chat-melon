@@ -37,6 +37,7 @@ CREATE POLICY "Users can view their company memberships"
 ON company_users FOR SELECT
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "System can insert company_users" ON company_users;
 CREATE POLICY "System can insert company_users"
 ON company_users FOR INSERT
 WITH CHECK (auth.uid() = user_id OR auth.uid() IS NOT NULL);

@@ -3,7 +3,11 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(sed:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npx supabase:*)",
+      "Bash(findstr:*)",
+      "Bash(timeout /t 1)",
+      "Bash(powershell -ExecutionPolicy Bypass -File:*)"
     ],
     "deny": [],
     "ask": []

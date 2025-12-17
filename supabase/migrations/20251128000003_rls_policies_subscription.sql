@@ -8,16 +8,19 @@ DROP POLICY IF EXISTS "Super Admin can insert subscription plans" ON subscriptio
 DROP POLICY IF EXISTS "Super Admin can update subscription plans" ON subscription_plans;
 DROP POLICY IF EXISTS "Super Admin can delete subscription plans" ON subscription_plans;
 
+DROP POLICY IF EXISTS "Super Admin can insert subscription plans" ON subscription_plans;
 CREATE POLICY "Super Admin can insert subscription plans"
   ON subscription_plans
   FOR INSERT
   WITH CHECK (is_platform_admin(auth.uid()));
 
+DROP POLICY IF EXISTS "Super Admin can update subscription plans" ON subscription_plans;
 CREATE POLICY "Super Admin can update subscription plans"
   ON subscription_plans
   FOR UPDATE
   USING (is_platform_admin(auth.uid()));
 
+DROP POLICY IF EXISTS "Super Admin can delete subscription plans" ON subscription_plans;
 CREATE POLICY "Super Admin can delete subscription plans"
   ON subscription_plans
   FOR DELETE

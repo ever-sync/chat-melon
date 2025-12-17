@@ -1,3 +1,5 @@
+DROP TRIGGER IF EXISTS trigger_update_score_on_deal ON deals;
+DROP TRIGGER IF EXISTS trigger_update_score_on_deal ON deals;
 -- ============================================
 -- FASE 3: AUTOMAÇÕES UX (FINAL)
 -- ============================================

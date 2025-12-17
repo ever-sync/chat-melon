@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS transcription_configs (
 ALTER TABLE transcription_configs ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for transcription_configs
+DROP POLICY IF EXISTS "Users can view their company's transcription config" ON transcription_configs;
 CREATE POLICY "Users can view their company's transcription config"
 ON transcription_configs FOR SELECT
 USING (
@@ -45,6 +46,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can manage transcription config" ON transcription_configs;
 CREATE POLICY "Admins can manage transcription config"
 ON transcription_configs FOR ALL
 USING (
@@ -67,6 +69,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger for auto-updating updated_at
+DROP TRIGGER IF EXISTS update_transcription_config_updated_at_trigger ON transcription_configs;
 CREATE TRIGGER update_transcription_config_updated_at_trigger
 BEFORE UPDATE ON transcription_configs
 FOR EACH ROW

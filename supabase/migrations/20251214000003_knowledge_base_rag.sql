@@ -105,6 +105,7 @@ ALTER TABLE kb_answer_cache ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kb_configs ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for kb_documents
+DROP POLICY IF EXISTS "Users can view documents from their company" ON kb_documents;
 CREATE POLICY "Users can view documents from their company"
 ON kb_documents FOR SELECT
 USING (
@@ -113,6 +114,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can manage documents" ON kb_documents;
 CREATE POLICY "Admins can manage documents"
 ON kb_documents FOR ALL
 USING (
@@ -126,6 +128,7 @@ USING (
 );
 
 -- RLS Policies for kb_chunks
+DROP POLICY IF EXISTS "Users can view chunks from their company documents" ON kb_chunks;
 CREATE POLICY "Users can view chunks from their company documents"
 ON kb_chunks FOR SELECT
 USING (
@@ -137,6 +140,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can manage chunks" ON kb_chunks;
 CREATE POLICY "Admins can manage chunks"
 ON kb_chunks FOR ALL
 USING (
@@ -153,6 +157,7 @@ USING (
 );
 
 -- RLS Policies for kb_queries
+DROP POLICY IF EXISTS "Users can view queries from their company" ON kb_queries;
 CREATE POLICY "Users can view queries from their company"
 ON kb_queries FOR SELECT
 USING (
@@ -161,6 +166,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Users can insert queries" ON kb_queries;
 CREATE POLICY "Users can insert queries"
 ON kb_queries FOR INSERT
 WITH CHECK (
@@ -170,6 +176,7 @@ WITH CHECK (
 );
 
 -- RLS Policies for kb_answer_cache
+DROP POLICY IF EXISTS "Users can view cache from their company" ON kb_answer_cache;
 CREATE POLICY "Users can view cache from their company"
 ON kb_answer_cache FOR SELECT
 USING (
@@ -178,11 +185,13 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "System can manage cache" ON kb_answer_cache;
 CREATE POLICY "System can manage cache"
 ON kb_answer_cache FOR ALL
 USING (true);
 
 -- RLS Policies for kb_configs
+DROP POLICY IF EXISTS "Users can view their company's KB config" ON kb_configs;
 CREATE POLICY "Users can view their company's KB config"
 ON kb_configs FOR SELECT
 USING (
@@ -191,6 +200,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Admins can manage KB config" ON kb_configs;
 CREATE POLICY "Admins can manage KB config"
 ON kb_configs FOR ALL
 USING (
@@ -212,6 +222,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_kb_document_updated_at_trigger ON kb_documents;
 CREATE TRIGGER update_kb_document_updated_at_trigger
 BEFORE UPDATE ON kb_documents
 FOR EACH ROW
@@ -225,6 +236,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_kb_config_updated_at_trigger ON kb_configs;
 CREATE TRIGGER update_kb_config_updated_at_trigger
 BEFORE UPDATE ON kb_configs
 FOR EACH ROW
@@ -288,17 +300,15 @@ WHERE id NOT IN (SELECT company_id FROM kb_configs)
 ON CONFLICT (company_id) DO NOTHING;
 
 -- Auto-sync existing FAQs to KB
-INSERT INTO kb_documents (company_id, title, content, category_id, source_type, is_active, created_at)
+INSERT INTO kb_documents (company_id, title, content, source_type, created_at)
 SELECT
-  company_id,
-  question AS title,
-  answer AS content,
-  category_id,
+  cf.company_id,
+  cf.question AS title,
+  cf.answer AS content,
   'faq_sync' AS source_type,
-  is_active,
-  created_at
-FROM company_faqs
-WHERE company_id IN (SELECT company_id FROM kb_configs WHERE auto_sync_faqs = true)
+  cf.created_at
+FROM company_faqs cf
+WHERE cf.company_id IN (SELECT company_id FROM kb_configs WHERE auto_sync_faqs = true)
 ON CONFLICT DO NOTHING;
 
 -- Add comments for documentation

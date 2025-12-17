@@ -1,6 +1,7 @@
 -- Fix companies RLS policy to allow users to view companies they belong to
 DROP POLICY IF EXISTS "Only admins can view full company data" ON companies;
 
+DROP POLICY IF EXISTS "Users can view companies they belong to" ON companies;
 CREATE POLICY "Users can view companies they belong to"
 ON companies FOR SELECT
 USING (

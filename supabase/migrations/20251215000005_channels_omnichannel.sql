@@ -57,6 +57,7 @@ ALTER TABLE channels ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage channels from their company" ON channels;
 
+DROP POLICY IF EXISTS "Users can manage channels from their company" ON channels;
 CREATE POLICY "Users can manage channels from their company" ON channels
   FOR ALL USING (company_id IN (SELECT company_id FROM company_members WHERE user_id = auth.uid()));
 

@@ -317,17 +317,17 @@ EXCEPTION WHEN OTHERS THEN
   NULL; -- Ignore if cron not available
 END $$;
 
-DO $$
+DO $OUTER$
 BEGIN
   -- Schedule new job - every 5 minutes
   PERFORM cron.schedule(
     'process-pending-cadences',
     '*/5 * * * *',
-    $$SELECT process_pending_cadence_steps()$$
+    $INNER$SELECT process_pending_cadence_steps()$INNER$
   );
 EXCEPTION WHEN OTHERS THEN
   RAISE NOTICE 'pg_cron not available, skipping cron job creation';
-END $$;
+END $OUTER$;
 
 -- =====================================================
 -- Grants

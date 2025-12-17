@@ -8,6 +8,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_id uuid REFERENCES compani
 -- 2. Adicionar política de DELETE para contacts
 DROP POLICY IF EXISTS "Users can delete contacts in their company" ON contacts;
 
+DROP POLICY IF EXISTS "Users can delete contacts in their company" ON contacts;
 CREATE POLICY "Users can delete contacts in their company"
   ON contacts FOR DELETE
   USING (company_id = get_user_company(auth.uid()));

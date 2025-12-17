@@ -32,6 +32,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger para criar pipeline automaticamente
+DROP TRIGGER IF EXISTS trigger_create_default_pipeline ON companies;
 CREATE TRIGGER trigger_create_default_pipeline
   AFTER INSERT ON companies
   FOR EACH ROW

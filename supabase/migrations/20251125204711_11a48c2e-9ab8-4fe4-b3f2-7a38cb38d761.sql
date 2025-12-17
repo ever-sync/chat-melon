@@ -31,14 +31,17 @@ CREATE INDEX IF NOT EXISTS idx_contacts_deleted ON contacts(deleted_at) WHERE de
 -- RLS policies para contact_duplicates
 ALTER TABLE contact_duplicates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view duplicates in their company" ON contact_duplicates;
 CREATE POLICY "Users can view duplicates in their company"
   ON contact_duplicates FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update duplicates in their company" ON contact_duplicates;
 CREATE POLICY "Users can update duplicates in their company"
   ON contact_duplicates FOR UPDATE
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "System can insert duplicates" ON contact_duplicates;
 CREATE POLICY "System can insert duplicates"
   ON contact_duplicates FOR INSERT
   WITH CHECK (company_id = get_user_company(auth.uid()));
@@ -49,6 +52,7 @@ COMMENT ON COLUMN contacts.deleted_at IS 'Data de soft delete do contato';
 COMMENT ON COLUMN contacts.merged_into IS 'ID do contato para o qual este foi mesclado';
 
 -- Trigger para updated_at
+DROP TRIGGER IF EXISTS update_contact_duplicates_updated_at ON contact_duplicates;
 CREATE TRIGGER update_contact_duplicates_updated_at
   BEFORE UPDATE ON contact_duplicates
   FOR EACH ROW

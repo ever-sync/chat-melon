@@ -3,7 +3,7 @@
 -- ============================================
 
 -- Tabela de administradores da plataforma
-CREATE TABLE platform_admins (
+CREATE TABLE IF NOT EXISTS platform_admins (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE,
   email TEXT NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE platform_admins (
 );
 
 -- Tabela de features controláveis da plataforma
-CREATE TABLE platform_features (
+CREATE TABLE IF NOT EXISTS platform_features (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   feature_key TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE platform_features (
 );
 
 -- Tabela que liga planos a features
-CREATE TABLE plan_features (
+CREATE TABLE IF NOT EXISTS plan_features (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   plan_id UUID REFERENCES subscription_plans(id) ON DELETE CASCADE,
   feature_id UUID REFERENCES platform_features(id) ON DELETE CASCADE,
@@ -55,21 +55,25 @@ $$;
 -- RLS Policies para platform_admins
 ALTER TABLE platform_admins ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Platform admins can view all admins" ON platform_admins;
 CREATE POLICY "Platform admins can view all admins"
   ON platform_admins
   FOR SELECT
   USING (is_platform_admin(auth.uid()));
 
+DROP POLICY IF EXISTS "Platform admins can insert new admins" ON platform_admins;
 CREATE POLICY "Platform admins can insert new admins"
   ON platform_admins
   FOR INSERT
   WITH CHECK (is_platform_admin(auth.uid()));
 
+DROP POLICY IF EXISTS "Platform admins can update admins" ON platform_admins;
 CREATE POLICY "Platform admins can update admins"
   ON platform_admins
   FOR UPDATE
   USING (is_platform_admin(auth.uid()));
 
+DROP POLICY IF EXISTS "Platform admins can delete admins" ON platform_admins;
 CREATE POLICY "Platform admins can delete admins"
   ON platform_admins
   FOR DELETE
@@ -78,11 +82,13 @@ CREATE POLICY "Platform admins can delete admins"
 -- RLS Policies para platform_features
 ALTER TABLE platform_features ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can view features" ON platform_features;
 CREATE POLICY "Anyone can view features"
   ON platform_features
   FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Platform admins can manage features" ON platform_features;
 CREATE POLICY "Platform admins can manage features"
   ON platform_features
   FOR ALL
@@ -91,11 +97,13 @@ CREATE POLICY "Platform admins can manage features"
 -- RLS Policies para plan_features
 ALTER TABLE plan_features ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can view plan features" ON plan_features;
 CREATE POLICY "Anyone can view plan features"
   ON plan_features
   FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Platform admins can manage plan features" ON plan_features;
 CREATE POLICY "Platform admins can manage plan features"
   ON plan_features
   FOR ALL
@@ -115,6 +123,7 @@ INSERT INTO platform_features (feature_key, name, description, category, icon, o
 ('products', 'Produtos', 'Catálogo de produtos', 'crm', 'Package', 10);
 
 -- Trigger para atualizar updated_at
+DROP TRIGGER IF EXISTS update_platform_features_updated_at ON platform_features;
 CREATE TRIGGER update_platform_features_updated_at
   BEFORE UPDATE ON platform_features
   FOR EACH ROW

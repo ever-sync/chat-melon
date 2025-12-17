@@ -133,12 +133,14 @@ ALTER TABLE member_permissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE role_permissions ENABLE ROW LEVEL SECURITY;
 
 -- Policies para company_members
+DROP POLICY IF EXISTS "Users can view members in their company" ON company_members;
 CREATE POLICY "Users can view members in their company"
   ON company_members FOR SELECT
   USING (company_id IN (
     SELECT company_id FROM company_members WHERE user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Admins can manage members" ON company_members;
 CREATE POLICY "Admins can manage members"
   ON company_members FOR ALL
   USING (
@@ -151,12 +153,14 @@ CREATE POLICY "Admins can manage members"
   );
 
 -- Policies para teams
+DROP POLICY IF EXISTS "Users can view teams in their company" ON teams;
 CREATE POLICY "Users can view teams in their company"
   ON teams FOR SELECT
   USING (company_id IN (
     SELECT company_id FROM company_members WHERE user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Admins can manage teams" ON teams;
 CREATE POLICY "Admins can manage teams"
   ON teams FOR ALL
   USING (
@@ -169,12 +173,14 @@ CREATE POLICY "Admins can manage teams"
   );
 
 -- Policies para invites
+DROP POLICY IF EXISTS "Users can view invites in their company" ON company_invites;
 CREATE POLICY "Users can view invites in their company"
   ON company_invites FOR SELECT
   USING (company_id IN (
     SELECT company_id FROM company_members WHERE user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Admins can manage invites" ON company_invites;
 CREATE POLICY "Admins can manage invites"
   ON company_invites FOR ALL
   USING (
@@ -190,10 +196,12 @@ CREATE POLICY "Admins can manage invites"
 -- TRIGGERS
 -- =====================================================
 
+DROP TRIGGER IF EXISTS update_company_members_updated_at ON company_members;
 CREATE TRIGGER update_company_members_updated_at
   BEFORE UPDATE ON company_members
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_teams_updated_at ON teams;
 CREATE TRIGGER update_teams_updated_at
   BEFORE UPDATE ON teams
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

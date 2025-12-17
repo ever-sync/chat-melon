@@ -92,7 +92,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource_type, 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_severity ON audit_logs(severity) WHERE severity IN ('warning', 'critical');
 
 -- Particionamento por data (para grandes volumes)
--- CREATE TABLE audit_logs_2024 PARTITION OF audit_logs FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+-- CREATE TABLE IF NOT EXISTS audit_logs_2024 PARTITION OF audit_logs FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
 
 -- =====================================================
 -- 5.4 2FA Obrigatório
@@ -215,8 +215,7 @@ CREATE POLICY "Admins can manage SSO configurations" ON sso_configurations
   FOR ALL USING (
     company_id IN (
       SELECT cm.company_id FROM company_members cm
-      JOIN profiles p ON p.id = cm.user_id
-      WHERE cm.user_id = auth.uid() AND p.role = 'admin'
+      WHERE cm.user_id = auth.uid() AND cm.role = 'admin'
     )
   );
 
@@ -231,8 +230,7 @@ CREATE POLICY "Admins can manage 2FA settings" ON two_factor_settings
   FOR ALL USING (
     company_id IN (
       SELECT cm.company_id FROM company_members cm
-      JOIN profiles p ON p.id = cm.user_id
-      WHERE cm.user_id = auth.uid() AND p.role = 'admin'
+      WHERE cm.user_id = auth.uid() AND cm.role = 'admin'
     )
   );
 

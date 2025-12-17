@@ -5,6 +5,7 @@
 -- Permitir que Super Admins vejam todas as empresas
 DROP POLICY IF EXISTS "Super Admin can view all companies" ON companies;
 
+DROP POLICY IF EXISTS "Super Admin can view all companies" ON companies;
 CREATE POLICY "Super Admin can view all companies"
 ON companies FOR SELECT
 USING (
@@ -14,6 +15,7 @@ USING (
 -- Permitir que Super Admins atualizem qualquer empresa
 DROP POLICY IF EXISTS "Super Admin can update all companies" ON companies;
 
+DROP POLICY IF EXISTS "Super Admin can update all companies" ON companies;
 CREATE POLICY "Super Admin can update all companies"
 ON companies FOR UPDATE
 USING (

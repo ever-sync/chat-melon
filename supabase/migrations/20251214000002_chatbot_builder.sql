@@ -184,11 +184,13 @@ ALTER TABLE chatbot_executions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chatbot_templates ENABLE ROW LEVEL SECURITY;
 
 -- Chatbots
+DROP POLICY IF EXISTS "Users can manage chatbots from their company" ON chatbots;
 CREATE POLICY "Users can manage chatbots from their company"
   ON chatbots FOR ALL
   USING (company_id = get_user_company());
 
 -- Chatbot Versions
+DROP POLICY IF EXISTS "Users can view chatbot versions from their company" ON chatbot_versions;
 CREATE POLICY "Users can view chatbot versions from their company"
   ON chatbot_versions FOR ALL
   USING (
@@ -200,6 +202,7 @@ CREATE POLICY "Users can view chatbot versions from their company"
   );
 
 -- Chatbot Executions
+DROP POLICY IF EXISTS "Users can view executions from their company" ON chatbot_executions;
 CREATE POLICY "Users can view executions from their company"
   ON chatbot_executions FOR SELECT
   USING (
@@ -211,10 +214,12 @@ CREATE POLICY "Users can view executions from their company"
   );
 
 -- Templates
+DROP POLICY IF EXISTS "Users can view system templates and their own" ON chatbot_templates;
 CREATE POLICY "Users can view system templates and their own"
   ON chatbot_templates FOR SELECT
   USING (is_system = true OR company_id = get_user_company());
 
+DROP POLICY IF EXISTS "Users can manage their own templates" ON chatbot_templates;
 CREATE POLICY "Users can manage their own templates"
   ON chatbot_templates FOR ALL
   USING (company_id = get_user_company())

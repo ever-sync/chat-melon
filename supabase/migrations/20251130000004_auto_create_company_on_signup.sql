@@ -1,3 +1,4 @@
+DROP TRIGGER IF EXISTS on_user_email_confirmed ON auth.users;
 -- ============================================
 -- AUTO-CREATE COMPANY ON USER SIGNUP
 -- ============================================

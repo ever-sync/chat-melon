@@ -14,24 +14,26 @@ CREATE TABLE IF NOT EXISTS internal_messages (
 );
 
 -- Create indexes
-CREATE INDEX idx_internal_messages_sender ON internal_messages(sender_id);
-CREATE INDEX idx_internal_messages_recipient ON internal_messages(recipient_id);
-CREATE INDEX idx_internal_messages_company ON internal_messages(company_id);
-CREATE INDEX idx_internal_messages_created_at ON internal_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_internal_messages_sender ON internal_messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_internal_messages_recipient ON internal_messages(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_internal_messages_company ON internal_messages(company_id);
+CREATE INDEX IF NOT EXISTS idx_internal_messages_created_at ON internal_messages(created_at DESC);
 
 -- Create composite index for conversations lookup
-CREATE INDEX idx_internal_messages_conversation ON internal_messages(sender_id, recipient_id);
+CREATE INDEX IF NOT EXISTS idx_internal_messages_conversation ON internal_messages(sender_id, recipient_id);
 
 -- Enable RLS
 ALTER TABLE internal_messages ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
+DROP POLICY IF EXISTS "Users can view messages they sent or received" ON internal_messages;
 CREATE POLICY "Users can view messages they sent or received"
 ON internal_messages FOR SELECT
 USING (
   auth.uid() = sender_id OR auth.uid() = recipient_id
 );
 
+DROP POLICY IF EXISTS "Users can send messages" ON internal_messages;
 CREATE POLICY "Users can send messages"
 ON internal_messages FOR INSERT
 WITH CHECK (
@@ -46,10 +48,12 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Users can update their own messages" ON internal_messages;
 CREATE POLICY "Users can update their own messages"
 ON internal_messages FOR UPDATE
 USING (auth.uid() = sender_id);
 
+DROP POLICY IF EXISTS "Users can delete their own messages" ON internal_messages;
 CREATE POLICY "Users can delete their own messages"
 ON internal_messages FOR DELETE
 USING (auth.uid() = sender_id);
@@ -64,13 +68,15 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create trigger
+DROP TRIGGER IF EXISTS trigger_update_internal_messages_updated_at ON internal_messages;
 CREATE TRIGGER trigger_update_internal_messages_updated_at
   BEFORE UPDATE ON internal_messages
   FOR EACH ROW
   EXECUTE FUNCTION update_internal_messages_updated_at();
 
 -- Create view for online users (based on recent activity)
-CREATE OR REPLACE VIEW online_users AS
+DROP VIEW IF EXISTS online_users;
+CREATE VIEW online_users AS
 SELECT DISTINCT
   u.id,
   u.email,

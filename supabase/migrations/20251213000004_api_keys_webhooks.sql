@@ -161,9 +161,11 @@ ALTER TABLE webhook_endpoints ENABLE ROW LEVEL SECURITY;
 ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
 
 -- API Keys policies
+DROP POLICY IF EXISTS "Users can view API keys in their company" ON api_keys;
 CREATE POLICY "Users can view API keys in their company" ON api_keys
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage API keys" ON api_keys;
 CREATE POLICY "Admins can manage API keys" ON api_keys
   FOR ALL USING (
     company_id = get_user_company(auth.uid()) AND
@@ -171,16 +173,20 @@ CREATE POLICY "Admins can manage API keys" ON api_keys
   );
 
 -- API request logs policies
+DROP POLICY IF EXISTS "Users can view API logs in their company" ON api_request_logs;
 CREATE POLICY "Users can view API logs in their company" ON api_request_logs
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Service role can insert API logs" ON api_request_logs;
 CREATE POLICY "Service role can insert API logs" ON api_request_logs
   FOR INSERT WITH CHECK (auth.role() = 'service_role');
 
 -- Webhook endpoints policies
+DROP POLICY IF EXISTS "Users can view webhooks in their company" ON webhook_endpoints;
 CREATE POLICY "Users can view webhooks in their company" ON webhook_endpoints
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage webhooks" ON webhook_endpoints;
 CREATE POLICY "Admins can manage webhooks" ON webhook_endpoints
   FOR ALL USING (
     company_id = get_user_company(auth.uid()) AND
@@ -188,9 +194,11 @@ CREATE POLICY "Admins can manage webhooks" ON webhook_endpoints
   );
 
 -- Webhook logs policies
+DROP POLICY IF EXISTS "Users can view webhook logs in their company" ON webhook_logs;
 CREATE POLICY "Users can view webhook logs in their company" ON webhook_logs
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Service role can manage webhook logs" ON webhook_logs;
 CREATE POLICY "Service role can manage webhook logs" ON webhook_logs
   FOR ALL USING (auth.role() = 'service_role');
 

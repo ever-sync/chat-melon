@@ -36,10 +36,12 @@ CREATE INDEX IF NOT EXISTS idx_custom_field_values_field ON custom_field_values(
 -- RLS Policies para custom_fields
 ALTER TABLE custom_fields ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view custom fields in their company" ON custom_fields;
 CREATE POLICY "Users can view custom fields in their company"
   ON custom_fields FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage custom fields" ON custom_fields;
 CREATE POLICY "Admins can manage custom fields"
   ON custom_fields FOR ALL
   USING (has_role(auth.uid(), company_id, 'admin'));
@@ -47,6 +49,7 @@ CREATE POLICY "Admins can manage custom fields"
 -- RLS Policies para custom_field_values
 ALTER TABLE custom_field_values ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view custom field values in their company" ON custom_field_values;
 CREATE POLICY "Users can view custom field values in their company"
   ON custom_field_values FOR SELECT
   USING (
@@ -56,6 +59,7 @@ CREATE POLICY "Users can view custom field values in their company"
     )
   );
 
+DROP POLICY IF EXISTS "Users can manage custom field values in their company" ON custom_field_values;
 CREATE POLICY "Users can manage custom field values in their company"
   ON custom_field_values FOR ALL
   USING (
@@ -74,11 +78,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_custom_fields_timestamp ON custom_fields;
 CREATE TRIGGER update_custom_fields_timestamp
   BEFORE UPDATE ON custom_fields
   FOR EACH ROW
   EXECUTE FUNCTION update_custom_fields_updated_at();
 
+DROP TRIGGER IF EXISTS update_custom_field_values_timestamp ON custom_field_values;
 CREATE TRIGGER update_custom_field_values_timestamp
   BEFORE UPDATE ON custom_field_values
   FOR EACH ROW

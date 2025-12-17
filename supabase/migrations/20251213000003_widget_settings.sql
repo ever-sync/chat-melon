@@ -173,9 +173,11 @@ ALTER TABLE widget_conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE widget_messages ENABLE ROW LEVEL SECURITY;
 
 -- Widget settings policies
+DROP POLICY IF EXISTS "Users can view widget settings in their company" ON widget_settings;
 CREATE POLICY "Users can view widget settings in their company" ON widget_settings
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage widget settings" ON widget_settings;
 CREATE POLICY "Admins can manage widget settings" ON widget_settings
   FOR ALL USING (
     company_id = get_user_company(auth.uid()) AND
@@ -183,29 +185,37 @@ CREATE POLICY "Admins can manage widget settings" ON widget_settings
   );
 
 -- Widget visitors policies (also need service role access for widget API)
+DROP POLICY IF EXISTS "Users can view visitors in their company" ON widget_visitors;
 CREATE POLICY "Users can view visitors in their company" ON widget_visitors
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Service role can manage visitors" ON widget_visitors;
 CREATE POLICY "Service role can manage visitors" ON widget_visitors
   FOR ALL USING (auth.role() = 'service_role');
 
 -- Widget conversations policies
+DROP POLICY IF EXISTS "Users can view widget conversations in their company" ON widget_conversations;
 CREATE POLICY "Users can view widget conversations in their company" ON widget_conversations
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update widget conversations in their company" ON widget_conversations;
 CREATE POLICY "Users can update widget conversations in their company" ON widget_conversations
   FOR UPDATE USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Service role can manage widget conversations" ON widget_conversations;
 CREATE POLICY "Service role can manage widget conversations" ON widget_conversations
   FOR ALL USING (auth.role() = 'service_role');
 
 -- Widget messages policies
+DROP POLICY IF EXISTS "Users can view widget messages in their company" ON widget_messages;
 CREATE POLICY "Users can view widget messages in their company" ON widget_messages
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create widget messages in their company" ON widget_messages;
 CREATE POLICY "Users can create widget messages in their company" ON widget_messages
   FOR INSERT WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Service role can manage widget messages" ON widget_messages;
 CREATE POLICY "Service role can manage widget messages" ON widget_messages
   FOR ALL USING (auth.role() = 'service_role');
 
@@ -218,6 +228,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_widget_settings_updated_at ON widget_settings;
 CREATE TRIGGER trigger_widget_settings_updated_at
   BEFORE UPDATE ON widget_settings
   FOR EACH ROW

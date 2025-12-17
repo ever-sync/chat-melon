@@ -1,5 +1,5 @@
 -- Create proposal_templates table
-CREATE TABLE proposal_templates (
+CREATE TABLE IF NOT EXISTS proposal_templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -17,18 +17,22 @@ CREATE TABLE proposal_templates (
 -- Add RLS policies
 ALTER TABLE proposal_templates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view templates in their company" ON proposal_templates;
 CREATE POLICY "Users can view templates in their company"
   ON proposal_templates FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create templates in their company" ON proposal_templates;
 CREATE POLICY "Users can create templates in their company"
   ON proposal_templates FOR INSERT
   WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update templates in their company" ON proposal_templates;
 CREATE POLICY "Users can update templates in their company"
   ON proposal_templates FOR UPDATE
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can delete templates" ON proposal_templates;
 CREATE POLICY "Admins can delete templates"
   ON proposal_templates FOR DELETE
   USING (
@@ -37,12 +41,13 @@ CREATE POLICY "Admins can delete templates"
   );
 
 -- Create index for company_id
-CREATE INDEX idx_proposal_templates_company_id ON proposal_templates(company_id);
+CREATE INDEX IF NOT EXISTS idx_proposal_templates_company_id ON proposal_templates(company_id);
 
 -- Create index for category
-CREATE INDEX idx_proposal_templates_category ON proposal_templates(category) WHERE category IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_proposal_templates_category ON proposal_templates(category) WHERE category IS NOT NULL;
 
 -- Add trigger for updated_at
+DROP TRIGGER IF EXISTS update_proposal_templates_updated_at ON proposal_templates;
 CREATE TRIGGER update_proposal_templates_updated_at
   BEFORE UPDATE ON proposal_templates
   FOR EACH ROW

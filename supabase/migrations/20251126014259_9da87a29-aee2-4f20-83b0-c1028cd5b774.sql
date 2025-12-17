@@ -272,28 +272,33 @@ ALTER TABLE ai_metrics_daily ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_suggestions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view insights in their company" ON lead_insights;
 CREATE POLICY "Users can view insights in their company"
   ON lead_insights FOR SELECT
   USING (company_id IN (
     SELECT company_id FROM company_members WHERE user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "System can insert insights" ON lead_insights;
 CREATE POLICY "System can insert insights"
   ON lead_insights FOR INSERT
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Users can view qualification in their company" ON lead_qualification;
 CREATE POLICY "Users can view qualification in their company"
   ON lead_qualification FOR SELECT
   USING (company_id IN (
     SELECT company_id FROM company_members WHERE user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Users can update qualification in their company" ON lead_qualification;
 CREATE POLICY "Users can update qualification in their company"
   ON lead_qualification FOR UPDATE
   USING (company_id IN (
     SELECT company_id FROM company_members WHERE user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Admins can manage AI settings" ON ai_settings;
 CREATE POLICY "Admins can manage AI settings"
   ON ai_settings FOR ALL
   USING (
@@ -305,12 +310,14 @@ CREATE POLICY "Admins can manage AI settings"
     )
   );
 
+DROP POLICY IF EXISTS "Users can view suggestions in their company" ON ai_suggestions;
 CREATE POLICY "Users can view suggestions in their company"
   ON ai_suggestions FOR SELECT
   USING (company_id IN (
     SELECT company_id FROM company_members WHERE user_id = auth.uid()
   ));
 
+DROP POLICY IF EXISTS "Users can update suggestions" ON ai_suggestions;
 CREATE POLICY "Users can update suggestions"
   ON ai_suggestions FOR UPDATE
   USING (company_id IN (
@@ -321,10 +328,12 @@ CREATE POLICY "Users can update suggestions"
 -- TRIGGERS
 -- =====================================================
 
+DROP TRIGGER IF EXISTS update_lead_qualification_updated_at ON lead_qualification;
 CREATE TRIGGER update_lead_qualification_updated_at
   BEFORE UPDATE ON lead_qualification
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_ai_settings_updated_at ON ai_settings;
 CREATE TRIGGER update_ai_settings_updated_at
   BEFORE UPDATE ON ai_settings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

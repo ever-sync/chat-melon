@@ -1,3 +1,4 @@
+DROP TRIGGER IF EXISTS trigger_record_order_status ON orders;
 -- =====================================================
 -- FASE 3: E-commerce & Automação Avançada
 -- =====================================================
@@ -192,17 +193,20 @@ DROP POLICY IF EXISTS "Users can manage orders from their company" ON orders;
 DROP POLICY IF EXISTS "Users can view order history from their company" ON order_status_history;
 
 -- Cadences policies
+DROP POLICY IF EXISTS "Users can view cadences from their company" ON cadences;
 CREATE POLICY "Users can view cadences from their company" ON cadences
   FOR SELECT USING (
     company_id IN (SELECT company_id FROM company_members WHERE user_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can manage cadences from their company" ON cadences;
 CREATE POLICY "Users can manage cadences from their company" ON cadences
   FOR ALL USING (
     company_id IN (SELECT company_id FROM company_members WHERE user_id = auth.uid())
   );
 
 -- Cadence Enrollments policies
+DROP POLICY IF EXISTS "Users can view enrollments from their company" ON cadence_enrollments;
 CREATE POLICY "Users can view enrollments from their company" ON cadence_enrollments
   FOR SELECT USING (
     cadence_id IN (
@@ -212,6 +216,7 @@ CREATE POLICY "Users can view enrollments from their company" ON cadence_enrollm
     )
   );
 
+DROP POLICY IF EXISTS "Users can manage enrollments from their company" ON cadence_enrollments;
 CREATE POLICY "Users can manage enrollments from their company" ON cadence_enrollments
   FOR ALL USING (
     cadence_id IN (
@@ -222,17 +227,20 @@ CREATE POLICY "Users can manage enrollments from their company" ON cadence_enrol
   );
 
 -- Orders policies
+DROP POLICY IF EXISTS "Users can view orders from their company" ON orders;
 CREATE POLICY "Users can view orders from their company" ON orders
   FOR SELECT USING (
     company_id IN (SELECT company_id FROM company_members WHERE user_id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can manage orders from their company" ON orders;
 CREATE POLICY "Users can manage orders from their company" ON orders
   FOR ALL USING (
     company_id IN (SELECT company_id FROM company_members WHERE user_id = auth.uid())
   );
 
 -- Order Status History policies
+DROP POLICY IF EXISTS "Users can view order history from their company" ON order_status_history;
 CREATE POLICY "Users can view order history from their company" ON order_status_history
   FOR SELECT USING (
     order_id IN (

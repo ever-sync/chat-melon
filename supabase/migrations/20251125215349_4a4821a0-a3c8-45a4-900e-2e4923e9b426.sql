@@ -21,10 +21,12 @@ CREATE TABLE IF NOT EXISTS scoring_rules (
 ALTER TABLE scoring_rules ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for scoring_rules
+DROP POLICY IF EXISTS "Users can view scoring rules in their company" ON scoring_rules;
 CREATE POLICY "Users can view scoring rules in their company"
   ON scoring_rules FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage scoring rules" ON scoring_rules;
 CREATE POLICY "Admins can manage scoring rules"
   ON scoring_rules FOR ALL
   USING (has_role(auth.uid(), company_id, 'admin'::app_role));
@@ -34,6 +36,7 @@ CREATE INDEX IF NOT EXISTS idx_scoring_rules_company_active ON scoring_rules(com
 CREATE INDEX IF NOT EXISTS idx_contacts_lead_score ON contacts(lead_score DESC);
 
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS update_scoring_rules_updated_at ON scoring_rules;
 CREATE TRIGGER update_scoring_rules_updated_at
   BEFORE UPDATE ON scoring_rules
   FOR EACH ROW

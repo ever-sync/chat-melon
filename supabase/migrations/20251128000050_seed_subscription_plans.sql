@@ -4,11 +4,11 @@
 -- Cria os planos iniciais da plataforma
 
 -- Limpa dados existentes (apenas em desenvolvimento)
--- CUIDADO: Comente esta linha em produção se já tiver dados reais!
-DELETE FROM plan_features WHERE plan_id IN (SELECT id FROM subscription_plans);
-DELETE FROM subscription_plans;
+-- CUIDADO: Comentado para evitar problemas com foreign keys em produção!
+-- DELETE FROM plan_features WHERE plan_id IN (SELECT id FROM subscription_plans);
+-- DELETE FROM subscription_plans;
 
--- Insere os 3 planos padrão
+-- Insere os 3 planos padrão (ou atualiza se já existir)
 INSERT INTO subscription_plans (
   id,
   slug,
@@ -92,15 +92,25 @@ INSERT INTO subscription_plans (
     }'::jsonb,
     NOW(),
     NOW()
-  );
+  )
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  price_monthly = EXCLUDED.price_monthly,
+  price_yearly = EXCLUDED.price_yearly,
+  max_companies = EXCLUDED.max_companies,
+  max_users = EXCLUDED.max_users,
+  max_conversations = EXCLUDED.max_conversations,
+  features = EXCLUDED.features,
+  updated_at = NOW();
 
 -- =============================================
 -- SEED DATA: Platform Features
 -- =============================================
 -- Cria as features controláveis da plataforma
 
-DELETE FROM plan_features WHERE feature_id IN (SELECT id FROM platform_features);
-DELETE FROM platform_features;
+-- Comentado para evitar problemas com foreign keys
+-- DELETE FROM plan_features WHERE feature_id IN (SELECT id FROM platform_features);
+-- DELETE FROM platform_features;
 
 INSERT INTO platform_features (
   id,
@@ -340,7 +350,15 @@ INSERT INTO platform_features (
     52,
     NOW(),
     NOW()
-  );
+  )
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  category = EXCLUDED.category,
+  is_global_enabled = EXCLUDED.is_global_enabled,
+  icon = EXCLUDED.icon,
+  order_index = EXCLUDED.order_index,
+  updated_at = NOW();
 
 -- =============================================
 -- SEED DATA: Plan Features (Relacionamento)
@@ -377,7 +395,10 @@ INSERT INTO plan_features (plan_id, feature_id, is_enabled, config) VALUES
   -- Admin
   ('11111111-1111-1111-1111-111111111111', 'f6666666-6666-6666-6666-666666666661', false, '{"max_companies": 1}'), -- 1 empresa
   ('11111111-1111-1111-1111-111111111111', 'f6666666-6666-6666-6666-666666666662', false, '{}'), -- White Label OFF
-  ('11111111-1111-1111-1111-111111111111', 'f6666666-6666-6666-6666-666666666663', true, '{}');
+  ('11111111-1111-1111-1111-111111111111', 'f6666666-6666-6666-6666-666666666663', true, '{}')
+ON CONFLICT (plan_id, feature_id) DO UPDATE SET
+  is_enabled = EXCLUDED.is_enabled,
+  config = EXCLUDED.config;
 
 -- PLANO PROFESSIONAL
 INSERT INTO plan_features (plan_id, feature_id, is_enabled, config) VALUES
@@ -409,7 +430,10 @@ INSERT INTO plan_features (plan_id, feature_id, is_enabled, config) VALUES
   -- Admin
   ('22222222-2222-2222-2222-222222222222', 'f6666666-6666-6666-6666-666666666661', true, '{"max_companies": 3}'),
   ('22222222-2222-2222-2222-222222222222', 'f6666666-6666-6666-6666-666666666662', false, '{}'), -- White Label OFF
-  ('22222222-2222-2222-2222-222222222222', 'f6666666-6666-6666-6666-666666666663', true, '{}');
+  ('22222222-2222-2222-2222-222222222222', 'f6666666-6666-6666-6666-666666666663', true, '{}')
+ON CONFLICT (plan_id, feature_id) DO UPDATE SET
+  is_enabled = EXCLUDED.is_enabled,
+  config = EXCLUDED.config;
 
 -- PLANO ENTERPRISE
 INSERT INTO plan_features (plan_id, feature_id, is_enabled, config) VALUES
@@ -441,7 +465,10 @@ INSERT INTO plan_features (plan_id, feature_id, is_enabled, config) VALUES
   -- Admin (tudo habilitado)
   ('33333333-3333-3333-3333-333333333333', 'f6666666-6666-6666-6666-666666666661', true, '{"max_companies": null}'), -- ilimitado
   ('33333333-3333-3333-3333-333333333333', 'f6666666-6666-6666-6666-666666666662', true, '{}'), -- White Label ON
-  ('33333333-3333-3333-3333-333333333333', 'f6666666-6666-6666-6666-666666666663', true, '{}');
+  ('33333333-3333-3333-3333-333333333333', 'f6666666-6666-6666-6666-666666666663', true, '{}')
+ON CONFLICT (plan_id, feature_id) DO UPDATE SET
+  is_enabled = EXCLUDED.is_enabled,
+  config = EXCLUDED.config;
 
 -- =============================================
 -- Comentários e Logs

@@ -13,27 +13,32 @@ CREATE TABLE IF NOT EXISTS contact_notes (
 -- RLS policies
 ALTER TABLE contact_notes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view notes in their company" ON contact_notes;
 CREATE POLICY "Users can view notes in their company"
   ON contact_notes FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create notes in their company" ON contact_notes;
 CREATE POLICY "Users can create notes in their company"
   ON contact_notes FOR INSERT
   WITH CHECK (company_id = get_user_company(auth.uid()) AND user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update their own notes" ON contact_notes;
 CREATE POLICY "Users can update their own notes"
   ON contact_notes FOR UPDATE
   USING (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their own notes" ON contact_notes;
 CREATE POLICY "Users can delete their own notes"
   ON contact_notes FOR DELETE
   USING (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
 -- Índices
-CREATE INDEX idx_contact_notes_contact ON contact_notes(contact_id);
-CREATE INDEX idx_contact_notes_company ON contact_notes(company_id);
+CREATE INDEX IF NOT EXISTS idx_contact_notes_contact ON contact_notes(contact_id);
+CREATE INDEX IF NOT EXISTS idx_contact_notes_company ON contact_notes(company_id);
 
 -- Trigger para updated_at
+DROP TRIGGER IF EXISTS update_contact_notes_updated_at ON contact_notes;
 CREATE TRIGGER update_contact_notes_updated_at
   BEFORE UPDATE ON contact_notes
   FOR EACH ROW

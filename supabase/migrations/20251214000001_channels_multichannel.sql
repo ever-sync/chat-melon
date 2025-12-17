@@ -191,15 +191,18 @@ ALTER TABLE telegram_bot_commands ENABLE ROW LEVEL SECURITY;
 ALTER TABLE channel_health_logs ENABLE ROW LEVEL SECURITY;
 
 -- Channels policies
+DROP POLICY IF EXISTS "Users can view channels from their company" ON channels;
 CREATE POLICY "Users can view channels from their company"
   ON channels FOR SELECT
   USING (company_id = get_user_company());
 
+DROP POLICY IF EXISTS "Users can manage channels from their company" ON channels;
 CREATE POLICY "Users can manage channels from their company"
   ON channels FOR ALL
   USING (company_id = get_user_company());
 
 -- Instagram metadata policies
+DROP POLICY IF EXISTS "Users can view instagram metadata from their conversations" ON instagram_messages_metadata;
 CREATE POLICY "Users can view instagram metadata from their conversations"
   ON instagram_messages_metadata FOR SELECT
   USING (
@@ -212,11 +215,13 @@ CREATE POLICY "Users can view instagram metadata from their conversations"
   );
 
 -- Messenger templates policies
+DROP POLICY IF EXISTS "Users can manage messenger templates from their company" ON messenger_templates;
 CREATE POLICY "Users can manage messenger templates from their company"
   ON messenger_templates FOR ALL
   USING (company_id = get_user_company());
 
 -- Telegram commands policies
+DROP POLICY IF EXISTS "Users can manage telegram commands from their channels" ON telegram_bot_commands;
 CREATE POLICY "Users can manage telegram commands from their channels"
   ON telegram_bot_commands FOR ALL
   USING (
@@ -228,6 +233,7 @@ CREATE POLICY "Users can manage telegram commands from their channels"
   );
 
 -- Channel health policies
+DROP POLICY IF EXISTS "Users can view health logs from their channels" ON channel_health_logs;
 CREATE POLICY "Users can view health logs from their channels"
   ON channel_health_logs FOR SELECT
   USING (

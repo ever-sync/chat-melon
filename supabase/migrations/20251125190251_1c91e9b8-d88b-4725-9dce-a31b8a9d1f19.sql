@@ -11,29 +11,34 @@ CREATE TABLE IF NOT EXISTS saved_filters (
 );
 
 -- Create index for faster queries
-CREATE INDEX idx_saved_filters_user_company ON saved_filters(user_id, company_id);
+CREATE INDEX IF NOT EXISTS idx_saved_filters_user_company ON saved_filters(user_id, company_id);
 
 -- Enable RLS
 ALTER TABLE saved_filters ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
+DROP POLICY IF EXISTS "Users can view their own saved filters" ON saved_filters;
 CREATE POLICY "Users can view their own saved filters"
   ON saved_filters FOR SELECT
   USING (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create their own saved filters" ON saved_filters;
 CREATE POLICY "Users can create their own saved filters"
   ON saved_filters FOR INSERT
   WITH CHECK (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their own saved filters" ON saved_filters;
 CREATE POLICY "Users can update their own saved filters"
   ON saved_filters FOR UPDATE
   USING (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their own saved filters" ON saved_filters;
 CREATE POLICY "Users can delete their own saved filters"
   ON saved_filters FOR DELETE
   USING (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS update_saved_filters_updated_at ON saved_filters;
 CREATE TRIGGER update_saved_filters_updated_at
   BEFORE UPDATE ON saved_filters
   FOR EACH ROW

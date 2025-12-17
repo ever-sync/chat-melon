@@ -1,3 +1,5 @@
+DROP TRIGGER IF EXISTS update_product_settings_timestamp ON public.product_settings;
+DROP TRIGGER IF EXISTS update_product_settings_timestamp ON public.product_settings;
 -- Migration: Create product categories and custom fields
 -- ==========================================
 
@@ -48,21 +50,25 @@ CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category_id)
 -- 5. RLS Policies para product_categories
 ALTER TABLE public.product_categories ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their company categories" ON public.product_categories;
 CREATE POLICY "Users can view their company categories" ON public.product_categories
   FOR SELECT USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can insert their company categories" ON public.product_categories;
 CREATE POLICY "Users can insert their company categories" ON public.product_categories
   FOR INSERT WITH CHECK (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can update their company categories" ON public.product_categories;
 CREATE POLICY "Users can update their company categories" ON public.product_categories
   FOR UPDATE USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can delete their company categories" ON public.product_categories;
 CREATE POLICY "Users can delete their company categories" ON public.product_categories
   FOR DELETE USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
@@ -71,21 +77,25 @@ CREATE POLICY "Users can delete their company categories" ON public.product_cate
 -- 6. RLS Policies para product_custom_fields
 ALTER TABLE public.product_custom_fields ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their company custom fields" ON public.product_custom_fields;
 CREATE POLICY "Users can view their company custom fields" ON public.product_custom_fields
   FOR SELECT USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can insert their company custom fields" ON public.product_custom_fields;
 CREATE POLICY "Users can insert their company custom fields" ON public.product_custom_fields
   FOR INSERT WITH CHECK (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can update their company custom fields" ON public.product_custom_fields;
 CREATE POLICY "Users can update their company custom fields" ON public.product_custom_fields
   FOR UPDATE USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can delete their company custom fields" ON public.product_custom_fields;
 CREATE POLICY "Users can delete their company custom fields" ON public.product_custom_fields
   FOR DELETE USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
@@ -100,6 +110,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_product_categories_timestamp ON public.product_categories;
 CREATE TRIGGER update_product_categories_timestamp
   BEFORE UPDATE ON public.product_categories
   FOR EACH ROW EXECUTE FUNCTION update_product_categories_timestamp();
@@ -112,6 +123,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_product_custom_fields_timestamp ON public.product_custom_fields;
 CREATE TRIGGER update_product_custom_fields_timestamp
   BEFORE UPDATE ON public.product_custom_fields
   FOR EACH ROW EXECUTE FUNCTION update_product_custom_fields_timestamp();
@@ -130,16 +142,19 @@ CREATE TABLE IF NOT EXISTS public.product_settings (
 -- RLS para product_settings
 ALTER TABLE public.product_settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their company product settings" ON public.product_settings;
 CREATE POLICY "Users can view their company product settings" ON public.product_settings
   FOR SELECT USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can insert their company product settings" ON public.product_settings;
 CREATE POLICY "Users can insert their company product settings" ON public.product_settings
   FOR INSERT WITH CHECK (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can update their company product settings" ON public.product_settings;
 CREATE POLICY "Users can update their company product settings" ON public.product_settings
   FOR UPDATE USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
@@ -154,6 +169,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_product_settings_timestamp ON public.product_settings;
 CREATE TRIGGER update_product_settings_timestamp
   BEFORE UPDATE ON public.product_settings
   FOR EACH ROW EXECUTE FUNCTION update_product_settings_timestamp();

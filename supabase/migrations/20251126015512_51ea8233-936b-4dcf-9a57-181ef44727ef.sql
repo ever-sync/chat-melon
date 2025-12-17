@@ -23,6 +23,7 @@ ON conversation_embeddings(conversation_id);
 -- RLS policies
 ALTER TABLE conversation_embeddings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Embeddings por empresa" ON conversation_embeddings;
 CREATE POLICY "Embeddings por empresa" ON conversation_embeddings
   FOR ALL USING (
     conversation_id IN (

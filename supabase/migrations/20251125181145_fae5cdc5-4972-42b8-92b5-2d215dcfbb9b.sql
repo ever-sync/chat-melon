@@ -1,3 +1,4 @@
+DROP TRIGGER IF EXISTS on_company_created_pipeline ON companies;
 -- Recriar trigger para setup_company_creator (caso esteja mal configurado)
 DROP TRIGGER IF EXISTS on_company_created ON companies;
 CREATE TRIGGER on_company_created
@@ -15,6 +16,7 @@ CREATE TRIGGER on_company_created_pipeline
 -- Corrigir RLS policy de SELECT para permitir acesso imediato do criador
 DROP POLICY IF EXISTS "Users can view companies they belong to" ON companies;
 
+DROP POLICY IF EXISTS "Users can view their companies" ON companies;
 CREATE POLICY "Users can view their companies"
 ON companies FOR SELECT
 USING (

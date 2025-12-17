@@ -25,16 +25,19 @@ ALTER TABLE public.products
 -- RLS para product_settings
 ALTER TABLE public.product_settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their company product settings" ON public.product_settings;
 CREATE POLICY "Users can view their company product settings" ON public.product_settings
   FOR SELECT USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can insert their company product settings" ON public.product_settings;
 CREATE POLICY "Users can insert their company product settings" ON public.product_settings
   FOR INSERT WITH CHECK (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
   );
 
+DROP POLICY IF EXISTS "Users can update their company product settings" ON public.product_settings;
 CREATE POLICY "Users can update their company product settings" ON public.product_settings
   FOR UPDATE USING (
     company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())

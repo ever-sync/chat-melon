@@ -4,7 +4,7 @@
 -- Add shortcut column to message_templates
 ALTER TABLE message_templates ADD COLUMN IF NOT EXISTS shortcut VARCHAR(50);
 
--- Create unique index for shortcuts per company
+-- CREATE UNIQUE INDEX IF NOT EXISTS for shortcuts per company
 CREATE UNIQUE INDEX IF NOT EXISTS idx_message_templates_shortcut_company
 ON message_templates(company_id, shortcut)
 WHERE shortcut IS NOT NULL;
@@ -18,7 +18,7 @@ ALTER TABLE message_templates ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
 -- Add last_used_at for smarter sorting
 ALTER TABLE message_templates ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ;
 
--- Create table for tracking shortcut usage analytics
+-- CREATE TABLE IF NOT EXISTS for tracking shortcut usage analytics
 CREATE TABLE IF NOT EXISTS template_usage_analytics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   template_id UUID REFERENCES message_templates(id) ON DELETE CASCADE,
@@ -41,9 +41,11 @@ ON template_usage_analytics(company_id, used_at DESC);
 -- RLS for template_usage_analytics
 ALTER TABLE template_usage_analytics ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view analytics in their company" ON template_usage_analytics;
 CREATE POLICY "Users can view analytics in their company" ON template_usage_analytics
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert analytics" ON template_usage_analytics;
 CREATE POLICY "Users can insert analytics" ON template_usage_analytics
   FOR INSERT WITH CHECK (company_id = get_user_company(auth.uid()));
 

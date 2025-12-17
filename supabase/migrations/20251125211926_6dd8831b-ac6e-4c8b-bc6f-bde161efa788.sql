@@ -1,5 +1,5 @@
 -- Create satisfaction_surveys table
-CREATE TABLE satisfaction_surveys (
+CREATE TABLE IF NOT EXISTS satisfaction_surveys (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
@@ -19,29 +19,32 @@ CREATE TABLE satisfaction_surveys (
 );
 
 -- Create index for faster queries
-CREATE INDEX idx_satisfaction_surveys_company ON satisfaction_surveys(company_id);
-CREATE INDEX idx_satisfaction_surveys_conversation ON satisfaction_surveys(conversation_id);
-CREATE INDEX idx_satisfaction_surveys_status ON satisfaction_surveys(status);
-CREATE INDEX idx_satisfaction_surveys_assigned ON satisfaction_surveys(assigned_to);
-CREATE INDEX idx_satisfaction_surveys_answered ON satisfaction_surveys(answered_at DESC);
+CREATE INDEX IF NOT EXISTS idx_satisfaction_surveys_company ON satisfaction_surveys(company_id);
+CREATE INDEX IF NOT EXISTS idx_satisfaction_surveys_conversation ON satisfaction_surveys(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_satisfaction_surveys_status ON satisfaction_surveys(status);
+CREATE INDEX IF NOT EXISTS idx_satisfaction_surveys_assigned ON satisfaction_surveys(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_satisfaction_surveys_answered ON satisfaction_surveys(answered_at DESC);
 
 -- RLS policies
 ALTER TABLE satisfaction_surveys ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view surveys in their company" ON satisfaction_surveys;
 CREATE POLICY "Users can view surveys in their company"
   ON satisfaction_surveys FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "System can insert surveys" ON satisfaction_surveys;
 CREATE POLICY "System can insert surveys"
   ON satisfaction_surveys FOR INSERT
   WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "System can update surveys" ON satisfaction_surveys;
 CREATE POLICY "System can update surveys"
   ON satisfaction_surveys FOR UPDATE
   USING (company_id = get_user_company(auth.uid()));
 
 -- Create satisfaction_settings table
-CREATE TABLE satisfaction_settings (
+CREATE TABLE IF NOT EXISTS satisfaction_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE UNIQUE,
   enabled BOOLEAN NOT NULL DEFAULT false,
@@ -57,20 +60,24 @@ CREATE TABLE satisfaction_settings (
 -- RLS for settings
 ALTER TABLE satisfaction_settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins can manage satisfaction settings" ON satisfaction_settings;
 CREATE POLICY "Admins can manage satisfaction settings"
   ON satisfaction_settings FOR ALL
   USING (has_role(auth.uid(), company_id, 'admin'::app_role));
 
+DROP POLICY IF EXISTS "Users can view satisfaction settings in their company" ON satisfaction_settings;
 CREATE POLICY "Users can view satisfaction settings in their company"
   ON satisfaction_settings FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS update_satisfaction_surveys_updated_at ON satisfaction_surveys;
 CREATE TRIGGER update_satisfaction_surveys_updated_at
   BEFORE UPDATE ON satisfaction_surveys
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_satisfaction_settings_updated_at ON satisfaction_settings;
 CREATE TRIGGER update_satisfaction_settings_updated_at
   BEFORE UPDATE ON satisfaction_settings
   FOR EACH ROW

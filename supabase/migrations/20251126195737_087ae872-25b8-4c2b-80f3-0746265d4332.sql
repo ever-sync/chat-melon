@@ -7,6 +7,7 @@ FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view messages from conversations in their company
+DROP POLICY IF EXISTS "Users can view messages in their company conversations" ON messages;
 CREATE POLICY "Users can view messages in their company conversations" ON messages
 FOR SELECT USING (
   EXISTS (
@@ -19,6 +20,7 @@ FOR SELECT USING (
 );
 
 -- Policy: Users can insert messages in conversations assigned to them or in their company
+DROP POLICY IF EXISTS "Users can send messages in their company conversations" ON messages;
 CREATE POLICY "Users can send messages in their company conversations" ON messages
 FOR INSERT WITH CHECK (
   EXISTS (
@@ -31,12 +33,14 @@ FOR INSERT WITH CHECK (
 );
 
 -- Policy: Users can update messages they created
+DROP POLICY IF EXISTS "Users can update their own messages" ON messages;
 CREATE POLICY "Users can update their own messages" ON messages
 FOR UPDATE USING (
   user_id = auth.uid()
 );
 
 -- Policy: Users can delete their own messages
+DROP POLICY IF EXISTS "Users can delete their own messages" ON messages;
 CREATE POLICY "Users can delete their own messages" ON messages
 FOR DELETE USING (
   user_id = auth.uid()

@@ -13,12 +13,14 @@ DROP POLICY IF EXISTS "Users can view their companies" ON companies;
 DROP POLICY IF EXISTS "Users can update their companies" ON companies;
 
 -- 3. Create INSERT policy: Allow authenticated users to create companies
+DROP POLICY IF EXISTS "Users can create companies" ON companies;
 CREATE POLICY "Users can create companies"
 ON companies FOR INSERT
 TO authenticated
 WITH CHECK (auth.uid() = created_by);
 
 -- 4. Create SELECT policy: Allow users to view companies they created or are members of
+DROP POLICY IF EXISTS "Users can view their companies" ON companies;
 CREATE POLICY "Users can view their companies"
 ON companies FOR SELECT
 TO authenticated
@@ -33,6 +35,7 @@ USING (
 );
 
 -- 5. Create UPDATE policy: Allow users to update companies they created
+DROP POLICY IF EXISTS "Users can update their companies" ON companies;
 CREATE POLICY "Users can update their companies"
 ON companies FOR UPDATE
 TO authenticated

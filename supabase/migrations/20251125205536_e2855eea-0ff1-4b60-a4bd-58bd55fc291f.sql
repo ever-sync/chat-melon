@@ -1,5 +1,5 @@
 -- Criar tabela de segmentos
-CREATE TABLE segments (
+CREATE TABLE IF NOT EXISTS segments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -13,11 +13,12 @@ CREATE TABLE segments (
 );
 
 -- Índices para performance
-CREATE INDEX idx_segments_company_id ON segments(company_id);
-CREATE INDEX idx_segments_created_by ON segments(created_by);
-CREATE INDEX idx_segments_filters ON segments USING GIN(filters);
+CREATE INDEX IF NOT EXISTS idx_segments_company_id ON segments(company_id);
+CREATE INDEX IF NOT EXISTS idx_segments_created_by ON segments(created_by);
+CREATE INDEX IF NOT EXISTS idx_segments_filters ON segments USING GIN(filters);
 
 -- Trigger para atualizar updated_at
+DROP TRIGGER IF EXISTS update_segments_updated_at ON segments;
 CREATE TRIGGER update_segments_updated_at
   BEFORE UPDATE ON segments
   FOR EACH ROW
@@ -26,18 +27,22 @@ CREATE TRIGGER update_segments_updated_at
 -- RLS Policies
 ALTER TABLE segments ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view segments in their company" ON segments;
 CREATE POLICY "Users can view segments in their company"
   ON segments FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create segments in their company" ON segments;
 CREATE POLICY "Users can create segments in their company"
   ON segments FOR INSERT
   WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update segments in their company" ON segments;
 CREATE POLICY "Users can update segments in their company"
   ON segments FOR UPDATE
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete segments in their company" ON segments;
 CREATE POLICY "Users can delete segments in their company"
   ON segments FOR DELETE
   USING (company_id = get_user_company(auth.uid()));

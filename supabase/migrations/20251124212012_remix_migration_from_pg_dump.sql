@@ -214,7 +214,7 @@ SET default_table_access_method = heap;
 -- Name: access_audit_log; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.access_audit_log (
+CREATE TABLE IF NOT EXISTS public.access_audit_log (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -234,7 +234,7 @@ CREATE TABLE public.access_audit_log (
 -- Name: agent_status; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.agent_status (
+CREATE TABLE IF NOT EXISTS public.agent_status (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -247,7 +247,7 @@ CREATE TABLE public.agent_status (
 -- Name: blocked_contacts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.blocked_contacts (
+CREATE TABLE IF NOT EXISTS public.blocked_contacts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -261,7 +261,7 @@ CREATE TABLE public.blocked_contacts (
 -- Name: companies; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.companies (
+CREATE TABLE IF NOT EXISTS public.companies (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     cnpj text,
@@ -289,7 +289,7 @@ CREATE TABLE public.companies (
 -- Name: company_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.company_users (
+CREATE TABLE IF NOT EXISTS public.company_users (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     company_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -302,7 +302,7 @@ CREATE TABLE public.company_users (
 -- Name: contacts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.contacts (
+CREATE TABLE IF NOT EXISTS public.contacts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     company_id uuid NOT NULL,
     phone_number text NOT NULL,
@@ -323,7 +323,7 @@ CREATE TABLE public.contacts (
 -- Name: conversation_labels; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.conversation_labels (
+CREATE TABLE IF NOT EXISTS public.conversation_labels (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     conversation_id uuid NOT NULL,
     label_id uuid NOT NULL,
@@ -335,7 +335,7 @@ CREATE TABLE public.conversation_labels (
 -- Name: conversations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     contact_name text NOT NULL,
@@ -364,7 +364,7 @@ CREATE TABLE public.conversations (
 -- Name: evolution_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.evolution_settings (
+CREATE TABLE IF NOT EXISTS public.evolution_settings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     api_url text NOT NULL,
@@ -386,7 +386,7 @@ CREATE TABLE public.evolution_settings (
 -- Name: group_invites; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_invites (
+CREATE TABLE IF NOT EXISTS public.group_invites (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     group_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -402,7 +402,7 @@ CREATE TABLE public.group_invites (
 -- Name: group_participants; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.group_participants (
+CREATE TABLE IF NOT EXISTS public.group_participants (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     group_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -417,7 +417,7 @@ CREATE TABLE public.group_participants (
 -- Name: groups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.groups (
+CREATE TABLE IF NOT EXISTS public.groups (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     company_id uuid NOT NULL,
     group_id text NOT NULL,
@@ -437,7 +437,7 @@ CREATE TABLE public.groups (
 -- Name: labels; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.labels (
+CREATE TABLE IF NOT EXISTS public.labels (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     company_id uuid NOT NULL,
     name text NOT NULL,
@@ -451,7 +451,7 @@ CREATE TABLE public.labels (
 -- Name: messages; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     conversation_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -479,7 +479,7 @@ CREATE TABLE public.messages (
 -- Name: notification_history; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.notification_history (
+CREATE TABLE IF NOT EXISTS public.notification_history (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -497,7 +497,7 @@ CREATE TABLE public.notification_history (
 -- Name: notification_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.notification_settings (
+CREATE TABLE IF NOT EXISTS public.notification_settings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -519,7 +519,7 @@ CREATE TABLE public.notification_settings (
 -- Name: privacy_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.privacy_settings (
+CREATE TABLE IF NOT EXISTS public.privacy_settings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -541,7 +541,7 @@ CREATE TABLE public.privacy_settings (
 -- Name: profiles; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
     id uuid NOT NULL,
     full_name text NOT NULL,
     avatar_url text,
@@ -555,7 +555,7 @@ CREATE TABLE public.profiles (
 -- Name: sectors; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.sectors (
+CREATE TABLE IF NOT EXISTS public.sectors (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     company_id uuid NOT NULL,
     name text NOT NULL,
@@ -569,7 +569,7 @@ CREATE TABLE public.sectors (
 -- Name: security_alerts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.security_alerts (
+CREATE TABLE IF NOT EXISTS public.security_alerts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     company_id uuid NOT NULL,
     alert_type text NOT NULL,
@@ -588,7 +588,7 @@ CREATE TABLE public.security_alerts (
 -- Name: status_stories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.status_stories (
+CREATE TABLE IF NOT EXISTS public.status_stories (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     company_id uuid NOT NULL,
     user_id uuid NOT NULL,
@@ -607,7 +607,7 @@ CREATE TABLE public.status_stories (
 -- Name: status_views; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.status_views (
+CREATE TABLE IF NOT EXISTS public.status_views (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     status_id uuid NOT NULL,
     viewer_number text NOT NULL,
@@ -619,7 +619,7 @@ CREATE TABLE public.status_views (
 -- Name: subscription_plans; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.subscription_plans (
+CREATE TABLE IF NOT EXISTS public.subscription_plans (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     slug text NOT NULL,
@@ -640,7 +640,7 @@ CREATE TABLE public.subscription_plans (
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.user_roles (
+CREATE TABLE IF NOT EXISTS public.user_roles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     company_id uuid NOT NULL,
@@ -653,7 +653,7 @@ CREATE TABLE public.user_roles (
 -- Name: user_subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.user_subscriptions (
+CREATE TABLE IF NOT EXISTS public.user_subscriptions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     plan_id uuid NOT NULL,
@@ -1001,237 +1001,238 @@ ALTER TABLE ONLY public.user_subscriptions
 -- Name: idx_access_audit_log_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_access_audit_log_company_id ON public.access_audit_log USING btree (company_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_access_audit_log_company_id ON public.access_audit_log USING btree (company_id, created_at DESC);
 
 
 --
 -- Name: idx_access_audit_log_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_access_audit_log_created_at ON public.access_audit_log USING btree (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_access_audit_log_created_at ON public.access_audit_log USING btree (created_at DESC);
 
 
 --
 -- Name: idx_access_audit_log_status; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_access_audit_log_status ON public.access_audit_log USING btree (status, created_at DESC) WHERE (status = 'unauthorized'::text);
+CREATE INDEX IF NOT EXISTS idx_access_audit_log_status ON public.access_audit_log USING btree (status, created_at DESC) WHERE (status = 'unauthorized'::text);
 
 
 --
 -- Name: idx_access_audit_log_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_access_audit_log_user_id ON public.access_audit_log USING btree (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_access_audit_log_user_id ON public.access_audit_log USING btree (user_id, created_at DESC);
 
 
 --
 -- Name: idx_companies_created_by; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_companies_created_by ON public.companies USING btree (created_by);
+CREATE INDEX IF NOT EXISTS idx_companies_created_by ON public.companies USING btree (created_by);
 
 
 --
 -- Name: idx_company_users_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_company_users_user_id ON public.company_users USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_company_users_user_id ON public.company_users USING btree (user_id);
 
 
 --
 -- Name: idx_conversation_labels_conversation; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_conversation_labels_conversation ON public.conversation_labels USING btree (conversation_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_labels_conversation ON public.conversation_labels USING btree (conversation_id);
 
 
 --
 -- Name: idx_conversation_labels_label; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_conversation_labels_label ON public.conversation_labels USING btree (label_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_labels_label ON public.conversation_labels USING btree (label_id);
 
 
 --
 -- Name: idx_conversations_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_conversations_company_id ON public.conversations USING btree (company_id, last_message_time DESC);
+CREATE INDEX IF NOT EXISTS idx_conversations_company_id ON public.conversations USING btree (company_id, last_message_time DESC);
 
 
 --
 -- Name: idx_conversations_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_conversations_user_id ON public.conversations USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON public.conversations USING btree (user_id);
 
 
 --
 -- Name: idx_evolution_settings_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_evolution_settings_user_id ON public.evolution_settings USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_evolution_settings_user_id ON public.evolution_settings USING btree (user_id);
 
 
 --
 -- Name: idx_group_invites_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_group_invites_group_id ON public.group_invites USING btree (group_id);
+CREATE INDEX IF NOT EXISTS idx_group_invites_group_id ON public.group_invites USING btree (group_id);
 
 
 --
 -- Name: idx_group_participants_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_group_participants_group_id ON public.group_participants USING btree (group_id);
+CREATE INDEX IF NOT EXISTS idx_group_participants_group_id ON public.group_participants USING btree (group_id);
 
 
 --
 -- Name: idx_groups_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_groups_company_id ON public.groups USING btree (company_id);
+CREATE INDEX IF NOT EXISTS idx_groups_company_id ON public.groups USING btree (company_id);
 
 
 --
 -- Name: idx_labels_company; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_labels_company ON public.labels USING btree (company_id);
+CREATE INDEX IF NOT EXISTS idx_labels_company ON public.labels USING btree (company_id);
 
 
 --
 -- Name: idx_labels_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_labels_company_id ON public.labels USING btree (company_id, name);
+CREATE INDEX IF NOT EXISTS idx_labels_company_id ON public.labels USING btree (company_id, name);
 
 
 --
 -- Name: idx_messages_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_messages_company_id ON public.messages USING btree (company_id, conversation_id, "timestamp" DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_company_id ON public.messages USING btree (company_id, conversation_id, "timestamp" DESC);
 
 
 --
 -- Name: idx_messages_conversation_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_messages_conversation_id ON public.messages USING btree (conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON public.messages USING btree (conversation_id);
 
 
 --
 -- Name: idx_messages_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_messages_deleted ON public.messages USING btree (deleted_at);
+CREATE INDEX IF NOT EXISTS idx_messages_deleted ON public.messages USING btree (deleted_at);
 
 
 --
 -- Name: idx_messages_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_messages_user_id ON public.messages USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_user_id ON public.messages USING btree (user_id);
 
 
 --
 -- Name: idx_notification_history_conversation; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_notification_history_conversation ON public.notification_history USING btree (conversation_id);
+CREATE INDEX IF NOT EXISTS idx_notification_history_conversation ON public.notification_history USING btree (conversation_id);
 
 
 --
 -- Name: idx_notification_history_created; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_notification_history_created ON public.notification_history USING btree (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notification_history_created ON public.notification_history USING btree (created_at DESC);
 
 
 --
 -- Name: idx_notification_history_read; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_notification_history_read ON public.notification_history USING btree (read) WHERE (read = false);
+CREATE INDEX IF NOT EXISTS idx_notification_history_read ON public.notification_history USING btree (read) WHERE (read = false);
 
 
 --
 -- Name: idx_notification_history_user; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_notification_history_user ON public.notification_history USING btree (user_id, company_id);
+CREATE INDEX IF NOT EXISTS idx_notification_history_user ON public.notification_history USING btree (user_id, company_id);
 
 
 --
 -- Name: idx_sectors_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_sectors_company_id ON public.sectors USING btree (company_id, name);
+CREATE INDEX IF NOT EXISTS idx_sectors_company_id ON public.sectors USING btree (company_id, name);
 
 
 --
 -- Name: idx_security_alerts_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_security_alerts_company_id ON public.security_alerts USING btree (company_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_security_alerts_company_id ON public.security_alerts USING btree (company_id, created_at DESC);
 
 
 --
 -- Name: idx_security_alerts_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_security_alerts_created_at ON public.security_alerts USING btree (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_security_alerts_created_at ON public.security_alerts USING btree (created_at DESC);
 
 
 --
 -- Name: idx_security_alerts_severity; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_security_alerts_severity ON public.security_alerts USING btree (severity, acknowledged) WHERE (acknowledged = false);
+CREATE INDEX IF NOT EXISTS idx_security_alerts_severity ON public.security_alerts USING btree (severity, acknowledged) WHERE (acknowledged = false);
 
 
 --
 -- Name: idx_status_stories_company_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_status_stories_company_id ON public.status_stories USING btree (company_id);
+CREATE INDEX IF NOT EXISTS idx_status_stories_company_id ON public.status_stories USING btree (company_id);
 
 
 --
 -- Name: idx_status_stories_expires_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_status_stories_expires_at ON public.status_stories USING btree (expires_at);
+CREATE INDEX IF NOT EXISTS idx_status_stories_expires_at ON public.status_stories USING btree (expires_at);
 
 
 --
 -- Name: idx_status_views_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_status_views_status_id ON public.status_views USING btree (status_id);
+CREATE INDEX IF NOT EXISTS idx_status_views_status_id ON public.status_views USING btree (status_id);
 
 
 --
 -- Name: idx_user_subscriptions_stripe_customer; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_user_subscriptions_stripe_customer ON public.user_subscriptions USING btree (stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_stripe_customer ON public.user_subscriptions USING btree (stripe_customer_id);
 
 
 --
 -- Name: idx_user_subscriptions_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_user_subscriptions_user_id ON public.user_subscriptions USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user_id ON public.user_subscriptions USING btree (user_id);
 
 
 --
 -- Name: access_audit_log trigger_detect_suspicious_activity; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS trigger_detect_suspicious_activity ON public.access_audit_log;
 CREATE TRIGGER trigger_detect_suspicious_activity AFTER INSERT ON public.access_audit_log FOR EACH ROW WHEN ((new.status = 'unauthorized'::text)) EXECUTE FUNCTION public.detect_suspicious_activity();
 
 
@@ -1239,6 +1240,7 @@ CREATE TRIGGER trigger_detect_suspicious_activity AFTER INSERT ON public.access_
 -- Name: agent_status update_agent_status_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_agent_status_updated_at ON public.agent_status;
 CREATE TRIGGER update_agent_status_updated_at BEFORE UPDATE ON public.agent_status FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1246,6 +1248,7 @@ CREATE TRIGGER update_agent_status_updated_at BEFORE UPDATE ON public.agent_stat
 -- Name: companies update_companies_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_companies_updated_at ON public.companies;
 CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1253,6 +1256,7 @@ CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON public.companies FOR
 -- Name: contacts update_contacts_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_contacts_updated_at ON public.contacts;
 CREATE TRIGGER update_contacts_updated_at BEFORE UPDATE ON public.contacts FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1260,6 +1264,7 @@ CREATE TRIGGER update_contacts_updated_at BEFORE UPDATE ON public.contacts FOR E
 -- Name: conversations update_conversations_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_conversations_updated_at ON public.conversations;
 CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON public.conversations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1267,6 +1272,7 @@ CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON public.conversat
 -- Name: evolution_settings update_evolution_settings_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_evolution_settings_updated_at ON public.evolution_settings;
 CREATE TRIGGER update_evolution_settings_updated_at BEFORE UPDATE ON public.evolution_settings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1274,6 +1280,7 @@ CREATE TRIGGER update_evolution_settings_updated_at BEFORE UPDATE ON public.evol
 -- Name: groups update_groups_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_groups_updated_at ON public.groups;
 CREATE TRIGGER update_groups_updated_at BEFORE UPDATE ON public.groups FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1281,6 +1288,7 @@ CREATE TRIGGER update_groups_updated_at BEFORE UPDATE ON public.groups FOR EACH 
 -- Name: labels update_labels_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_labels_updated_at ON public.labels;
 CREATE TRIGGER update_labels_updated_at BEFORE UPDATE ON public.labels FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1288,6 +1296,7 @@ CREATE TRIGGER update_labels_updated_at BEFORE UPDATE ON public.labels FOR EACH 
 -- Name: notification_settings update_notification_settings_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_notification_settings_updated_at ON public.notification_settings;
 CREATE TRIGGER update_notification_settings_updated_at BEFORE UPDATE ON public.notification_settings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1295,6 +1304,7 @@ CREATE TRIGGER update_notification_settings_updated_at BEFORE UPDATE ON public.n
 -- Name: privacy_settings update_privacy_settings_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_privacy_settings_updated_at ON public.privacy_settings;
 CREATE TRIGGER update_privacy_settings_updated_at BEFORE UPDATE ON public.privacy_settings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1302,6 +1312,7 @@ CREATE TRIGGER update_privacy_settings_updated_at BEFORE UPDATE ON public.privac
 -- Name: profiles update_profiles_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1309,6 +1320,7 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR E
 -- Name: sectors update_sectors_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
+DROP TRIGGER IF EXISTS update_sectors_updated_at ON public.sectors;
 CREATE TRIGGER update_sectors_updated_at BEFORE UPDATE ON public.sectors FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
@@ -1564,6 +1576,7 @@ ALTER TABLE ONLY public.user_subscriptions
 -- Name: security_alerts Admins can acknowledge alerts; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can acknowledge alerts" ON public.security_alerts;
 CREATE POLICY "Admins can acknowledge alerts" ON public.security_alerts FOR UPDATE USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1571,6 +1584,7 @@ CREATE POLICY "Admins can acknowledge alerts" ON public.security_alerts FOR UPDA
 -- Name: evolution_settings Admins can create evolution settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can create evolution settings" ON public.evolution_settings;
 CREATE POLICY "Admins can create evolution settings" ON public.evolution_settings FOR INSERT WITH CHECK ((public.has_role(auth.uid(), public.get_user_company(auth.uid()), 'admin'::public.app_role) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1578,6 +1592,7 @@ CREATE POLICY "Admins can create evolution settings" ON public.evolution_setting
 -- Name: evolution_settings Admins can delete evolution settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can delete evolution settings" ON public.evolution_settings;
 CREATE POLICY "Admins can delete evolution settings" ON public.evolution_settings FOR DELETE USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1585,6 +1600,7 @@ CREATE POLICY "Admins can delete evolution settings" ON public.evolution_setting
 -- Name: sectors Admins can delete sectors; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can delete sectors" ON public.sectors;
 CREATE POLICY "Admins can delete sectors" ON public.sectors FOR DELETE USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1592,6 +1608,7 @@ CREATE POLICY "Admins can delete sectors" ON public.sectors FOR DELETE USING (pu
 -- Name: companies Admins can insert companies; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can insert companies" ON public.companies;
 CREATE POLICY "Admins can insert companies" ON public.companies FOR INSERT WITH CHECK (public.has_role(auth.uid(), public.get_user_company(auth.uid()), 'admin'::public.app_role));
 
 
@@ -1599,6 +1616,7 @@ CREATE POLICY "Admins can insert companies" ON public.companies FOR INSERT WITH 
 -- Name: sectors Admins can insert sectors; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can insert sectors" ON public.sectors;
 CREATE POLICY "Admins can insert sectors" ON public.sectors FOR INSERT WITH CHECK (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1606,6 +1624,7 @@ CREATE POLICY "Admins can insert sectors" ON public.sectors FOR INSERT WITH CHEC
 -- Name: evolution_settings Admins can update evolution settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can update evolution settings" ON public.evolution_settings;
 CREATE POLICY "Admins can update evolution settings" ON public.evolution_settings FOR UPDATE USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1613,6 +1632,7 @@ CREATE POLICY "Admins can update evolution settings" ON public.evolution_setting
 -- Name: sectors Admins can update sectors; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can update sectors" ON public.sectors;
 CREATE POLICY "Admins can update sectors" ON public.sectors FOR UPDATE USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1620,6 +1640,7 @@ CREATE POLICY "Admins can update sectors" ON public.sectors FOR UPDATE USING (pu
 -- Name: companies Admins can update their companies; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can update their companies" ON public.companies;
 CREATE POLICY "Admins can update their companies" ON public.companies FOR UPDATE USING (public.has_role(auth.uid(), id, 'admin'::public.app_role));
 
 
@@ -1627,6 +1648,7 @@ CREATE POLICY "Admins can update their companies" ON public.companies FOR UPDATE
 -- Name: access_audit_log Admins can view audit logs; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can view audit logs" ON public.access_audit_log;
 CREATE POLICY "Admins can view audit logs" ON public.access_audit_log FOR SELECT USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1634,6 +1656,7 @@ CREATE POLICY "Admins can view audit logs" ON public.access_audit_log FOR SELECT
 -- Name: security_alerts Admins can view security alerts; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Admins can view security alerts" ON public.security_alerts;
 CREATE POLICY "Admins can view security alerts" ON public.security_alerts FOR SELECT USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1641,6 +1664,7 @@ CREATE POLICY "Admins can view security alerts" ON public.security_alerts FOR SE
 -- Name: subscription_plans Anyone can view subscription plans; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Anyone can view subscription plans" ON public.subscription_plans;
 CREATE POLICY "Anyone can view subscription plans" ON public.subscription_plans FOR SELECT USING (true);
 
 
@@ -1648,6 +1672,7 @@ CREATE POLICY "Anyone can view subscription plans" ON public.subscription_plans 
 -- Name: group_participants Only admins can manage group participants; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Only admins can manage group participants" ON public.group_participants;
 CREATE POLICY "Only admins can manage group participants" ON public.group_participants USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1655,6 +1680,7 @@ CREATE POLICY "Only admins can manage group participants" ON public.group_partic
 -- Name: companies Only admins can view full company data; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Only admins can view full company data" ON public.companies;
 CREATE POLICY "Only admins can view full company data" ON public.companies FOR SELECT USING (public.has_role(auth.uid(), id, 'admin'::public.app_role));
 
 
@@ -1662,6 +1688,7 @@ CREATE POLICY "Only admins can view full company data" ON public.companies FOR S
 -- Name: group_participants Only admins can view group participants; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Only admins can view group participants" ON public.group_participants;
 CREATE POLICY "Only admins can view group participants" ON public.group_participants FOR SELECT USING (public.has_role(auth.uid(), company_id, 'admin'::public.app_role));
 
 
@@ -1669,6 +1696,7 @@ CREATE POLICY "Only admins can view group participants" ON public.group_particip
 -- Name: access_audit_log System can insert audit logs; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "System can insert audit logs" ON public.access_audit_log;
 CREATE POLICY "System can insert audit logs" ON public.access_audit_log FOR INSERT WITH CHECK ((auth.uid() = user_id));
 
 
@@ -1676,6 +1704,7 @@ CREATE POLICY "System can insert audit logs" ON public.access_audit_log FOR INSE
 -- Name: security_alerts System can insert security alerts; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "System can insert security alerts" ON public.security_alerts;
 CREATE POLICY "System can insert security alerts" ON public.security_alerts FOR INSERT WITH CHECK (true);
 
 
@@ -1683,6 +1712,7 @@ CREATE POLICY "System can insert security alerts" ON public.security_alerts FOR 
 -- Name: conversation_labels Users can add labels to conversations in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can add labels to conversations in their company" ON public.conversation_labels;
 CREATE POLICY "Users can add labels to conversations in their company" ON public.conversation_labels FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
    FROM public.conversations
   WHERE ((conversations.id = conversation_labels.conversation_id) AND (conversations.company_id = public.get_user_company(auth.uid()))))));
@@ -1692,6 +1722,7 @@ CREATE POLICY "Users can add labels to conversations in their company" ON public
 -- Name: blocked_contacts Users can block contacts; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can block contacts" ON public.blocked_contacts;
 CREATE POLICY "Users can block contacts" ON public.blocked_contacts FOR INSERT TO authenticated WITH CHECK (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1699,6 +1730,7 @@ CREATE POLICY "Users can block contacts" ON public.blocked_contacts FOR INSERT T
 -- Name: conversations Users can create conversations in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can create conversations in their company" ON public.conversations;
 CREATE POLICY "Users can create conversations in their company" ON public.conversations FOR INSERT WITH CHECK (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1706,6 +1738,7 @@ CREATE POLICY "Users can create conversations in their company" ON public.conver
 -- Name: groups Users can create groups in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can create groups in their company" ON public.groups;
 CREATE POLICY "Users can create groups in their company" ON public.groups FOR INSERT WITH CHECK ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1713,6 +1746,7 @@ CREATE POLICY "Users can create groups in their company" ON public.groups FOR IN
 -- Name: labels Users can create labels in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can create labels in their company" ON public.labels;
 CREATE POLICY "Users can create labels in their company" ON public.labels FOR INSERT WITH CHECK ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1720,6 +1754,7 @@ CREATE POLICY "Users can create labels in their company" ON public.labels FOR IN
 -- Name: messages Users can create messages in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can create messages in their company" ON public.messages;
 CREATE POLICY "Users can create messages in their company" ON public.messages FOR INSERT WITH CHECK (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1727,6 +1762,7 @@ CREATE POLICY "Users can create messages in their company" ON public.messages FO
 -- Name: status_stories Users can create status in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can create status in their company" ON public.status_stories;
 CREATE POLICY "Users can create status in their company" ON public.status_stories FOR INSERT WITH CHECK (((company_id = public.get_user_company(auth.uid())) AND (auth.uid() = user_id)));
 
 
@@ -1734,6 +1770,7 @@ CREATE POLICY "Users can create status in their company" ON public.status_storie
 -- Name: status_views Users can create status views; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can create status views" ON public.status_views;
 CREATE POLICY "Users can create status views" ON public.status_views FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
    FROM public.status_stories
   WHERE ((status_stories.id = status_views.status_id) AND (status_stories.company_id = public.get_user_company(auth.uid()))))));
@@ -1743,6 +1780,7 @@ CREATE POLICY "Users can create status views" ON public.status_views FOR INSERT 
 -- Name: conversations Users can delete conversations in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can delete conversations in their company" ON public.conversations;
 CREATE POLICY "Users can delete conversations in their company" ON public.conversations FOR DELETE USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1750,6 +1788,7 @@ CREATE POLICY "Users can delete conversations in their company" ON public.conver
 -- Name: groups Users can delete groups in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can delete groups in their company" ON public.groups;
 CREATE POLICY "Users can delete groups in their company" ON public.groups FOR DELETE USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1757,6 +1796,7 @@ CREATE POLICY "Users can delete groups in their company" ON public.groups FOR DE
 -- Name: labels Users can delete labels in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can delete labels in their company" ON public.labels;
 CREATE POLICY "Users can delete labels in their company" ON public.labels FOR DELETE USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1764,6 +1804,7 @@ CREATE POLICY "Users can delete labels in their company" ON public.labels FOR DE
 -- Name: messages Users can delete messages in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can delete messages in their company" ON public.messages;
 CREATE POLICY "Users can delete messages in their company" ON public.messages FOR DELETE USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1771,6 +1812,7 @@ CREATE POLICY "Users can delete messages in their company" ON public.messages FO
 -- Name: notification_history Users can delete their own notification history; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can delete their own notification history" ON public.notification_history;
 CREATE POLICY "Users can delete their own notification history" ON public.notification_history FOR DELETE USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1778,6 +1820,7 @@ CREATE POLICY "Users can delete their own notification history" ON public.notifi
 -- Name: status_stories Users can delete their own status; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can delete their own status" ON public.status_stories;
 CREATE POLICY "Users can delete their own status" ON public.status_stories FOR DELETE USING ((auth.uid() = user_id));
 
 
@@ -1785,6 +1828,7 @@ CREATE POLICY "Users can delete their own status" ON public.status_stories FOR D
 -- Name: contacts Users can insert contacts in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can insert contacts in their company" ON public.contacts;
 CREATE POLICY "Users can insert contacts in their company" ON public.contacts FOR INSERT WITH CHECK ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1792,6 +1836,7 @@ CREATE POLICY "Users can insert contacts in their company" ON public.contacts FO
 -- Name: notification_history Users can insert their own notification history; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can insert their own notification history" ON public.notification_history;
 CREATE POLICY "Users can insert their own notification history" ON public.notification_history FOR INSERT WITH CHECK (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1799,6 +1844,7 @@ CREATE POLICY "Users can insert their own notification history" ON public.notifi
 -- Name: notification_settings Users can insert their own notification settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can insert their own notification settings" ON public.notification_settings;
 CREATE POLICY "Users can insert their own notification settings" ON public.notification_settings FOR INSERT WITH CHECK (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1806,6 +1852,7 @@ CREATE POLICY "Users can insert their own notification settings" ON public.notif
 -- Name: privacy_settings Users can insert their own privacy settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can insert their own privacy settings" ON public.privacy_settings;
 CREATE POLICY "Users can insert their own privacy settings" ON public.privacy_settings FOR INSERT TO authenticated WITH CHECK (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1813,6 +1860,7 @@ CREATE POLICY "Users can insert their own privacy settings" ON public.privacy_se
 -- Name: profiles Users can insert their own profile; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK ((auth.uid() = id));
 
 
@@ -1820,6 +1868,7 @@ CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT
 -- Name: agent_status Users can insert their own status; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can insert their own status" ON public.agent_status;
 CREATE POLICY "Users can insert their own status" ON public.agent_status FOR INSERT WITH CHECK (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1827,6 +1876,7 @@ CREATE POLICY "Users can insert their own status" ON public.agent_status FOR INS
 -- Name: user_subscriptions Users can insert their own subscriptions; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can insert their own subscriptions" ON public.user_subscriptions;
 CREATE POLICY "Users can insert their own subscriptions" ON public.user_subscriptions FOR INSERT TO authenticated WITH CHECK ((auth.uid() = user_id));
 
 
@@ -1834,6 +1884,7 @@ CREATE POLICY "Users can insert their own subscriptions" ON public.user_subscrip
 -- Name: group_invites Users can manage invites in their company groups; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can manage invites in their company groups" ON public.group_invites;
 CREATE POLICY "Users can manage invites in their company groups" ON public.group_invites USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1841,6 +1892,7 @@ CREATE POLICY "Users can manage invites in their company groups" ON public.group
 -- Name: conversation_labels Users can remove labels from conversations in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can remove labels from conversations in their company" ON public.conversation_labels;
 CREATE POLICY "Users can remove labels from conversations in their company" ON public.conversation_labels FOR DELETE USING ((EXISTS ( SELECT 1
    FROM public.conversations
   WHERE ((conversations.id = conversation_labels.conversation_id) AND (conversations.company_id = public.get_user_company(auth.uid()))))));
@@ -1850,6 +1902,7 @@ CREATE POLICY "Users can remove labels from conversations in their company" ON p
 -- Name: blocked_contacts Users can unblock contacts; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can unblock contacts" ON public.blocked_contacts;
 CREATE POLICY "Users can unblock contacts" ON public.blocked_contacts FOR DELETE TO authenticated USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1857,6 +1910,7 @@ CREATE POLICY "Users can unblock contacts" ON public.blocked_contacts FOR DELETE
 -- Name: contacts Users can update contacts in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update contacts in their company" ON public.contacts;
 CREATE POLICY "Users can update contacts in their company" ON public.contacts FOR UPDATE USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1864,6 +1918,7 @@ CREATE POLICY "Users can update contacts in their company" ON public.contacts FO
 -- Name: conversations Users can update conversations in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update conversations in their company" ON public.conversations;
 CREATE POLICY "Users can update conversations in their company" ON public.conversations FOR UPDATE USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1871,6 +1926,7 @@ CREATE POLICY "Users can update conversations in their company" ON public.conver
 -- Name: groups Users can update groups in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update groups in their company" ON public.groups;
 CREATE POLICY "Users can update groups in their company" ON public.groups FOR UPDATE USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1878,6 +1934,7 @@ CREATE POLICY "Users can update groups in their company" ON public.groups FOR UP
 -- Name: labels Users can update labels in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update labels in their company" ON public.labels;
 CREATE POLICY "Users can update labels in their company" ON public.labels FOR UPDATE USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1885,6 +1942,7 @@ CREATE POLICY "Users can update labels in their company" ON public.labels FOR UP
 -- Name: messages Users can update messages in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update messages in their company" ON public.messages;
 CREATE POLICY "Users can update messages in their company" ON public.messages FOR UPDATE USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1892,6 +1950,7 @@ CREATE POLICY "Users can update messages in their company" ON public.messages FO
 -- Name: notification_history Users can update their own notification history; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update their own notification history" ON public.notification_history;
 CREATE POLICY "Users can update their own notification history" ON public.notification_history FOR UPDATE USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1899,6 +1958,7 @@ CREATE POLICY "Users can update their own notification history" ON public.notifi
 -- Name: notification_settings Users can update their own notification settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update their own notification settings" ON public.notification_settings;
 CREATE POLICY "Users can update their own notification settings" ON public.notification_settings FOR UPDATE USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1906,6 +1966,7 @@ CREATE POLICY "Users can update their own notification settings" ON public.notif
 -- Name: privacy_settings Users can update their own privacy settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update their own privacy settings" ON public.privacy_settings;
 CREATE POLICY "Users can update their own privacy settings" ON public.privacy_settings FOR UPDATE TO authenticated USING ((auth.uid() = user_id)) WITH CHECK ((auth.uid() = user_id));
 
 
@@ -1913,6 +1974,7 @@ CREATE POLICY "Users can update their own privacy settings" ON public.privacy_se
 -- Name: profiles Users can update their own profile; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING ((auth.uid() = id));
 
 
@@ -1920,6 +1982,7 @@ CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE
 -- Name: agent_status Users can update their own status; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update their own status" ON public.status_stories;
 CREATE POLICY "Users can update their own status" ON public.agent_status FOR UPDATE USING ((auth.uid() = user_id));
 
 
@@ -1927,6 +1990,7 @@ CREATE POLICY "Users can update their own status" ON public.agent_status FOR UPD
 -- Name: status_stories Users can update their own status; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update their own status" ON public.status_stories;
 CREATE POLICY "Users can update their own status" ON public.status_stories FOR UPDATE USING ((auth.uid() = user_id));
 
 
@@ -1934,6 +1998,7 @@ CREATE POLICY "Users can update their own status" ON public.status_stories FOR U
 -- Name: user_subscriptions Users can update their own subscriptions; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can update their own subscriptions" ON public.user_subscriptions;
 CREATE POLICY "Users can update their own subscriptions" ON public.user_subscriptions FOR UPDATE TO authenticated USING ((auth.uid() = user_id));
 
 
@@ -1941,6 +2006,7 @@ CREATE POLICY "Users can update their own subscriptions" ON public.user_subscrip
 -- Name: agent_status Users can view agent status in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view agent status in their company" ON public.agent_status;
 CREATE POLICY "Users can view agent status in their company" ON public.agent_status FOR SELECT USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1948,6 +2014,7 @@ CREATE POLICY "Users can view agent status in their company" ON public.agent_sta
 -- Name: contacts Users can view contacts in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view contacts in their company" ON public.contacts;
 CREATE POLICY "Users can view contacts in their company" ON public.contacts FOR SELECT USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1955,6 +2022,7 @@ CREATE POLICY "Users can view contacts in their company" ON public.contacts FOR 
 -- Name: conversation_labels Users can view conversation labels in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view conversation labels in their company" ON public.conversation_labels;
 CREATE POLICY "Users can view conversation labels in their company" ON public.conversation_labels FOR SELECT USING ((EXISTS ( SELECT 1
    FROM public.conversations
   WHERE ((conversations.id = conversation_labels.conversation_id) AND (conversations.company_id = public.get_user_company(auth.uid()))))));
@@ -1964,6 +2032,7 @@ CREATE POLICY "Users can view conversation labels in their company" ON public.co
 -- Name: conversations Users can view conversations in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view conversations in their company" ON public.conversations;
 CREATE POLICY "Users can view conversations in their company" ON public.conversations FOR SELECT USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1971,6 +2040,7 @@ CREATE POLICY "Users can view conversations in their company" ON public.conversa
 -- Name: evolution_settings Users can view evolution settings in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view evolution settings in their company" ON public.evolution_settings;
 CREATE POLICY "Users can view evolution settings in their company" ON public.evolution_settings FOR SELECT USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -1978,6 +2048,7 @@ CREATE POLICY "Users can view evolution settings in their company" ON public.evo
 -- Name: groups Users can view groups in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view groups in their company" ON public.groups;
 CREATE POLICY "Users can view groups in their company" ON public.groups FOR SELECT USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1985,6 +2056,7 @@ CREATE POLICY "Users can view groups in their company" ON public.groups FOR SELE
 -- Name: group_invites Users can view invites in their company groups; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view invites in their company groups" ON public.group_invites;
 CREATE POLICY "Users can view invites in their company groups" ON public.group_invites FOR SELECT USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1992,6 +2064,7 @@ CREATE POLICY "Users can view invites in their company groups" ON public.group_i
 -- Name: labels Users can view labels in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view labels in their company" ON public.labels;
 CREATE POLICY "Users can view labels in their company" ON public.labels FOR SELECT USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -1999,6 +2072,7 @@ CREATE POLICY "Users can view labels in their company" ON public.labels FOR SELE
 -- Name: messages Users can view messages in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view messages in their company" ON public.messages;
 CREATE POLICY "Users can view messages in their company" ON public.messages FOR SELECT USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -2006,6 +2080,7 @@ CREATE POLICY "Users can view messages in their company" ON public.messages FOR 
 -- Name: sectors Users can view sectors in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view sectors in their company" ON public.sectors;
 CREATE POLICY "Users can view sectors in their company" ON public.sectors FOR SELECT USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -2013,6 +2088,7 @@ CREATE POLICY "Users can view sectors in their company" ON public.sectors FOR SE
 -- Name: status_stories Users can view status in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view status in their company" ON public.status_stories;
 CREATE POLICY "Users can view status in their company" ON public.status_stories FOR SELECT USING ((company_id = public.get_user_company(auth.uid())));
 
 
@@ -2020,6 +2096,7 @@ CREATE POLICY "Users can view status in their company" ON public.status_stories 
 -- Name: status_views Users can view status views in their company; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view status views in their company" ON public.status_views;
 CREATE POLICY "Users can view status views in their company" ON public.status_views FOR SELECT USING ((EXISTS ( SELECT 1
    FROM public.status_stories
   WHERE ((status_stories.id = status_views.status_id) AND (status_stories.company_id = public.get_user_company(auth.uid()))))));
@@ -2029,6 +2106,7 @@ CREATE POLICY "Users can view status views in their company" ON public.status_vi
 -- Name: blocked_contacts Users can view their blocked contacts; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their blocked contacts" ON public.blocked_contacts;
 CREATE POLICY "Users can view their blocked contacts" ON public.blocked_contacts FOR SELECT TO authenticated USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -2036,6 +2114,7 @@ CREATE POLICY "Users can view their blocked contacts" ON public.blocked_contacts
 -- Name: company_users Users can view their company memberships; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their company memberships" ON public.company_users;
 CREATE POLICY "Users can view their company memberships" ON public.company_users FOR SELECT USING ((auth.uid() = user_id));
 
 
@@ -2043,6 +2122,7 @@ CREATE POLICY "Users can view their company memberships" ON public.company_users
 -- Name: notification_history Users can view their own notification history; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their own notification history" ON public.notification_history;
 CREATE POLICY "Users can view their own notification history" ON public.notification_history FOR SELECT USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -2050,6 +2130,7 @@ CREATE POLICY "Users can view their own notification history" ON public.notifica
 -- Name: notification_settings Users can view their own notification settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their own notification settings" ON public.notification_settings;
 CREATE POLICY "Users can view their own notification settings" ON public.notification_settings FOR SELECT USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -2057,6 +2138,7 @@ CREATE POLICY "Users can view their own notification settings" ON public.notific
 -- Name: privacy_settings Users can view their own privacy settings; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their own privacy settings" ON public.privacy_settings;
 CREATE POLICY "Users can view their own privacy settings" ON public.privacy_settings FOR SELECT TO authenticated USING (((auth.uid() = user_id) AND (company_id = public.get_user_company(auth.uid()))));
 
 
@@ -2064,6 +2146,7 @@ CREATE POLICY "Users can view their own privacy settings" ON public.privacy_sett
 -- Name: profiles Users can view their own profile; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING ((auth.uid() = id));
 
 
@@ -2071,6 +2154,7 @@ CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT U
 -- Name: user_roles Users can view their own roles; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their own roles" ON public.user_roles;
 CREATE POLICY "Users can view their own roles" ON public.user_roles FOR SELECT USING ((auth.uid() = user_id));
 
 
@@ -2078,6 +2162,7 @@ CREATE POLICY "Users can view their own roles" ON public.user_roles FOR SELECT U
 -- Name: user_subscriptions Users can view their own subscriptions; Type: POLICY; Schema: public; Owner: -
 --
 
+DROP POLICY IF EXISTS "Users can view their own subscriptions" ON public.user_subscriptions;
 CREATE POLICY "Users can view their own subscriptions" ON public.user_subscriptions FOR SELECT TO authenticated USING ((auth.uid() = user_id));
 
 

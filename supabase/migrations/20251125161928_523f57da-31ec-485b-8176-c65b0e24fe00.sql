@@ -5,7 +5,7 @@
 -- 1. PIPELINES E STAGES
 -- ============================================
 
-CREATE TABLE pipelines (
+CREATE TABLE IF NOT EXISTS pipelines (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE pipelines (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE pipeline_stages (
+CREATE TABLE IF NOT EXISTS pipeline_stages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   pipeline_id UUID REFERENCES pipelines(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE pipeline_stages (
 -- 2. DEALS (NEGÓCIOS)
 -- ============================================
 
-CREATE TABLE deals (
+CREATE TABLE IF NOT EXISTS deals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE NOT NULL,
   contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE deals (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE deal_activities (
+CREATE TABLE IF NOT EXISTS deal_activities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   deal_id UUID REFERENCES deals(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
@@ -70,7 +70,7 @@ CREATE TABLE deal_activities (
 -- 3. TAREFAS
 -- ============================================
 
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE NOT NULL,
   assigned_to UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE tasks (
 -- 4. PRODUTOS
 -- ============================================
 
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE products (
 -- 5. PROPOSTAS
 -- ============================================
 
-CREATE TABLE proposals (
+CREATE TABLE IF NOT EXISTS proposals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   deal_id UUID REFERENCES deals(id) ON DELETE CASCADE NOT NULL,
   created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
@@ -138,7 +138,7 @@ CREATE TABLE proposals (
 -- 6. TEMPLATES DE MENSAGEM
 -- ============================================
 
-CREATE TABLE message_templates (
+CREATE TABLE IF NOT EXISTS message_templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE NOT NULL,
   created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
@@ -156,13 +156,13 @@ CREATE TABLE message_templates (
 -- ÍNDICES PARA PERFORMANCE
 -- ============================================
 
-CREATE INDEX idx_deals_stage ON deals(stage_id);
-CREATE INDEX idx_deals_assigned ON deals(assigned_to);
-CREATE INDEX idx_deals_status ON deals(status);
-CREATE INDEX idx_deals_company ON deals(company_id);
-CREATE INDEX idx_tasks_assigned_due ON tasks(assigned_to, due_date);
-CREATE INDEX idx_tasks_status ON tasks(status);
-CREATE INDEX idx_tasks_company ON tasks(company_id);
+CREATE INDEX IF NOT EXISTS idx_deals_stage ON deals(stage_id);
+CREATE INDEX IF NOT EXISTS idx_deals_assigned ON deals(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_deals_status ON deals(status);
+CREATE INDEX IF NOT EXISTS idx_deals_company ON deals(company_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_assigned_due ON tasks(assigned_to, due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_company ON tasks(company_id);
 
 -- ============================================
 -- ROW LEVEL SECURITY (RLS)
@@ -178,13 +178,16 @@ ALTER TABLE proposals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_templates ENABLE ROW LEVEL SECURITY;
 
 -- PIPELINES
+DROP POLICY IF EXISTS "Users can view pipelines in their company" ON pipelines;
 CREATE POLICY "Users can view pipelines in their company" ON pipelines
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage pipelines" ON pipelines;
 CREATE POLICY "Admins can manage pipelines" ON pipelines
   FOR ALL USING (has_role(auth.uid(), company_id, 'admin'::app_role));
 
 -- PIPELINE STAGES
+DROP POLICY IF EXISTS "Users can view stages in their company" ON pipeline_stages;
 CREATE POLICY "Users can view stages in their company" ON pipeline_stages
   FOR SELECT USING (
     pipeline_id IN (
@@ -192,6 +195,7 @@ CREATE POLICY "Users can view stages in their company" ON pipeline_stages
     )
   );
 
+DROP POLICY IF EXISTS "Admins can manage stages" ON pipeline_stages;
 CREATE POLICY "Admins can manage stages" ON pipeline_stages
   FOR ALL USING (
     pipeline_id IN (
@@ -201,19 +205,24 @@ CREATE POLICY "Admins can manage stages" ON pipeline_stages
   );
 
 -- DEALS
+DROP POLICY IF EXISTS "Users can view deals in their company" ON deals;
 CREATE POLICY "Users can view deals in their company" ON deals
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create deals in their company" ON deals;
 CREATE POLICY "Users can create deals in their company" ON deals
   FOR INSERT WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update deals in their company" ON deals;
 CREATE POLICY "Users can update deals in their company" ON deals
   FOR UPDATE USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can delete deals" ON deals;
 CREATE POLICY "Admins can delete deals" ON deals
   FOR DELETE USING (has_role(auth.uid(), company_id, 'admin'::app_role));
 
 -- DEAL ACTIVITIES
+DROP POLICY IF EXISTS "Users can view activities in their company" ON deal_activities;
 CREATE POLICY "Users can view activities in their company" ON deal_activities
   FOR SELECT USING (
     deal_id IN (
@@ -221,6 +230,7 @@ CREATE POLICY "Users can view activities in their company" ON deal_activities
     )
   );
 
+DROP POLICY IF EXISTS "Users can create activities" ON deal_activities;
 CREATE POLICY "Users can create activities" ON deal_activities
   FOR INSERT WITH CHECK (
     deal_id IN (
@@ -229,29 +239,36 @@ CREATE POLICY "Users can create activities" ON deal_activities
   );
 
 -- TASKS
+DROP POLICY IF EXISTS "Users can view tasks in their company" ON tasks;
 CREATE POLICY "Users can view tasks in their company" ON tasks
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create tasks in their company" ON tasks;
 CREATE POLICY "Users can create tasks in their company" ON tasks
   FOR INSERT WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their tasks" ON tasks;
 CREATE POLICY "Users can update their tasks" ON tasks
   FOR UPDATE USING (
     company_id = get_user_company(auth.uid()) AND
     (assigned_to = auth.uid() OR has_role(auth.uid(), company_id, 'admin'::app_role))
   );
 
+DROP POLICY IF EXISTS "Admins can delete tasks" ON tasks;
 CREATE POLICY "Admins can delete tasks" ON tasks
   FOR DELETE USING (has_role(auth.uid(), company_id, 'admin'::app_role));
 
 -- PRODUCTS
+DROP POLICY IF EXISTS "Users can view products in their company" ON products;
 CREATE POLICY "Users can view products in their company" ON products
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage products" ON products;
 CREATE POLICY "Admins can manage products" ON products
   FOR ALL USING (has_role(auth.uid(), company_id, 'admin'::app_role));
 
 -- PROPOSALS
+DROP POLICY IF EXISTS "Users can view proposals in their company" ON proposals;
 CREATE POLICY "Users can view proposals in their company" ON proposals
   FOR SELECT USING (
     deal_id IN (
@@ -259,6 +276,7 @@ CREATE POLICY "Users can view proposals in their company" ON proposals
     )
   );
 
+DROP POLICY IF EXISTS "Users can create proposals" ON proposals;
 CREATE POLICY "Users can create proposals" ON proposals
   FOR INSERT WITH CHECK (
     deal_id IN (
@@ -266,6 +284,7 @@ CREATE POLICY "Users can create proposals" ON proposals
     )
   );
 
+DROP POLICY IF EXISTS "Users can update proposals" ON proposals;
 CREATE POLICY "Users can update proposals" ON proposals
   FOR UPDATE USING (
     deal_id IN (
@@ -274,18 +293,22 @@ CREATE POLICY "Users can update proposals" ON proposals
   );
 
 -- MESSAGE TEMPLATES
+DROP POLICY IF EXISTS "Users can view templates in their company" ON message_templates;
 CREATE POLICY "Users can view templates in their company" ON message_templates
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create templates in their company" ON message_templates;
 CREATE POLICY "Users can create templates in their company" ON message_templates
   FOR INSERT WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their templates" ON message_templates;
 CREATE POLICY "Users can update their templates" ON message_templates
   FOR UPDATE USING (
     company_id = get_user_company(auth.uid()) AND
     (created_by = auth.uid() OR has_role(auth.uid(), company_id, 'admin'::app_role))
   );
 
+DROP POLICY IF EXISTS "Admins can delete templates" ON message_templates;
 CREATE POLICY "Admins can delete templates" ON message_templates
   FOR DELETE USING (has_role(auth.uid(), company_id, 'admin'::app_role));
 
@@ -293,18 +316,22 @@ CREATE POLICY "Admins can delete templates" ON message_templates
 -- TRIGGERS
 -- ============================================
 
+DROP TRIGGER IF EXISTS update_pipelines_updated_at ON pipelines;
 CREATE TRIGGER update_pipelines_updated_at 
   BEFORE UPDATE ON pipelines 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_deals_updated_at ON deals;
 CREATE TRIGGER update_deals_updated_at 
   BEFORE UPDATE ON deals 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_products_updated_at ON products;
 CREATE TRIGGER update_products_updated_at 
   BEFORE UPDATE ON products 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_proposals_updated_at ON proposals;
 CREATE TRIGGER update_proposals_updated_at 
   BEFORE UPDATE ON proposals 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -5,6 +5,7 @@
 -- Permitir que o criador da empresa possa deletá-la
 DROP POLICY IF EXISTS "Users can delete their companies" ON companies;
 
+DROP POLICY IF EXISTS "Users can delete their companies" ON companies;
 CREATE POLICY "Users can delete their companies"
 ON companies FOR DELETE
 USING (auth.uid() = created_by);

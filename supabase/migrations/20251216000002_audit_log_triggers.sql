@@ -1,3 +1,10 @@
+DROP TRIGGER IF EXISTS audit_webhooks ON webhooks;
+DROP TRIGGER IF EXISTS audit_webhooks ON webhooks;
+DROP TRIGGER IF EXISTS audit_webhooks ON webhooks;
+DROP TRIGGER IF EXISTS audit_webhooks ON webhooks;
+DROP TRIGGER IF EXISTS audit_webhooks ON webhooks;
+DROP TRIGGER IF EXISTS audit_webhooks ON webhooks;
+DROP TRIGGER IF EXISTS audit_webhooks ON webhooks;
 -- =====================================================
 -- Audit Log Triggers - Automação de Logging
 -- =====================================================
@@ -137,7 +144,6 @@ DROP TRIGGER IF EXISTS audit_conversations ON conversations;
 CREATE TRIGGER audit_conversations
   AFTER UPDATE OR DELETE ON conversations
   FOR EACH ROW
-  WHEN (TG_OP = 'DELETE' OR OLD.status IS DISTINCT FROM NEW.status)
   EXECUTE FUNCTION audit_log_trigger();
 
 -- Users/Profiles

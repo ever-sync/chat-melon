@@ -24,6 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_webhooks_is_active ON webhooks(is_active);
 -- RLS
 ALTER TABLE webhooks ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage their company webhooks" ON webhooks;
 CREATE POLICY "Users can manage their company webhooks"
 ON webhooks FOR ALL
 USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));

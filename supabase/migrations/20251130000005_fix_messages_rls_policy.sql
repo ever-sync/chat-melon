@@ -15,6 +15,7 @@ DROP POLICY IF EXISTS "Users can view messages in their company" ON messages;
 -- 2. Garantir que a política correta existe (idempotente)
 DROP POLICY IF EXISTS "Users can view messages in their company conversations" ON messages;
 
+DROP POLICY IF EXISTS "Users can view messages in their company conversations" ON messages;
 CREATE POLICY "Users can view messages in their company conversations" ON messages
 FOR SELECT USING (
   EXISTS (

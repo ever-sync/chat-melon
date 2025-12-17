@@ -3,7 +3,7 @@
 -- ============================================
 
 -- Tabela de Playbooks (Automações)
-CREATE TABLE playbooks (
+CREATE TABLE IF NOT EXISTS playbooks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE playbooks (
 );
 
 -- Tabela de Execuções de Playbooks
-CREATE TABLE playbook_executions (
+CREATE TABLE IF NOT EXISTS playbook_executions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   playbook_id UUID NOT NULL REFERENCES playbooks(id) ON DELETE CASCADE,
   deal_id UUID REFERENCES deals(id) ON DELETE CASCADE,
@@ -34,19 +34,21 @@ CREATE TABLE playbook_executions (
 );
 
 -- Índices para performance
-CREATE INDEX idx_playbooks_company ON playbooks(company_id);
-CREATE INDEX idx_playbooks_trigger_type ON playbooks(trigger_type) WHERE is_active = true;
-CREATE INDEX idx_playbook_executions_playbook ON playbook_executions(playbook_id);
-CREATE INDEX idx_playbook_executions_deal ON playbook_executions(deal_id);
-CREATE INDEX idx_playbook_executions_status ON playbook_executions(status);
+CREATE INDEX IF NOT EXISTS idx_playbooks_company ON playbooks(company_id);
+CREATE INDEX IF NOT EXISTS idx_playbooks_trigger_type ON playbooks(trigger_type) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_playbook_executions_playbook ON playbook_executions(playbook_id);
+CREATE INDEX IF NOT EXISTS idx_playbook_executions_deal ON playbook_executions(deal_id);
+CREATE INDEX IF NOT EXISTS idx_playbook_executions_status ON playbook_executions(status);
 
 -- RLS Policies para playbooks
 ALTER TABLE playbooks ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view playbooks in their company" ON playbooks;
 CREATE POLICY "Users can view playbooks in their company"
   ON playbooks FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage playbooks" ON playbooks;
 CREATE POLICY "Admins can manage playbooks"
   ON playbooks FOR ALL
   USING (has_role(auth.uid(), company_id, 'admin'::app_role));
@@ -54,18 +56,21 @@ CREATE POLICY "Admins can manage playbooks"
 -- RLS Policies para playbook_executions
 ALTER TABLE playbook_executions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view executions in their company" ON playbook_executions;
 CREATE POLICY "Users can view executions in their company"
   ON playbook_executions FOR SELECT
   USING (playbook_id IN (
     SELECT id FROM playbooks WHERE company_id = get_user_company(auth.uid())
   ));
 
+DROP POLICY IF EXISTS "System can insert executions" ON playbook_executions;
 CREATE POLICY "System can insert executions"
   ON playbook_executions FOR INSERT
   WITH CHECK (playbook_id IN (
     SELECT id FROM playbooks WHERE company_id = get_user_company(auth.uid())
   ));
 
+DROP POLICY IF EXISTS "System can update executions" ON playbook_executions;
 CREATE POLICY "System can update executions"
   ON playbook_executions FOR UPDATE
   USING (playbook_id IN (
@@ -73,6 +78,7 @@ CREATE POLICY "System can update executions"
   ));
 
 -- Trigger para atualizar updated_at
+DROP TRIGGER IF EXISTS update_playbooks_updated_at ON playbooks;
 CREATE TRIGGER update_playbooks_updated_at
   BEFORE UPDATE ON playbooks
   FOR EACH ROW
@@ -117,6 +123,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger no deals para executar playbooks
+DROP TRIGGER IF EXISTS trigger_playbooks_stage_change ON deals;
 CREATE TRIGGER trigger_playbooks_stage_change
   AFTER UPDATE OF stage_id ON deals
   FOR EACH ROW

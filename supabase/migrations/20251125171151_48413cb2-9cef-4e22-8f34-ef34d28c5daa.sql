@@ -75,10 +75,12 @@ CREATE INDEX IF NOT EXISTS idx_leaderboard_company ON leaderboard_snapshots(comp
 -- RLS para proposal_views (público pode inserir)
 ALTER TABLE proposal_views ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can track proposal views" ON proposal_views;
 CREATE POLICY "Anyone can track proposal views"
   ON proposal_views FOR INSERT
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Users can view proposal views" ON proposal_views;
 CREATE POLICY "Users can view proposal views"
   ON proposal_views FOR SELECT
   USING (proposal_id IN (
@@ -90,14 +92,17 @@ CREATE POLICY "Users can view proposal views"
 -- RLS para goals
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view goals in their company" ON goals;
 CREATE POLICY "Users can view goals in their company"
   ON goals FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create their own goals" ON goals;
 CREATE POLICY "Users can create their own goals"
   ON goals FOR INSERT
   WITH CHECK (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their own goals" ON goals;
 CREATE POLICY "Users can update their own goals"
   ON goals FOR UPDATE
   USING (user_id = auth.uid());
@@ -105,10 +110,12 @@ CREATE POLICY "Users can update their own goals"
 -- RLS para achievements
 ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view achievements in their company" ON achievements;
 CREATE POLICY "Users can view achievements in their company"
   ON achievements FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can manage achievements" ON achievements;
 CREATE POLICY "Admins can manage achievements"
   ON achievements FOR ALL
   USING (has_role(auth.uid(), company_id, 'admin'));
@@ -116,10 +123,12 @@ CREATE POLICY "Admins can manage achievements"
 -- RLS para user_achievements
 ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own achievements" ON user_achievements;
 CREATE POLICY "Users can view their own achievements"
   ON user_achievements FOR SELECT
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "System can insert user achievements" ON user_achievements;
 CREATE POLICY "System can insert user achievements"
   ON user_achievements FOR INSERT
   WITH CHECK (true);
@@ -127,6 +136,7 @@ CREATE POLICY "System can insert user achievements"
 -- RLS para leaderboard
 ALTER TABLE leaderboard_snapshots ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view leaderboard in their company" ON leaderboard_snapshots;
 CREATE POLICY "Users can view leaderboard in their company"
   ON leaderboard_snapshots FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
@@ -185,5 +195,6 @@ WHERE NOT EXISTS (
 );
 
 -- Trigger para atualizar updated_at
+DROP TRIGGER IF EXISTS update_goals_updated_at ON goals;
 CREATE TRIGGER update_goals_updated_at BEFORE UPDATE ON goals
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

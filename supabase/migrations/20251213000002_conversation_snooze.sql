@@ -17,7 +17,7 @@ CREATE INDEX IF NOT EXISTS idx_conversations_company_snoozed
 ON conversations(company_id, snoozed_until)
 WHERE snoozed_until IS NOT NULL;
 
--- Create table for snooze history (audit trail)
+-- CREATE TABLE IF NOT EXISTS for snooze history (audit trail)
 CREATE TABLE IF NOT EXISTS conversation_snooze_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE NOT NULL,
@@ -38,12 +38,15 @@ ON conversation_snooze_history(conversation_id, created_at DESC);
 -- RLS for snooze history
 ALTER TABLE conversation_snooze_history ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view snooze history in their company" ON conversation_snooze_history;
 CREATE POLICY "Users can view snooze history in their company" ON conversation_snooze_history
   FOR SELECT USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert snooze history" ON conversation_snooze_history;
 CREATE POLICY "Users can insert snooze history" ON conversation_snooze_history
   FOR INSERT WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update snooze history" ON conversation_snooze_history;
 CREATE POLICY "Users can update snooze history" ON conversation_snooze_history
   FOR UPDATE USING (company_id = get_user_company(auth.uid()));
 

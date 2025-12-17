@@ -1,5 +1,5 @@
 -- Create campaigns table
-CREATE TABLE campaigns (
+CREATE TABLE IF NOT EXISTS campaigns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID REFERENCES companies(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE campaigns (
 );
 
 -- Create campaign_contacts table
-CREATE TABLE campaign_contacts (
+CREATE TABLE IF NOT EXISTS campaign_contacts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE NOT NULL,
   contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE NOT NULL,
@@ -44,29 +44,35 @@ ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE campaign_contacts ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for campaigns
+DROP POLICY IF EXISTS "Users can view campaigns in their company" ON campaigns;
 CREATE POLICY "Users can view campaigns in their company"
   ON campaigns FOR SELECT
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can create campaigns in their company" ON campaigns;
 CREATE POLICY "Users can create campaigns in their company"
   ON campaigns FOR INSERT
   WITH CHECK (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update campaigns in their company" ON campaigns;
 CREATE POLICY "Users can update campaigns in their company"
   ON campaigns FOR UPDATE
   USING (company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Admins can delete campaigns" ON campaigns;
 CREATE POLICY "Admins can delete campaigns"
   ON campaigns FOR DELETE
   USING (has_role(auth.uid(), company_id, 'admin'::app_role));
 
 -- RLS Policies for campaign_contacts
+DROP POLICY IF EXISTS "Users can view campaign contacts in their company" ON campaign_contacts;
 CREATE POLICY "Users can view campaign contacts in their company"
   ON campaign_contacts FOR SELECT
   USING (campaign_id IN (
     SELECT id FROM campaigns WHERE company_id = get_user_company(auth.uid())
   ));
 
+DROP POLICY IF EXISTS "System can manage campaign contacts" ON campaign_contacts;
 CREATE POLICY "System can manage campaign contacts"
   ON campaign_contacts FOR ALL
   USING (campaign_id IN (
@@ -74,7 +80,7 @@ CREATE POLICY "System can manage campaign contacts"
   ));
 
 -- Create indexes
-CREATE INDEX idx_campaigns_company ON campaigns(company_id);
-CREATE INDEX idx_campaigns_status ON campaigns(status);
-CREATE INDEX idx_campaign_contacts_campaign ON campaign_contacts(campaign_id);
-CREATE INDEX idx_campaign_contacts_status ON campaign_contacts(status);
+CREATE INDEX IF NOT EXISTS idx_campaigns_company ON campaigns(company_id);
+CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);
+CREATE INDEX IF NOT EXISTS idx_campaign_contacts_campaign ON campaign_contacts(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_contacts_status ON campaign_contacts(status);

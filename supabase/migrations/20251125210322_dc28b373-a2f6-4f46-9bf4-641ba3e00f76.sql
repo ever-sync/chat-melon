@@ -1,5 +1,5 @@
 -- Tabela para notas de transferência e conversas
-CREATE TABLE conversation_notes (
+CREATE TABLE IF NOT EXISTS conversation_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
@@ -10,12 +10,13 @@ CREATE TABLE conversation_notes (
 );
 
 -- Índices para performance
-CREATE INDEX idx_conversation_notes_conversation ON conversation_notes(conversation_id);
-CREATE INDEX idx_conversation_notes_type ON conversation_notes(note_type);
+CREATE INDEX IF NOT EXISTS idx_conversation_notes_conversation ON conversation_notes(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_notes_type ON conversation_notes(note_type);
 
 -- RLS Policies
 ALTER TABLE conversation_notes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view notes in their company conversations" ON conversation_notes;
 CREATE POLICY "Users can view notes in their company conversations"
   ON conversation_notes FOR SELECT
   USING (
@@ -25,6 +26,7 @@ CREATE POLICY "Users can view notes in their company conversations"
     )
   );
 
+DROP POLICY IF EXISTS "Users can create notes in their company conversations" ON conversation_notes;
 CREATE POLICY "Users can create notes in their company conversations"
   ON conversation_notes FOR INSERT
   WITH CHECK (

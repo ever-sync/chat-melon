@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, TrendingUp, Flame, Snowflake, AlertCircle, Edit, Copy, RefreshCw, Target, FileText, Calendar, CheckCircle, Crown } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Sparkles, TrendingUp, Flame, Snowflake, AlertCircle, Edit, Copy, RefreshCw, Target, FileText, Calendar, CheckCircle, Crown, Book, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/contexts/CompanyContext";
 import { toast } from "sonner";
@@ -38,6 +40,12 @@ type AIAnalysis = {
 
 type ToneType = "formal" | "casual" | "technical" | "friendly";
 
+type KBResponse = {
+  answer: string;
+  sources: Array<{ name: string; url?: string; similarity?: number }>;
+  confidence: number;
+};
+
 interface AIAssistantProps {
   conversation: Conversation;
   messages: Message[];
@@ -55,6 +63,8 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
     return (saved as ToneType) || 'friendly';
   });
   const [quotaExceeded, setQuotaExceeded] = useState(false);
+  const [useKnowledgeBase, setUseKnowledgeBase] = useState(false);
+  const [kbResult, setKbResult] = useState<KBResponse | null>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -66,59 +76,88 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
     if (messages.length === 0) return;
 
     setIsLoading(true);
+    setAnalysis(null);
+    setKbResult(null);
+
     try {
-      // Buscar script do copiloto e chaves de API
-      let salesScript = "";
-      let geminiApiKey = "";
-      let openaiApiKey = "";
-      let groqApiKey = "";
+      if (useKnowledgeBase) {
+        // Modo Knowledge Base
+        const lastCustomerMessage = [...messages].reverse().find(m => !m.is_from_me);
 
-      if (currentCompany?.id) {
-        const { data: settings, error: settingsError } = await supabase
-          .from("ai_settings")
-          .select("copilot_script, gemini_api_key, openai_api_key, groq_api_key")
-          .eq("company_id", currentCompany.id)
-          .maybeSingle();
-
-        console.log('AI Settings fetched:', { settings, error: settingsError });
-
-        if (settings) {
-          salesScript = (settings as any)?.copilot_script || "";
-          geminiApiKey = (settings as any)?.gemini_api_key || "";
-          openaiApiKey = (settings as any)?.openai_api_key || "";
-          groqApiKey = (settings as any)?.groq_api_key || "";
-          console.log('API Keys:', {
-            hasGemini: !!geminiApiKey,
-            hasOpenAI: !!openaiApiKey,
-            hasGroq: !!groqApiKey,
-            geminiKeyLength: geminiApiKey?.length || 0
-          });
+        if (!lastCustomerMessage) {
+          toast.error("Nenhuma mensagem do cliente encontrada para responder");
+          setIsLoading(false);
+          return;
         }
-      }
 
-      const { data, error } = await supabase.functions.invoke('analyze-conversation', {
-        body: {
-          messages: messages.slice(-20),
-          contactName: conversation.contact_name,
-          contactCompany: null,
-          tone,
-          salesScript,
-          geminiApiKey,
-          openaiApiKey,
-          groqApiKey,
-        },
-      });
+        const { data, error } = await supabase.functions.invoke('kb-generate-answer', {
+          body: {
+            query: lastCustomerMessage.content,
+            companyId: currentCompany?.id,
+            conversationId: conversation.id,
+            context: messages.slice(-10).map(m => `${m.is_from_me ? 'Agent' : 'User'}: ${m.content}`).join('\n')
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        console.log('KB Response:', data);
+        setKbResult(data);
 
-      // Check if quota exceeded specifically
-      if (data?.quota_exceeded === true) {
-        setQuotaExceeded(true);
-        setAnalysis(null);
       } else {
-        console.log('Analysis data received:', data);
-        setQuotaExceeded(false);
-        setAnalysis(data);
+        // Modo Copiloto Padrão
+        // Buscar script do copiloto e chaves de API
+        let salesScript = "";
+        let geminiApiKey = "";
+        let openaiApiKey = "";
+        let groqApiKey = "";
+
+        if (currentCompany?.id) {
+          const { data: settings, error: settingsError } = await supabase
+            .from("ai_settings")
+            .select("copilot_script, gemini_api_key, openai_api_key, groq_api_key")
+            .eq("company_id", currentCompany.id)
+            .maybeSingle();
+
+          console.log('AI Settings fetched:', { settings, error: settingsError });
+
+          if (settings) {
+            salesScript = (settings as any)?.copilot_script || "";
+            geminiApiKey = (settings as any)?.gemini_api_key || "";
+            openaiApiKey = (settings as any)?.openai_api_key || "";
+            groqApiKey = (settings as any)?.groq_api_key || "";
+            console.log('API Keys:', {
+              hasGemini: !!geminiApiKey,
+              hasOpenAI: !!openaiApiKey,
+              hasGroq: !!groqApiKey,
+              geminiKeyLength: geminiApiKey?.length || 0
+            });
+          }
+        }
+
+        const { data, error } = await supabase.functions.invoke('analyze-conversation', {
+          body: {
+            messages: messages.slice(-20),
+            contactName: conversation.contact_name,
+            contactCompany: null,
+            tone,
+            salesScript,
+            geminiApiKey,
+            openaiApiKey,
+            groqApiKey,
+          },
+        });
+
+        if (error) throw error;
+
+        // Check if quota exceeded specifically
+        if (data?.quota_exceeded === true) {
+          setQuotaExceeded(true);
+          setAnalysis(null);
+        } else {
+          console.log('Analysis data received:', data);
+          setQuotaExceeded(false);
+          setAnalysis(data);
+        }
       }
     } catch (error) {
       console.error('Error analyzing conversation:', error);
@@ -212,6 +251,19 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
         </Select>
       </div>
 
+      <div className="px-4 py-2 border-b border-border bg-card/50 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Book className="w-4 h-4 text-violet-500" />
+          <Label htmlFor="use-kb" className="text-xs cursor-pointer">Base de Conhecimento</Label>
+        </div>
+        <Switch
+          id="use-kb"
+          checked={useKnowledgeBase}
+          onCheckedChange={setUseKnowledgeBase}
+          className="scale-75"
+        />
+      </div>
+
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {isLoading ? (
@@ -244,6 +296,69 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
                 </p>
               </CardContent>
             </Card>
+          ) : kbResult ? (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Book className="w-4 h-4 text-violet-500" />
+                      Resposta Sugerida (KB)
+                    </span>
+                    <Badge variant={kbResult.confidence > 0.7 ? "default" : "secondary"} className="text-xs">
+                      {(kbResult.confidence * 100).toFixed(0)}% confiança
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-xs leading-relaxed">{kbResult.answer}</p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="h-6 text-xs flex-1"
+                      onClick={() => onUseSuggestion(kbResult.answer)}
+                    >
+                      Usar Resposta
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => {
+                        navigator.clipboard.writeText(kbResult.answer);
+                        toast.success("Copiado!");
+                      }}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {kbResult.sources && kbResult.sources.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Database className="w-4 h-4 text-muted-foreground" />
+                      Fontes Consultadas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {kbResult.sources.map((source, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs bg-muted/40 p-2 rounded">
+                        <span className="truncate max-w-[180px]">{source.name}</span>
+                        {source.similarity && (
+                          <span className="text-muted-foreground">
+                            {Math.round(source.similarity * 100)}%
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           ) : analysis ? (
             <>
               {/* Análise da Conversa */}
@@ -433,7 +548,7 @@ export const AIAssistant = ({ conversation, messages, onUseSuggestion, onCreateT
           disabled={isLoading || messages.length === 0}
         >
           <Sparkles className="w-4 h-4 mr-2" />
-          Atualizar Análise
+          {useKnowledgeBase ? "Consultar Base de Dados" : "Analisar Conversa"}
         </Button>
       </div>
     </div>

@@ -7,12 +7,14 @@ DROP POLICY IF EXISTS "Platform admins can view all admins" ON platform_admins;
 
 -- Create new policy: users can view their own admin status
 -- This breaks the circular dependency
+DROP POLICY IF EXISTS "Users can view their own admin status" ON platform_admins;
 CREATE POLICY "Users can view their own admin status" 
 ON platform_admins 
 FOR SELECT 
 USING (user_id = auth.uid());
 
 -- Re-create admin policy: now it works because is_platform_admin() can read the user's own record
+DROP POLICY IF EXISTS "Platform admins can view all admins" ON platform_admins;
 CREATE POLICY "Platform admins can view all admins" 
 ON platform_admins 
 FOR SELECT 

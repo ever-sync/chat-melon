@@ -16,22 +16,25 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 -- Índices para performance
-CREATE INDEX idx_notifications_user ON notifications(user_id, is_read);
-CREATE INDEX idx_notifications_company ON notifications(company_id);
-CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_company ON notifications(company_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
 
 -- Habilitar RLS
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Políticas RLS
+DROP POLICY IF EXISTS "Users can view their own notifications" ON notifications;
 CREATE POLICY "Users can view their own notifications"
   ON notifications FOR SELECT
   USING (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their own notifications" ON notifications;
 CREATE POLICY "Users can update their own notifications"
   ON notifications FOR UPDATE
   USING (user_id = auth.uid() AND company_id = get_user_company(auth.uid()));
 
+DROP POLICY IF EXISTS "System can insert notifications" ON notifications;
 CREATE POLICY "System can insert notifications"
   ON notifications FOR INSERT
   WITH CHECK (company_id = get_user_company(auth.uid()));
@@ -132,6 +135,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_notify_deal_moved ON deals;
 CREATE TRIGGER trigger_notify_deal_moved
   AFTER UPDATE OF stage_id ON deals
   FOR EACH ROW
@@ -199,6 +203,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trigger_notify_new_message ON messages;
 CREATE TRIGGER trigger_notify_new_message
   AFTER INSERT ON messages
   FOR EACH ROW

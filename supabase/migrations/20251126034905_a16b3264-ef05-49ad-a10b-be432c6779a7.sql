@@ -4,6 +4,7 @@
 
 -- Role Permissions Policies
 -- All authenticated users can view role permissions (needed to check their own permissions)
+DROP POLICY IF EXISTS "Users can view role permissions" ON public;
 CREATE POLICY "Users can view role permissions"
 ON public.role_permissions
 FOR SELECT
@@ -11,6 +12,7 @@ TO authenticated
 USING (true);
 
 -- Only admins can insert role permissions
+DROP POLICY IF EXISTS "Admins can insert role permissions" ON public;
 CREATE POLICY "Admins can insert role permissions"
 ON public.role_permissions
 FOR INSERT
@@ -24,6 +26,7 @@ WITH CHECK (
 );
 
 -- Only admins can update role permissions
+DROP POLICY IF EXISTS "Admins can update role permissions" ON public;
 CREATE POLICY "Admins can update role permissions"
 ON public.role_permissions
 FOR UPDATE
@@ -37,6 +40,7 @@ USING (
 );
 
 -- Only admins can delete role permissions
+DROP POLICY IF EXISTS "Admins can delete role permissions" ON public;
 CREATE POLICY "Admins can delete role permissions"
 ON public.role_permissions
 FOR DELETE
@@ -51,6 +55,7 @@ USING (
 
 -- Member Permissions Policies
 -- Users can view their own custom permissions
+DROP POLICY IF EXISTS "Users can view their own member permissions" ON public;
 CREATE POLICY "Users can view their own member permissions"
 ON public.member_permissions
 FOR SELECT
@@ -63,6 +68,7 @@ USING (
 );
 
 -- Admins can view all member permissions in their company
+DROP POLICY IF EXISTS "Admins can view all member permissions" ON public;
 CREATE POLICY "Admins can view all member permissions"
 ON public.member_permissions
 FOR SELECT
@@ -86,6 +92,7 @@ USING (
 );
 
 -- Only admins can insert member permissions
+DROP POLICY IF EXISTS "Admins can insert member permissions" ON public;
 CREATE POLICY "Admins can insert member permissions"
 ON public.member_permissions
 FOR INSERT
@@ -109,6 +116,7 @@ WITH CHECK (
 );
 
 -- Only admins can update member permissions
+DROP POLICY IF EXISTS "Admins can update member permissions" ON public;
 CREATE POLICY "Admins can update member permissions"
 ON public.member_permissions
 FOR UPDATE
@@ -132,6 +140,7 @@ USING (
 );
 
 -- Only admins can delete member permissions
+DROP POLICY IF EXISTS "Admins can delete member permissions" ON public;
 CREATE POLICY "Admins can delete member permissions"
 ON public.member_permissions
 FOR DELETE
