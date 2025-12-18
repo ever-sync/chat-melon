@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Conversas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Debug de Conversas</h1>
+    <div id="output"></div>
+
+    <script>
+        // Coloque suas credenciais do Supabase aqui
+        const SUPABASE_URL = 'SUA_URL_AQUI';
+        const SUPABASE_ANON_KEY = 'SUA_CHAVE_AQUI';
+
+        const { createClient } = supabase;
+        const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function debugConversations() {
+            const output = document.getElementById('output');
+
+            try {
+                // 1. Verificar total de conversas
+                const { count: totalCount, error: countError } = await client
+                    .from('conversations')
+                    .select('*', { count: 'exact', head: true });
+
+                output.innerHTML += `<p><strong>Total de conversas no banco:</strong> ${totalCount || 'Erro: ' + countError?.message}</p>`;
+
+                // 2. Verificar conversas por empresa
+                const { data: companies, error: companiesError } = await client
+                    .from('companies')
+                    .select('id, name');
+
+                if (companies && companies.length > 0) {
+                    output.innerHTML += `<p><strong>Empresas encontradas:</strong> ${companies.length}</p>`;
+
+                    for (const company of companies) {
+                        const { data: convs, error: convsError } = await client
+                            .from('conversations')
+                            .select('*')
+                            .eq('company_id', company.id);
+
+                        output.innerHTML += `<p>Empresa: ${company.name} (${company.id}) - ${convs?.length || 0} conversas</p>`;
+
+                        if (convs && convs.length > 0) {
+                            output.innerHTML += `<pre>${JSON.stringify(convs.slice(0, 2), null, 2)}</pre>`;
+                        }
+                    }
+                }
+
+                // 3. Verificar conversas sem company_id
+                const { data: noCompany, error: noCompanyError } = await client
+                    .from('conversations')
+                    .select('*')
+                    .is('company_id', null);
+
+                output.innerHTML += `<p><strong>Conversas sem company_id:</strong> ${noCompany?.length || 0}</p>`;
+
+                // 4. Verificar mensagens
+                const { count: msgCount, error: msgError } = await client
+                    .from('messages')
+                    .select('*', { count: 'exact', head: true });
+
+                output.innerHTML += `<p><strong>Total de mensagens no banco:</strong> ${msgCount || 'Erro: ' + msgError?.message}</p>`;
+
+                // 5. Verificar mensagens por conversation_id
+                const { data: msgs, error: msgsError } = await client
+                    .from('messages')
+                    .select('conversation_id')
+                    .limit(100);
+
+                if (msgs) {
+                    const uniqueConvIds = [...new Set(msgs.map(m => m.conversation_id))];
+                    output.innerHTML += `<p><strong>IDs únicos de conversas nas mensagens:</strong> ${uniqueConvIds.length}</p>`;
+                    output.innerHTML += `<pre>${JSON.stringify(uniqueConvIds.slice(0, 10), null, 2)}</pre>`;
+                }
+
+            } catch (error) {
+                output.innerHTML += `<p style="color: red;"><strong>Erro:</strong> ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+
+        debugConversations();
+    </script>
+</body>
+</html>

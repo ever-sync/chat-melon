@@ -82,15 +82,19 @@ const Chat = () => {
       const { data, error } = await withCompanyFilter(
         supabase.from('conversations').select(`
             *,
-            contacts (
+            contacts!left (
               profile_pic_url
             )
           `)
       ).order('last_message_time', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Chat: Erro na query:', error);
+        throw error;
+      }
 
       console.log(`✅ Chat: ${data?.length || 0} conversas carregadas`);
+      console.log('📊 Chat: Primeiras 3 conversas:', data?.slice(0, 3));
 
       // Mesclar profile_pic_url do contact na conversation
       const conversationsWithPhotos = (data || []).map((conv: any) => ({
