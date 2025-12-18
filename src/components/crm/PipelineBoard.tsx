@@ -208,7 +208,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
 
   const handleBulkMove = (stageId: string) => {
     selectedDeals.forEach((dealId) => {
-      moveDeal.mutate({ dealId, stageId });
+      moveDeal.mutate({ dealId, targetStageId: stageId });
     });
     toast.success(`${selectedDeals.size} negócio(s) movido(s) com sucesso!`);
     setSelectedDeals(new Set());
