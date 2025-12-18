@@ -11,6 +11,7 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -286,6 +287,93 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
     }).format(total);
   };
 
+  // Component for droppable column
+  const DroppableColumn = ({ stage, stageDeals }: { stage: any; stageDeals: Deal[] }) => {
+    const { setNodeRef, isOver } = useDroppable({
+      id: stage.id,
+    });
+
+    return (
+      <Card
+        ref={setNodeRef}
+        className={`min-w-[300px] max-w-[340px] flex-shrink-0 flex flex-col snap-start border-0 shadow-lg rounded-3xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+          isOver ? 'ring-2 ring-blue-400 shadow-2xl' : ''
+        }`}
+      >
+        {/* Gradient top border */}
+        <div
+          className="h-1.5 w-full"
+          style={{ background: `linear-gradient(90deg, ${stage.color}, ${stage.color}dd)` }}
+        />
+
+        <CardHeader className="pb-4 pt-5 px-6">
+          <div className="flex justify-between items-center mb-3">
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <div
+                className="w-2.5 h-2.5 rounded-full shadow-sm"
+                style={{ backgroundColor: stage.color }}
+              />
+              {stage.name}
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-xl hover:bg-gray-100 transition-colors"
+              onClick={() => handleCreateDeal(stage.id)}
+            >
+              <Plus className="h-4 w-4 text-gray-600" />
+            </Button>
+          </div>
+
+          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+            <span className="text-sm text-gray-500 font-medium">
+              {stageDeals.length} {stageDeals.length === 1 ? 'negócio' : 'negócios'}
+            </span>
+            <span
+              className="text-sm font-bold px-3 py-1 rounded-full"
+              style={{
+                backgroundColor: `${stage.color}15`,
+                color: stage.color,
+              }}
+            >
+              {formatCurrency(stageDeals)}
+            </span>
+          </div>
+        </CardHeader>
+
+        <CardContent className="flex-1 overflow-y-auto space-y-3 pt-0 px-6 pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 min-h-[200px]">
+          <SortableContext
+            items={stageDeals.map((d) => d.id)}
+            strategy={verticalListSortingStrategy}
+            id={stage.id}
+          >
+            {stageDeals.map((deal) => (
+              <DealCard
+                key={deal.id}
+                deal={deal}
+                onEdit={handleEditDeal}
+                onDelete={() => handleDeleteDeal(deal.id)}
+                onView={handleViewDeal}
+                isSelected={selectedDeals.has(deal.id)}
+                onSelect={handleSelectDeal}
+              />
+            ))}
+
+            {stageDeals.length === 0 && (
+              <div className="text-center py-12 text-gray-400">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-50 flex items-center justify-center">
+                  <Plus className="h-8 w-8 text-gray-300" />
+                </div>
+                <p className="text-sm font-medium">Nenhum negócio</p>
+                <p className="text-xs mt-1">Arraste cards para cá</p>
+              </div>
+            )}
+          </SortableContext>
+        </CardContent>
+      </Card>
+    );
+  };
+
   if (isPipelinesLoading) {
     return (
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -307,83 +395,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
         <div className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory">
           {stages.map((stage) => {
             const stageDeals = filteredDeals.filter((deal) => deal.stage_id === stage.id);
-            return (
-              <Card
-                key={stage.id}
-                className="min-w-[300px] max-w-[340px] flex-shrink-0 flex flex-col snap-start border-0 shadow-lg rounded-3xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-              >
-                {/* Gradient top border */}
-                <div
-                  className="h-1.5 w-full"
-                  style={{ background: `linear-gradient(90deg, ${stage.color}, ${stage.color}dd)` }}
-                />
-
-                <CardHeader className="pb-4 pt-5 px-6">
-                  <div className="flex justify-between items-center mb-3">
-                    <CardTitle className="text-lg font-bold flex items-center gap-2">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full shadow-sm"
-                        style={{ backgroundColor: stage.color }}
-                      />
-                      {stage.name}
-                    </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-xl hover:bg-gray-100 transition-colors"
-                      onClick={() => handleCreateDeal(stage.id)}
-                    >
-                      <Plus className="h-4 w-4 text-gray-600" />
-                    </Button>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-sm text-gray-500 font-medium">
-                      {stageDeals.length} {stageDeals.length === 1 ? 'negócio' : 'negócios'}
-                    </span>
-                    <span
-                      className="text-sm font-bold px-3 py-1 rounded-full"
-                      style={{
-                        backgroundColor: `${stage.color}15`,
-                        color: stage.color,
-                      }}
-                    >
-                      {formatCurrency(stageDeals)}
-                    </span>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="flex-1 overflow-y-auto space-y-3 pt-0 px-6 pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                  <SortableContext
-                    items={stageDeals.map((d) => d.id)}
-                    strategy={verticalListSortingStrategy}
-                    id={stage.id}
-                  >
-                    {stageDeals.map((deal) => (
-                      <DealCard
-                        key={deal.id}
-                        deal={deal}
-                        onEdit={handleEditDeal}
-                        onDelete={() => handleDeleteDeal(deal.id)}
-                        onView={handleViewDeal}
-                        isSelected={selectedDeals.has(deal.id)}
-                        onSelect={handleSelectDeal}
-                      />
-                    ))}
-
-                    {stageDeals.length === 0 && (
-                      <div className="text-center py-12 text-gray-400">
-                        <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-50 flex items-center justify-center">
-                          <Plus className="h-8 w-8 text-gray-300" />
-                        </div>
-                        <p className="text-sm font-medium">Nenhum negócio</p>
-                        <p className="text-xs mt-1">Arraste cards para cá</p>
-                      </div>
-                    )}
-                  </SortableContext>
-                </CardContent>
-              </Card>
-            );
+            return <DroppableColumn key={stage.id} stage={stage} stageDeals={stageDeals} />;
           })}
         </div>
 

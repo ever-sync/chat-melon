@@ -318,8 +318,17 @@ const ConversationList = ({
           ) : conversations.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <MessageSquarePlus className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhuma conversa ainda</p>
-              <p className="text-sm mt-2">Clique em + para iniciar uma nova conversa</p>
+              {!currentCompany?.id ? (
+                <>
+                  <p className="font-medium text-destructive">Nenhuma empresa selecionada</p>
+                  <p className="text-sm mt-2">Selecione uma empresa no menu superior para visualizar conversas</p>
+                </>
+              ) : (
+                <>
+                  <p>Nenhuma conversa encontrada</p>
+                  <p className="text-sm mt-2">Clique em + para iniciar uma nova conversa</p>
+                </>
+              )}
             </div>
           ) : (
             <div className="p-2">

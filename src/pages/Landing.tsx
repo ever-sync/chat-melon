@@ -95,36 +95,43 @@ const Landing = () => {
           <div className="inline-flex items-center justify-center mb-8">
             <div className="px-5 py-2 rounded-full border border-indigo-100 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-default">
               <span className="bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent font-semibold text-sm">
-                Ferramentas de IA para CRM Instantâneas
+                IA para CRMs realmente inteligentes
               </span>
             </div>
           </div>
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-slate-900 leading-[1.1]">
-            Insights de Cada Cliente,
-            <br />
-            <span className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent pb-2">
-              Gerenciados com Inteligência
-            </span>
+            Do “oi” no WhatsApp ao contrato assinado — com contexto, automação e IA em cada etapa.
           </h1>
 
-          {/* Subheadline */}
-          <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
-            Dê à sua equipe a clareza, contexto e velocidade que eles precisam para entregar
-            experiências extraordinárias — em cada ponto de contato.
+          <p className="text-xl text-slate-500 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
+            O Nucleus une Chat + CRM + Automação + IA em um único fluxo.
+            <br />
+            Cada conversa vira contato, negócio, próximo passo e histórico automaticamente — sem planilha, sem copiar e colar, sem perder lead no caminho.
           </p>
 
-          {/* CTA */}
-          <div className="flex justify-center mb-24">
-            <Link to="/signup">
+          <div className="flex flex-col items-center gap-6 mb-24">
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link to="/signup">
+                <Button
+                  size="lg"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-indigo-200 transition-all hover:scale-105 font-semibold"
+                >
+                  Começar agora
+                </Button>
+              </Link>
               <Button
+                variant="outline"
                 size="lg"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white h-14 px-10 text-lg rounded-xl shadow-xl shadow-indigo-200 transition-all hover:scale-105 font-semibold"
+                className="bg-white hover:bg-slate-50 h-14 px-10 text-lg rounded-xl border-slate-200 transition-all hover:scale-105 font-semibold"
               >
-                Começar Agora
+                Agendar demo
               </Button>
-            </Link>
+            </div>
+            <p className="text-sm text-slate-400 font-medium">
+              Pronto para escalar: PWA (vira app), multiempresa (multi-tenant), white-label e painel Super Admin para gestão completa.
+            </p>
           </div>
 
           {/* Interactive Flow Visual (Kept visual, translated content inside) */}
@@ -289,10 +296,9 @@ const Landing = () => {
               <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 text-indigo-600">
                 <MessageSquare className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Chat Omnicanal</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Chat Omnichannel</h3>
               <p className="text-slate-500 leading-relaxed">
-                Centralize WhatsApp, Instagram e Messenger em uma única caixa de entrada inteligente
-                e colaborativa.
+                Centralize todas as conversas em um só lugar: WhatsApp hoje (Evolution API) e, em seguida, Instagram DM e Messenger no roadmap. Atendimento em tempo real, sem bagunça.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -301,8 +307,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">CRM Completo</h3>
               <p className="text-slate-500 leading-relaxed">
-                Gerencie pipelines, negócios e contatos sem sair da plataforma. Acompanhe cada etapa
-                da venda.
+                Pipeline visual estilo Kanban + visão em lista, funil ou calendário. Você enxerga o jogo inteiro: etapa, prioridade, meta e receita em um só painel.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -311,8 +316,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Automação & IA</h3>
               <p className="text-slate-500 leading-relaxed">
-                Crie fluxos de cadência, chatbots inteligentes e deixe a IA resumir conversas e
-                sugerir respostas.
+                Workflows no-code + IA que realmente ajuda: sugere respostas, resume conversas e garante handoff alinhado entre times e atendentes.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -321,8 +325,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Campanhas em Massa</h3>
               <p className="text-slate-500 leading-relaxed">
-                Dispare campanhas de marketing para milhares de contatos com segurança e alta taxa
-                de entrega.
+                Envie mensagens em escala com controle e rastreabilidade: ideal para reativação, promoções, cobranças e avisos — sem virar “spam”.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -331,8 +334,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Analytics Detalhado</h3>
               <p className="text-slate-500 leading-relaxed">
-                Métricas em tempo real sobre atendimento, conversão de vendas e performance da
-                equipe.
+                Métricas de atendimento e vendas no mesmo painel: tempo de resposta, performance do time, conversão por etapa e visão clara de resultado.
               </p>
             </div>
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
@@ -341,7 +343,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Integrações</h3>
               <p className="text-slate-500 leading-relaxed">
-                Conecte-se com suas ferramentas favoritas via Webhooks, API e integrações nativas.
+                Conecte com suas ferramentas via Webhooks e API. O Nucleus não te prende — ele vira o hub da sua operação.
               </p>
             </div>
           </div>
@@ -353,10 +355,10 @@ const Landing = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Soluções para cada time
+              Soluções para cada time.
             </h2>
             <p className="text-lg text-slate-500">
-              O Nucleus se adapta ao fluxo de trabalho da sua empresa.
+              O Nucleus se adapta ao fluxo real da sua empresa — sem você ter que mudar o jeito de trabalhar.
             </p>
           </div>
 
@@ -368,13 +370,13 @@ const Landing = () => {
               </h3>
               <ul className="space-y-3 text-slate-300">
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Pipeline Visual
+                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Pipeline visual pra não perder o timing.
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Automação de Follow-up
+                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Follow-up automático pra nenhum lead “sumir”.
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Lead Scoring
+                  <Check className="w-5 h-5 text-indigo-400 shrink-0" /> Lead scoring pra priorizar quem está pronto pra comprar.
                 </li>
               </ul>
             </div>
@@ -386,13 +388,13 @@ const Landing = () => {
               </h3>
               <ul className="space-y-3 text-slate-300">
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Chatbot 24/7
+                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Chatbot 24/7 (com construtor visual no roadmap).
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Respostas Rápidas
+                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Respostas rápidas com padrão de qualidade definido.
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Central de Conhecimento
+                  <Check className="w-5 h-5 text-emerald-400 shrink-0" /> Central de conhecimento com IA treinada nos seus documentos.
                 </li>
               </ul>
             </div>
@@ -404,13 +406,13 @@ const Landing = () => {
               </h3>
               <ul className="space-y-3 text-slate-300">
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Disparo em Massa
+                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Disparos em massa com tudo organizado.
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Segmentação de Leads
+                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Segmentação avançada (no roadmap) para campanhas mais precisas.
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Análise de Campanhas
+                  <Check className="w-5 h-5 text-rose-400 shrink-0" /> Análise de campanhas com visão real de impacto em vendas.
                 </li>
               </ul>
             </div>
@@ -425,18 +427,47 @@ const Landing = () => {
             {/* Left Content */}
             <div className="w-full md:w-1/2 p-12 md:p-20 bg-white flex flex-col justify-center">
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8 leading-tight">
-                A Força de Trabalho IA com quem você pode contar.
+                A força de trabalho IA em que você pode confiar.
               </h2>
-              <p className="text-xl text-slate-500 mb-12 leading-relaxed">
-                Nunca para, sempre melhora. Escale seu atendimento para atender qualquer demanda sem
-                perder qualidade.
-              </p>
+              <div className="space-y-6 mb-12">
+                <p className="text-xl text-slate-500 leading-relaxed italic">
+                  “Aqui a IA não é ‘enfeite de landing page’. Ela trabalha em cima do que é seu: políticas, catálogo, PDFs, scripts, propostas, manuais e históricos.”
+                </p>
+                <div className="space-y-4">
+                  <p className="font-bold text-slate-900 text-lg">Você ganha:</p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3 text-slate-600">
+                      <div className="mt-1 w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-indigo-600" />
+                      </div>
+                      <span><strong>Base de Conhecimento (RAG):</strong> a IA responde com base nos seus documentos (PDF/DOCX).</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-slate-600">
+                      <div className="mt-1 w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-indigo-600" />
+                      </div>
+                      <span><strong>Ajudante de resposta:</strong> sugestões prontas durante o chat, no tom da sua marca.</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-slate-600">
+                      <div className="mt-1 w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-indigo-600" />
+                      </div>
+                      <span><strong>Resumo de conversas:</strong> handoff sem ruído — troca de atendente sem perder contexto.</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-slate-600">
+                      <div className="mt-1 w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-indigo-600" />
+                      </div>
+                      <span><strong>Multi-provedores:</strong> OpenAI (GPT-4), Anthropic (Claude) e Groq, com liberdade de escolha.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
               <Link
                 to="#"
                 className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group"
               >
-                Mais sobre o Nucleus
-                <ArrowRight className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" />
+                Mais sobre o Nucleus →
               </Link>
             </div>
             {/* Right Visual */}
@@ -455,6 +486,113 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Diferencial do Mercado */}
+      <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-5xl font-bold mb-8 leading-tight">
+              O “diferente” aqui é simples: <br className="hidden md:block" />
+              <span className="text-indigo-400">conversa vira dado. Dado vira venda.</span>
+            </h2>
+            <p className="text-xl text-slate-300 leading-relaxed mb-12">
+              A maioria das ferramentas te entrega recursos soltos. <br className="hidden md:block" />
+              O Nucleus te entrega fluxo: atendimento organizado + CRM conectado + automação + IA aplicada. <br className="hidden md:block" />
+              <strong>Resultado:</strong> menos retrabalho, mais velocidade e um time inteiro operando no mesmo padrão.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Roadmap Section */}
+      <section className="py-24 bg-white border-b border-slate-100">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col lg:flex-row gap-16 items-start">
+            <div className="lg:w-1/3">
+              <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">
+                Transparência de produto: o que já roda + o que vem em seguida.
+              </h2>
+              <p className="text-lg text-slate-500 leading-relaxed">
+                Você não compra só o que existe hoje — você entra em um produto que está sendo construído pra virar o núcleo da sua operação.
+              </p>
+            </div>
+            <div className="lg:w-2/3 grid md:grid-cols-3 gap-8">
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="text-indigo-600 font-bold mb-4">Fase 2 — Omnichannel</div>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Instagram DM e Messenger, construtor visual de chatbot e transcrição de áudio (Whisper).
+                </p>
+              </div>
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="text-indigo-600 font-bold mb-4">Fase 3 — E-commerce e Pagamentos</div>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  PIX e boleto direto no chat, mini-loja com carrinho e integrações nativas com Stripe/Mercado Pago.
+                </p>
+              </div>
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="text-indigo-600 font-bold mb-4">Fase 4 — Enterprise</div>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Cadências de vendas, segmentação avançada e segurança reforçada (logs detalhados e permissão por IP).
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Infra / Escalabilidade Section */}
+      <section className="py-24 bg-slate-50">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto bg-white rounded-3xl p-12 shadow-sm border border-slate-100">
+            <h2 className="text-3xl font-bold text-slate-900 mb-10 text-center">
+              Feito pra virar plataforma — não só “mais um CRM”.
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                  <Shield className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-1">White-label</h4>
+                  <p className="text-slate-500 text-sm">sua marca na frente, seu produto na mão do cliente.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                  <Phone className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-1">PWA (App)</h4>
+                  <p className="text-slate-500 text-sm">instala no celular como app, sem fricção.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                  <Globe className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-1">Multi-tenant</h4>
+                  <p className="text-slate-500 text-sm">várias empresas no mesmo sistema, com ambientes separados.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                  <Shield className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-1">Super Admin</h4>
+                  <p className="text-slate-500 text-sm">gestão total de clientes, planos e permissões.</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-12 pt-8 border-t border-slate-100 flex items-center justify-center gap-2 text-slate-400 font-medium">
+              <Zap className="w-4 h-4 text-amber-500" />
+              Base sólida: 87 tabelas + 43 Edge Functions prontas pra escalar com segurança.
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section (Translated) */}
       <section id="pricing" className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
@@ -463,10 +601,10 @@ const Landing = () => {
               <div className="w-2 h-2 rounded-full bg-indigo-500"></div> Preços
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-              Comece pequeno, cresça rápido
+              Comece pequeno, cresça rápido.
             </h2>
             <p className="text-lg text-slate-500 mb-10">
-              Comece gratuitamente e faça o upgrade conforme sua equipe cresce.
+              Teste, valide e evolua conforme o seu time cresce — sem precisar trocar de ferramenta no meio do caminho.
             </p>
 
             {/* Toggle */}
@@ -486,7 +624,7 @@ const Landing = () => {
                 <span className="text-slate-500 text-sm">/ {isAnnual ? 'ano' : 'mês'}</span>
               </div>
               <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
-                Para uso pessoal
+                pra começar organizado e tirar o time da planilha.
               </p>
 
               <ul className="space-y-3 mb-8">
@@ -494,12 +632,7 @@ const Landing = () => {
                   <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> 2 Usuários
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Feed de Atividade
-                  Básico
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Resumo Inteligente
-                  IA
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Feed de Atividade Básico
                 </li>
               </ul>
               <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">
@@ -512,12 +645,12 @@ const Landing = () => {
               <h3 className="font-bold text-lg mb-2">Growth</h3>
               <div className="mb-4">
                 <span className="text-4xl font-bold tracking-tight">
-                  R${isAnnual ? '129' : '149'}
+                  R$147
                 </span>
                 <span className="text-slate-500 text-sm">/ {isAnnual ? 'ano' : 'mês'}</span>
               </div>
               <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
-                Para times em crescimento
+                pra vender com processo, previsibilidade e rotina de follow-up.
               </p>
 
               <ul className="space-y-3 mb-8">
@@ -526,9 +659,6 @@ const Landing = () => {
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Pontuação de Leads
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Sequências de Email
                 </li>
               </ul>
               <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">
@@ -544,12 +674,12 @@ const Landing = () => {
               <h3 className="font-bold text-lg mb-2 mt-6">Pro</h3>
               <div className="mb-4">
                 <span className="text-4xl font-bold tracking-tight">
-                  R${isAnnual ? '249' : '299'}
+                  R$297
                 </span>
                 <span className="text-slate-500 text-sm">/ {isAnnual ? 'ano' : 'mês'}</span>
               </div>
               <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
-                Para times profissionais
+                pra times que precisam de automação, performance e visão avançada de dados.
               </p>
 
               <ul className="space-y-3 mb-8">
@@ -558,12 +688,6 @@ const Landing = () => {
                 </li>
                 <li className="flex items-start gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Chatbots Avançados
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Sugestões de IA
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" /> Múltiplos Canais
                 </li>
               </ul>
               <Button className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl h-11 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-200">
@@ -575,22 +699,18 @@ const Landing = () => {
             <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all">
               <h3 className="font-bold text-lg mb-2">Enterprise</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold tracking-tight text-indigo-500">Custom</span>
+                <span className="text-4xl font-bold tracking-tight text-indigo-500 text-xl">Custom</span>
               </div>
               <p className="text-xs text-slate-500 mb-6 font-medium uppercase tracking-wide">
-                Para grandes corporações
+                custom, white-label e governança completa para operações exigentes.
               </p>
 
               <ul className="space-y-3 mb-8">
                 <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Campos & Dados
-                  Customizados
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
-                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> API Dedicada
-                </li>
-                <li className="flex items-start gap-2 text-sm text-slate-600">
                   <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> SLA de Suporte
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> Governança Completa
                 </li>
               </ul>
               <Button variant="outline" className="w-full rounded-xl h-11 border-slate-200">
@@ -709,20 +829,20 @@ const Landing = () => {
             <div className="w-6 h-6 rotate-45 bg-white shadow-[0_0_20px_rgba(255,255,255,0.5)]"></div>
           </div>
           <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">
-            Saiba Mais, Aja Rápido e <br /> Feche Mais Vendas.
+            Saiba mais, aja rápido e feche mais vendas.
           </h2>
           <p className="text-xl text-indigo-100 mb-10">
-            Clareza impulsionada por IA para cada etapa da jornada do seu cliente
+            Clareza impulsionada por IA em cada etapa da jornada do seu cliente.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="bg-white text-indigo-900 border-none hover:bg-slate-100 font-bold h-12 px-8 rounded-lg shadow-lg">
-              Começar Agora
+              Começar agora
             </Button>
             <Button
               variant="outline"
               className="bg-slate-900/30 text-white border-white/20 hover:bg-slate-900/50 font-bold h-12 px-8 rounded-lg"
             >
-              Agendar Demo
+              Agendar demo
             </Button>
           </div>
         </div>

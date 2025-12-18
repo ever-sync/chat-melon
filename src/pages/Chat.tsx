@@ -69,9 +69,14 @@ const Chat = () => {
   const loadConversations = useCallback(async () => {
     // Não carregar se não houver empresa selecionada
     if (!companyId) {
+      console.log('❌ Chat: Nenhuma empresa selecionada (companyId is null/undefined)');
       setIsLoading(false);
+      setConversations([]);
+      setFilteredConversations([]);
       return;
     }
+
+    console.log('🔄 Chat: Carregando conversas para empresa:', companyId);
 
     try {
       const { data, error } = await withCompanyFilter(
@@ -85,6 +90,8 @@ const Chat = () => {
 
       if (error) throw error;
 
+      console.log(`✅ Chat: ${data?.length || 0} conversas carregadas`);
+
       // Mesclar profile_pic_url do contact na conversation
       const conversationsWithPhotos = (data || []).map((conv: any) => ({
         ...conv,
@@ -94,7 +101,7 @@ const Chat = () => {
       setConversations(conversationsWithPhotos || []);
       setFilteredConversations(conversationsWithPhotos || []);
     } catch (error) {
-      console.error('Erro ao carregar conversas:', error);
+      console.error('❌ Chat: Erro ao carregar conversas:', error);
       toast.error('Não foi possível carregar as conversas');
     } finally {
       setIsLoading(false);
