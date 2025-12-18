@@ -66,6 +66,11 @@ const Orders = lazy(() => import('./pages/Orders'));
 const Integrations = lazy(() => import('./pages/Integrations'));
 const Security = lazy(() => import('./pages/Security'));
 const Channels = lazy(() => import('./pages/Channels'));
+const Imobiliarias = lazy(() => import('./pages/Imobiliarias'));
+const Concessionarias = lazy(() => import('./pages/Concessionarias'));
+const Educacao = lazy(() => import('./pages/Educacao'));
+const PoliticaPrivacidade = lazy(() => import('./pages/PoliticaPrivacidade'));
+const TermosUso = lazy(() => import('./pages/TermosUso'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +100,11 @@ const App = () => {
                   <Routes>
                     <Route path="/" element={<Landing />} />
                     <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/educacao" element={<Educacao />} />
+                    <Route path="/imobiliarias" element={<Imobiliarias />} />
+                    <Route path="/concessionarias" element={<Concessionarias />} />
+                    <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+                    <Route path="/termos-uso" element={<TermosUso />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/onboarding" element={<Onboarding />} />

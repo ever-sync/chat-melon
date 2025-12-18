@@ -1,11 +1,11 @@
 {
-  "name": "CRM WhatsApp - Sistema Completo",
-  "short_name": "CRM",
-  "description": "CRM integrado com WhatsApp, Pipeline de Vendas, Automações e Analytics",
+  "name": "Nucleus - IA + CRM",
+  "short_name": "Nucleus",
+  "description": "O Nucleus une Chat + CRM + Automação + IA em um único fluxo. Cada conversa vira contato, negócio e histórico automaticamente.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#dbe900",
+  "theme_color": "#4f46e5",
   "orientation": "portrait-primary",
   "categories": [
     "business",

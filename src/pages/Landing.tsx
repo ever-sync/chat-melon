@@ -18,6 +18,8 @@ import {
   Layout,
   GitBranch,
   Headphones,
+  ChevronDown,
+  Clock,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -26,6 +28,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 
@@ -38,6 +46,12 @@ const Landing = () => {
     { label: 'Soluções', href: '#solutions' },
     { label: 'Recursos', href: '#resources' },
     { label: 'Preços', href: '#pricing' },
+  ];
+
+  const segmentItems = [
+    { label: 'Educação', href: '/educacao' },
+    { label: 'Imobiliárias', href: '/imobiliarias' },
+    { label: 'Concessionárias', href: '/concessionarias' },
   ];
 
   return (
@@ -57,7 +71,7 @@ const Landing = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center bg-gray-50/80 px-2 py-1.5 rounded-full border border-gray-100 shadow-sm">
+          <nav className="hidden md:flex items-center bg-gray-50/80 px-2 py-1.5 rounded-full border border-gray-100 shadow-sm gap-1">
             {navItems.map((item) => (
               <a
                 key={item.label}
@@ -67,6 +81,26 @@ const Landing = () => {
                 {item.label}
               </a>
             ))}
+
+            {/* Segmentos Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="px-5 py-2 text-sm font-medium rounded-full transition-all hover:text-indigo-600 text-slate-500 flex items-center gap-1 outline-none">
+                Segmentos
+                <ChevronDown className="w-3.5 h-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-white">
+                {segmentItems.map((segment) => (
+                  <DropdownMenuItem key={segment.label} asChild>
+                    <Link
+                      to={segment.href}
+                      className="cursor-pointer text-slate-700 hover:text-indigo-600 focus:text-indigo-600"
+                    >
+                      {segment.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           {/* Actions */}
@@ -92,7 +126,7 @@ const Landing = () => {
       <main className="pt-32 pb-20 overflow-hidden text-center">
         <div className="container mx-auto px-4 relative z-10">
           {/* Badge */}
-          <div className="inline-flex items-center justify-center mb-8">
+          <div className="inline-flex items-center justify-center mb-8 mt-20">
             <div className="px-5 py-2 rounded-full border border-indigo-100 bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-default">
               <span className="bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent font-semibold text-sm">
                 IA para CRMs realmente inteligentes
@@ -101,14 +135,14 @@ const Landing = () => {
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-slate-900 leading-[1.1]">
-            Do “oi” no WhatsApp ao contrato assinado — com contexto, automação e IA em cada etapa.
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-slate-900 leading-[1.1] ">
+            Do primeiro contato ao fechamento com IA fazendo o trabalho pesado.
           </h1>
 
           <p className="text-xl text-slate-500 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
             O Nucleus une Chat + CRM + Automação + IA em um único fluxo.
             <br />
-            Cada conversa vira contato, negócio, próximo passo e histórico automaticamente — sem planilha, sem copiar e colar, sem perder lead no caminho.
+            
           </p>
 
           <div className="flex flex-col items-center gap-6 mb-24">
@@ -134,52 +168,65 @@ const Landing = () => {
             </p>
           </div>
 
-          {/* Interactive Flow Visual (Kept visual, translated content inside) */}
-          <div className="relative mx-auto max-w-6xl h-[600px] hidden md:block select-none text-left">
+          {/* Interactive Flow Visual - Melhorado */}
+          <div className="relative mx-auto max-w-6xl h-[650px] hidden lg:block select-none text-left">
+            {/* Linhas conectoras sutis */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+              <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#e2e8f0" stopOpacity="0.5" />
+                  <stop offset="50%" stopColor="#cbd5e1" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#e2e8f0" stopOpacity="0.5" />
+                </linearGradient>
+              </defs>
+
+              {/* Linha do Agendamento para o Centro */}
               <path
-                d="M300,180 C300,250 500,250 500,320"
+                d="M280,150 Q350,200 500,280"
                 fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="2"
-                strokeDasharray="6 6"
+                stroke="url(#lineGradient)"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                opacity="0.6"
               />
+
+              {/* Linha do CRM para o Centro */}
               <path
-                d="M850,230 C850,280 650,280 650,320"
+                d="M900,180 Q750,230 650,280"
                 fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="2"
-                strokeDasharray="6 6"
+                stroke="url(#lineGradient)"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                opacity="0.6"
               />
+
+              {/* Linha do Centro para Empresa */}
               <path
-                d="M300,380 C300,450 400,450 400,500"
+                d="M500,450 Q400,500 350,550"
                 fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="2"
-                strokeDasharray="6 6"
-              />
-              <path
-                d="M850,380 C850,450 750,450 750,480"
-                fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="2"
-                strokeDasharray="6 6"
+                stroke="url(#lineGradient)"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                opacity="0.6"
               />
             </svg>
 
-            {/* Card 1 */}
-            <div className="absolute top-20 left-20 z-10 animate-fade-in-up [animation-delay:200ms]">
-              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
+            {/* Card 1 - Agendamento (Top Left) */}
+            <div className="absolute top-8 left-4 z-10 animate-fade-in-up [animation-delay:200ms]">
+              <div className="flex items-center gap-2 text-indigo-600 font-semibold mb-3 text-sm">
                 <Calendar className="w-4 h-4" /> Agendamento
               </div>
-              <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-64 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-bold text-slate-800">Demo Rápida</h4>
+              <div className="bg-white rounded-2xl p-6 shadow-[0_10px_40px_rgba(99,102,241,0.1)] border border-indigo-100 w-72 hover:shadow-[0_15px_50px_rgba(99,102,241,0.15)] transition-all duration-300 hover:-translate-y-1">
+                <div className="flex justify-between items-start mb-3">
+                  <h4 className="font-bold text-slate-900 text-base">Demo Rápida</h4>
                 </div>
-                <div className="text-xs text-slate-400 mb-4">12 de Maio, 14:30 - 15:30</div>
+                <div className="text-sm text-slate-500 mb-5 flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  12 de Maio, 14:30 - 15:30
+                </div>
                 <Button
                   size="sm"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg h-9 text-xs font-semibold gap-2"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl h-10 text-sm font-semibold gap-2 shadow-md"
                 >
                   <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                   Reunião Iniciada
@@ -187,89 +234,102 @@ const Landing = () => {
               </div>
             </div>
 
-            {/* Card 2 */}
-            <div className="absolute top-24 right-20 z-10 animate-fade-in-up [animation-delay:400ms]">
-              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
+            {/* Card 2 - CRM de Vendas (Top Right) */}
+            <div className="absolute top-2 right-4 z-10 animate-fade-in-up [animation-delay:400ms]">
+              <div className="flex items-center gap-2 text-indigo-600 font-semibold mb-3 text-sm">
                 <BarChart3 className="w-4 h-4" /> CRM de Vendas
               </div>
-              <div className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-80 relative group hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-indigo-100 p-2 rounded-lg">
-                    <Phone className="w-5 h-5 text-indigo-600" />
+              <div className="bg-white rounded-2xl p-6 shadow-[0_10px_40px_rgba(99,102,241,0.1)] border border-indigo-100 w-80 hover:shadow-[0_15px_50px_rgba(99,102,241,0.15)] transition-all duration-300 hover:-translate-y-1">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-2.5 rounded-xl shadow-sm">
+                    <Phone className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800">Passo 2: Tentativa de Contato</h4>
+                    <h4 className="font-bold text-slate-900 text-base">Passo 2: Tentativa de Contato</h4>
                   </div>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex gap-1">
-                  <div className="h-full w-1/3 bg-indigo-600 rounded-full"></div>
+                <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden flex gap-1">
+                  <div className="h-full w-1/3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full animate-pulse"></div>
                   <div className="h-full w-1/4 bg-slate-200 rounded-full"></div>
                 </div>
               </div>
             </div>
 
-            {/* Center Main Card */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 animate-fade-in-up [animation-delay:0ms]">
-              <div className="bg-white rounded-3xl p-6 shadow-[0_20px_50px_rgb(0,0,0,0.1)] border border-indigo-100 w-[420px]">
+            {/* Center Main Card - Lucas Santos */}
+            <div className="absolute top-1/2 left-1/2 z-20 animate-fade-in-up [animation-delay:100ms] flex items-center justify-center">
+              <div className="bg-white rounded-3xl p-8 shadow-[0_25px_60px_rgba(0,0,0,0.15)] border-2 border-indigo-200 w-[440px] max-w-[90vw] hover:shadow-[0_30px_70px_rgba(99,102,241,0.2)] transition-all duration-300 -mt-[136px] -ml-[213px]">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
-                    <img
-                      src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
-                      alt="User"
-                      className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover"
-                    />
+                    <div className="relative">
+                      <img
+                        src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                        alt="User"
+                        className="w-14 h-14 rounded-full border-3 border-white shadow-lg object-cover ring-2 ring-indigo-100"
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white"></div>
+                    </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">Lucas Santos</h3>
-                      <p className="text-sm text-slate-400">Diretor de Tecnologia</p>
+                      <h3 className="text-xl font-bold text-slate-900">Lucas Santos</h3>
+                      <p className="text-sm text-slate-500">Diretor de Tecnologia</p>
                     </div>
                   </div>
-                  <Button size="icon" variant="ghost" className="text-slate-300">
+                  <Button size="icon" variant="ghost" className="text-slate-400 hover:text-slate-600 hover:bg-slate-100">
                     <MoreHorizontal className="w-5 h-5" />
                   </Button>
                 </div>
-                <div className="flex gap-2 mb-6">
-                  <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10 shadow-lg shadow-indigo-200">
+
+                <div className="flex gap-3 mb-6">
+                  <Button className="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl h-11 shadow-lg shadow-indigo-200 font-semibold text-sm">
                     <Mail className="w-4 h-4 mr-2" /> Enviar Email
                   </Button>
-                  <Button variant="outline" size="icon" className="rounded-xl border-slate-200">
-                    <Calendar className="w-4 h-4 text-slate-500" />
+                  <Button variant="outline" size="icon" className="rounded-xl border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 w-11 h-11">
+                    <Calendar className="w-4 h-4 text-slate-600" />
                   </Button>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+
+                <div className="bg-gradient-to-br from-indigo-50 to-slate-50 rounded-xl p-5 border border-indigo-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
                       Resumo IA
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 leading-relaxed">
+                  <p className="text-sm text-slate-700 leading-relaxed">
                     Lucas Santos está planejando aumentar a eficiência da equipe através de
-                    ferramentas modernas...
+                    ferramentas modernas de automação e inteligência artificial...
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Card 3 */}
-            <div className="absolute bottom-20 left-48 z-10 animate-fade-in-up [animation-delay:600ms]">
-              <div className="flex items-center gap-2 text-indigo-500 font-semibold mb-2 text-sm">
-                <Bot className="w-4 h-4" /> Empresa
+            {/* Card 3 - Empresa (Bottom Left) */}
+            <div className="absolute bottom-8 left-16 z-10 animate-fade-in-up [animation-delay:600ms]">
+              <div className="flex items-center gap-2 text-indigo-600 font-semibold mb-3 text-sm">
+                <Users className="w-4 h-4" /> Empresa
               </div>
-              <div className="bg-white rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-56 hover:shadow-lg transition-shadow relative">
+              <div className="bg-white rounded-2xl p-6 shadow-[0_10px_40px_rgba(99,102,241,0.1)] border border-indigo-100 w-64 hover:shadow-[0_15px_50px_rgba(99,102,241,0.15)] transition-all duration-300 hover:-translate-y-1">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">E</span>
+                  <div className="w-12 h-12 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center shadow-md">
+                    <span className="text-white font-bold text-xl">E</span>
                   </div>
                   <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-bold text-slate-800">Empresa Tech</h4>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-base">Empresa Tech</h4>
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                          <Globe className="w-3 h-3" />
+                          São Paulo, SP
+                        </p>
+                      </div>
                       <Link
                         to="#"
-                        className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 hover:bg-indigo-200"
+                        className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 hover:bg-indigo-200 transition-colors"
                       >
-                        <ArrowRight className="w-3 h-3 -rotate-45" />
+                        <ArrowRight className="w-3.5 h-3.5 -rotate-45" />
                       </Link>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">São Paulo, SP</p>
                   </div>
                 </div>
               </div>
