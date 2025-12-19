@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Paperclip, X, Image, FileText, Film, Music } from 'lucide-react';
+import { Paperclip, X, Image, FileText, Film, Music, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
@@ -13,8 +13,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useSendMediaMessage } from '@/hooks/api/useEvolutionApi';
 import { useCompany } from '@/contexts/CompanyContext';
+import { uploadMedia, formatFileSize, getMediaCategory } from '@/services/mediaStorage';
+import { Progress } from '@/components/ui/progress';
 
 interface MediaUploadProps {
   conversationId: string;
@@ -27,10 +28,10 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [preview, setPreview] = useState<string | null>(null);
 
   const { currentCompany } = useCompany();
-  // const sendMediaMessageHook = useSendMediaMessage(currentCompany?.evolution_instance_name || '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -56,54 +57,91 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
   };
 
   const handleUpload = async () => {
-    if (!file) return;
-
-    // if (!currentCompany?.evolution_instance_name) {
-    //   toast.error("Evolution API não configurada");
-    //   return;
-    // }
+    if (!file || !currentCompany?.id) return;
 
     setUploading(true);
+    setUploadProgress(0);
+
     try {
-      // Convert file to Base64
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-          const base64String = (reader.result as string).split(',')[1];
-          resolve(base64String);
-        };
-        reader.onerror = reject;
+      // 1. Upload para Supabase Storage
+      toast.info('Fazendo upload do arquivo...');
+      const uploadResult = await uploadMedia({
+        file,
+        companyId: currentCompany.id,
+        conversationId,
+        onProgress: (progress) => {
+          setUploadProgress(progress);
+        },
       });
 
-      // Determine media type category
-      let mediaType: 'image' | 'video' | 'audio' | 'document' = 'document';
-      if (file.type.startsWith('image/')) mediaType = 'image';
-      else if (file.type.startsWith('video/')) mediaType = 'video';
-      else if (file.type.startsWith('audio/')) mediaType = 'audio';
+      console.log('✅ Upload concluído:', uploadResult);
+      setUploadProgress(50);
 
-      // Send media via Edge Function
+      // 2. Enviar mensagem via Evolution API com URL do storage
+      toast.info('Enviando mensagem...');
+
+      const mediaCategory = getMediaCategory(file.type);
+
+      // Salvar mensagem no banco
+      const { data: messageData, error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          company_id: currentCompany.id,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          content: caption || file.name,
+          is_from_me: true,
+          message_type: 'text',
+          media_type: file.type,
+          media_url: uploadResult.url,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (messageError) {
+        throw new Error('Erro ao salvar mensagem no banco');
+      }
+
+      setUploadProgress(75);
+
+      // 3. Enviar via Evolution API
       const { data: result, error } = await supabase.functions.invoke('send-message', {
         body: {
           conversationId,
           messageType: 'media',
-          mediaType,
-          media: base64,
+          mediaType: mediaCategory,
+          media: uploadResult.url, // Enviar URL pública
           content: file.name,
           caption: caption.trim() || undefined,
         },
       });
 
       if (error || !result?.success) {
+        // Atualizar status da mensagem para erro
+        await supabase
+          .from('messages')
+          .update({ status: 'error' })
+          .eq('id', messageData.id);
+
         throw new Error(result?.error || error?.message || 'Erro ao enviar mídia');
       }
 
-      toast.success('Mídia enviada com sucesso');
+      // Atualizar status da mensagem para enviado
+      await supabase
+        .from('messages')
+        .update({ status: 'sent' })
+        .eq('id', messageData.id);
 
+      setUploadProgress(100);
+      toast.success('Mídia enviada com sucesso!');
+
+      // Reset
       setOpen(false);
       setFile(null);
       setCaption('');
       setPreview(null);
+      setUploadProgress(0);
       onMediaSent();
     } catch (error: any) {
       console.error('Erro ao enviar mídia:', error);
@@ -184,11 +222,33 @@ export function MediaUpload({ conversationId, contactNumber, onMediaSent }: Medi
                 placeholder="Adicione uma legenda..."
                 rows={3}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Tamanho: {formatFileSize(file.size)}
+              </p>
+            </div>
+          )}
+
+          {uploading && uploadProgress > 0 && (
+            <div className="space-y-2">
+              <Progress value={uploadProgress} className="w-full" />
+              <p className="text-xs text-center text-muted-foreground">
+                {uploadProgress < 50 && 'Fazendo upload...'}
+                {uploadProgress >= 50 && uploadProgress < 75 && 'Salvando mensagem...'}
+                {uploadProgress >= 75 && uploadProgress < 100 && 'Enviando...'}
+                {uploadProgress === 100 && 'Concluído!'}
+              </p>
             </div>
           )}
 
           <Button onClick={handleUpload} disabled={!file || uploading} className="w-full">
-            {uploading ? 'Enviando...' : 'Enviar'}
+            {uploading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              'Enviar'
+            )}
           </Button>
         </div>
       </DialogContent>

@@ -13,6 +13,7 @@ import {
   BarChart3,
   ListOrdered,
   MapPin,
+  FileText,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -211,19 +212,48 @@ export function MessageBubble({
             {/* Media attachments */}
             {message.media_url && (
               <div className="mb-2">
-                {message.media_type?.startsWith('image/') && (
-                  <img
+                {message.media_type?.includes('image') && (
+                  <div className="relative group">
+                    <img
+                      src={message.media_url}
+                      alt="Imagem"
+                      className="max-w-full rounded-lg max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(message.media_url, '_blank')}
+                      loading="lazy"
+                    />
+                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <a
+                        href={message.media_url}
+                        download
+                        className="bg-black/50 text-white px-2 py-1 rounded text-xs"
+                      >
+                        ⬇️ Download
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {message.media_type?.includes('video') && (
+                  <video
                     src={message.media_url}
-                    alt="Media"
-                    className="max-w-full rounded max-h-64 object-contain"
-                  />
+                    controls
+                    controlsList="nodownload"
+                    className="max-w-full rounded-lg max-h-96"
+                    preload="metadata"
+                  >
+                    Seu navegador não suporta vídeo.
+                  </video>
                 )}
-                {message.media_type?.startsWith('video/') && (
-                  <video src={message.media_url} controls className="max-w-full rounded max-h-64" />
-                )}
-                {message.media_type?.startsWith('audio/') && (
-                  <>
-                    <audio src={message.media_url} controls className="max-w-full" />
+                {message.media_type?.includes('audio') && (
+                  <div className="space-y-2">
+                    <audio
+                      src={message.media_url}
+                      controls
+                      controlsList="nodownload"
+                      className="w-full max-w-sm"
+                      preload="metadata"
+                    >
+                      Seu navegador não suporta áudio.
+                    </audio>
                     <AudioTranscription
                       messageId={message.id}
                       transcription={message.audio_transcription}
@@ -232,18 +262,29 @@ export function MessageBubble({
                       confidence={message.transcription_confidence}
                       onTranscribe={onUpdated}
                     />
-                  </>
+                  </div>
                 )}
-                {!message.media_type?.startsWith('image/') &&
-                  !message.media_type?.startsWith('video/') &&
-                  !message.media_type?.startsWith('audio/') && (
+                {message.media_type?.includes('sticker') && (
+                  <img
+                    src={message.media_url}
+                    alt="Figurinha"
+                    className="w-32 h-32 object-contain"
+                    loading="lazy"
+                  />
+                )}
+                {/* Documentos e outros tipos */}
+                {!message.media_type?.includes('image') &&
+                  !message.media_type?.includes('video') &&
+                  !message.media_type?.includes('audio') &&
+                  !message.media_type?.includes('sticker') && (
                     <a
                       href={message.media_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="underline text-xs"
+                      className="flex items-center gap-2 bg-black/10 dark:bg-white/10 px-3 py-2 rounded hover:bg-black/20 dark:hover:bg-white/20 transition-colors"
                     >
-                      📎 Abrir arquivo
+                      <FileText className="h-4 w-4" />
+                      <span className="text-sm">Abrir documento</span>
                     </a>
                   )}
               </div>

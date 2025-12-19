@@ -16,6 +16,7 @@ import { useBulkConversationActions } from '@/hooks/chat/useBulkConversationActi
 
 import type { Conversation } from '@/types/chat';
 
+
 const Chat = () => {
   const { withCompanyFilter, companyId } = useCompanyQuery();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -459,7 +460,10 @@ const Chat = () => {
     return Array.from(labels);
   }, [conversations]);
 
+
+
   return (
+
     <MainLayout>
       <div className="flex flex-col h-[calc(100vh-5rem)]">
         {/* Bulk Actions Toolbar - appears when conversations are selected */}

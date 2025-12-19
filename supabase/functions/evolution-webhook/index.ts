@@ -17,6 +17,19 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const webhookData = await req.json();
+    console.log('Webhook sem tratamento (raw):', JSON.stringify(webhookData).substring(0, 200));
+
+    // LOGGING SYSTEM (NOVO)
+    try {
+      await supabase.from('webhook_logs').insert({
+        event_type: webhookData.event || 'unknown',
+        payload: webhookData,
+        status: 'received'
+      });
+    } catch (logError) {
+      console.error('Falha ao salvar log:', logError);
+    }
+
     console.log('Webhook recebido:', JSON.stringify(webhookData, null, 2));
 
     const event = webhookData.event;
@@ -307,23 +320,123 @@ serve(async (req) => {
       let messageType = 'text';
       let mediaUrl = null;
       let mediaType = null;
+      let mediaStoragePath = null;
+
+      // ============================================
+      // DOWNLOAD E ARMAZENAMENTO DE MÍDIAS
+      // ============================================
+      const downloadAndStoreMedia = async (remoteUrl: string, mimeType: string, fileName: string) => {
+        try {
+          console.log('📥 Baixando mídia:', remoteUrl);
+
+          // Download do arquivo remoto
+          const response = await fetch(remoteUrl);
+          if (!response.ok) {
+            console.error('❌ Erro ao baixar mídia:', response.status, response.statusText);
+            return { url: remoteUrl, path: null }; // Fallback para URL original
+          }
+
+          const blob = await response.blob();
+          const arrayBuffer = await blob.arrayBuffer();
+          const buffer = new Uint8Array(arrayBuffer);
+
+          // Gerar nome único
+          const timestamp = Date.now();
+          const randomStr = Math.random().toString(36).substring(2, 8);
+          const fileExtension = fileName.split('.').pop() || 'bin';
+          const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
+
+          // Caminho: company_id/conversation_id/timestamp_random_filename.ext
+          const filePath = `${companyId}/${fromNumber}/${timestamp}_${randomStr}_${sanitizedFileName}.${fileExtension}`;
+
+          // Upload para Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('message-media')
+            .upload(filePath, buffer, {
+              contentType: mimeType,
+              cacheControl: '3600',
+              upsert: false,
+            });
+
+          if (uploadError) {
+            console.error('❌ Erro ao fazer upload:', uploadError);
+            return { url: remoteUrl, path: null }; // Fallback
+          }
+
+          // Obter URL pública
+          const { data: urlData } = supabase.storage
+            .from('message-media')
+            .getPublicUrl(uploadData.path);
+
+          console.log('✅ Mídia armazenada:', urlData.publicUrl);
+          return { url: urlData.publicUrl, path: uploadData.path };
+        } catch (error) {
+          console.error('❌ Erro ao processar mídia:', error);
+          return { url: remoteUrl, path: null }; // Fallback
+        }
+      };
 
       if (message?.imageMessage) {
         messageType = 'text';
         mediaType = 'image';
-        mediaUrl = message.imageMessage.url;
+        const remoteUrl = message.imageMessage.url;
+        const fileName = message.imageMessage.fileName || 'image.jpg';
+        const mimeType = message.imageMessage.mimetype || 'image/jpeg';
+
+        if (remoteUrl) {
+          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
+          mediaUrl = stored.url;
+          mediaStoragePath = stored.path;
+        }
       } else if (message?.videoMessage) {
         messageType = 'text';
         mediaType = 'video';
-        mediaUrl = message.videoMessage.url;
-      } else if (message?.audioMessage) {
+        const remoteUrl = message.videoMessage.url;
+        const fileName = message.videoMessage.fileName || 'video.mp4';
+        const mimeType = message.videoMessage.mimetype || 'video/mp4';
+
+        if (remoteUrl) {
+          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
+          mediaUrl = stored.url;
+          mediaStoragePath = stored.path;
+        }
+      } else if (message?.audioMessage || message?.pttMessage) {
         messageType = 'text';
         mediaType = 'audio';
-        mediaUrl = message.audioMessage.url;
+        const audioMsg = message.audioMessage || message.pttMessage;
+        const remoteUrl = audioMsg.url;
+        const fileName = audioMsg.fileName || 'audio.ogg';
+        const mimeType = audioMsg.mimetype || 'audio/ogg';
+
+        if (remoteUrl) {
+          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
+          mediaUrl = stored.url;
+          mediaStoragePath = stored.path;
+        }
+      } else if (message?.stickerMessage) {
+        messageType = 'text';
+        mediaType = 'sticker';
+        const remoteUrl = message.stickerMessage.url;
+        const fileName = 'sticker.webp';
+        const mimeType = message.stickerMessage.mimetype || 'image/webp';
+
+        if (remoteUrl) {
+          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
+          mediaUrl = stored.url;
+          mediaStoragePath = stored.path;
+        }
       } else if (message?.documentMessage) {
         messageType = 'text';
         mediaType = 'document';
-        mediaUrl = message.documentMessage.url;
+        const remoteUrl = message.documentMessage.url;
+        const fileName = message.documentMessage.fileName || 'document.pdf';
+        const mimeType = message.documentMessage.mimetype || 'application/pdf';
+
+        if (remoteUrl) {
+          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
+          mediaUrl = stored.url;
+          mediaStoragePath = stored.path;
+        }
       } else if (message?.pollCreationMessage) {
         messageType = 'poll';
       } else if (message?.listMessage) {
@@ -334,11 +447,34 @@ serve(async (req) => {
         messageType = 'location';
       }
 
-      const messageContent = messageData.message?.conversation ||
-        messageData.message?.extendedTextMessage?.text ||
-        messageData.message?.imageMessage?.caption ||
-        messageData.message?.videoMessage?.caption ||
-        'Mensagem não textual';
+      // Gerar conteúdo da mensagem baseado no tipo
+      let messageContent = '';
+
+      if (messageData.message?.conversation) {
+        messageContent = messageData.message.conversation;
+      } else if (messageData.message?.extendedTextMessage?.text) {
+        messageContent = messageData.message.extendedTextMessage.text;
+      } else if (messageData.message?.imageMessage) {
+        messageContent = messageData.message.imageMessage.caption || '📷 Imagem';
+      } else if (messageData.message?.videoMessage) {
+        messageContent = messageData.message.videoMessage.caption || '🎥 Vídeo';
+      } else if (messageData.message?.audioMessage || messageData.message?.pttMessage) {
+        messageContent = '🎵 Áudio';
+      } else if (messageData.message?.stickerMessage) {
+        messageContent = '🎨 Figurinha';
+      } else if (messageData.message?.documentMessage) {
+        messageContent = `📄 ${messageData.message.documentMessage.fileName || 'Documento'}`;
+      } else if (messageData.message?.pollCreationMessage) {
+        messageContent = `📊 ${messageData.message.pollCreationMessage.name || 'Enquete'}`;
+      } else if (messageData.message?.listMessage) {
+        messageContent = `📋 ${messageData.message.listMessage.title || 'Lista'}`;
+      } else if (messageData.message?.contactMessage) {
+        messageContent = `👤 ${messageData.message.contactMessage.displayName || 'Contato'}`;
+      } else if (messageData.message?.locationMessage) {
+        messageContent = '📍 Localização';
+      } else {
+        messageContent = 'Mensagem não textual';
+      }
 
       // Buscar empresa pela instância
       let companyId: string | null = null;

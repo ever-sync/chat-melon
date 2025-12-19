@@ -326,7 +326,11 @@ const ConversationList = ({
               ) : (
                 <>
                   <p>Nenhuma conversa encontrada</p>
-                  <p className="text-sm mt-2">Clique em + para iniciar uma nova conversa</p>
+                  <p className="text-sm mt-2">
+                    {Object.values(filters).some(v => Array.isArray(v) ? v.length > 0 : !!v)
+                      ? "Tente limpar os filtros para ver mais resultados."
+                      : "Clique em + para iniciar uma nova conversa"}
+                  </p>
                 </>
               )}
             </div>
@@ -345,7 +349,7 @@ const ConversationList = ({
                   className={cn(
                     'w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:bg-chat-hover',
                     selectedConversation?.id === conversation.id &&
-                      'bg-primary/10 border-l-4 border-primary',
+                    'bg-primary/10 border-l-4 border-primary',
                     isSelectionMode && isSelected?.(conversation.id) && 'bg-primary/20'
                   )}
                 >
