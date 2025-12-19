@@ -94,7 +94,8 @@ Deno.serve(async (req) => {
                     break;
                 case 'audio':
                     endpoint = '/message/sendWhatsAppAudio/';
-                    body.audio = audio;
+                    // Evolution API espera o base64 com o prefixo data:audio/ogg;base64,
+                    body.audio = audio.startsWith('data:') ? audio : `data:audio/ogg;base64,${audio}`;
                     break;
                 default:
                     throw new Error(`Tipo de mensagem não suportado para WhatsApp`);

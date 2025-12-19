@@ -493,7 +493,12 @@ serve(async (req) => {
       } else if (message?.audioMessage || message?.pttMessage) {
         const audioMsg = message.audioMessage || message.pttMessage;
         const fileName = audioMsg.fileName || 'audio.ogg';
-        const mimeType = audioMsg.mimetype || 'audio/ogg';
+        // Normalizar MIME type - WhatsApp envia "audio/ogg; codecs=opus" mas precisamos de "audio/ogg"
+        let mimeType = audioMsg.mimetype || 'audio/ogg';
+        // Remover parâmetros extras do MIME type (ex: "audio/ogg; codecs=opus" -> "audio/ogg")
+        if (mimeType.includes(';')) {
+          mimeType = mimeType.split(';')[0].trim();
+        }
 
         const stored = await downloadAndStoreMedia(messageKey, mimeType, fileName);
         mediaUrl = stored.url;

@@ -17,7 +17,8 @@
       "Bash(if [ -f .env ])",
       "Bash(then grep -E \"WHATSAPP|EVOLUTION\" .env)",
       "Bash(else echo \"Arquivo .env não encontrado\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
