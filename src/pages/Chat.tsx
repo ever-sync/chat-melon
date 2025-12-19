@@ -79,6 +79,17 @@ const Chat = () => {
     console.log('🔄 Chat: Carregando conversas para empresa:', companyId);
 
     try {
+      // Testar query SEM withCompanyFilter primeiro
+      console.log('🔍 Chat: Testando query direta sem filtro...');
+      const { data: testData, error: testError } = await supabase
+        .from('conversations')
+        .select('id, company_id, contact_name')
+        .eq('company_id', companyId)
+        .limit(5);
+
+      console.log('🔍 Chat: Query direta retornou:', testData?.length, 'conversas', testError);
+      console.log('🔍 Chat: Dados:', testData);
+
       const { data, error } = await withCompanyFilter(
         supabase.from('conversations').select(`
             *,
@@ -95,6 +106,31 @@ const Chat = () => {
 
       console.log(`✅ Chat: ${data?.length || 0} conversas carregadas`);
       console.log('📊 Chat: Primeiras 3 conversas:', data?.slice(0, 3));
+
+      // Debug adicional
+      if (data && data.length === 0) {
+        console.log('⚠️ Chat: Nenhuma conversa retornada. Verificando se existem mensagens...');
+
+        // Verificar quantas mensagens existem
+        const { data: messages, error: msgError } = await supabase
+          .from('messages')
+          .select('conversation_id, company_id', { count: 'exact' })
+          .eq('company_id', companyId)
+          .limit(5);
+
+        console.log('📨 Chat: Mensagens encontradas:', messages?.length, msgError);
+        console.log('📨 Chat: Exemplos de conversation_ids:', messages?.map(m => m.conversation_id));
+
+        // Verificar se existem conversas criadas
+        const { data: allConvs, error: convError } = await supabase
+          .from('conversations')
+          .select('id, company_id, contact_name')
+          .eq('company_id', companyId)
+          .limit(5);
+
+        console.log('💬 Chat: Conversas no banco:', allConvs?.length, convError);
+        console.log('💬 Chat: Exemplos de conversas:', allConvs);
+      }
 
       // Mesclar profile_pic_url do contact na conversation
       const conversationsWithPhotos = (data || []).map((conv: any) => ({

@@ -12,7 +12,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(del supabasemigrations20251217000001_populate_conversations_from_messages.sql)"
     ],
     "deny": [],
     "ask": []

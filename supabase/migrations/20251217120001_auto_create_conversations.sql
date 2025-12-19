@@ -30,7 +30,7 @@ BEGIN
       NEW.content,
       NEW.timestamp,
       CASE WHEN NEW.is_from_me THEN 0 ELSE 1 END,
-      'active',
+      'active'::conversation_status,
       NEW.created_at,
       NOW()
     )

@@ -250,7 +250,7 @@ export function AppSidebar() {
         )}
       </div>
 
-      <SidebarContent className="px-3 pb-4 scrollbar-none gap-6">
+      <SidebarContent className="px-3 pb-4 gap-6 overflow-y-auto scrollbar-hide">
         <SidebarGroup className="p-0">
           <SidebarGroupLabel className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-2 group-data-[collapsible=icon]:hidden">
             Menu Principal

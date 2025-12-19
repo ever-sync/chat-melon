@@ -99,7 +99,8 @@ export default function Channels() {
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [configData, setConfigData] = useState<Record<string, string>>({});
+  const [configData, setConfigData] = useState<Record<string, any>>({});
+  const [testingConnection, setTestingConnection] = useState(false);
 
   // Fetch channels
   const { data: channels = [], isLoading } = useQuery({
@@ -181,13 +182,75 @@ export default function Channels() {
     },
   });
 
-  const handleAddChannel = () => {
+  const handleAddChannel = async () => {
     if (!selectedType) return;
 
     let credentials: Record<string, any> = {};
     let name = channelConfig[selectedType as keyof typeof channelConfig]?.name || selectedType;
 
-    if (selectedType === 'instagram') {
+    if (selectedType === 'whatsapp') {
+      // Validação dos campos obrigatórios
+      if (!configData.instance_name || !configData.api_url || !configData.api_key) {
+        toast.error('Preencha todos os campos obrigatórios');
+        return;
+      }
+
+      try {
+        // Verificar se já existe configuração para esta empresa
+        const { data: existing } = await supabase
+          .from('evolution_settings')
+          .select('id')
+          .eq('company_id', currentCompany?.id)
+          .single();
+
+        let evolutionError;
+
+        if (existing) {
+          // Atualizar existente
+          const { error } = await supabase
+            .from('evolution_settings')
+            .update({
+              instance_name: configData.instance_name,
+              api_url: configData.api_url,
+              api_key: configData.api_key,
+              webhook_url: configData.webhook_url || `${window.location.origin}/api/evolution/webhook`,
+              reject_calls: configData.reject_calls !== false,
+              read_messages: configData.read_messages !== false,
+              is_connected: false,
+            })
+            .eq('company_id', currentCompany?.id);
+          evolutionError = error;
+        } else {
+          // Criar novo
+          const { error } = await supabase
+            .from('evolution_settings')
+            .insert({
+              company_id: currentCompany?.id,
+              instance_name: configData.instance_name,
+              api_url: configData.api_url,
+              api_key: configData.api_key,
+              webhook_url: configData.webhook_url || `${window.location.origin}/api/evolution/webhook`,
+              reject_calls: configData.reject_calls !== false,
+              read_messages: configData.read_messages !== false,
+              is_connected: false,
+            });
+          evolutionError = error;
+        }
+
+        if (evolutionError) throw evolutionError;
+
+        credentials = {
+          instance_name: configData.instance_name,
+          api_url: configData.api_url,
+        };
+        name = `WhatsApp - ${configData.instance_name}`;
+
+        toast.success('Configurações do WhatsApp salvas!');
+      } catch (error: any) {
+        toast.error(error.message || 'Erro ao salvar configurações');
+        return;
+      }
+    } else if (selectedType === 'instagram') {
       credentials = {
         instagram_id: configData.instagram_id,
         access_token: configData.access_token,
@@ -204,6 +267,41 @@ export default function Channels() {
     }
 
     createChannel.mutate({ type: selectedType, name, credentials });
+  };
+
+  const testWhatsAppConnection = async () => {
+    if (!configData.instance_name || !configData.api_url || !configData.api_key) {
+      toast.error('Preencha todos os campos obrigatórios primeiro');
+      return;
+    }
+
+    setTestingConnection(true);
+    try {
+      // Testar conexão com a Evolution API
+      const response = await fetch(`${configData.api_url}/instance/connectionState/${configData.instance_name}`, {
+        headers: {
+          'apikey': configData.api_key,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Não foi possível conectar à Evolution API');
+      }
+
+      const data = await response.json();
+
+      if (data.state === 'open') {
+        toast.success('✅ Conexão estabelecida! WhatsApp está conectado.');
+      } else if (data.state === 'close') {
+        toast.warning('⚠️ Instância existe mas WhatsApp não está conectado. Escaneie o QR Code.');
+      } else {
+        toast.info(`Status: ${data.state}`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao testar conexão');
+    } finally {
+      setTestingConnection(false);
+    }
   };
 
   const handleOAuthConnect = (type: string) => {
@@ -542,17 +640,133 @@ export default function Channels() {
               )}
 
               {selectedType === 'whatsapp' && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-800">
-                    O WhatsApp já está configurado via Evolution API nas configurações do sistema.
-                  </p>
-                  <Button variant="outline" size="sm" className="mt-2" asChild>
-                    <a href="/settings">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Ir para Configurações
-                    </a>
-                  </Button>
-                </div>
+                <>
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
+                    <p className="text-sm text-green-800 mb-2">
+                      <strong>Conecte via Evolution API</strong>
+                    </p>
+                    <p className="text-xs text-green-700">
+                      Insira as credenciais para conectar este canal
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="instance_name">Nome da Instância *</Label>
+                      <Input
+                        id="instance_name"
+                        placeholder="Ex: meuchat"
+                        value={configData.instance_name || ''}
+                        onChange={(e) =>
+                          setConfigData({ ...configData, instance_name: e.target.value })
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Nome único da sua instância na Evolution API
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="api_url">URL da Evolution API *</Label>
+                      <Input
+                        id="api_url"
+                        type="url"
+                        placeholder="https://api.evolution.com"
+                        value={configData.api_url || ''}
+                        onChange={(e) =>
+                          setConfigData({ ...configData, api_url: e.target.value })
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        URL base da sua Evolution API
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="api_key">API Key *</Label>
+                      <Input
+                        id="api_key"
+                        type="password"
+                        placeholder="sua-api-key-aqui"
+                        value={configData.api_key || ''}
+                        onChange={(e) =>
+                          setConfigData({ ...configData, api_key: e.target.value })
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Chave de autenticação da Evolution API
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="webhook_url">Webhook URL</Label>
+                      <Input
+                        id="webhook_url"
+                        type="url"
+                        placeholder={`${window.location.origin}/api/evolution/webhook`}
+                        value={configData.webhook_url || `${window.location.origin}/api/evolution/webhook`}
+                        onChange={(e) =>
+                          setConfigData({ ...configData, webhook_url: e.target.value })
+                        }
+                        disabled
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        URL do webhook (gerada automaticamente)
+                      </p>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="reject_calls"
+                        checked={configData.reject_calls !== false}
+                        onCheckedChange={(checked) =>
+                          setConfigData({ ...configData, reject_calls: checked })
+                        }
+                      />
+                      <Label htmlFor="reject_calls" className="cursor-pointer">
+                        Rejeitar chamadas automaticamente
+                      </Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="read_messages"
+                        checked={configData.read_messages !== false}
+                        onCheckedChange={(checked) =>
+                          setConfigData({ ...configData, read_messages: checked })
+                        }
+                      />
+                      <Label htmlFor="read_messages" className="cursor-pointer">
+                        Marcar mensagens como lidas automaticamente
+                      </Label>
+                    </div>
+
+                    <div className="pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={testWhatsAppConnection}
+                        disabled={testingConnection}
+                      >
+                        {testingConnection ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Testando conexão...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Testar Conexão
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        Clique para verificar se a Evolution API está acessível
+                      </p>
+                    </div>
+                  </div>
+                </>
               )}
 
               {selectedType === 'webchat' && (
@@ -591,10 +805,10 @@ export default function Channels() {
             >
               Cancelar
             </Button>
-            {selectedType && ['instagram', 'messenger'].includes(selectedType) && (
+            {selectedType && ['instagram', 'messenger', 'whatsapp'].includes(selectedType) && (
               <Button onClick={handleAddChannel} disabled={createChannel.isPending}>
                 {createChannel.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Salvar Canal
+                {selectedType === 'whatsapp' ? 'Conectar WhatsApp' : 'Salvar Canal'}
               </Button>
             )}
           </DialogFooter>
