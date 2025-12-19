@@ -23,6 +23,38 @@ import { ContactAvatar } from '@/components/ContactAvatar';
 import { useCompany } from '@/contexts/CompanyContext';
 import { AudioTranscription } from './AudioTranscription';
 
+// Função para converter URLs em links clicáveis
+const linkifyText = (text: string): React.ReactNode[] => {
+  // Regex para detectar URLs (http, https, www)
+  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (!part) return null;
+
+    // Verificar se é uma URL
+    if (urlRegex.test(part)) {
+      // Reset regex lastIndex
+      urlRegex.lastIndex = 0;
+      const href = part.startsWith('www.') ? `https://${part}` : part;
+      return (
+        <a
+          key={index}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-600 underline break-all"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  }).filter(Boolean);
+};
+
 interface MessageBubbleProps {
   message: {
     id: string;
@@ -93,7 +125,7 @@ export function MessageBubble({
     return (
       <div className="flex justify-center my-4">
         <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm">
-          {message.content}
+          {linkifyText(message.content)}
         </div>
       </div>
     );
@@ -110,7 +142,7 @@ export function MessageBubble({
               Nota Interna
             </span>
           </div>
-          <p className="text-sm text-foreground whitespace-pre-wrap">{message.content}</p>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{linkifyText(message.content)}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {format(new Date(message.timestamp), 'HH:mm', { locale: ptBR })}
           </p>
@@ -461,7 +493,7 @@ export function MessageBubble({
               </div>
             )}
 
-            <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
+            <p className="whitespace-pre-wrap break-words text-sm">{linkifyText(message.content)}</p>
           </div>
 
           {/* Footer com hora, status e sentimento */}
