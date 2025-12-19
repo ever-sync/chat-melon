@@ -370,56 +370,92 @@ serve(async (req) => {
       // ============================================
       // FUNÇÃO: DOWNLOAD E ARMAZENAMENTO DE MÍDIAS
       // ============================================
-      const downloadAndStoreMedia = async (remoteUrl: string, mimeType: string, fileName: string) => {
+      const downloadAndStoreMedia = async (messageKey: any, mimeType: string, fileName: string) => {
         try {
-          console.log('📥 Baixando mídia:', remoteUrl);
+          // Primeiro, tentar usar a Evolution API para obter o base64 da mídia
+          // (mais confiável que URLs temporárias)
+          if (evolutionApiUrl && evolutionApiKey && instanceName && messageKey) {
+            console.log('📥 Baixando mídia via Evolution API getBase64FromMediaMessage...');
 
-          // Download do arquivo remoto
-          const response = await fetch(remoteUrl);
-          if (!response.ok) {
-            console.error('❌ Erro ao baixar mídia:', response.status, response.statusText);
-            return { url: remoteUrl, path: null }; // Fallback para URL original
+            try {
+              const mediaResponse = await fetch(
+                `${evolutionApiUrl}/chat/getBase64FromMediaMessage/${instanceName}`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': evolutionApiKey,
+                  },
+                  body: JSON.stringify({
+                    message: {
+                      key: messageKey
+                    },
+                    convertToMp4: false
+                  }),
+                }
+              );
+
+              if (mediaResponse.ok) {
+                const mediaData = await mediaResponse.json();
+
+                if (mediaData.base64) {
+                  console.log('✅ Base64 obtido via Evolution API');
+
+                  // Converter base64 para Uint8Array
+                  const base64Data = mediaData.base64.includes(',')
+                    ? mediaData.base64.split(',')[1]
+                    : mediaData.base64;
+
+                  const binaryString = atob(base64Data);
+                  const bytes = new Uint8Array(binaryString.length);
+                  for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                  }
+
+                  // Gerar nome único
+                  const timestamp = Date.now();
+                  const randomStr = Math.random().toString(36).substring(2, 8);
+                  const fileExtension = fileName.split('.').pop() || 'bin';
+                  const fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+                  const sanitizedFileName = fileNameWithoutExt.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
+                  const filePath = `${companyId}/${fromNumber}/${timestamp}_${randomStr}_${sanitizedFileName}.${fileExtension}`;
+
+                  // Upload para Supabase Storage
+                  const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('message-media')
+                    .upload(filePath, bytes, {
+                      contentType: mimeType,
+                      cacheControl: '31536000', // 1 ano de cache
+                      upsert: false,
+                    });
+
+                  if (uploadError) {
+                    console.error('❌ Erro ao fazer upload:', uploadError);
+                    return { url: null, path: null };
+                  }
+
+                  // Obter URL pública
+                  const { data: urlData } = supabase.storage
+                    .from('message-media')
+                    .getPublicUrl(uploadData.path);
+
+                  console.log('✅ Mídia armazenada:', urlData.publicUrl);
+                  return { url: urlData.publicUrl, path: uploadData.path };
+                }
+              } else {
+                console.warn('⚠️ Evolution API getBase64 falhou:', mediaResponse.status);
+              }
+            } catch (apiError) {
+              console.error('❌ Erro ao chamar Evolution API:', apiError);
+            }
           }
 
-          const blob = await response.blob();
-          const arrayBuffer = await blob.arrayBuffer();
-          const buffer = new Uint8Array(arrayBuffer);
-
-          // Gerar nome único
-          const timestamp = Date.now();
-          const randomStr = Math.random().toString(36).substring(2, 8);
-          const fileExtension = fileName.split('.').pop() || 'bin';
-          // Remover extensão do nome original para evitar duplicação
-          const fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
-          const sanitizedFileName = fileNameWithoutExt.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
-
-          // Caminho: company_id/contact_number/timestamp_random_filename.ext (sem duplicação)
-          const filePath = `${companyId}/${fromNumber}/${timestamp}_${randomStr}_${sanitizedFileName}.${fileExtension}`;
-
-          // Upload para Supabase Storage
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('message-media')
-            .upload(filePath, buffer, {
-              contentType: mimeType,
-              cacheControl: '3600',
-              upsert: false,
-            });
-
-          if (uploadError) {
-            console.error('❌ Erro ao fazer upload:', uploadError);
-            return { url: remoteUrl, path: null }; // Fallback
-          }
-
-          // Obter URL pública
-          const { data: urlData } = supabase.storage
-            .from('message-media')
-            .getPublicUrl(uploadData.path);
-
-          console.log('✅ Mídia armazenada:', urlData.publicUrl);
-          return { url: urlData.publicUrl, path: uploadData.path };
+          // Não retornar URL temporária - retornar null para indicar que a mídia não foi salva
+          console.warn('⚠️ Não foi possível salvar a mídia - será mostrado placeholder');
+          return { url: null, path: null };
         } catch (error) {
           console.error('❌ Erro ao processar mídia:', error);
-          return { url: remoteUrl, path: null }; // Fallback
+          return { url: null, path: null };
         }
       };
 
@@ -435,62 +471,50 @@ serve(async (req) => {
       // ============================================
       // PROCESSAR MÍDIAS COM DOWNLOAD AUTOMÁTICO
       // ============================================
+      // Salvar a key da mensagem para usar na API de download
+      const messageKey = messageData.key;
+
       if (message?.imageMessage) {
-        const remoteUrl = message.imageMessage.url;
         const fileName = message.imageMessage.fileName || 'image.jpg';
         const mimeType = message.imageMessage.mimetype || 'image/jpeg';
 
-        if (remoteUrl) {
-          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
-          mediaUrl = stored.url;
-          mediaStoragePath = stored.path;
-          mediaType = 'image';
-        }
+        const stored = await downloadAndStoreMedia(messageKey, mimeType, fileName);
+        mediaUrl = stored.url;
+        mediaStoragePath = stored.path;
+        mediaType = 'image';
       } else if (message?.videoMessage) {
-        const remoteUrl = message.videoMessage.url;
         const fileName = message.videoMessage.fileName || 'video.mp4';
         const mimeType = message.videoMessage.mimetype || 'video/mp4';
 
-        if (remoteUrl) {
-          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
-          mediaUrl = stored.url;
-          mediaStoragePath = stored.path;
-          mediaType = 'video';
-        }
+        const stored = await downloadAndStoreMedia(messageKey, mimeType, fileName);
+        mediaUrl = stored.url;
+        mediaStoragePath = stored.path;
+        mediaType = 'video';
       } else if (message?.audioMessage || message?.pttMessage) {
         const audioMsg = message.audioMessage || message.pttMessage;
-        const remoteUrl = audioMsg.url;
         const fileName = audioMsg.fileName || 'audio.ogg';
         const mimeType = audioMsg.mimetype || 'audio/ogg';
 
-        if (remoteUrl) {
-          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
-          mediaUrl = stored.url;
-          mediaStoragePath = stored.path;
-          mediaType = 'audio';
-        }
+        const stored = await downloadAndStoreMedia(messageKey, mimeType, fileName);
+        mediaUrl = stored.url;
+        mediaStoragePath = stored.path;
+        mediaType = 'audio';
       } else if (message?.stickerMessage) {
-        const remoteUrl = message.stickerMessage.url;
         const fileName = 'sticker.webp';
         const mimeType = message.stickerMessage.mimetype || 'image/webp';
 
-        if (remoteUrl) {
-          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
-          mediaUrl = stored.url;
-          mediaStoragePath = stored.path;
-          mediaType = 'sticker';
-        }
+        const stored = await downloadAndStoreMedia(messageKey, mimeType, fileName);
+        mediaUrl = stored.url;
+        mediaStoragePath = stored.path;
+        mediaType = 'sticker';
       } else if (message?.documentMessage) {
-        const remoteUrl = message.documentMessage.url;
         const fileName = message.documentMessage.fileName || 'document.pdf';
         const mimeType = message.documentMessage.mimetype || 'application/pdf';
 
-        if (remoteUrl) {
-          const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
-          mediaUrl = stored.url;
-          mediaStoragePath = stored.path;
-          mediaType = 'document';
-        }
+        const stored = await downloadAndStoreMedia(messageKey, mimeType, fileName);
+        mediaUrl = stored.url;
+        mediaStoragePath = stored.path;
+        mediaType = 'document';
       } else if (message?.pollCreationMessage) {
         messageType = 'poll';
       } else if (message?.listMessage) {

@@ -71,40 +71,22 @@ export function MessageBubble({
   onUpdated,
 }: MessageBubbleProps) {
   const { currentCompany } = useCompany();
-  const [imageBlobUrl, setImageBlobUrl] = React.useState<string | null>(null);
+  // Estados para controle de carregamento de mídia
+  const [mediaError, setMediaError] = React.useState(false);
+  const [isMediaLoading, setIsMediaLoading] = React.useState(true);
+
+  // Reset do estado quando a mídia muda
+  React.useEffect(() => {
+    if (message.media_url) {
+      setMediaError(false);
+      setIsMediaLoading(true);
+    }
+  }, [message.media_url]);
+
   const isFromMe = message.is_from_me;
   const isFromAI = message.is_from_ai;
   const isSystemMessage = message.message_type === 'system' || message.content_type === 'system';
   const isInternalNote = message.message_type === 'internal_note';
-
-  // Carregar imagem via fetch e converter para Blob URL
-  React.useEffect(() => {
-    if (message.media_url && message.media_type?.includes('image')) {
-      const loadImage = async () => {
-        try {
-          const response = await fetch(message.media_url!);
-          if (response.ok) {
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            setImageBlobUrl(blobUrl);
-            console.log('✅ Imagem convertida para Blob URL:', message.media_url);
-          } else {
-            console.error('❌ Erro ao carregar imagem (status):', response.status);
-          }
-        } catch (error) {
-          console.error('❌ Erro ao carregar imagem (fetch):', error);
-        }
-      };
-      loadImage();
-
-      // Cleanup: liberar blob URL quando componente desmontar
-      return () => {
-        if (imageBlobUrl) {
-          URL.revokeObjectURL(imageBlobUrl);
-        }
-      };
-    }
-  }, [message.media_url, message.media_type]);
 
   // Mensagens de sistema (transferências, alertas)
   if (isSystemMessage) {
@@ -240,92 +222,183 @@ export function MessageBubble({
               isFromMe ? 'rounded-br-md' : 'rounded-bl-md'
             )}
           >
+            {/* Placeholder para mídia não disponível */}
+            {!message.media_url && message.media_type && (
+              <div className="mb-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center gap-3 min-w-[200px]">
+                <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full">
+                  {message.media_type.includes('image') && <AlertCircle className="h-5 w-5 text-gray-500" />}
+                  {message.media_type.includes('video') && <AlertCircle className="h-5 w-5 text-gray-500" />}
+                  {message.media_type.includes('audio') && <AlertCircle className="h-5 w-5 text-gray-500" />}
+                  {message.media_type.includes('sticker') && <AlertCircle className="h-5 w-5 text-gray-500" />}
+                  {message.media_type.includes('document') && <FileText className="h-5 w-5 text-gray-500" />}
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {message.media_type.includes('image') && 'Imagem não disponível'}
+                    {message.media_type.includes('video') && 'Vídeo não disponível'}
+                    {message.media_type.includes('audio') && 'Áudio não disponível'}
+                    {message.media_type.includes('sticker') && 'Figurinha não disponível'}
+                    {message.media_type.includes('document') && 'Documento não disponível'}
+                  </p>
+                  <p className="text-xs text-gray-400">A mídia expirou ou não pôde ser baixada</p>
+                </div>
+              </div>
+            )}
+
             {/* Media attachments */}
             {message.media_url && (
               <div className="mb-2">
-                {message.media_type?.includes('image') && (
-                  <div className="relative group">
-                    {imageBlobUrl ? (
-                      <img
-                        src={imageBlobUrl}
-                        alt="Imagem"
-                        className="max-w-full rounded-lg max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(message.media_url, '_blank')}
-                        onLoad={() => {
-                          console.log('✅ Imagem renderizada com sucesso!');
-                        }}
-                      />
-                    ) : (
-                      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                        <div className="animate-pulse text-gray-500">Carregando imagem...</div>
-                      </div>
-                    )}
-                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <a
-                        href={message.media_url}
-                        download
-                        className="bg-black/50 text-white px-2 py-1 rounded text-xs"
-                      >
-                        ⬇️ Download
-                      </a>
-                    </div>
-                  </div>
-                )}
-                {message.media_type?.includes('video') && (
-                  <video
-                    src={message.media_url}
-                    controls
-                    controlsList="nodownload"
-                    className="max-w-full rounded-lg max-h-96"
-                    preload="metadata"
-                  >
-                    Seu navegador não suporta vídeo.
-                  </video>
-                )}
-                {message.media_type?.includes('audio') && (
-                  <div className="space-y-2">
-                    <audio
-                      src={message.media_url}
-                      controls
-                      controlsList="nodownload"
-                      className="w-full max-w-sm"
-                      preload="metadata"
+                {/* Tratamento de erro universal para todas as mídias */}
+                {mediaError ? (
+                  <div className="flex flex-col items-center justify-center p-6 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-900/30 min-w-[200px]">
+                    <AlertCircle className="h-8 w-8 text-red-500 mb-2" />
+                    <p className="text-xs text-red-600 dark:text-red-400">Erro ao carregar mídia</p>
+                    <button
+                      onClick={() => { setMediaError(false); setIsMediaLoading(true); }}
+                      className="mt-2 text-[10px] underline text-red-500"
                     >
-                      Seu navegador não suporta áudio.
-                    </audio>
-                    <AudioTranscription
-                      messageId={message.id}
-                      transcription={message.audio_transcription}
-                      status={message.transcription_status}
-                      language={message.transcription_language}
-                      confidence={message.transcription_confidence}
-                      onTranscribe={onUpdated}
-                    />
-                  </div>
-                )}
-                {message.media_type?.includes('sticker') && (
-                  <img
-                    src={message.media_url}
-                    alt="Figurinha"
-                    className="w-32 h-32 object-contain"
-                    loading="lazy"
-                  />
-                )}
-                {/* Documentos e outros tipos */}
-                {!message.media_type?.includes('image') &&
-                  !message.media_type?.includes('video') &&
-                  !message.media_type?.includes('audio') &&
-                  !message.media_type?.includes('sticker') && (
+                      Tentar novamente
+                    </button>
                     <a
                       href={message.media_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-black/10 dark:bg-white/10 px-3 py-2 rounded hover:bg-black/20 dark:hover:bg-white/20 transition-colors"
+                      className="mt-1 text-[10px] text-blue-500 underline"
                     >
-                      <FileText className="h-4 w-4" />
-                      <span className="text-sm">Abrir documento</span>
+                      Abrir em nova aba
                     </a>
-                  )}
+                  </div>
+                ) : (
+                  <>
+                    {message.media_type?.includes('image') && (
+                      <div className="relative group min-h-[100px] min-w-[200px]">
+                        {isMediaLoading && (
+                          <div className="w-full aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
+                            <Clock className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        <img
+                          src={message.media_url}
+                          alt="Imagem"
+                          className={cn(
+                            "max-w-full rounded-lg max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity",
+                            isMediaLoading ? "opacity-0 invisible absolute" : "opacity-100 visible h-auto"
+                          )}
+                          onClick={() => window.open(message.media_url, '_blank')}
+                          onLoad={() => setIsMediaLoading(false)}
+                          onError={() => {
+                            console.error('Erro ao carregar imagem:', message.media_url);
+                            setMediaError(true);
+                            setIsMediaLoading(false);
+                          }}
+                        />
+                        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <a
+                            href={message.media_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-black/50 text-white px-2 py-1 rounded text-xs backdrop-blur-sm"
+                          >
+                            Abrir
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    {message.media_type?.includes('video') && (
+                      <div className="relative group">
+                        {isMediaLoading && (
+                          <div className="w-full aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
+                            <Clock className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        <video
+                          src={message.media_url}
+                          controls
+                          controlsList="nodownload"
+                          className={cn(
+                            "max-w-full rounded-lg max-h-96",
+                            isMediaLoading ? "opacity-0 absolute" : "opacity-100"
+                          )}
+                          preload="metadata"
+                          onLoadedMetadata={() => setIsMediaLoading(false)}
+                          onError={() => {
+                            console.error('Erro ao carregar video:', message.media_url);
+                            setMediaError(true);
+                            setIsMediaLoading(false);
+                          }}
+                        >
+                          Seu navegador não suporta vídeo.
+                        </video>
+                      </div>
+                    )}
+                    {message.media_type?.includes('audio') && (
+                      <div className="space-y-2">
+                        <audio
+                          src={message.media_url}
+                          controls
+                          controlsList="nodownload"
+                          className="w-full max-w-sm"
+                          preload="metadata"
+                          onLoadedMetadata={() => setIsMediaLoading(false)}
+                          onError={() => {
+                            console.error('Erro ao carregar audio:', message.media_url);
+                            setMediaError(true);
+                            setIsMediaLoading(false);
+                          }}
+                        >
+                          Seu navegador não suporta áudio.
+                        </audio>
+                        <AudioTranscription
+                          messageId={message.id}
+                          transcription={message.audio_transcription}
+                          status={message.transcription_status}
+                          language={message.transcription_language}
+                          confidence={message.transcription_confidence}
+                          onTranscribe={onUpdated}
+                        />
+                      </div>
+                    )}
+                    {message.media_type?.includes('sticker') && (
+                      <div className="relative group">
+                        {isMediaLoading && (
+                          <div className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
+                            <Clock className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        <img
+                          src={message.media_url}
+                          alt="Figurinha"
+                          className={cn(
+                            "w-32 h-32 object-contain",
+                            isMediaLoading ? "opacity-0 absolute" : "opacity-100"
+                          )}
+                          loading="lazy"
+                          onLoad={() => setIsMediaLoading(false)}
+                          onError={() => {
+                            console.error('Erro ao carregar figurinha:', message.media_url);
+                            setMediaError(true);
+                            setIsMediaLoading(false);
+                          }}
+                        />
+                      </div>
+                    )}
+                    {/* Documentos e outros tipos */}
+                    {!message.media_type?.includes('image') &&
+                      !message.media_type?.includes('video') &&
+                      !message.media_type?.includes('audio') &&
+                      !message.media_type?.includes('sticker') && (
+                        <a
+                          href={message.media_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 bg-black/10 dark:bg-white/10 px-3 py-2 rounded hover:bg-black/20 dark:hover:bg-white/20 transition-colors"
+                        >
+                          <FileText className="h-4 w-4" />
+                          <span className="text-sm">Abrir documento</span>
+                        </a>
+                      )}
+                  </>
+                )}
               </div>
             )}
 
