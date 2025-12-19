@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Acesso às Imagens</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        img {
+            max-width: 100%;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Acesso às Imagens do Supabase Storage</h1>
+
+    <div class="test-section">
+        <h2>Teste 1: Carregar Imagem Diretamente</h2>
+        <p>URL da última imagem:</p>
+        <input type="text" id="imageUrl" style="width: 100%; padding: 8px;"
+               value="https://nmbiuebxhovmwxrbaxsz.supabase.co/storage/v1/object/public/message-media/61215833-73aa-49c6-adcc-790b9d11fd30/5512997548852/1766123687834_1g5cac_image.jpg">
+        <br><br>
+        <button onclick="testDirectLoad()">Carregar Imagem</button>
+        <div id="imageContainer"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Teste 2: Fetch com CORS</h2>
+        <button onclick="testFetch()">Testar Fetch</button>
+        <div id="fetchResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Teste 3: XMLHttpRequest</h2>
+        <button onclick="testXHR()">Testar XHR</button>
+        <div id="xhrResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Log de Eventos</h2>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function testDirectLoad() {
+            const url = document.getElementById('imageUrl').value;
+            const container = document.getElementById('imageContainer');
+            container.innerHTML = '<p>Carregando...</p>';
+            log('Iniciando teste de carregamento direto...');
+
+            const img = document.createElement('img');
+            img.src = url;
+            img.onload = () => {
+                container.innerHTML = '';
+                container.appendChild(img);
+                log('✅ Imagem carregada com sucesso!', 'success');
+            };
+            img.onerror = (e) => {
+                container.innerHTML = '<p class="error">❌ Erro ao carregar imagem</p>';
+                log('❌ Erro ao carregar imagem: ' + e.toString(), 'error');
+                console.error('Erro completo:', e);
+            };
+        }
+
+        async function testFetch() {
+            const url = document.getElementById('imageUrl').value;
+            const resultDiv = document.getElementById('fetchResult');
+            resultDiv.innerHTML = '<p>Testando...</p>';
+            log('Iniciando teste Fetch...');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                });
+
+                log(`Status: ${response.status} ${response.statusText}`);
+                log(`Headers: ${JSON.stringify([...response.headers])}`);
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const objectUrl = URL.createObjectURL(blob);
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Fetch bem-sucedido!</p>
+                        <p>Tipo: ${blob.type}</p>
+                        <p>Tamanho: ${(blob.size / 1024).toFixed(2)} KB</p>
+                        <img src="${objectUrl}" style="max-width: 300px;">
+                    `;
+                    log('✅ Fetch completado com sucesso!', 'success');
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Erro HTTP: ${response.status}</p>`;
+                    log(`❌ Erro HTTP: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+                log(`❌ Erro Fetch: ${error.message}`, 'error');
+                console.error('Erro completo:', error);
+            }
+        }
+
+        function testXHR() {
+            const url = document.getElementById('imageUrl').value;
+            const resultDiv = document.getElementById('xhrResult');
+            resultDiv.innerHTML = '<p>Testando...</p>';
+            log('Iniciando teste XMLHttpRequest...');
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'blob';
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const blob = xhr.response;
+                    const objectUrl = URL.createObjectURL(blob);
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ XHR bem-sucedido!</p>
+                        <p>Tipo: ${blob.type}</p>
+                        <p>Tamanho: ${(blob.size / 1024).toFixed(2)} KB</p>
+                        <img src="${objectUrl}" style="max-width: 300px;">
+                    `;
+                    log('✅ XHR completado com sucesso!', 'success');
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Erro HTTP: ${xhr.status}</p>`;
+                    log(`❌ Erro HTTP XHR: ${xhr.status}`, 'error');
+                }
+            };
+
+            xhr.onerror = () => {
+                resultDiv.innerHTML = '<p class="error">❌ Erro de rede ou CORS</p>';
+                log('❌ Erro de rede ou CORS no XHR', 'error');
+            };
+
+            xhr.send();
+        }
+
+        // Auto-teste ao carregar
+        window.onload = () => {
+            log('Página carregada. Pronto para testes!');
+            log('URL do Storage: https://nmbiuebxhovmwxrbaxsz.supabase.co/storage/v1/object/public/message-media/');
+        };
+    </script>
+</body>
+</html>

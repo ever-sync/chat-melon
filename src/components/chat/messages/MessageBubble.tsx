@@ -1,3 +1,4 @@
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -70,10 +71,40 @@ export function MessageBubble({
   onUpdated,
 }: MessageBubbleProps) {
   const { currentCompany } = useCompany();
+  const [imageBlobUrl, setImageBlobUrl] = React.useState<string | null>(null);
   const isFromMe = message.is_from_me;
   const isFromAI = message.is_from_ai;
   const isSystemMessage = message.message_type === 'system' || message.content_type === 'system';
   const isInternalNote = message.message_type === 'internal_note';
+
+  // Carregar imagem via fetch e converter para Blob URL
+  React.useEffect(() => {
+    if (message.media_url && message.media_type?.includes('image')) {
+      const loadImage = async () => {
+        try {
+          const response = await fetch(message.media_url!);
+          if (response.ok) {
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            setImageBlobUrl(blobUrl);
+            console.log('✅ Imagem convertida para Blob URL:', message.media_url);
+          } else {
+            console.error('❌ Erro ao carregar imagem (status):', response.status);
+          }
+        } catch (error) {
+          console.error('❌ Erro ao carregar imagem (fetch):', error);
+        }
+      };
+      loadImage();
+
+      // Cleanup: liberar blob URL quando componente desmontar
+      return () => {
+        if (imageBlobUrl) {
+          URL.revokeObjectURL(imageBlobUrl);
+        }
+      };
+    }
+  }, [message.media_url, message.media_type]);
 
   // Mensagens de sistema (transferências, alertas)
   if (isSystemMessage) {
@@ -214,13 +245,21 @@ export function MessageBubble({
               <div className="mb-2">
                 {message.media_type?.includes('image') && (
                   <div className="relative group">
-                    <img
-                      src={message.media_url}
-                      alt="Imagem"
-                      className="max-w-full rounded-lg max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => window.open(message.media_url, '_blank')}
-                      loading="lazy"
-                    />
+                    {imageBlobUrl ? (
+                      <img
+                        src={imageBlobUrl}
+                        alt="Imagem"
+                        className="max-w-full rounded-lg max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(message.media_url, '_blank')}
+                        onLoad={() => {
+                          console.log('✅ Imagem renderizada com sucesso!');
+                        }}
+                      />
+                    ) : (
+                      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                        <div className="animate-pulse text-gray-500">Carregando imagem...</div>
+                      </div>
+                    )}
                     <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <a
                         href={message.media_url}

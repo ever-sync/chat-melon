@@ -315,15 +315,60 @@ serve(async (req) => {
         );
       }
 
-      // Detectar tipo de mensagem
-      const message = messageData.message;
-      let messageType = 'text';
-      let mediaUrl = null;
-      let mediaType = null;
-      let mediaStoragePath = null;
+      // ============================================
+      // BUSCAR CONFIGURAÇÃO GLOBAL DA EVOLUTION API
+      // ============================================
+      const { data: globalConfig, error: configError } = await supabase
+        .from('evolution_global_config')
+        .select('api_url, api_key')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (configError || !globalConfig) {
+        console.error('❌ Configuração global da Evolution API não encontrada:', configError);
+        throw new Error('Evolution API não configurada. Configure em Configurações > Evolution API');
+      }
+
+      const evolutionApiUrl = globalConfig.api_url;
+      const evolutionApiKey = globalConfig.api_key;
+
+      console.log('🔧 Usando Evolution API Global:', evolutionApiUrl);
 
       // ============================================
-      // DOWNLOAD E ARMAZENAMENTO DE MÍDIAS
+      // BUSCAR EMPRESA PELA INSTÂNCIA
+      // ============================================
+      let companyId: string | null = null;
+      let userId: string | null = null;
+
+      if (instanceName) {
+        const { data: settings } = await supabase
+          .from('evolution_settings')
+          .select('user_id, company_id')
+          .eq('instance_name', instanceName)
+          .maybeSingle();
+
+        if (settings) {
+          userId = settings.user_id;
+          companyId = settings.company_id;
+        }
+      }
+
+      if (!companyId || !userId) {
+        const { data: allSettings } = await supabase
+          .from('evolution_settings')
+          .select('user_id, company_id')
+          .limit(1);
+
+        if (!allSettings || allSettings.length === 0) {
+          throw new Error('Nenhum usuário configurado');
+        }
+
+        userId = allSettings[0].user_id;
+        companyId = allSettings[0].company_id;
+      }
+
+      // ============================================
+      // FUNÇÃO: DOWNLOAD E ARMAZENAMENTO DE MÍDIAS
       // ============================================
       const downloadAndStoreMedia = async (remoteUrl: string, mimeType: string, fileName: string) => {
         try {
@@ -344,9 +389,11 @@ serve(async (req) => {
           const timestamp = Date.now();
           const randomStr = Math.random().toString(36).substring(2, 8);
           const fileExtension = fileName.split('.').pop() || 'bin';
-          const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
+          // Remover extensão do nome original para evitar duplicação
+          const fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+          const sanitizedFileName = fileNameWithoutExt.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
 
-          // Caminho: company_id/conversation_id/timestamp_random_filename.ext
+          // Caminho: company_id/contact_number/timestamp_random_filename.ext (sem duplicação)
           const filePath = `${companyId}/${fromNumber}/${timestamp}_${randomStr}_${sanitizedFileName}.${fileExtension}`;
 
           // Upload para Supabase Storage
@@ -376,9 +423,19 @@ serve(async (req) => {
         }
       };
 
+      // ============================================
+      // INICIALIZAR VARIÁVEIS DE MENSAGEM
+      // ============================================
+      const message = messageData.message;
+      let messageType = 'text';
+      let mediaUrl = null;
+      let mediaType = null;
+      let mediaStoragePath = null;
+
+      // ============================================
+      // PROCESSAR MÍDIAS COM DOWNLOAD AUTOMÁTICO
+      // ============================================
       if (message?.imageMessage) {
-        messageType = 'text';
-        mediaType = 'image';
         const remoteUrl = message.imageMessage.url;
         const fileName = message.imageMessage.fileName || 'image.jpg';
         const mimeType = message.imageMessage.mimetype || 'image/jpeg';
@@ -387,10 +444,9 @@ serve(async (req) => {
           const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
           mediaUrl = stored.url;
           mediaStoragePath = stored.path;
+          mediaType = 'image';
         }
       } else if (message?.videoMessage) {
-        messageType = 'text';
-        mediaType = 'video';
         const remoteUrl = message.videoMessage.url;
         const fileName = message.videoMessage.fileName || 'video.mp4';
         const mimeType = message.videoMessage.mimetype || 'video/mp4';
@@ -399,10 +455,9 @@ serve(async (req) => {
           const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
           mediaUrl = stored.url;
           mediaStoragePath = stored.path;
+          mediaType = 'video';
         }
       } else if (message?.audioMessage || message?.pttMessage) {
-        messageType = 'text';
-        mediaType = 'audio';
         const audioMsg = message.audioMessage || message.pttMessage;
         const remoteUrl = audioMsg.url;
         const fileName = audioMsg.fileName || 'audio.ogg';
@@ -412,10 +467,9 @@ serve(async (req) => {
           const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
           mediaUrl = stored.url;
           mediaStoragePath = stored.path;
+          mediaType = 'audio';
         }
       } else if (message?.stickerMessage) {
-        messageType = 'text';
-        mediaType = 'sticker';
         const remoteUrl = message.stickerMessage.url;
         const fileName = 'sticker.webp';
         const mimeType = message.stickerMessage.mimetype || 'image/webp';
@@ -424,10 +478,9 @@ serve(async (req) => {
           const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
           mediaUrl = stored.url;
           mediaStoragePath = stored.path;
+          mediaType = 'sticker';
         }
       } else if (message?.documentMessage) {
-        messageType = 'text';
-        mediaType = 'document';
         const remoteUrl = message.documentMessage.url;
         const fileName = message.documentMessage.fileName || 'document.pdf';
         const mimeType = message.documentMessage.mimetype || 'application/pdf';
@@ -436,6 +489,7 @@ serve(async (req) => {
           const stored = await downloadAndStoreMedia(remoteUrl, mimeType, fileName);
           mediaUrl = stored.url;
           mediaStoragePath = stored.path;
+          mediaType = 'document';
         }
       } else if (message?.pollCreationMessage) {
         messageType = 'poll';
@@ -447,7 +501,9 @@ serve(async (req) => {
         messageType = 'location';
       }
 
-      // Gerar conteúdo da mensagem baseado no tipo
+      // ============================================
+      // GERAR CONTEÚDO DA MENSAGEM
+      // ============================================
       let messageContent = '';
 
       if (messageData.message?.conversation) {
@@ -474,43 +530,6 @@ serve(async (req) => {
         messageContent = '📍 Localização';
       } else {
         messageContent = 'Mensagem não textual';
-      }
-
-      // Buscar empresa pela instância
-      let companyId: string | null = null;
-      let userId: string | null = null;
-      let evolutionApiUrl: string | null = null;
-      let evolutionApiKey: string | null = null;
-
-      if (instanceName) {
-        const { data: settings } = await supabase
-          .from('evolution_settings')
-          .select('user_id, company_id, api_url, api_key')
-          .eq('instance_name', instanceName)
-          .maybeSingle();
-
-        if (settings) {
-          userId = settings.user_id;
-          companyId = settings.company_id;
-          evolutionApiUrl = settings.api_url;
-          evolutionApiKey = settings.api_key;
-        }
-      }
-
-      if (!companyId || !userId) {
-        const { data: allSettings } = await supabase
-          .from('evolution_settings')
-          .select('user_id, company_id, api_url, api_key')
-          .limit(1);
-
-        if (!allSettings || allSettings.length === 0) {
-          throw new Error('Nenhum usuário configurado');
-        }
-
-        userId = allSettings[0].user_id;
-        companyId = allSettings[0].company_id;
-        evolutionApiUrl = allSettings[0].api_url;
-        evolutionApiKey = allSettings[0].api_key;
       }
 
       // Buscar ou criar contato
