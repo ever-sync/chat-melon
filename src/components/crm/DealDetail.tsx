@@ -185,9 +185,9 @@ export const DealDetail = ({ deal, open, onOpenChange, onEdit }: DealDetailProps
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+      <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col">
         {/* Header fixo */}
-        <SheetHeader className="px-6 py-4 border-b sticky top-0 bg-background z-10">
+        <SheetHeader className="px-6 py-4 border-b bg-background flex-shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3 flex-1">
               <Avatar className="h-12 w-12">
@@ -292,8 +292,8 @@ export const DealDetail = ({ deal, open, onOpenChange, onEdit }: DealDetailProps
         </SheetHeader>
 
         {/* Conteúdo com abas */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="sticky top-[180px] bg-background z-10 border-b px-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col overflow-hidden">
+          <div className="bg-background border-b px-6 flex-shrink-0">
             <TabsList className="w-full justify-start h-auto p-0 bg-transparent">
               <TabsTrigger value="overview" className="rounded-none border-b-2">
                 Visão Geral
@@ -314,7 +314,7 @@ export const DealDetail = ({ deal, open, onOpenChange, onEdit }: DealDetailProps
           </div>
 
           {/* Visão Geral */}
-          <TabsContent value="overview" className="px-6 py-4 space-y-6 mt-0">
+          <TabsContent value="overview" className="px-6 py-4 space-y-6 mt-0 overflow-y-auto flex-1">
             {/* Temperatura */}
             <div>
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
@@ -484,22 +484,22 @@ export const DealDetail = ({ deal, open, onOpenChange, onEdit }: DealDetailProps
           </TabsContent>
 
           {/* Notas */}
-          <TabsContent value="notes" className="px-6 py-4 mt-0">
+          <TabsContent value="notes" className="px-6 py-4 mt-0 overflow-y-auto flex-1">
             <DealNotesSection dealId={deal.id} />
           </TabsContent>
 
           {/* Tarefas */}
-          <TabsContent value="tasks" className="px-6 py-4 mt-0">
+          <TabsContent value="tasks" className="px-6 py-4 mt-0 overflow-y-auto flex-1">
             <DealTasksSection dealId={deal.id} />
           </TabsContent>
 
           {/* Arquivos */}
-          <TabsContent value="files" className="px-6 py-4 mt-0">
+          <TabsContent value="files" className="px-6 py-4 mt-0 overflow-y-auto flex-1">
             <DealFilesSection dealId={deal.id} />
           </TabsContent>
 
           {/* Histórico */}
-          <TabsContent value="activity" className="px-6 py-4 mt-0">
+          <TabsContent value="activity" className="px-6 py-4 mt-0 overflow-y-auto flex-1">
             <DealActivityTimeline dealId={deal.id} />
           </TabsContent>
         </Tabs>

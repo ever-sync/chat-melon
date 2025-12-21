@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Settings2, Trash2, Edit } from 'lucide-react';
+import { Plus, Settings2, Trash2, Edit, ArrowLeft } from 'lucide-react';
 import { usePipelines } from '@/hooks/crm/usePipelines';
 import { PipelineModal } from '@/components/settings/PipelineModal';
 import { StagesManager } from '@/components/settings/StagesManager';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +23,7 @@ import { toast } from 'sonner';
 import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 
 export default function PipelineSettings() {
+  const navigate = useNavigate();
   const { pipelines, isLoading } = usePipelines();
   const { companyId } = useCompanyQuery();
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,6 +75,14 @@ export default function PipelineSettings() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/crm')}
+              className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para o CRM
+            </Button>
             <h1 className="text-3xl font-bold tracking-tight">Pipelines</h1>
             <p className="text-muted-foreground">Gerencie seus pipelines de vendas e suas etapas</p>
           </div>

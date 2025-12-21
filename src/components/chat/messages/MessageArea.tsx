@@ -97,6 +97,7 @@ const MessageArea = ({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Quick responses hook for /shortcuts
@@ -197,7 +198,7 @@ const MessageArea = ({
 
           // Scroll to bottom on new message
           setTimeout(() => {
-            scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+            scrollToBottom('smooth');
           }, 100);
         }
       )
@@ -249,7 +250,9 @@ const MessageArea = ({
   }, [conversation]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      scrollToBottom('auto');
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -269,9 +272,9 @@ const MessageArea = ({
     setFilteredMessages(filtered);
   }, [searchQuery, messages, showInternalNotes]);
 
-  const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior });
     }
   };
 
@@ -577,6 +580,7 @@ const MessageArea = ({
                 />
               ))
             )}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
@@ -690,7 +694,7 @@ const MessageArea = ({
                   className={cn(
                     'flex-1 rounded-full',
                     isInternalNote &&
-                      'bg-yellow-50 dark:bg-yellow-950 border-yellow-300 dark:border-yellow-700'
+                    'bg-yellow-50 dark:bg-yellow-950 border-yellow-300 dark:border-yellow-700'
                   )}
                   disabled={isSending}
                 />

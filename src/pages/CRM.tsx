@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { PipelineBoard } from '@/components/crm/PipelineBoard';
 import { PipelineListContainer } from '@/components/crm/PipelineListContainer';
+import { DealModal } from '@/components/crm/DealModal';
 import { usePipelines } from '@/hooks/crm/usePipelines';
+import { useDeals } from '@/hooks/crm/useDeals';
 import {
   Select,
   SelectContent,
@@ -28,6 +30,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 export interface DealFilters {
   search: string;
@@ -44,6 +47,9 @@ export default function CRM() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'board' | 'list' | 'calendar'>('board');
 
+  // Hook para criar deals
+  const { createDeal } = useDeals(selectedPipelineId);
+
   // Estados de filtros
   const [filters, setFilters] = useState<DealFilters>({
     search: '',
@@ -52,6 +58,9 @@ export default function CRM() {
     temperature: 'all',
   });
   const [showFilters, setShowFilters] = useState(false);
+
+  // Estado do modal de criação de negócio
+  const [showDealModal, setShowDealModal] = useState(false);
 
   // Buscar usuários para filtro de responsável
   const { data: users = [] } = useQuery({
@@ -77,6 +86,12 @@ export default function CRM() {
       priority: 'all',
       temperature: 'all',
     });
+  };
+
+  // Função para criar novo deal
+  const handleCreateDeal = (data: TablesInsert<'deals'>) => {
+    createDeal.mutate(data);
+    setShowDealModal(false);
   };
 
   // Contar filtros ativos
@@ -110,6 +125,16 @@ export default function CRM() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setShowDealModal(true)}
+              className="h-11 rounded-xl shadow-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold px-6 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Criar Negociação
+            </Button>
+
+            <div className="h-6 w-px bg-gray-200" />
+
             <Select value={selectedPipelineId} onValueChange={setSelectedPipelineId}>
               <SelectTrigger className="w-[280px] h-11 rounded-xl border-gray-200 shadow-sm hover:border-gray-300 transition-colors">
                 <SelectValue placeholder="Selecione um pipeline" />
@@ -288,6 +313,14 @@ export default function CRM() {
           )}
         </div>
       </div>
+
+      {/* Modal de Criação de Negócio */}
+      <DealModal
+        open={showDealModal}
+        onOpenChange={setShowDealModal}
+        pipelineId={selectedPipelineId}
+        onSubmit={handleCreateDeal}
+      />
     </MainLayout>
   );
 }

@@ -253,12 +253,18 @@ export const DealTasksSection = ({ dealId }: DealTasksSectionProps) => {
       )}
 
       {/* Modal de criar tarefa - usando TaskModal existente */}
-      <TaskModal
-        open={showCreateModal}
-        onOpenChange={setShowCreateModal}
-        onSubmit={handleCreateTask}
-        defaultDealId={dealId}
-      />
+      {showCreateModal && (
+        <div className="fixed inset-0 z-[60] pointer-events-none">
+          <div className="pointer-events-auto">
+            <TaskModal
+              open={showCreateModal}
+              onOpenChange={setShowCreateModal}
+              onSubmit={handleCreateTask}
+              defaultDealId={dealId}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
