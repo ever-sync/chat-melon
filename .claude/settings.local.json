@@ -19,7 +19,13 @@
       "Bash(else echo \"Arquivo .env não encontrado\")",
       "Bash(fi)",
       "Bash(git push:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(del fix_deal_permissions.sql)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(grep:*)",
+      "Bash(psql:*)",
+      "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\supabase\\migrations\\20251221000011_conversation_assignment_system.sql\")"
     ],
     "deny": [],
     "ask": []

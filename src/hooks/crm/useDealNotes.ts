@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 export type DealNote = {
   id: string;
   deal_id: string;
-  user_id: string;
-  company_id: string;
+  user_id: string | null;
+  company_id: string | null;
   note: string;
   is_pinned: boolean;
   created_at: string;
@@ -34,7 +34,7 @@ export const useDealNotes = (dealId?: string) => {
         .select(
           `
           *,
-          profiles (
+          profiles:user_id (
             id,
             full_name,
             avatar_url
@@ -55,34 +55,14 @@ export const useDealNotes = (dealId?: string) => {
   // Mutation para criar nota
   const createNote = useMutation({
     mutationFn: async ({ note }: { note: string }) => {
-      if (!dealId || !currentCompany?.id) {
-        throw new Error('Deal ID ou Company ID não disponível');
+      if (!dealId) {
+        throw new Error('Deal ID não disponível');
       }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      const { data, error } = await supabase
-        .from('deal_notes')
-        .insert({
-          deal_id: dealId,
-          user_id: user.id,
-          company_id: currentCompany.id,
-          note,
-        })
-        .select(
-          `
-          *,
-          profiles (
-            id,
-            full_name,
-            avatar_url
-          )
-        `
-        )
-        .single();
+      const { data, error } = await supabase.rpc('create_deal_note', {
+        p_deal_id: dealId,
+        p_note: note,
+      });
 
       if (error) throw error;
       return data;
@@ -100,21 +80,10 @@ export const useDealNotes = (dealId?: string) => {
   // Mutation para atualizar nota
   const updateNote = useMutation({
     mutationFn: async ({ noteId, note }: { noteId: string; note: string }) => {
-      const { data, error } = await supabase
-        .from('deal_notes')
-        .update({ note })
-        .eq('id', noteId)
-        .select(
-          `
-          *,
-          profiles (
-            id,
-            full_name,
-            avatar_url
-          )
-        `
-        )
-        .single();
+      const { data, error } = await supabase.rpc('update_deal_note', {
+        p_note_id: noteId,
+        p_note: note,
+      });
 
       if (error) throw error;
       return data;
@@ -153,9 +122,12 @@ export const useDealNotes = (dealId?: string) => {
   // Mutation para deletar nota
   const deleteNote = useMutation({
     mutationFn: async (noteId: string) => {
-      const { error } = await supabase.from('deal_notes').delete().eq('id', noteId);
+      const { data, error } = await supabase.rpc('delete_deal_note', {
+        p_note_id: noteId,
+      });
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deal-notes', dealId] });

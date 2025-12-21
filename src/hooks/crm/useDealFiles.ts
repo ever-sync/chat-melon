@@ -6,18 +6,13 @@ import { toast } from 'sonner';
 export type DealFile = {
   id: string;
   deal_id: string;
-  company_id: string;
   uploaded_by: string | null;
   file_name: string;
   file_url: string;
   file_type: string | null;
   file_size: number | null;
-  mime_type: string | null;
-  storage_path: string | null;
-  description: string | null;
-  is_public: boolean;
   created_at: string;
-  uploader_profile?: {
+  profiles?: {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
@@ -45,7 +40,7 @@ export const useDealFiles = (dealId?: string) => {
         .select(
           `
           *,
-          uploader_profile:profiles!deal_files_uploaded_by_fkey (
+          profiles:deal_files_uploaded_by_fkey (
             id,
             full_name,
             avatar_url
@@ -62,17 +57,15 @@ export const useDealFiles = (dealId?: string) => {
     staleTime: 60 * 1000, // 1 minuto
   });
 
-  // Agrupar por tipo
-  const imageFiles = files.filter((f) => f.mime_type?.startsWith('image/'));
-  const documentFiles = files.filter(
-    (f) =>
-      f.mime_type?.includes('pdf') ||
-      f.mime_type?.includes('document') ||
-      f.mime_type?.includes('spreadsheet') ||
-      f.mime_type?.includes('presentation')
+  // Agrupar por tipo (usando file_type como fallback já que mime_type não existe)
+  const imageFiles = files.filter((f) =>
+    ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(f.file_type?.toLowerCase() || '')
+  );
+  const documentFiles = files.filter((f) =>
+    ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(f.file_type?.toLowerCase() || '')
   );
   const otherFiles = files.filter(
-    (f) => !f.mime_type?.startsWith('image/') && !documentFiles.includes(f)
+    (f) => !imageFiles.includes(f) && !documentFiles.includes(f)
   );
 
   // Mutation para fazer upload de arquivo
@@ -116,15 +109,12 @@ export const useDealFiles = (dealId?: string) => {
           file_url: urlData.publicUrl,
           file_type: fileExt,
           file_size: input.file.size,
-          mime_type: input.file.type,
           storage_path: storagePath,
-          description: input.description,
-          is_public: input.is_public || false,
         })
         .select(
           `
           *,
-          uploader_profile:profiles!deal_files_uploaded_by_fkey (
+          profiles:deal_files_uploaded_by_fkey (
             id,
             full_name,
             avatar_url
@@ -236,16 +226,17 @@ export const useDealFiles = (dealId?: string) => {
   };
 
   // Função para obter ícone baseado no tipo
-  const getFileIcon = (mimeType: string | null): string => {
-    if (!mimeType) return '📄';
-    if (mimeType.startsWith('image/')) return '🖼️';
-    if (mimeType.includes('pdf')) return '📕';
-    if (mimeType.includes('document')) return '📝';
-    if (mimeType.includes('spreadsheet')) return '📊';
-    if (mimeType.includes('presentation')) return '📊';
-    if (mimeType.includes('video')) return '🎥';
-    if (mimeType.includes('audio')) return '🎵';
-    if (mimeType.includes('zip') || mimeType.includes('rar')) return '📦';
+  const getFileIcon = (fileType: string | null): string => {
+    if (!fileType) return '📄';
+    const ext = fileType.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return '🖼️';
+    if (ext === 'pdf') return '📕';
+    if (['doc', 'docx'].includes(ext)) return '📝';
+    if (['xls', 'xlsx'].includes(ext)) return '📊';
+    if (['ppt', 'pptx'].includes(ext)) return '📊';
+    if (['mp4', 'avi', 'mov', 'wmv'].includes(ext)) return '🎥';
+    if (['mp3', 'wav', 'ogg'].includes(ext)) return '🎵';
+    if (['zip', 'rar', '7z'].includes(ext)) return '📦';
     return '📄';
   };
 

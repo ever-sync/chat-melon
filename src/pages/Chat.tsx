@@ -7,6 +7,7 @@ import ContactDetailPanel from '@/components/chat/ContactDetailPanel';
 import { AIControlPanel } from '@/components/chat/AIControlPanel';
 import { BulkActionsToolbar } from '@/components/chat/BulkActionsToolbar';
 import { SnoozedConversationsBadge } from '@/components/chat/sidebar/SnoozedConversationsBadge';
+import { ConversationActions } from '@/components/chat/ConversationActions';
 
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/ui/useNotifications';
@@ -501,6 +502,17 @@ const Chat = () => {
               <SnoozedConversationsBadge onSelectConversation={handleSelectFromNotification} />
             }
           />
+          {selectedConversation && (
+            <ConversationActions
+              conversationId={selectedConversation.id}
+              assignedTo={selectedConversation.assigned_to}
+              status={selectedConversation.status}
+              onResolve={() => {
+                setSelectedConversation(null);
+                loadConversations();
+              }}
+            />
+          )}
           <MessageArea
             conversation={selectedConversation}
             onBack={() => setSelectedConversation(null)}

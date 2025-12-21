@@ -43,6 +43,7 @@ import { ShortcutSuggestions } from '@/components/chat/ShortcutSuggestions';
 import { ShortcutHelpModal } from '@/components/chat/ShortcutHelpModal';
 import { SnoozeMenu } from '@/components/chat/SnoozeMenu';
 import { useQuickResponses, useShortcutNavigation } from '@/hooks/chat/useQuickResponses';
+import { CopilotToggle } from '@/components/chat/CopilotToggle';
 
 type Message = {
   id: string;
@@ -96,6 +97,7 @@ const MessageArea = ({
   const [showInternalNotes, setShowInternalNotes] = useState(true);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
+  const [copilotEnabled, setCopilotEnabled] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +126,13 @@ const MessageArea = ({
   const { currentCompany } = useCompany();
   const sendTextMessage = useSendTextMessage(currentCompany?.evolution_instance_name || '');
   // const startCall = useStartCall();
+
+  // Fechar painel AI quando copilot for desabilitado
+  useEffect(() => {
+    if (!copilotEnabled && showAIPanel && onToggleAIPanel) {
+      onToggleAIPanel();
+    }
+  }, [copilotEnabled]);
 
   // Atalhos de teclado
   useEffect(() => {
@@ -540,15 +549,25 @@ const MessageArea = ({
             <Info className="w-5 h-5" />
           </Button>
           {onToggleAIPanel && (
-            <Button
-              variant={showAIPanel ? 'default' : 'ghost'}
-              size="icon"
-              className={showAIPanel ? 'bg-violet-600 hover:bg-violet-700' : 'hover:bg-primary/10'}
-              onClick={onToggleAIPanel}
-              title="Painel de IA"
-            >
-              <Bot className="w-5 h-5" />
-            </Button>
+            <>
+              <Button
+                variant={showAIPanel ? 'default' : 'ghost'}
+                size="icon"
+                className={`
+                  ${showAIPanel ? 'bg-violet-600 hover:bg-violet-700' : 'hover:bg-primary/10'}
+                  ${!copilotEnabled ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+                onClick={onToggleAIPanel}
+                title={copilotEnabled ? 'Painel de IA' : 'Ative o Copilot para abrir o painel'}
+                disabled={!copilotEnabled}
+              >
+                <Bot className="w-5 h-5" />
+              </Button>
+              <CopilotToggle
+                conversationId={conversation.id}
+                onToggle={setCopilotEnabled}
+              />
+            </>
           )}
           <LabelsManager
             conversationId={conversation.id}

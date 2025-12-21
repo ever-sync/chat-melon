@@ -236,16 +236,9 @@ const ContactDetailPanel = ({
     if (!newNote.trim() || !currentCompany?.id || !conversation.contact_id) return;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase.from('contact_notes').insert({
-        contact_id: conversation.contact_id,
-        user_id: user.id,
-        company_id: currentCompany.id,
-        note: newNote,
+      const { data, error } = await supabase.rpc('create_contact_note', {
+        p_contact_id: conversation.contact_id,
+        p_note: newNote,
       });
 
       if (error) throw error;

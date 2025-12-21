@@ -308,25 +308,17 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
             </div>
           </div>
 
-          <Button
-            variant={conversation?.ai_enabled ? 'default' : 'outline'}
-            size="sm"
-            onClick={toggleAI}
-            disabled={isUpdating}
-            className={conversation?.ai_enabled ? 'bg-violet-600 hover:bg-violet-700' : ''}
-          >
-            {conversation?.ai_enabled ? (
-              <>
-                <Pause className="h-4 w-4 mr-1" />
-                Pausar
-              </>
-            ) : (
-              <>
-                <Play className="h-4 w-4 mr-1" />
-                Ativar
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-medium ${conversation?.ai_enabled ? 'text-violet-600' : 'text-gray-500'}`}>
+              {conversation?.ai_enabled ? 'Ativo' : 'Pausado'}
+            </span>
+            <Switch
+              checked={conversation?.ai_enabled || false}
+              onCheckedChange={toggleAI}
+              disabled={isUpdating}
+              className="data-[state=checked]:bg-violet-600"
+            />
+          </div>
         </div>
 
         {/* Status */}

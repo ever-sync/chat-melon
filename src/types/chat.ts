@@ -10,6 +10,9 @@ export type Conversation = {
   status?: string;
   sector_id?: string;
   assigned_to?: string;
+  assigned_at?: string;
+  resolved_at?: string;
+  resolved_by?: string;
   tags?: string[];
   opted_in?: boolean;
   is_online?: boolean;

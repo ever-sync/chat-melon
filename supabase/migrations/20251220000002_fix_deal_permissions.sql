@@ -27,12 +27,22 @@ CREATE POLICY "Users can insert deal activities"
 CREATE TABLE IF NOT EXISTS deal_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   deal_id UUID NOT NULL REFERENCES deals(id) ON DELETE CASCADE,
-  created_by UUID NOT NULL REFERENCES profiles(id),
   note TEXT NOT NULL,
   is_pinned BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Adicionar coluna created_by se não existir
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'deal_notes' AND column_name = 'created_by'
+  ) THEN
+    ALTER TABLE deal_notes ADD COLUMN created_by UUID REFERENCES profiles(id);
+  END IF;
+END $$;
 
 ALTER TABLE deal_notes ENABLE ROW LEVEL SECURITY;
 
@@ -74,13 +84,23 @@ CREATE POLICY "Users can delete their own deal notes"
 CREATE TABLE IF NOT EXISTS deal_files (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   deal_id UUID NOT NULL REFERENCES deals(id) ON DELETE CASCADE,
-  uploaded_by UUID NOT NULL REFERENCES profiles(id),
   file_name TEXT NOT NULL,
   file_url TEXT NOT NULL,
   file_type TEXT,
   file_size INTEGER,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Adicionar coluna uploaded_by se não existir
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'deal_files' AND column_name = 'uploaded_by'
+  ) THEN
+    ALTER TABLE deal_files ADD COLUMN uploaded_by UUID REFERENCES profiles(id);
+  END IF;
+END $$;
 
 ALTER TABLE deal_files ENABLE ROW LEVEL SECURITY;
 

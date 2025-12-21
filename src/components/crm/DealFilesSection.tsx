@@ -153,7 +153,9 @@ export const DealFilesSection = ({ dealId }: DealFilesSectionProps) => {
                 onDelete={() => setDeleteFileId(file.id)}
                 onDownload={() => downloadFile(file)}
                 onPreview={
-                  file.mime_type?.startsWith('image/')
+                  ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(
+                    file.file_type?.toLowerCase() || ''
+                  )
                     ? () => setPreviewImage(file.file_url)
                     : undefined
                 }
@@ -305,7 +307,7 @@ interface FileItemProps {
   onDownload: () => void;
   onPreview?: () => void;
   formatFileSize: (size: number | null) => string;
-  getFileIcon: (mimeType: string | null) => string;
+  getFileIcon: (fileType: string | null) => string;
   getInitials: (name: string | null) => string;
 }
 
@@ -320,22 +322,22 @@ const FileItem = ({
 }: FileItemProps) => {
   return (
     <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-      <div className="text-3xl">{getFileIcon(file.mime_type)}</div>
+      <div className="text-3xl">{getFileIcon(file.file_type)}</div>
 
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{file.file_name}</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
           <span>{formatFileSize(file.file_size)}</span>
           <span>•</span>
-          {file.uploader_profile && (
+          {file.profiles && (
             <>
               <Avatar className="h-4 w-4">
-                <AvatarImage src={file.uploader_profile.avatar_url || undefined} />
+                <AvatarImage src={file.profiles.avatar_url || undefined} />
                 <AvatarFallback className="text-xs">
-                  {getInitials(file.uploader_profile.full_name)}
+                  {getInitials(file.profiles.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <span>{file.uploader_profile.full_name}</span>
+              <span>{file.profiles.full_name}</span>
               <span>•</span>
             </>
           )}
