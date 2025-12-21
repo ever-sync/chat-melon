@@ -44,6 +44,8 @@ import { usePipelines } from '@/hooks/crm/usePipelines';
 import { DealModal } from '@/components/crm/DealModal';
 import { DealDetail } from '@/components/crm/DealDetail';
 import { useContactCRMData } from '@/hooks/crm/useContactCRMData';
+import { TaskModal } from '@/components/tasks/TaskModal';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 type ContactDetailPanelProps = {
   conversation: Conversation;
@@ -86,6 +88,9 @@ const ContactDetailPanel = ({
   const [viewingDeal, setViewingDeal] = useState<Deal | null>(null);
   const [showDealDetail, setShowDealDetail] = useState(false);
   const [editingDeal, setEditingDeal] = useState<Deal | undefined>();
+
+  // Task Modal state
+  const [showTaskModal, setShowTaskModal] = useState(false);
 
   // Seções colapsáveis
   const [openSections, setOpenSections] = useState({
@@ -250,6 +255,30 @@ const ContactDetailPanel = ({
       console.error('Erro ao adicionar nota:', error);
       toast.error('Erro ao adicionar nota');
     }
+  };
+
+  const handleCreateTask = async (data: TablesInsert<'tasks'>) => {
+    if (!currentCompany?.id || !conversation.contact_id) {
+      throw new Error('Dados da empresa ou contato não disponíveis');
+    }
+
+    const taskData = {
+      ...data,
+      contact_id: conversation.contact_id,
+      company_id: currentCompany.id,
+    };
+
+    const { data: newTask, error } = await supabase
+      .from('tasks')
+      .insert(taskData)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    loadTasks();
+    toast.success('Tarefa criada com sucesso!');
+    return newTask;
   };
 
   const handleCompleteTask = async (taskId: string) => {
@@ -711,7 +740,12 @@ const ContactDetailPanel = ({
                   </div>
                 </div>
               ))}
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setShowTaskModal(true)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Tarefa
               </Button>
@@ -888,6 +922,12 @@ const ContactDetailPanel = ({
           setShowDealDetail(false);
           setShowDealModal(true);
         }}
+      />
+
+      <TaskModal
+        open={showTaskModal}
+        onOpenChange={setShowTaskModal}
+        onSubmit={handleCreateTask}
       />
     </div>
   );

@@ -141,6 +141,9 @@ const MessageArea = ({
       const target = e.target as HTMLElement;
       const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 
+      // Verificar se e.key existe antes de usar toLowerCase
+      if (!e.key) return;
+
       // L para abrir labels
       if (
         e.key.toLowerCase() === 'l' &&
