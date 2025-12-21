@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import {
   ArrowLeft,
   Send,
-  Info,
+  User,
   RotateCcw,
   Tag,
   ArrowRightLeft,
@@ -10,6 +10,9 @@ import {
   Bot,
   AlarmClock,
   HelpCircle,
+  Pause,
+  Play,
+  CheckCircle,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -44,6 +47,7 @@ import { ShortcutHelpModal } from '@/components/chat/ShortcutHelpModal';
 import { SnoozeMenu } from '@/components/chat/SnoozeMenu';
 import { useQuickResponses, useShortcutNavigation } from '@/hooks/chat/useQuickResponses';
 import { CopilotToggle } from '@/components/chat/CopilotToggle';
+import { TabulationModal } from '../TabulationModal';
 
 type Message = {
   id: string;
@@ -98,6 +102,10 @@ const MessageArea = ({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [copilotEnabled, setCopilotEnabled] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [isTogglingAI, setIsTogglingAI] = useState(false);
+  const [showTabulationModal, setShowTabulationModal] = useState(false);
+  const [isResolvingConversation, setIsResolvingConversation] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -133,6 +141,93 @@ const MessageArea = ({
       onToggleAIPanel();
     }
   }, [copilotEnabled]);
+
+  // Carregar status da IA
+  useEffect(() => {
+    const loadAIStatus = async () => {
+      if (!conversation?.id) return;
+
+      const { data } = await supabase
+        .from('conversations')
+        .select('ai_enabled')
+        .eq('id', conversation.id)
+        .maybeSingle();
+
+      if (data) {
+        setAiEnabled(data.ai_enabled || false);
+      }
+    };
+
+    loadAIStatus();
+  }, [conversation?.id]);
+
+  // Toggle IA
+  const toggleAI = async () => {
+    if (!conversation?.id) return;
+
+    setIsTogglingAI(true);
+    const newEnabled = !aiEnabled;
+
+    const { error } = await supabase
+      .from('conversations')
+      .update({
+        ai_enabled: newEnabled,
+        ai_paused_at: newEnabled ? null : new Date().toISOString(),
+      })
+      .eq('id', conversation.id);
+
+    if (error) {
+      toast.error('Erro ao atualizar IA');
+    } else {
+      setAiEnabled(newEnabled);
+      toast.success(
+        newEnabled ? 'IA ativada' : 'IA pausada',
+        {
+          description: newEnabled
+            ? 'A IA voltará a responder automaticamente'
+            : 'A IA não responderá mais nesta conversa',
+        }
+      );
+    }
+    setIsTogglingAI(false);
+  };
+
+  // Abrir modal de tabulação
+  const handleOpenTabulationModal = () => {
+    setShowTabulationModal(true);
+  };
+
+  // Encerrar atendimento com tabulação
+  const handleResolveConversation = async (tabulationId: string) => {
+    if (!conversation?.id) return;
+
+    setIsResolvingConversation(true);
+
+    try {
+      const { error } = await supabase.rpc('mark_conversation_resolved', {
+        p_conversation_id: conversation.id,
+        p_tabulation_id: tabulationId,
+      });
+
+      if (error) throw error;
+
+      toast.success('Atendimento encerrado', {
+        description: 'A conversa foi marcada como resolvida',
+      });
+
+      setShowTabulationModal(false);
+
+      // Opcional: voltar para lista de conversas
+      if (onBack) {
+        onBack();
+      }
+    } catch (error) {
+      console.error('Erro ao encerrar atendimento:', error);
+      toast.error('Erro ao encerrar atendimento');
+    } finally {
+      setIsResolvingConversation(false);
+    }
+  };
 
   // Atalhos de teclado
   useEffect(() => {
@@ -480,8 +575,8 @@ const MessageArea = ({
 
   return (
     <div className="flex-1 flex">
-      <div className="flex-1 flex flex-col bg-background">
-        <div className="p-4 border-b border-border flex items-center gap-3 bg-card">
+      <div className="flex-1 flex flex-col bg-background overflow-hidden">
+        <div className="p-4 border-b border-border flex items-center gap-3 bg-card shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -500,7 +595,7 @@ const MessageArea = ({
             <h2 className="font-semibold truncate">{conversation.contact_name}</h2>
             <PresenceIndicator conversationId={conversation.id} />
           </div>
-          {conversation.status === 'closed' && (
+          {conversation.status === 'closed' ? (
             <Button
               variant="outline"
               size="sm"
@@ -509,6 +604,16 @@ const MessageArea = ({
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               Reabrir
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={handleOpenTabulationModal}
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Encerrar Atendimento
             </Button>
           )}
           <Button
@@ -534,35 +639,22 @@ const MessageArea = ({
             }
           />
           <Button
-            variant={showInternalNotes ? 'default' : 'ghost'}
-            size="icon"
-            className="hover:bg-primary/10"
-            onClick={() => setShowInternalNotes(!showInternalNotes)}
-            title={showInternalNotes ? 'Ocultar notas internas' : 'Mostrar notas internas'}
-          >
-            <EyeOff className="w-5 h-5" />
-          </Button>
-          <Button
             variant="ghost"
             size="icon"
             className="hover:bg-primary/10"
             onClick={onToggleDetailPanel}
             title="Ver detalhes do contato"
           >
-            <Info className="w-5 h-5" />
+            <User className="w-5 h-5" />
           </Button>
           {onToggleAIPanel && (
             <>
               <Button
                 variant={showAIPanel ? 'default' : 'ghost'}
                 size="icon"
-                className={`
-                  ${showAIPanel ? 'bg-violet-600 hover:bg-violet-700' : 'hover:bg-primary/10'}
-                  ${!copilotEnabled ? 'opacity-50 cursor-not-allowed' : ''}
-                `}
+                className={showAIPanel ? 'bg-violet-600 hover:bg-violet-700' : 'hover:bg-primary/10'}
                 onClick={onToggleAIPanel}
-                title={copilotEnabled ? 'Painel de IA' : 'Ative o Copilot para abrir o painel'}
-                disabled={!copilotEnabled}
+                title="Painel do Agente de Atendimento (n8n)"
               >
                 <Bot className="w-5 h-5" />
               </Button>
@@ -572,12 +664,6 @@ const MessageArea = ({
               />
             </>
           )}
-          <LabelsManager
-            conversationId={conversation.id}
-            onLabelsChange={loadMessages}
-            open={showLabelsManager}
-            onOpenChange={setShowLabelsManager}
-          />
         </div>
 
         {/* Legenda de cores */}
@@ -606,7 +692,7 @@ const MessageArea = ({
           </div>
         </ScrollArea>
 
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card space-y-2">
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card space-y-2 shrink-0">
           {conversation.status === 'closed' ? (
             <div className="text-center py-2 text-muted-foreground bg-muted rounded-lg">
               Esta conversa está encerrada. Clique em "Reabrir" para continuar o atendimento.
@@ -731,6 +817,20 @@ const MessageArea = ({
                   <HelpCircle className="w-4 h-4" />
                 </Button>
                 <Button
+                  type="button"
+                  variant={aiEnabled ? 'default' : 'ghost'}
+                  size="icon"
+                  onClick={toggleAI}
+                  disabled={isTogglingAI}
+                  title={aiEnabled ? 'Pausar IA' : 'Ativar IA'}
+                  className={cn(
+                    'rounded-full',
+                    aiEnabled && 'bg-green-600 hover:bg-green-700 text-white'
+                  )}
+                >
+                  {aiEnabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </Button>
+                <Button
                   type="submit"
                   size="icon"
                   disabled={!newMessage.trim() || isSending}
@@ -765,9 +865,16 @@ const MessageArea = ({
         />
 
         <ShortcutHelpModal open={showShortcutHelp} onOpenChange={setShowShortcutHelp} />
+
+        <TabulationModal
+          open={showTabulationModal}
+          onOpenChange={setShowTabulationModal}
+          onConfirm={handleResolveConversation}
+          isLoading={isResolvingConversation}
+        />
       </div>
 
-      {showAIAssistant && conversation && (
+      {showAIAssistant && conversation && copilotEnabled && (
         <AIAssistant
           conversation={conversation}
           messages={messages}

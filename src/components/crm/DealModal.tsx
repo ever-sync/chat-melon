@@ -251,8 +251,8 @@ export const DealModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="border-b pb-4">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="border-b pb-4 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Briefcase className="h-5 w-5 text-primary" />
@@ -266,9 +266,10 @@ export const DealModal = ({
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)}>
-          <Tabs defaultValue="geral" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-muted/50">
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit(handleFormSubmit)}>
+            <Tabs defaultValue="geral" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-muted/50">
               <TabsTrigger value="geral" className="data-[state=active]:bg-background gap-2">
                 <FileText className="h-4 w-4" />
                 Geral
@@ -916,7 +917,8 @@ export const DealModal = ({
               )}
             </Button>
           </div>
-        </form>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

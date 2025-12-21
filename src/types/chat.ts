@@ -13,6 +13,7 @@ export type Conversation = {
   assigned_at?: string;
   resolved_at?: string;
   resolved_by?: string;
+  tabulation_id?: string;
   tags?: string[];
   opted_in?: boolean;
   is_online?: boolean;

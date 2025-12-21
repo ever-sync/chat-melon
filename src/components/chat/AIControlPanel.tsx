@@ -277,7 +277,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
 
   if (isLoading) {
     return (
-      <div className="w-80 border-l bg-gray-50 p-4">
+      <div className="w-80 bg-gray-50 p-4">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded" />
           <div className="h-32 bg-gray-200 rounded" />
@@ -288,7 +288,7 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   }
 
   return (
-    <div className="w-80 border-l bg-gray-50 flex flex-col">
+    <div className="w-80 bg-gray-50 flex flex-col">
       {/* Header com controle da IA */}
       <div className="p-4 border-b bg-white">
         <div className="flex items-center justify-between mb-4">

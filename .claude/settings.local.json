@@ -25,7 +25,10 @@
       "Bash(taskkill:*)",
       "Bash(grep:*)",
       "Bash(psql:*)",
-      "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\supabase\\migrations\\20251221000011_conversation_assignment_system.sql\")"
+      "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\supabase\\migrations\\20251221000011_conversation_assignment_system.sql\")",
+      "Bash(then grep -E \"SUPABASE\" .env)",
+      "Bash(find:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

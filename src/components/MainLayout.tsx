@@ -19,6 +19,18 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const location = useLocation();
   const isFullHeightPage = location.pathname === '/chat';
 
+  // Carregar estado da sidebar do localStorage
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    const stored = localStorage.getItem('sidebar_open');
+    return stored === null ? true : stored === 'true';
+  });
+
+  // Salvar estado quando mudar
+  const handleSidebarChange = (open: boolean) => {
+    setSidebarOpen(open);
+    localStorage.setItem('sidebar_open', open.toString());
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const {
@@ -53,7 +65,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider open={sidebarOpen} onOpenChange={handleSidebarChange}>
       <div className="min-h-screen flex w-full overflow-hidden bg-[#111111]">
         {!isMobile && <AppSidebar />}
 

@@ -202,11 +202,20 @@ const ConversationList = ({
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
-  const getStatusBadge = (status: string | null) => {
+  const getStatusBadge = (status: string | null, unreadCount: number) => {
+    // Se tem mensagens não lidas, mostrar badge "Não Lido"
+    if (unreadCount > 0) {
+      return (
+        <Badge variant="secondary" className="text-xs">
+          Não Lido
+        </Badge>
+      );
+    }
+
+    // Caso contrário, mostrar badge de status normal
     if (!status) return null;
 
     const statusConfig = {
-      waiting: { label: 'Não Lido', variant: 'secondary' as const },
       re_entry: { label: 'Reentrada', variant: 'default' as const },
       active: { label: 'Ativo', variant: 'default' as const },
       chatbot: { label: 'ChatBot', variant: 'outline' as const },
@@ -397,7 +406,7 @@ const ConversationList = ({
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {conversation.status && getStatusBadge(conversation.status)}
+                      {getStatusBadge(conversation.status, conversation.unread_count)}
                       {conversationSatisfaction[conversation.id] && (
                         <SatisfactionBadge
                           score={conversationSatisfaction[conversation.id].score}

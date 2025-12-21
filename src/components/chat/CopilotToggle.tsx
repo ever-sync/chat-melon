@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Sparkles } from 'lucide-react';
 import {
@@ -15,57 +14,42 @@ interface CopilotToggleProps {
   onToggle?: (enabled: boolean) => void;
 }
 
+const COPILOT_STORAGE_KEY = 'copilot_enabled';
+
 export function CopilotToggle({ conversationId, onToggle }: CopilotToggleProps) {
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(() => {
+    // Carregar estado do localStorage
+    const stored = localStorage.getItem(COPILOT_STORAGE_KEY);
+    return stored === null ? true : stored === 'true';
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    loadStatus();
-  }, [conversationId]);
-
-  const loadStatus = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('ai_enabled')
-        .eq('id', conversationId)
-        .maybeSingle();
-
-      if (error) throw error;
-      const enabled = data?.ai_enabled || false;
-      setIsEnabled(enabled);
-      onToggle?.(enabled);
-    } catch (error) {
-      console.error('Erro ao carregar status do Copilot:', error);
-    }
-  };
+    // Notificar o componente pai sobre o estado inicial
+    onToggle?.(isEnabled);
+  }, []);
 
   const handleToggle = async (checked: boolean) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('conversations')
-        .update({
-          ai_enabled: checked,
-          ai_paused_at: checked ? null : new Date().toISOString(),
-        })
-        .eq('id', conversationId);
-
-      if (error) throw error;
+      // Salvar no localStorage (configuração global do usuário)
+      localStorage.setItem(COPILOT_STORAGE_KEY, checked.toString());
 
       setIsEnabled(checked);
       onToggle?.(checked);
       toast.success(
-        checked ? 'Copilot ativado' : 'Copilot desativado',
+        checked ? 'Copiloto ativado' : 'Copiloto desativado',
         {
           description: checked
-            ? 'O Copilot voltará a responder automaticamente'
-            : 'O Copilot não responderá mais nesta conversa',
+            ? 'Assistente de análise de conversas ativado'
+            : 'Assistente de análise de conversas desativado',
         }
       );
     } catch (error) {
-      console.error('Erro ao atualizar Copilot:', error);
-      toast.error('Erro ao atualizar o Copilot');
+      console.error('Erro ao atualizar Copiloto:', error);
+      toast.error('Erro ao atualizar o Copiloto');
+      // Reverter o estado em caso de erro
+      localStorage.setItem(COPILOT_STORAGE_KEY, (!checked).toString());
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +73,7 @@ export function CopilotToggle({ conversationId, onToggle }: CopilotToggleProps) 
         </TooltipTrigger>
         <TooltipContent>
           <p className="text-xs">
-            {isEnabled ? 'Desativar Copilot' : 'Ativar Copilot'}
+            {isEnabled ? 'Desativar Copiloto' : 'Ativar Copiloto'}
           </p>
         </TooltipContent>
       </Tooltip>

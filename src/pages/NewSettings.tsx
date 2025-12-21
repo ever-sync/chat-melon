@@ -28,6 +28,7 @@ import { WidgetSettings } from '@/components/settings/WidgetSettings';
 import { ApiKeyManager } from '@/components/settings/ApiKeyManager';
 import { WebhookManager } from '@/components/settings/WebhookManager';
 import { ChannelsSettings } from '@/components/settings/ChannelsSettings';
+import { TabulationsManager } from '@/components/settings/TabulationsManager';
 import UsersPage from '@/pages/settings/UsersPage';
 import AISettingsPage from '@/pages/settings/AISettingsPage';
 import {
@@ -54,6 +55,7 @@ import {
   Webhook,
   Package,
   Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function NewSettings() {
@@ -304,6 +306,14 @@ export default function NewSettings() {
                 <span className="font-medium">Lead Scoring</span>
               </TabsTrigger>
 
+              <TabsTrigger
+                value="tabulations"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="font-medium">Tabulação</span>
+              </TabsTrigger>
+
               <Separator className="my-3" />
 
               {/* Integrações */}
@@ -548,6 +558,10 @@ export default function NewSettings() {
 
             <TabsContent value="webhooks" className="m-0">
               <WebhookManager />
+            </TabsContent>
+
+            <TabsContent value="tabulations" className="m-0">
+              <TabulationsManager />
             </TabsContent>
           </div>
         </Tabs>

@@ -99,7 +99,9 @@ const Chat = () => {
               profile_pic_url
             )
           `)
-      ).order('last_message_time', { ascending: false });
+      )
+      .neq('status', 'closed') // Ocultar conversas encerradas
+      .order('last_message_time', { ascending: false });
 
       if (error) {
         console.error('❌ Chat: Erro na query:', error);
@@ -178,7 +180,11 @@ const Chat = () => {
         },
         (payload) => {
           console.log('Realtime: New conversation', payload);
-          setConversations((prev) => [payload.new as Conversation, ...prev]);
+          const newConv = payload.new as Conversation;
+          // Só adicionar se não estiver fechada
+          if (newConv.status !== 'closed') {
+            setConversations((prev) => [newConv, ...prev]);
+          }
         }
       )
       .on(
@@ -191,9 +197,23 @@ const Chat = () => {
         },
         (payload) => {
           console.log('Realtime: Conversation updated', payload);
-          setConversations((prev) =>
-            prev.map((conv) => (conv.id === payload.new.id ? (payload.new as Conversation) : conv))
-          );
+          const updatedConv = payload.new as Conversation;
+
+          setConversations((prev) => {
+            // Se foi fechada, remover da lista
+            if (updatedConv.status === 'closed') {
+              return prev.filter((conv) => conv.id !== updatedConv.id);
+            }
+
+            // Se foi reaberta ou atualizada, atualizar na lista
+            const exists = prev.find((conv) => conv.id === updatedConv.id);
+            if (exists) {
+              return prev.map((conv) => (conv.id === updatedConv.id ? updatedConv : conv));
+            } else {
+              // Se não existe e não está fechada, adicionar (foi reaberta)
+              return [updatedConv, ...prev];
+            }
+          });
         }
       )
       .on(
@@ -431,21 +451,40 @@ const Chat = () => {
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
 
-    // Se o status for "waiting", mudar para "active" (marcar como lido)
-    if (conversation.status === 'waiting') {
+    // Marcar como lida se tiver mensagens não lidas
+    if (conversation.unread_count > 0 || conversation.status === 'waiting') {
       try {
         const { error } = await supabase
           .from('conversations')
-          .update({ status: 'active' })
+          .update({
+            status: conversation.status === 'waiting' ? 'active' : conversation.status,
+            unread_count: 0, // Zerar contador de não lidas
+          })
           .eq('id', conversation.id);
 
         if (error) throw error;
 
         // Atualizar localmente
         setConversations((prev) =>
-          prev.map((c) => (c.id === conversation.id ? { ...c, status: 'active' } : c))
+          prev.map((c) =>
+            c.id === conversation.id
+              ? {
+                  ...c,
+                  status: c.status === 'waiting' ? 'active' : c.status,
+                  unread_count: 0,
+                }
+              : c
+          )
         );
-        setSelectedConversation((prev) => (prev ? { ...prev, status: 'active' } : prev));
+        setSelectedConversation((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: prev.status === 'waiting' ? 'active' : prev.status,
+                unread_count: 0,
+              }
+            : prev
+        );
       } catch (error) {
         console.error('Erro ao marcar conversa como lida:', error);
       }

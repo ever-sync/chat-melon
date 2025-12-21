@@ -80,6 +80,7 @@ const ContactDetailPanel = ({
   const {
     deals,
     createDeal,
+    updateDeal,
     isLoading: isDealsLoading,
   } = useDeals(undefined, conversation.contact_id);
 
@@ -368,7 +369,7 @@ const ContactDetailPanel = ({
   });
 
   return (
-    <div className="w-96 border-l border-border bg-card flex flex-col h-full">
+    <div className="w-96 bg-card flex flex-col h-full">
       <div className="p-4 border-b border-border flex items-center justify-between">
         <h3 className="font-semibold">Detalhes</h3>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -904,12 +905,22 @@ const ContactDetailPanel = ({
         pipelineId={defaultPipeline?.id}
         defaultContactId={conversation.contact_id}
         onSubmit={(data) => {
-          createDeal.mutate({
-            ...data,
-            created_from_conversation_id: conversation.id,
-            source: 'chat',
-          } as any);
+          if (editingDeal) {
+            // Update existing deal
+            updateDeal.mutate({
+              id: editingDeal.id,
+              ...data,
+            } as any);
+          } else {
+            // Create new deal
+            createDeal.mutate({
+              ...data,
+              created_from_conversation_id: conversation.id,
+              source: 'chat',
+            } as any);
+          }
           setShowDealModal(false);
+          setEditingDeal(undefined);
         }}
       />
 
