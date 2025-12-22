@@ -7,6 +7,7 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 interface InviteRequest {
@@ -18,8 +19,12 @@ interface InviteRequest {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight request
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders,
+      status: 200
+    });
   }
 
   try {
@@ -38,13 +43,19 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (!user) {
-      throw new Error("Não autenticado");
+      return new Response(JSON.stringify({ error: "Não autenticado" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     const { invite_id, email, role, company_name, invited_by_name }: InviteRequest = await req.json();
 
     if (!invite_id || !email) {
-      throw new Error("Dados incompletos");
+      return new Response(JSON.stringify({ error: "Dados incompletos" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     const appUrl = Deno.env.get("APP_URL") || "http://localhost:5173"; // Fallback para local se não configurado
