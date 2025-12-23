@@ -42,6 +42,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DepartmentsList } from '@/components/settings/DepartmentsList';
+import { UserEditDialog } from '@/components/settings/UserEditDialog';
+import { UserPermissionsDialog } from '@/components/settings/UserPermissionsDialog';
 import {
   UserPlus,
   MoreVertical,
@@ -54,9 +57,12 @@ import {
   Clock,
   Activity,
   Edit,
+  Edit2,
   Trash2,
   Key,
   RefreshCw,
+  Building2,
+  Power,
 } from 'lucide-react';
 
 interface Member {
@@ -74,6 +80,8 @@ interface Member {
   last_seen_at: string;
   current_status: string;
   team: { id: string; name: string } | null;
+  department_id: string | null;
+  department?: { id: string; name: string; color: string } | null;
   created_at: string;
 }
 
@@ -84,13 +92,20 @@ interface Team {
   member_count: number;
 }
 
+interface Department {
+  id: string;
+  name: string;
+  color: string;
+  description: string | null;
+}
+
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
-  owner: { label: 'Proprietário', color: 'bg-purple-500' },
-  admin: { label: 'Administrador', color: 'bg-red-500' },
-  manager: { label: 'Gerente', color: 'bg-blue-500' },
-  supervisor: { label: 'Supervisor', color: 'bg-orange-500' },
-  seller: { label: 'Vendedor', color: 'bg-green-500' },
-  viewer: { label: 'Visualizador', color: 'bg-gray-500' },
+  owner: { label: 'Proprietário(a)', color: 'bg-teal-600' },
+  admin: { label: 'Administrador(a)', color: 'bg-teal-600' },
+  manager: { label: 'Gestor(a)', color: 'bg-teal-600' },
+  supervisor: { label: 'Supervisor(a)', color: 'bg-teal-600' },
+  seller: { label: 'Vendedor(a)', color: 'bg-teal-600' },
+  viewer: { label: 'Visualizador(a)', color: 'bg-teal-600' },
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -107,6 +122,7 @@ export default function UsersPage() {
 
   const [members, setMembers] = useState<Member[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -122,31 +138,68 @@ export default function UsersPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('seller');
   const [inviteTeam, setInviteTeam] = useState('');
+  const [inviteDepartment, setInviteDepartment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (companyId) {
       loadMembers();
       loadTeams();
+      loadDepartments();
     }
   }, [companyId]);
 
   const loadMembers = async () => {
     try {
+      console.log('Loading members for company:', companyId);
+      setIsLoading(true);
+
+      // Buscar os membros primeiro sem joins complexos para testar
       const { data, error } = await supabase
         .from('company_members')
-        .select(
-          `
+        .select(`
           *,
-          team:teams(id, name)
-        `
-        )
+          team_data:teams(id, name),
+          department_data:departments(id, name, color)
+        `)
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setMembers(data || []);
-    } catch (err) {
+      if (error) {
+        console.error('Supabase query error (with joins):', error);
+
+        // Fallback: tentar carregar sem joins
+        const { data: simpleData, error: simpleError } = await supabase
+          .from('company_members')
+          .select('*')
+          .eq('company_id', companyId);
+
+        if (simpleError) {
+          console.error('Supabase query error (simple):', simpleError);
+          throw simpleError;
+        }
+
+        console.log('Members loaded (simple):', simpleData);
+        // Transformar para garantir que team e department existam como null
+        const mappedSimpleData = (simpleData || []).map(m => ({
+          ...m,
+          team: null,
+          department: null
+        }));
+        setMembers(mappedSimpleData as any);
+        return;
+      }
+
+      // Mapear os dados para o formato esperado
+      const formattedData = data?.map(member => ({
+        ...member,
+        team: (member as any).team_data,
+        department: (member as any).department_data
+      })) || [];
+
+      console.log('Members loaded (formatted):', formattedData);
+      setMembers(formattedData as any);
+    } catch (err: any) {
       console.error('Erro ao carregar membros:', err);
       toast.error('Não foi possível carregar os usuários');
     } finally {
@@ -162,6 +215,16 @@ export default function UsersPage() {
     setTeams((data || []).map((t) => ({ ...t, member_count: 0 })));
   };
 
+  const loadDepartments = async () => {
+    const { data } = await supabase
+      .from('departments')
+      .select('id, name, color, description')
+      .eq('company_id', companyId)
+      .eq('is_active', true)
+      .order('name');
+    setDepartments(data || []);
+  };
+
   const handleInvite = async () => {
     if (!inviteEmail) {
       toast.error('Digite o email');
@@ -170,6 +233,12 @@ export default function UsersPage() {
 
     setIsSubmitting(true);
     try {
+      console.log('Creating invite for:', { companyId, inviteEmail, inviteRole, inviteTeam, inviteDepartment });
+
+      // Get current user first
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id);
+
       // 1. Criar o convite no banco de dados
       const { data: inviteData, error: inviteError } = await supabase
         .from('company_invites')
@@ -179,14 +248,24 @@ export default function UsersPage() {
             email: inviteEmail,
             role: inviteRole as any,
             team_id: inviteTeam || null,
+            department_id: inviteDepartment || null,
             status: 'pending',
-            invited_by: (await supabase.auth.getUser()).data.user?.id,
+            invited_by: user?.id,
           },
         ])
         .select()
         .single();
 
-      if (inviteError) throw inviteError;
+      if (inviteError) {
+        console.error('Invite creation error:', inviteError);
+        console.error('Error message:', inviteError.message);
+        console.error('Error details:', inviteError.details);
+        console.error('Error hint:', inviteError.hint);
+        console.error('Error code:', inviteError.code);
+        throw inviteError;
+      }
+
+      console.log('Invite created:', inviteData);
 
       // 2. Enviar o email usando a Edge Function
       const { error: emailError } = await supabase.functions.invoke('send-invite-email', {
@@ -195,7 +274,7 @@ export default function UsersPage() {
           email: inviteEmail,
           role: inviteRole,
           company_name: currentCompany?.name || 'Nossa Empresa',
-          invited_by_name: (await supabase.auth.getUser()).data.user?.user_metadata?.full_name,
+          invited_by_name: user?.user_metadata?.full_name,
         },
       });
 
@@ -210,8 +289,10 @@ export default function UsersPage() {
       setInviteEmail('');
       setInviteRole('seller');
       setInviteTeam('');
+      setInviteDepartment('');
     } catch (err: any) {
       console.error('Erro no processo de convite:', err);
+      console.error('Full error object:', JSON.stringify(err, null, 2));
       toast.error(err.message || 'Erro ao convidar');
     } finally {
       setIsSubmitting(false);
@@ -348,175 +429,255 @@ export default function UsersPage() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+        {/* Tabs para Usuários e Setores */}
+        <Tabs defaultValue="users" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="users">
+              <Users className="h-4 w-4 mr-2" />
+              Usuários
+            </TabsTrigger>
+            <TabsTrigger value="departments">
+              <Building2 className="h-4 w-4 mr-2" />
+              Setores
+            </TabsTrigger>
+          </TabsList>
 
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar por cargo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os cargos</SelectItem>
-                  {Object.entries(ROLE_LABELS).map(([role, { label }]) => (
-                    <SelectItem key={role} value={role}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <TabsContent value="users" className="space-y-4">
+            {/* Filters */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nome ou email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
 
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Ativos</SelectItem>
-                  <SelectItem value="inactive">Inativos</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os cargos</SelectItem>
+                      {Object.entries(ROLE_LABELS).map(([role, { label }]) => (
+                        <SelectItem key={role} value={role}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-        {/* Users Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuário</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Equipe</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Última Atividade</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMembers.map((member) => (
-                <TableRow key={member.id} className={!member.is_active ? 'opacity-50' : ''}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar>
-                          <AvatarImage src={member.avatar_url} />
-                          <AvatarFallback>{member.display_name?.charAt(0) || '?'}</AvatarFallback>
-                        </Avatar>
-                        {member.is_online && (
-                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white" />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="active">Ativos</SelectItem>
+                      <SelectItem value="inactive">Inativos</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Users Table */}
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Perfil</TableHead>
+                    <TableHead>Setor</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Registro</TableHead>
+                    <TableHead>Matrícula</TableHead>
+                    <TableHead className="text-right">Opções</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredMembers.map((member) => (
+                    <TableRow key={member.id} className={!member.is_active ? 'opacity-50' : ''}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <Avatar>
+                              <AvatarImage src={member.avatar_url} />
+                              <AvatarFallback>{member.display_name?.charAt(0) || '?'}</AvatarFallback>
+                            </Avatar>
+                            {member.is_online && (
+                              <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{member.display_name || 'Sem nome'}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge className={ROLE_LABELS[member.role]?.color}>
+                          {ROLE_LABELS[member.role]?.label}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        {member.department ? (
+                          <Badge
+                            style={{
+                              backgroundColor: member.department.color,
+                              color: 'white',
+                              borderRadius: '12px'
+                            }}
+                          >
+                            {member.department.name}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-xs italic">Sem setor atribuído</span>
                         )}
-                      </div>
-                      <div>
-                        <p className="font-medium">{member.display_name || 'Sem nome'}</p>
-                        <p className="text-sm text-muted-foreground">{member.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
+                      </TableCell>
 
-                  <TableCell>
-                    <Badge className={ROLE_LABELS[member.role]?.color}>
-                      {ROLE_LABELS[member.role]?.label}
-                    </Badge>
-                  </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">{member.email}</span>
+                      </TableCell>
 
-                  <TableCell>
-                    {member.team ? (
-                      <Badge variant="outline">{member.team.name}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {member.created_at
+                            ? new Date(member.created_at).toLocaleDateString('pt-BR')
+                            : '-'}
+                        </span>
+                      </TableCell>
 
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          member.is_online
-                            ? STATUS_LABELS[member.current_status]?.color || 'bg-green-500'
-                            : 'bg-gray-400'
-                        }`}
-                      />
-                      <span className="text-sm">
-                        {member.is_online
-                          ? STATUS_LABELS[member.current_status]?.label || 'Online'
-                          : 'Offline'}
-                      </span>
-                    </div>
-                  </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">-</span>
+                      </TableCell>
 
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {member.last_seen_at
-                        ? new Date(member.last_seen_at).toLocaleString('pt-BR')
-                        : 'Nunca'}
-                    </span>
-                  </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedMember(member);
+                              setIsEditOpen(true);
+                            }}>
+                              <Edit2 className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedMember(member);
+                              setIsPermissionsOpen(true);
+                            }}>
+                              <Shield className="mr-2 h-4 w-4" />
+                              Permissões
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className={member.is_active ? 'text-destructive' : 'text-green-600'}
+                              onClick={() => handleDeactivate(member)}
+                            >
+                              <Power className="mr-2 h-4 w-4" />
+                              {member.is_active ? 'Desativar' : 'Ativar'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
 
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedMember(member);
-                            setIsEditOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
+                  {filteredMembers.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        Nenhum usuário encontrado
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
 
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedMember(member);
-                            setIsPermissionsOpen(true);
-                          }}
-                        >
-                          <Key className="h-4 w-4 mr-2" />
-                          Permissões
-                        </DropdownMenuItem>
+            {/* Modal de Convite */}
+            <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Convidar Usuário</DialogTitle>
+                  <DialogDescription>
+                    Envie um convite por email para adicionar um novo membro à equipe.
+                  </DialogDescription>
+                </DialogHeader>
 
-                        <DropdownMenuSeparator />
+                <div className="space-y-4">
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                  </div>
 
-                        <DropdownMenuItem
-                          onClick={() => handleDeactivate(member)}
-                          disabled={member.role === 'owner'}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          {member.is_active ? 'Desativar' : 'Ativar'}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                  <div>
+                    <Label>Cargo</Label>
+                    <Select value={inviteRole} onValueChange={setInviteRole}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(ROLE_LABELS)
+                          .filter(([role]) => role !== 'owner')
+                          .map(([role, { label }]) => (
+                            <SelectItem key={role} value={role}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {filteredMembers.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Nenhum usuário encontrado
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Card>
+                  <div>
+                    <Label>Equipe (opcional)</Label>
+                    <Select value={inviteTeam} onValueChange={setInviteTeam}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma equipe" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhuma</SelectItem>
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleInvite} disabled={isSubmitting}>
+                    {isSubmitting ? 'Enviando...' : 'Enviar Convite'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+          </TabsContent>
+
+          <TabsContent value="departments">
+            <DepartmentsList companyId={companyId!} />
+          </TabsContent>
+        </Tabs>
 
         {/* Modal de Convite */}
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
@@ -558,21 +719,23 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <Label>Equipe (opcional)</Label>
-                <Select value={inviteTeam} onValueChange={setInviteTeam}>
+                <Label>Setor (opcional)</Label>
+                <Select value={inviteDepartment} onValueChange={setInviteDepartment}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma equipe" />
+                    <SelectValue placeholder="Selecione um setor" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
+                    <SelectItem value="">Nenhum</SelectItem>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
+
             </div>
 
             <DialogFooter>
@@ -586,8 +749,23 @@ export default function UsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Modal de Edição - implementar similar */}
-        {/* Modal de Permissões - implementar com lista de permissões customizáveis */}
+        {/* Modal de Edição */}
+        <UserEditDialog
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          member={selectedMember}
+          teams={teams}
+          departments={departments}
+          onSuccess={loadMembers}
+          roleLabels={ROLE_LABELS}
+        />
+
+        {/* Modal de Permissões */}
+        <UserPermissionsDialog
+          isOpen={isPermissionsOpen}
+          onClose={() => setIsPermissionsOpen(false)}
+          member={selectedMember}
+        />
       </div>
     </PermissionGate>
   );
