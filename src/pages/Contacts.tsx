@@ -567,6 +567,7 @@ export default function Contacts() {
                                 phoneNumber={contact.phone_number}
                                 name={contact.name || undefined}
                                 instanceName={currentCompany?.evolution_instance_name || ''}
+                                profilePictureUrl={contact.profile_pic_url}
                                 size="md"
                               />
                               <div className="flex-1">

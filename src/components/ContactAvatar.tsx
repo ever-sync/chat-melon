@@ -86,13 +86,14 @@ export function ContactAvatar({
   // DEBUG IMAGE
   useEffect(() => {
     if (phoneNumber === '5511999999999') return; // Ignore filler
-    // console.log(`🖼️ Avatar for ${phoneNumber} (${name}):`, {
-    //   preLoadedUrl,
-    //   fetchedUrl,
-    //   finalUrl: profilePictureUrl,
-    //   instanceName
-    // });
-  }, [phoneNumber, name, preLoadedUrl, fetchedUrl, profilePictureUrl, instanceName]);
+    console.log(`🖼️ Avatar for ${phoneNumber} (${name}):`, {
+      preLoadedUrl,
+      fetchedUrl,
+      finalUrl: profilePictureUrl,
+      instanceName,
+      imageError
+    });
+  }, [phoneNumber, name, preLoadedUrl, fetchedUrl, profilePictureUrl, instanceName, imageError]);
 
   // Reset error state when URL changes
   useEffect(() => {
