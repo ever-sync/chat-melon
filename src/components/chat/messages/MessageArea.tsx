@@ -13,7 +13,9 @@ import {
   Pause,
   Play,
   CheckCircle,
+  Brain,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +50,9 @@ import { SnoozeMenu } from '@/components/chat/SnoozeMenu';
 import { useQuickResponses, useShortcutNavigation } from '@/hooks/chat/useQuickResponses';
 import { CopilotToggle } from '@/components/chat/CopilotToggle';
 import { TabulationModal } from '../TabulationModal';
+import { VariablePicker } from '@/components/chat/VariablePicker';
+import { useVariables } from '@/hooks/useVariables';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Message = {
   id: string;
@@ -106,6 +111,7 @@ const MessageArea = ({
   const [isTogglingAI, setIsTogglingAI] = useState(false);
   const [showTabulationModal, setShowTabulationModal] = useState(false);
   const [isResolvingConversation, setIsResolvingConversation] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ full_name: string; first_name: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -130,7 +136,7 @@ const MessageArea = ({
   const { startTyping, startRecording, stopPresence } = useSendPresence(conversation?.id || '');
   const { markAsRead } = useMarkAsRead();
 
-  // Hooks Evolution API
+  const { variables: companyVariables } = useVariables();
   const { currentCompany } = useCompany();
   const sendTextMessage = useSendTextMessage(currentCompany?.evolution_instance_name || '');
   // const startCall = useStartCall();
@@ -159,6 +165,22 @@ const MessageArea = ({
     };
 
     loadAIStatus();
+
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name, first_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (data) {
+          setCurrentUserProfile(data);
+        }
+      }
+    };
+    fetchUserProfile();
   }, [conversation?.id]);
 
   // Toggle IA
@@ -267,10 +289,46 @@ const MessageArea = ({
   const replaceVariables = (text: string): string => {
     if (!conversation) return text;
 
-    return text
-      .replace(/\{\{nome\}\}/g, conversation.contact_name || 'Cliente')
-      .replace(/\{\{empresa\}\}/g, conversation.contact_name || '')
-      .replace(/\{\{telefone\}\}/g, conversation.contact_number || '');
+    let processedText = text;
+
+    // Helper to create a robust regex for variables (handles spaces and case insensitive)
+    const getVarRegex = (key: string) => {
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`\\{\\{\\s*${escapedKey}\\s*\\}\\}`, 'gi');
+    };
+
+    // 1. First Pass: Replace Company/Custom Variables
+    // This allows custom variables (aliases) to contain system variables like {{primeiro_nome}}
+    if (companyVariables && Array.isArray(companyVariables)) {
+      companyVariables.forEach((v) => {
+        if (v.key) {
+          processedText = processedText.replace(getVarRegex(v.key), v.value || '');
+        }
+      });
+    }
+
+    // 2. Second Pass: Replace System and Contact Variables
+    const fullName = conversation.contact_name || 'Cliente';
+    const firstName = fullName.trim().split(' ')[0] || 'Cliente';
+    const now = new Date();
+    const protocolo = conversation.id ? conversation.id.split('-')[0].toUpperCase() : 'REQ';
+
+    processedText = processedText
+      // Contact variables
+      .replace(getVarRegex('nome'), fullName)
+      .replace(getVarRegex('primeiro_nome'), firstName)
+      .replace(getVarRegex('telefone'), conversation.contact_number || '')
+      .replace(getVarRegex('email'), (conversation as any).email || '')
+      // System variables
+      .replace(getVarRegex('data_atual'), now.toLocaleDateString('pt-BR'))
+      .replace(getVarRegex('hora_atual'), now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))
+      .replace(getVarRegex('protocolo'), protocolo)
+      .replace(getVarRegex('empresa_nome'), currentCompany?.name || '')
+      .replace(getVarRegex('empresa_cnpj'), (currentCompany as any)?.cnpj || '')
+      .replace(getVarRegex('funcionario_nome'), currentUserProfile?.first_name || currentUserProfile?.full_name?.split(' ')[0] || 'Atendente')
+      .replace(getVarRegex('cache'), 'Sessão Ativa');
+
+    return processedText;
   };
 
   useEffect(() => {
@@ -616,6 +674,7 @@ const MessageArea = ({
               Encerrar Atendimento
             </Button>
           )}
+
           <Button
             variant="ghost"
             size="icon"
@@ -699,60 +758,119 @@ const MessageArea = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-1 mb-2">
-                <InteractiveMessageSender
-                  conversationId={conversation.id}
-                  contactNumber={conversation.contact_number}
-                  onMessageSent={loadMessages}
-                />
-                <MediaUpload
-                  conversationId={conversation.id}
-                  contactNumber={conversation.contact_number}
-                  onMediaSent={loadMessages}
-                />
-                <AudioRecorder
-                  conversationId={conversation.id}
-                  contactNumber={conversation.contact_number}
-                  onSent={loadMessages}
-                  onStartRecording={startRecording}
-                />
-                <QuickReplies
-                  onSelect={(content, templateId) => {
-                    setNewMessage(content);
-                    setSelectedTemplateId(templateId);
-                  }}
-                />
-                <FAQSelector
-                  onSelect={(answer) => {
-                    setNewMessage(answer);
-                  }}
-                />
-                <DocumentSelector
-                  onSelect={(link) => {
-                    setNewMessage((prev) => prev + (prev ? ' ' : '') + link);
-                  }}
-                />
-                <ProductSelector
-                  onProductSelect={(message) => {
-                    setNewMessage(message);
-                  }}
-                />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant={isInternalNote ? 'default' : 'ghost'}
-                  onClick={() => setIsInternalNote(!isInternalNote)}
-                  title="Nota interna (Ctrl+Shift+N)"
-                  className={cn(
-                    'rounded-full',
-                    isInternalNote && 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                  )}
-                >
-                  <EyeOff className="w-5 h-5" />
-                </Button>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1">
+
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <QuickReplies
+                          onSelect={(content, templateId) => {
+                            setNewMessage(content);
+                            setSelectedTemplateId(templateId);
+                          }}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Respostas Rápidas (Templates)</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <FAQSelector
+                          onSelect={(answer) => {
+                            setNewMessage(answer);
+                          }}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Base de Conhecimento / FAQ</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <DocumentSelector
+                          onSelect={(link) => {
+                            setNewMessage((prev) => prev + (prev ? ' ' : '') + link);
+                          }}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Documentos Externos</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <ProductSelector
+                          onProductSelect={(message) => {
+                            setNewMessage(message);
+                          }}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Catálogo de Produtos</TooltipContent>
+                  </Tooltip>
+
+
+                </div>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-border transition-all shadow-sm">
+                      <Brain className={cn("h-4 w-4", aiEnabled ? "text-emerald-500" : "text-slate-400")} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">IA</span>
+                      <Switch
+                        checked={aiEnabled}
+                        onCheckedChange={toggleAI}
+                        disabled={isTogglingAI}
+                        className="scale-75 data-[state=checked]:bg-emerald-500"
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {aiEnabled ? 'Pausar Atendimento Automático (IA)' : 'Retomar Atendimento Automático (IA)'}
+                  </TooltipContent>
+                </Tooltip>
               </div>
 
-              <div className="flex gap-2 relative">
+              <div className="flex gap-2 relative items-center">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="shrink-0">
+                      <MediaUpload
+                        conversationId={conversation.id}
+                        contactNumber={conversation.contact_number}
+                        onMediaSent={loadMessages}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Anexar Arquivos</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant={isInternalNote ? 'outline' : 'ghost'}
+                      onClick={() => setIsInternalNote(!isInternalNote)}
+                      className={cn(
+                        'rounded-full shrink-0',
+                        isInternalNote && 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500'
+                      )}
+                    >
+                      <EyeOff className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {isInternalNote ? 'Desativar Nota Interna' : 'Ativar Nota Interna'}
+                  </TooltipContent>
+                </Tooltip>
+
                 {/* Shortcut suggestions popup */}
                 {isShortcutMode && suggestions.length > 0 && (
                   <ShortcutSuggestions
@@ -806,38 +924,49 @@ const MessageArea = ({
                   )}
                   disabled={isSending}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowShortcutHelp(true)}
-                  title="Ajuda de atalhos"
-                  className="rounded-full"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant={aiEnabled ? 'default' : 'ghost'}
-                  size="icon"
-                  onClick={toggleAI}
-                  disabled={isTogglingAI}
-                  title={aiEnabled ? 'Pausar IA' : 'Ativar IA'}
-                  className={cn(
-                    'rounded-full',
-                    aiEnabled && 'bg-green-600 hover:bg-green-700 text-white'
-                  )}
-                >
-                  {aiEnabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </Button>
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={!newMessage.trim() || isSending}
-                  className="rounded-full bg-primary hover:bg-primary/90 transition-all hover:scale-105"
-                >
-                  <Send className="w-5 h-5" />
-                </Button>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <VariablePicker
+                        hideStandard={true}
+                        onSelect={(variable) => {
+                          setNewMessage((prev) => prev + variable);
+                          inputRef.current?.focus();
+                        }}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Inserir Variáveis Dinâmicas</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <AudioRecorder
+                        conversationId={conversation.id}
+                        contactNumber={conversation.contact_number}
+                        onSent={loadMessages}
+                        onStartRecording={startRecording}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Gravar Áudio</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={!newMessage.trim() || isSending}
+                      className="rounded-full bg-primary hover:bg-primary/90 transition-all hover:scale-105"
+                    >
+                      <Send className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Enviar Mensagem (Enter)</TooltipContent>
+                </Tooltip>
               </div>
               {isInternalNote && (
                 <div className="text-xs text-yellow-700 dark:text-yellow-400 flex items-center gap-1">

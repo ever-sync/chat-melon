@@ -11,16 +11,16 @@ export type CustomField = {
   field_name: string;
   field_label: string;
   field_type:
-    | 'text'
-    | 'number'
-    | 'date'
-    | 'select'
-    | 'multiselect'
-    | 'boolean'
-    | 'url'
-    | 'email'
-    | 'phone'
-    | 'currency';
+  | 'text'
+  | 'number'
+  | 'date'
+  | 'select'
+  | 'multiselect'
+  | 'boolean'
+  | 'url'
+  | 'email'
+  | 'phone'
+  | 'currency';
   options?: string[];
   is_required: boolean;
   default_value?: string;
@@ -63,7 +63,7 @@ export const useCustomFields = (entityType: 'contact' | 'deal' | 'company') => {
   });
 
   const createField = useMutation({
-    mutationFn: async (field: TablesInsert<'custom_fields'>) => {
+    mutationFn: async (field: Omit<TablesInsert<'custom_fields'>, 'company_id' | 'entity_type'>) => {
       const { data, error } = await supabase
         .from('custom_fields')
         .insert({

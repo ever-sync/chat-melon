@@ -29,6 +29,7 @@ import { ApiKeyManager } from '@/components/settings/ApiKeyManager';
 import { WebhookManager } from '@/components/settings/WebhookManager';
 import { ChannelsSettings } from '@/components/settings/ChannelsSettings';
 import { TabulationsManager } from '@/components/settings/TabulationsManager';
+import { VariablesManager } from '@/components/settings/VariablesManager';
 import UsersPage from '@/pages/settings/UsersPage';
 import AISettingsPage from '@/pages/settings/AISettingsPage';
 import {
@@ -314,6 +315,7 @@ export default function NewSettings() {
                 <span className="font-medium">Tabulação</span>
               </TabsTrigger>
 
+
               <Separator className="my-3" />
 
               {/* Integrações */}
@@ -563,6 +565,7 @@ export default function NewSettings() {
             <TabsContent value="tabulations" className="m-0">
               <TabulationsManager />
             </TabsContent>
+
           </div>
         </Tabs>
       </div>

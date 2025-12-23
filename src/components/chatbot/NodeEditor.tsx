@@ -1,5 +1,6 @@
 import { memo, useState, useEffect } from 'react';
-import { X, Plus, Trash2, GripVertical } from 'lucide-react';
+import { X, Plus, Trash2, GripVertical, Variable } from 'lucide-react';
+import { VariablePicker } from '@/components/chat/VariablePicker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -67,7 +68,22 @@ export const NodeEditor = memo(function NodeEditor({
         return (
           <div className="space-y-4">
             <div>
-              <Label>Mensagem</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Mensagem</Label>
+                <VariablePicker
+                  onSelect={(v) => handleChange('content', (localData.content || '') + v)}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Variable className="h-3 w-3" />
+                      Variáveis
+                    </Button>
+                  }
+                />
+              </div>
               <Textarea
                 value={(localData.content as string) || ''}
                 onChange={(e) => handleChange('content', e.target.value)}
@@ -126,7 +142,23 @@ export const NodeEditor = memo(function NodeEditor({
         return (
           <div className="space-y-4">
             <div>
-              <Label>Pergunta</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Pergunta</Label>
+                <VariablePicker
+                  hideStandard={true}
+                  onSelect={(v) => handleChange('question', (localData.question || '') + v)}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Variable className="h-3 w-3" />
+                      Variáveis
+                    </Button>
+                  }
+                />
+              </div>
               <Textarea
                 value={(localData.question as string) || ''}
                 onChange={(e) => handleChange('question', e.target.value)}

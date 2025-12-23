@@ -13,7 +13,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Info } from 'lucide-react';
+import { Info, Variable } from 'lucide-react';
+import { VariablePicker } from '../VariablePicker';
 import type { Template } from '@/hooks/useTemplates';
 import type { TablesInsert } from '@/integrations/supabase/types';
 
@@ -89,7 +90,24 @@ export const TemplateModal = ({ open, onOpenChange, template, onSubmit }: Templa
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Conteúdo da Mensagem *</Label>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="content">Conteúdo da Mensagem *</Label>
+              <VariablePicker
+                hideStandard={true}
+                onSelect={(v) => setValue('content', (watch('content') || '') + v)}
+                trigger={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                  >
+                    <Variable className="h-3 w-3" />
+                    Variáveis
+                  </Button>
+                }
+              />
+            </div>
             <Textarea
               id="content"
               {...register('content', { required: true })}

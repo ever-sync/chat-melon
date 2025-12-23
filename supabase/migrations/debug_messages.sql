@@ -1,23 +1,40 @@
--- DIAGNOSTICO DE MENSAGENS
--- Substitua 'ID_DA_CONVERSA' pelo ID de uma conversa que você sabe que tem mensagens
--- Vou usar um ID genérico aqui, mas você pode pegar um id da lista de conversas
--- ex: SELECT id FROM conversations LIMIT 1;
+-- Verificar últimas mensagens com mídia
+SELECT
+  id,
+  content,
+  message_type,
+  media_type,
+  media_url,
+  is_from_me,
+  created_at,
+  LENGTH(media_url) as url_length
+FROM messages
+WHERE created_at > NOW() - INTERVAL '1 hour'
+ORDER BY created_at DESC
+LIMIT 20;
 
-WITH target_conv AS (
-    SELECT id FROM conversations LIMIT 1
-)
-SELECT 
-    m.id,
-    m.content,
-    m.message_type,
-    m.created_at,
-    m.sender_name,
-    m.from_me
-FROM messages m, target_conv tc
-WHERE m.conversation_id = tc.id
-LIMIT 5;
+-- Verificar se tem URL do storage
+SELECT
+  id,
+  content,
+  media_url,
+  CASE
+    WHEN media_url LIKE '%supabase.co/storage%' THEN 'Supabase Storage ✅'
+    WHEN media_url LIKE 'http%' THEN 'URL Externa ⚠️'
+    ELSE 'Sem URL ❌'
+  END as storage_type
+FROM messages
+WHERE media_url IS NOT NULL
+ORDER BY created_at DESC
+LIMIT 10;
 
--- Verificar TOTAL de mensagens vs mensagens visíveis para o usuário atual
-SELECT 
-    (SELECT COUNT(*) FROM messages) as total_absoluto_mensagens,
-    (SELECT COUNT(*) FROM messages WHERE company_id IN (SELECT company_id FROM company_members WHERE user_id = auth.uid())) as total_msg_visiveis_rls_company;
+-- Verificar arquivos no bucket
+SELECT
+  name,
+  created_at,
+  metadata->>'mimetype' as mime_type,
+  pg_size_pretty(COALESCE((metadata->>'size')::bigint, 0)) as size
+FROM storage.objects
+WHERE bucket_id = 'message-media'
+ORDER BY created_at DESC
+LIMIT 10;

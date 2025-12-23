@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Variable } from 'lucide-react';
+import { VariablePicker } from '@/components/chat/VariablePicker';
 import { Node } from 'reactflow';
 import { usePipelines } from '@/hooks/crm/usePipelines';
 import { Badge } from '@/components/ui/badge';
@@ -353,7 +354,23 @@ export const NodeConfigPanel = ({
         case 'send_email':
           return (
             <div className="space-y-2">
-              <Label>Mensagem</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Mensagem</Label>
+                <VariablePicker
+                  hideStandard={true}
+                  onSelect={(v) => updateConfig('message', (config.message || '') + v)}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Variable className="h-3 w-3" />
+                      Variáveis
+                    </Button>
+                  }
+                />
+              </div>
               <Textarea
                 value={config.message || ''}
                 onChange={(e) => updateConfig('message', e.target.value)}
