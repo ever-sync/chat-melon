@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -226,6 +226,38 @@ export function useAgentPerformance(agentId?: string) {
     };
   }, [targetAgentId, queryClient]);
 
+  // Mutation para atualizar manualmente os snapshots de performance
+  const refreshPerformanceMutation = useMutation({
+    mutationFn: async (params?: { companyId?: string }) => {
+      const { data, error } = await supabase.functions.invoke('ai-analyze-agent-performance', {
+        body: {
+          agent_id: targetAgentId,
+          company_id: params?.companyId,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['agent-performance-snapshot', targetAgentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['agent-performance-history', targetAgentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['agent-quality-today', targetAgentId],
+      });
+    },
+  });
+
+  // Callback para refresh manual
+  const refreshPerformance = useCallback(
+    (companyId?: string) => refreshPerformanceMutation.mutate({ companyId }),
+    [refreshPerformanceMutation]
+  );
+
   return {
     currentSnapshot,
     snapshots: snapshots || [],
@@ -233,6 +265,8 @@ export function useAgentPerformance(agentId?: string) {
     comparison,
     isLoading: isLoadingSnapshot || isLoadingHistory || isLoadingQuality,
     error: snapshotError,
+    refreshPerformance,
+    isRefreshing: refreshPerformanceMutation.isPending,
   };
 }
 

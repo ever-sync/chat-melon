@@ -8,9 +8,11 @@ import { useAssistant } from '@/hooks/ai-assistant';
 
 interface FloatingAssistantProps {
   className?: string;
+  conversationId?: string;
+  companyId?: string;
 }
 
-export function FloatingAssistant({ className }: FloatingAssistantProps) {
+export function FloatingAssistant({ className, conversationId, companyId }: FloatingAssistantProps) {
   const {
     isExpanded,
     toggleExpanded,
@@ -47,7 +49,11 @@ export function FloatingAssistant({ className }: FloatingAssistantProps) {
       )}
     >
       {isExpanded ? (
-        <AssistantPanel onClose={toggleExpanded} />
+        <AssistantPanel
+          onClose={toggleExpanded}
+          conversationId={conversationId}
+          companyId={companyId}
+        />
       ) : (
         <Button
           onClick={toggleExpanded}
@@ -104,7 +110,11 @@ export function FloatingAssistantWrapper({
       companyId={companyId}
       currentConversationId={currentConversationId}
     >
-      <FloatingAssistant className={className} />
+      <FloatingAssistant
+        className={className}
+        conversationId={currentConversationId}
+        companyId={companyId}
+      />
     </AssistantProvider>
   );
 }

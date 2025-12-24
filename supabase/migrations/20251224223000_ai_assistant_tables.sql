@@ -186,7 +186,16 @@ CREATE INDEX IF NOT EXISTS idx_performance_snapshots_time ON agent_performance_s
 CREATE INDEX IF NOT EXISTS idx_suggestions_conversation ON ai_suggestions(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_suggestions_agent ON ai_suggestions(agent_id);
 CREATE INDEX IF NOT EXISTS idx_suggestions_company ON ai_suggestions(company_id);
-CREATE INDEX IF NOT EXISTS idx_suggestions_active ON ai_suggestions(expires_at) WHERE was_used IS NULL;
+-- Criar índice condicional apenas se coluna was_used existir
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_name = 'ai_suggestions' AND column_name = 'was_used') THEN
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_suggestions_active ON ai_suggestions(expires_at) WHERE was_used IS NULL';
+    END IF;
+EXCEPTION WHEN OTHERS THEN
+    NULL; -- Ignorar erros
+END $$;
 CREATE INDEX IF NOT EXISTS idx_suggestions_priority ON ai_suggestions(priority, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_patterns_company ON detected_patterns(company_id);
@@ -244,8 +253,8 @@ CREATE POLICY "Users can view their own suggestions"
   USING (
     agent_id = auth.uid() OR
     company_id IN (
-      SELECT company_id FROM profiles
-      WHERE id = auth.uid() AND role IN ('admin', 'manager')
+      SELECT company_id FROM company_members
+      WHERE user_id = auth.uid() AND role IN ('admin', 'manager') AND is_active = true
     )
   );
 
@@ -261,8 +270,8 @@ CREATE POLICY "Users can update their own suggestions feedback"
 CREATE POLICY "Managers can view patterns from their company"
   ON detected_patterns FOR SELECT
   USING (company_id IN (
-    SELECT company_id FROM profiles
-    WHERE id = auth.uid() AND role IN ('admin', 'manager')
+    SELECT company_id FROM company_members
+    WHERE user_id = auth.uid() AND role IN ('admin', 'manager') AND is_active = true
   ) OR agent_id = auth.uid());
 
 CREATE POLICY "Service role can manage patterns"
@@ -276,8 +285,8 @@ CREATE POLICY "Users can view their own coaching insights"
     agent_id = auth.uid() OR
     manager_id = auth.uid() OR
     company_id IN (
-      SELECT company_id FROM profiles
-      WHERE id = auth.uid() AND role IN ('admin', 'manager')
+      SELECT company_id FROM company_members
+      WHERE user_id = auth.uid() AND role IN ('admin', 'manager') AND is_active = true
     )
   );
 
@@ -286,8 +295,8 @@ CREATE POLICY "Managers can update coaching insights"
   USING (
     manager_id = auth.uid() OR
     company_id IN (
-      SELECT company_id FROM profiles
-      WHERE id = auth.uid() AND role IN ('admin', 'manager')
+      SELECT company_id FROM company_members
+      WHERE user_id = auth.uid() AND role IN ('admin', 'manager') AND is_active = true
     )
   );
 

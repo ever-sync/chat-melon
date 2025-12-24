@@ -14,9 +14,11 @@ import { AssistantTab } from '@/types/ai-assistant';
 
 interface AssistantPanelProps {
   onClose: () => void;
+  conversationId?: string;
+  companyId?: string;
 }
 
-export function AssistantPanel({ onClose }: AssistantPanelProps) {
+export function AssistantPanel({ onClose, conversationId, companyId }: AssistantPanelProps) {
   const { activeTab, setActiveTab, alertCount, urgentAlerts } = useAssistant();
 
   const tabs: {
@@ -108,7 +110,10 @@ export function AssistantPanel({ onClose }: AssistantPanelProps) {
             </TabsContent>
 
             <TabsContent value="suggestions" className="m-0">
-              <ContextualSuggestions />
+              <ContextualSuggestions
+                conversationId={conversationId}
+                companyId={companyId}
+              />
             </TabsContent>
 
             <TabsContent value="tips" className="m-0">

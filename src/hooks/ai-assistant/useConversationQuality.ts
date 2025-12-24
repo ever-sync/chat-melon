@@ -101,6 +101,25 @@ export function useConversationQuality({
       agentId: string;
       companyId: string;
     }): Promise<QualityAnalysisResult> => {
+      // Buscar chaves de API da empresa
+      let geminiApiKey = '';
+      let openaiApiKey = '';
+      let groqApiKey = '';
+
+      if (companyId) {
+        const { data: settings } = await supabase
+          .from('ai_settings')
+          .select('gemini_api_key, openai_api_key, groq_api_key')
+          .eq('company_id', companyId)
+          .maybeSingle();
+
+        if (settings) {
+          geminiApiKey = settings.gemini_api_key || '';
+          openaiApiKey = settings.openai_api_key || '';
+          groqApiKey = settings.groq_api_key || '';
+        }
+      }
+
       // Chamar Edge Function para análise
       const { data, error } = await supabase.functions.invoke('ai-quality-scoring', {
         body: {
@@ -108,6 +127,9 @@ export function useConversationQuality({
           messages,
           agent_id: agentId,
           company_id: companyId,
+          geminiApiKey,
+          openaiApiKey,
+          groqApiKey,
         },
       });
 

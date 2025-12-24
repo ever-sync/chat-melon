@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Clock,
   Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,18 +17,29 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAssistant } from '@/hooks/ai-assistant';
+import { useContextualSuggestions } from '@/hooks/ai-assistant/useContextualSuggestions';
 import { useCopyToClipboard } from '@/hooks/ui/useCopyToClipboard';
 import { useToast } from '@/hooks/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AISuggestion,
   Priority,
   SuggestionType,
   getPriorityColor,
+  MessageForAnalysis,
 } from '@/types/ai-assistant';
 import { sortSuggestions } from '@/hooks/ai-assistant/useContextualSuggestions';
 
-export function ContextualSuggestions() {
-  const { allSuggestions, isLoading, isGenerating } = useAssistant();
+interface ContextualSuggestionsProps {
+  conversationId?: string;
+  companyId?: string;
+}
+
+export function ContextualSuggestions({ conversationId, companyId }: ContextualSuggestionsProps = {}) {
+  const { allSuggestions, isLoading, isGenerating, generateSuggestions } = useAssistant();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   // Filtrar apenas sugestões (não alertas)
   const suggestions = sortSuggestions(
@@ -38,6 +50,64 @@ export function ContextualSuggestions() {
     return <SuggestionsSkeleton />;
   }
 
+  // Função para gerar sugestões manualmente
+  const handleGenerateSuggestions = async () => {
+    if (!conversationId || !companyId) {
+      toast({
+        title: 'Selecione uma conversa',
+        description: 'Selecione uma conversa para gerar sugestões.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Buscar últimas mensagens da conversa
+      const { data: recentMessages } = await supabase
+        .from('messages')
+        .select('id, content, is_from_me, created_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (!recentMessages || recentMessages.length === 0) {
+        toast({
+          title: 'Sem mensagens',
+          description: 'Não há mensagens suficientes para gerar sugestões.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const messages: MessageForAnalysis[] = recentMessages
+        .reverse()
+        .map((m: any) => ({
+          id: m.id,
+          content: m.content || '',
+          sender_type: m.is_from_me ? 'agent' : 'contact',
+          created_at: m.created_at,
+        }));
+
+      generateSuggestions({
+        conversationId,
+        companyId,
+        messages,
+        trigger: 'manual',
+      });
+
+      toast({
+        title: 'Gerando sugestões...',
+        description: 'As sugestões aparecerão em instantes.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível gerar sugestões.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (suggestions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -46,8 +116,25 @@ export function ContextualSuggestions() {
           Nenhuma sugestão no momento
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Sugestões aparecerão conforme você atende clientes
+          {conversationId
+            ? 'Clique abaixo para gerar sugestões para esta conversa'
+            : 'Selecione uma conversa para gerar sugestões'
+          }
         </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-4"
+          onClick={handleGenerateSuggestions}
+          disabled={isGenerating || !conversationId}
+        >
+          {isGenerating ? (
+            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4 mr-2" />
+          )}
+          {conversationId ? 'Gerar sugestões agora' : 'Selecione uma conversa'}
+        </Button>
       </div>
     );
   }

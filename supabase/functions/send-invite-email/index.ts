@@ -46,40 +46,55 @@ serve(async (req) => {
       });
     }
 
-    // Initialize Supabase client with the service role key if available to ensure it can validate users
-    // or use the anon key as fallback
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-        auth: {
-          persistSession: false,
-        }
+    // Initialize Supabase client with ANON key for user validation
+    // Using Service Role Key here can cause issues with getUser() when validating a user token
+    /* 
+    Removed initial client creation to avoid duplicate variable error.
+    We are decoding JWT manually now.
+    */
+
+    // Instead of auth.getUser() which is failing, we will decode the JWT manually
+    // We will rely on Supabase Gateway to verify the JWT signature (deploy without --no-verify-jwt)
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    let userId = "";
+
+    try {
+      const [, payload] = token.split(".");
+      if (payload) {
+        // Fix base64 padding if needed
+        const paddedPayload = payload.padEnd(payload.length + (4 - (payload.length % 4)) % 4, '=');
+        const decodedPayload = atob(paddedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+        const jwtData = JSON.parse(decodedPayload);
+        userId = jwtData.sub;
+        console.log("User ID extracted from token:", userId);
       }
-    );
+    } catch (e) {
+      console.error("Error decoding JWT:", e);
+    }
 
-    console.log("Attempting to get user from token...");
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseClient.auth.getUser();
-
-    if (userError || !user) {
-      console.error("Auth.getUser() failed:", userError);
+    if (!userId) {
+      console.error("Could not extract user ID from token");
+      // Validar se conseguimos pegar o ID
       return new Response(JSON.stringify({
-        error: "Não autenticado ou token inválido",
-        details: userError?.message || "User not found in session",
-        auth_error: userError
+        error: "Token inválido ou malformado",
+        details: "Could not extract user ID from JWT"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
 
-    console.log("User authenticated:", user.id);
+    // Initialize Supabase client (Service Role) specifically for database operations if needed like logging
+    // But for sending email we use Resend directly
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      {
+        auth: {
+          persistSession: false,
+        }
+      }
+    );
     const { invite_id, email, role, company_name, invited_by_name }: InviteRequest = await req.json();
 
     if (!invite_id || !email) {

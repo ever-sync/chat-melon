@@ -84,6 +84,8 @@ export default function FAQ() {
       answer: string;
       category_id: string | null;
     }) => {
+      if (!companyId) throw new Error('Empresa não identificada');
+
       const { error } = await supabase.from('company_faqs').insert({
         company_id: companyId,
         ...newFaq,
@@ -136,6 +138,8 @@ export default function FAQ() {
   // --- MUTATIONS: CATEGORIES ---
   const createCatMutation = useMutation({
     mutationFn: async (newCat: { name: string }) => {
+      if (!companyId) throw new Error('Empresa não identificada');
+
       const { error } = await supabase.from('faq_categories').insert({
         company_id: companyId,
         ...newCat,
