@@ -32,27 +32,54 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      }
-    );
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+    console.log("Authorization Header Present:", !!authHeader);
 
-    const {
-      data: { user },
-    } = await supabaseClient.auth.getUser();
-
-    if (!user) {
-      return new Response(JSON.stringify({ error: "Não autenticado" }), {
+    if (!authHeader) {
+      console.error("Missing Authorization header");
+      return new Response(JSON.stringify({
+        error: "Missing Authorization header",
+        suggestion: "Verify if the client is authenticated before calling this function."
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
 
+    // Initialize Supabase client with the service role key if available to ensure it can validate users
+    // or use the anon key as fallback
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+        auth: {
+          persistSession: false,
+        }
+      }
+    );
+
+    console.log("Attempting to get user from token...");
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+      console.error("Auth.getUser() failed:", userError);
+      return new Response(JSON.stringify({
+        error: "Não autenticado ou token inválido",
+        details: userError?.message || "User not found in session",
+        auth_error: userError
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    console.log("User authenticated:", user.id);
     const { invite_id, email, role, company_name, invited_by_name }: InviteRequest = await req.json();
 
     if (!invite_id || !email) {

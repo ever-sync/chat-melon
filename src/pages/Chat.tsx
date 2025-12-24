@@ -8,6 +8,7 @@ import { AIControlPanel } from '@/components/chat/AIControlPanel';
 import { BulkActionsToolbar } from '@/components/chat/BulkActionsToolbar';
 import { SnoozedConversationsBadge } from '@/components/chat/sidebar/SnoozedConversationsBadge';
 import { ConversationActions } from '@/components/chat/ConversationActions';
+import { FloatingAssistantWrapper } from '@/components/ai-assistant/FloatingAssistant';
 
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/ui/useNotifications';
@@ -100,8 +101,8 @@ const Chat = () => {
             )
           `)
       )
-      .neq('status', 'closed') // Ocultar conversas encerradas
-      .order('last_message_time', { ascending: false });
+        .neq('status', 'closed') // Ocultar conversas encerradas
+        .order('last_message_time', { ascending: false });
 
       if (error) {
         console.error('❌ Chat: Erro na query:', error);
@@ -469,20 +470,20 @@ const Chat = () => {
           prev.map((c) =>
             c.id === conversation.id
               ? {
-                  ...c,
-                  status: c.status === 'waiting' ? 'active' : c.status,
-                  unread_count: 0,
-                }
+                ...c,
+                status: c.status === 'waiting' ? 'active' : c.status,
+                unread_count: 0,
+              }
               : c
           )
         );
         setSelectedConversation((prev) =>
           prev
             ? {
-                ...prev,
-                status: prev.status === 'waiting' ? 'active' : prev.status,
-                unread_count: 0,
-              }
+              ...prev,
+              status: prev.status === 'waiting' ? 'active' : prev.status,
+              unread_count: 0,
+            }
             : prev
         );
       } catch (error) {
@@ -575,6 +576,14 @@ const Chat = () => {
             />
           )}
         </div>
+
+        {/* Assistente IA Flutuante */}
+        {companyId && (
+          <FloatingAssistantWrapper
+            companyId={companyId}
+            currentConversationId={selectedConversation?.id}
+          />
+        )}
       </div>
     </MainLayout>
   );

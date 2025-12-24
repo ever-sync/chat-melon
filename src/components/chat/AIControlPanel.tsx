@@ -134,11 +134,19 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
   const loadSuggestions = useCallback(async () => {
     const { data } = await supabase
       .from('ai_suggestions')
-      .select('*')
+      .select('*, content, suggested_response, suggestion_type, type')
       .eq('conversation_id', conversationId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
-    setSuggestions(data || []);
+
+    // Unificar o conteúdo para exibição
+    const unified = (data || []).map((s: any) => ({
+      ...s,
+      content: s.content || s.suggested_response || '',
+      suggestion_type: s.suggestion_type || s.type || 'response'
+    }));
+
+    setSuggestions(unified as AISuggestion[]);
   }, [conversationId]);
 
   const loadData = useCallback(async () => {

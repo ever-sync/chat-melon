@@ -74,6 +74,11 @@ type Message = {
   location_data?: any;
   contact_data?: any;
   reaction?: string;
+  sender?: {
+    name: string;
+    avatar_url?: string;
+    message_color?: string;
+  };
 };
 
 type MessageAreaProps = {
@@ -111,7 +116,7 @@ const MessageArea = ({
   const [isTogglingAI, setIsTogglingAI] = useState(false);
   const [showTabulationModal, setShowTabulationModal] = useState(false);
   const [isResolvingConversation, setIsResolvingConversation] = useState(false);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{ full_name: string; first_name: string } | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ full_name: string; first_name: string; message_color?: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -171,12 +176,12 @@ const MessageArea = ({
       if (user) {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, first_name')
+          .select('full_name, first_name, message_color')
           .eq('id', user.id)
           .maybeSingle();
 
         if (data) {
-          setCurrentUserProfile(data);
+          setCurrentUserProfile(data as any);
         }
       }
     };
@@ -358,6 +363,15 @@ const MessageArea = ({
           setMessages((prev) => {
             const exists = prev.some((m) => m.id === newMsg.id);
             if (exists) return prev;
+
+            // Injetar informações do remetente se for eu (para garantir a cor)
+            if (newMsg.is_from_me && !newMsg.sender && currentUserProfile) {
+              newMsg.sender = {
+                name: currentUserProfile.full_name,
+                message_color: currentUserProfile.message_color
+              };
+            }
+
             return [...prev, newMsg];
           });
 
@@ -460,7 +474,8 @@ const MessageArea = ({
       const { data, error } = await supabase
         .from('messages')
         .select(
-          'id, content, is_from_me, is_from_ai, ai_model, ai_confidence, ai_intent_detected, ai_sentiment, timestamp, status, media_url, media_type, message_type, edited_at, deleted_at, delivered_at, read_at, played_at, external_id, poll_data, list_data, location_data, contact_data, reaction'
+          `id, content, is_from_me, is_from_ai, ai_model, ai_confidence, ai_intent_detected, ai_sentiment, timestamp, status, media_url, media_type, message_type, edited_at, deleted_at, delivered_at, read_at, played_at, external_id, poll_data, list_data, location_data, contact_data, reaction,
+           sender:profiles!messages_user_id_fkey(name:full_name, avatar_url, message_color)`
         )
         .eq('conversation_id', conversation.id)
         .is('deleted_at', null)
@@ -474,7 +489,7 @@ const MessageArea = ({
       console.log('✅ Mensagens carregadas:', data?.length || 0);
       console.log('📨 Primeiras 3 mensagens:', data?.slice(0, 3));
 
-      setMessages(data || []);
+      setMessages((data as any) || []);
 
       // Marcar mensagens como lidas quando abrir a conversa
       if (conversation.unread_count > 0) {
@@ -543,6 +558,10 @@ const MessageArea = ({
         is_from_me: true,
         timestamp: new Date().toISOString(),
         status: 'sending',
+        sender: currentUserProfile ? {
+          name: currentUserProfile.full_name,
+          message_color: currentUserProfile.message_color
+        } : undefined
       };
 
       setMessages((prev) => [...prev, tempMessage]);

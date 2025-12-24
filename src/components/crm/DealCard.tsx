@@ -176,7 +176,7 @@ export const DealCard = ({
       className={`cursor-move hover:shadow-md transition-all ${isSelected ? 'ring-2 ring-indigo-500 shadow-lg' : ''}`}
       onClick={() => onView(deal)}
     >
-      <CardContent className="p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+      <CardContent className="p-4 space-y-3 cursor-pointer">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {/* Checkbox para seleção múltipla */}
@@ -191,8 +191,14 @@ export const DealCard = ({
                 {deal.contacts?.name?.[0] || deal.contacts?.phone_number[0]}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">
+            <div
+              className="flex-1 min-w-0 cursor-pointer group/name"
+              onClick={(e) => {
+                e.stopPropagation();
+                onView(deal);
+              }}
+            >
+              <p className="font-medium text-sm truncate group-hover/name:text-indigo-600 transition-colors">
                 {deal.contacts?.name || deal.contacts?.phone_number}
               </p>
               <p className="text-xs text-muted-foreground truncate">{deal.title}</p>
@@ -287,7 +293,7 @@ export const DealCard = ({
                 {deal.probability}%
               </Badge>
             )}
-            <DealTemperatureIcon temperature={deal.temperature} />
+            <DealTemperatureIcon temperature={deal.temperature as any} />
             {getBantProgress() > 0 && (
               <Badge variant="outline" className="text-xs">
                 BANT {getBantProgress()}%

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import confetti from 'canvas-confetti';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -97,6 +97,11 @@ export const DealWinLossModal = ({ open, onOpenChange, type, onSubmit }: DealWin
               </>
             )}
           </DialogTitle>
+          <DialogDescription>
+            {type === 'won'
+              ? 'Parabéns pela vitória! Registre os detalhes para o histórico.'
+              : 'Registre o motivo da perda para ajudar em futuras negociações.'}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">

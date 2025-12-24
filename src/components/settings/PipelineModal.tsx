@@ -16,6 +16,7 @@ import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, ShoppingCart, Headphones, Users, Handshake } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PipelineModalProps {
   open: boolean;
@@ -245,60 +246,47 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{pipeline ? 'Editar Pipeline' : 'Novo Pipeline'}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-8 text-white relative">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <Briefcase className="w-32 h-32" />
+          </div>
+          <DialogTitle className="text-3xl font-bold mb-2">
+            {pipeline ? 'Editar Pipeline' : 'Novo Pipeline'}
+          </DialogTitle>
+          <DialogDescription className="text-indigo-100 text-lg">
             {pipeline
-              ? 'Atualize as informações do pipeline'
-              : 'Crie um novo pipeline ou use um template'}
+              ? 'Atualize as informações do seu fluxo de vendas'
+              : 'Comece com um de nossos templates profissionais ou crie do zero'}
           </DialogDescription>
-        </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="p-8 space-y-8 bg-gray-50/50">
           {!pipeline && (
-            <Tabs defaultValue="custom" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="custom">Personalizado</TabsTrigger>
-                <TabsTrigger value="templates">Templates</TabsTrigger>
+            <Tabs defaultValue="templates" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-2xl h-14">
+                <TabsTrigger value="templates" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-base transition-all">
+                  Usar Template
+                </TabsTrigger>
+                <TabsTrigger value="custom" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-base transition-all">
+                  Personalizado
+                </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="custom" className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Pipeline *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ex: Pipeline de Vendas"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Descrição do pipeline"
-                    rows={3}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="templates" className="mt-4">
-                <div className="grid gap-4 md:grid-cols-2">
+              <TabsContent value="templates" className="mt-8">
+                <div className="grid gap-6 md:grid-cols-2">
                   {PIPELINE_TEMPLATES.map((template) => {
                     const Icon = template.icon;
+                    const isActive = selectedTemplate === template.id;
                     return (
                       <Card
                         key={template.id}
-                        className={`cursor-pointer transition-all ${
-                          selectedTemplate === template.id
-                            ? 'ring-2 ring-primary'
-                            : 'hover:border-primary'
-                        }`}
+                        className={cn(
+                          "cursor-pointer transition-all duration-300 rounded-3xl border-2 hover:shadow-xl group relative overflow-hidden",
+                          isActive
+                            ? "border-indigo-500 bg-indigo-50/50 shadow-lg shadow-indigo-100 ring-1 ring-indigo-500"
+                            : "border-gray-100 hover:border-indigo-200"
+                        )}
                         onClick={() => {
                           setSelectedTemplate(template.id);
                           setFormData({
@@ -307,62 +295,104 @@ export function PipelineModal({ open, onOpenChange, pipeline }: PipelineModalPro
                           });
                         }}
                       >
-                        <CardHeader>
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10">
-                              <Icon className="h-5 w-5 text-primary" />
+                        <CardHeader className="p-5">
+                          <div className="flex items-center gap-4">
+                            <div className={cn(
+                              "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm",
+                              isActive ? "bg-indigo-500 text-white scale-110" : "bg-gray-100 text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500"
+                            )}>
+                              <Icon className="h-6 w-6" />
                             </div>
                             <div>
-                              <CardTitle className="text-base">{template.name}</CardTitle>
-                              <CardDescription className="text-xs">
-                                {template.stages.length} etapas
+                              <CardTitle className="text-lg font-bold">{template.name}</CardTitle>
+                              <CardDescription className="text-xs font-bold uppercase tracking-widest text-indigo-500/70">
+                                {template.stages.length} Etapas Estruturadas
                               </CardDescription>
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">{template.description}</p>
+                        <CardContent className="p-5 pt-0">
+                          <p className="text-sm text-gray-500 font-medium leading-relaxed">{template.description}</p>
                         </CardContent>
                       </Card>
                     );
                   })}
                 </div>
               </TabsContent>
+
+              <TabsContent value="custom" className="space-y-6 mt-8">
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-bold text-gray-700 ml-1">Nome do Pipeline</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Ex: Vendas Complexas High Ticket"
+                      className="rounded-2xl h-12 border-gray-200 focus:ring-indigo-500 text-base"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="text-sm font-bold text-gray-700 ml-1">Descrição Estratégica</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Como este pipeline ajudará seu time?"
+                      className="rounded-2xl border-gray-200 focus:ring-indigo-500 text-base min-h-[120px]"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
             </Tabs>
           )}
 
           {pipeline && (
-            <div className="space-y-4">
+            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome do Pipeline *</Label>
+                <Label htmlFor="name" className="text-sm font-bold text-gray-700 ml-1">Nome do Pipeline</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ex: Pipeline de Vendas"
+                  className="rounded-2xl h-12 border-gray-200 focus:ring-indigo-500 text-base"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description" className="text-sm font-bold text-gray-700 ml-1">Descrição</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Descrição do pipeline"
+                  className="rounded-2xl border-gray-200 focus:ring-indigo-500 text-base min-h-[120px]"
                   rows={3}
                 />
               </div>
             </div>
           )}
 
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-4 pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              className="rounded-2xl h-12 px-6 font-bold text-gray-500 hover:bg-gray-100"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : pipeline ? 'Atualizar' : 'Criar'}
+            <Button
+              type="submit"
+              disabled={loading || (!pipeline && !formData.name)}
+              className="rounded-2xl h-12 px-10 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-xl shadow-indigo-500/20 font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {loading ? 'Processando...' : pipeline ? 'Salvar Alterações' : 'Criar Pipeline'}
             </Button>
           </div>
         </form>

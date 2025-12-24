@@ -187,6 +187,7 @@ export const AIAssistant = ({
       console.error('Error analyzing conversation:', error);
       toast.error('Não foi possível analisar a conversa');
     } finally {
+      setIsLoading(false);
     }
   }, [messages, conversation, currentCompany, tone, useKnowledgeBase]);
 
@@ -334,50 +335,52 @@ export const AIAssistant = ({
                 <p className="text-xs text-center text-muted-foreground">A partir de R$ 49/mês</p>
               </CardContent>
             </Card>
-          ) : kbResult ? (
+          ) : (
             <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Book className="w-4 h-4 text-violet-500" />
-                      Resposta Sugerida (KB)
-                    </span>
-                    <Badge
-                      variant={kbResult.confidence > 0.7 ? 'default' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {(kbResult.confidence * 100).toFixed(0)}% confiança
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-xs leading-relaxed">{kbResult.answer}</p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="h-6 text-xs flex-1"
-                      onClick={() => onUseSuggestion(kbResult.answer)}
-                    >
-                      Usar Resposta
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => {
-                        navigator.clipboard.writeText(kbResult.answer);
-                        toast.success('Copiado!');
-                      }}
-                    >
-                      <Copy className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              {kbResult && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <Book className="w-4 h-4 text-violet-500" />
+                        Resposta Sugerida (KB)
+                      </span>
+                      <Badge
+                        variant={kbResult.confidence > 0.7 ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {(kbResult.confidence * 100).toFixed(0)}% confiança
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-xs leading-relaxed">{kbResult.answer}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="h-6 text-xs flex-1"
+                        onClick={() => onUseSuggestion(kbResult.answer)}
+                      >
+                        Usar Resposta
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => {
+                          navigator.clipboard.writeText(kbResult.answer);
+                          toast.success('Copiado!');
+                        }}
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-              {kbResult.sources && kbResult.sources.length > 0 && (
+              {kbResult?.sources && kbResult.sources.length > 0 && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm flex items-center gap-2">
@@ -402,201 +405,203 @@ export const AIAssistant = ({
                   </CardContent>
                 </Card>
               )}
-            </div>
-          ) : analysis ? (
-            <>
-              {/* Análise da Conversa */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">📊 Análise da Conversa</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Sentimento */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Sentimento</span>
-                      <span className="font-medium">
-                        {getSentimentEmoji(analysis.sentiment)}{' '}
-                        {analysis.sentiment >= 0.7
-                          ? 'Positivo'
-                          : analysis.sentiment >= 0.4
-                            ? 'Neutro'
-                            : 'Negativo'}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Temperatura */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Temperatura</span>
-                    <div className="flex items-center gap-1">
-                      {getTemperatureIcon(analysis.temperature)}
-                      <span className="text-xs font-medium">
-                        {analysis.temperature === 'hot'
-                          ? '🔥 Quente'
-                          : analysis.temperature === 'warm'
-                            ? '🌡️ Morno'
-                            : '❄️ Frio'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Intenção */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Intenção</span>
-                    <Badge variant={getIntentBadgeVariant(analysis.intent)} className="text-xs">
-                      {analysis.intent}
-                    </Badge>
-                  </div>
-
-                  {/* Urgência */}
-                  {analysis.urgency && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Urgência</span>
-                      <Badge
-                        variant={analysis.urgency === 'alta' ? 'destructive' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {analysis.urgency}
-                      </Badge>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Sugestões de Resposta */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm">💡 Sugestões de Resposta</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={analyzeConversation}
-                      disabled={isLoading}
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {analysis.suggestions.map((suggestion, index) => (
-                    <div key={index} className="p-2 bg-muted/50 rounded-md space-y-2">
-                      <p className="text-xs">{suggestion}</p>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="h-6 text-xs flex-1"
-                          onClick={() => onUseSuggestion(suggestion)}
-                        >
-                          Usar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-6 text-xs flex-1"
-                          onClick={() => handleEditSuggestion(suggestion)}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Editar
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Resumo da Conversa */}
-              {analysis.summary && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">📝 Resumo da Conversa</CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={copySummary}
-                      >
-                        <Copy className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {analysis.summary}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Próximos Passos Sugeridos */}
-              {analysis.suggested_actions && analysis.suggested_actions.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">🎯 Próximos Passos</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {analysis.suggested_actions.map((action, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-2 p-2 bg-muted/50 rounded-md"
-                      >
-                        <div className="flex-1">
-                          <p className="text-xs font-medium mb-1">{action.label}</p>
-                          <p className="text-xs text-muted-foreground">{action.description}</p>
+              {analysis ? (
+                <>
+                  {/* Análise da Conversa */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">📊 Análise da Conversa</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {/* Sentimento */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Sentimento</span>
+                          <span className="font-medium">
+                            {getSentimentEmoji(analysis.sentiment)}{' '}
+                            {analysis.sentiment >= 0.7
+                              ? 'Positivo'
+                              : analysis.sentiment >= 0.4
+                                ? 'Neutro'
+                                : 'Negativo'}
+                          </span>
                         </div>
+                      </div>
+
+                      {/* Temperatura */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Temperatura</span>
+                        <div className="flex items-center gap-1">
+                          {getTemperatureIcon(analysis.temperature)}
+                          <span className="text-xs font-medium">
+                            {analysis.temperature === 'hot'
+                              ? '🔥 Quente'
+                              : analysis.temperature === 'warm'
+                                ? '🌡️ Morno'
+                                : '❄️ Frio'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Intenção */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Intenção</span>
+                        <Badge variant={getIntentBadgeVariant(analysis.intent)} className="text-xs">
+                          {analysis.intent}
+                        </Badge>
+                      </div>
+
+                      {/* Urgência */}
+                      {analysis.urgency && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Urgência</span>
+                          <Badge
+                            variant={analysis.urgency === 'alta' ? 'destructive' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {analysis.urgency}
+                          </Badge>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Sugestões de Resposta */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm">💡 Sugestões de Resposta</CardTitle>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="h-6 px-2"
-                          onClick={() => executeAction(action.type)}
+                          className="h-6 w-6 p-0"
+                          onClick={analyzeConversation}
+                          disabled={isLoading}
                         >
-                          <CheckCircle className="w-3 h-3" />
+                          <RefreshCw className="w-3 h-3" />
                         </Button>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {analysis.suggestions.map((suggestion, index) => (
+                        <div key={index} className="p-2 bg-muted/50 rounded-md space-y-2">
+                          <p className="text-xs">{suggestion}</p>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="h-6 text-xs flex-1"
+                              onClick={() => onUseSuggestion(suggestion)}
+                            >
+                              Usar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 text-xs flex-1"
+                              onClick={() => handleEditSuggestion(suggestion)}
+                            >
+                              <Edit className="w-3 h-3 mr-1" />
+                              Editar
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
 
-              {/* Battle Card (se houver concorrente) */}
-              {analysis.battle_card && analysis.competitor_mentioned && (
-                <Card className="border-orange-500/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-orange-500" />
-                      Concorrente Mencionado
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs font-medium mb-2">{analysis.competitor_mentioned}</p>
-                    <div className="space-y-2">
-                      <div className="text-xs">
-                        <p className="text-muted-foreground mb-1">Vantagens:</p>
-                        <ul className="list-disc list-inside space-y-1 text-xs">
-                          <li>Melhor custo-benefício</li>
-                          <li>Suporte personalizado</li>
-                          <li>Integração completa</li>
-                        </ul>
-                      </div>
-                      <div className="text-xs">
-                        <p className="text-muted-foreground mb-1">Resposta sugerida:</p>
-                        <p className="italic">
-                          "Entendo sua comparação. Nossa solução se diferencia pelo..."
+                  {/* Resumo da Conversa */}
+                  {analysis.summary && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-sm">📝 Resumo da Conversa</CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={copySummary}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {analysis.summary}
                         </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Próximos Passos Sugeridos */}
+                  {analysis.suggested_actions && analysis.suggested_actions.length > 0 && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">🎯 Próximos Passos</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {analysis.suggested_actions.map((action, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 p-2 bg-muted/50 rounded-md"
+                          >
+                            <div className="flex-1">
+                              <p className="text-xs font-medium mb-1">{action.label}</p>
+                              <p className="text-xs text-muted-foreground">{action.description}</p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => executeAction(action.type)}
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Battle Card (se houver concorrente) */}
+                  {analysis.battle_card && analysis.competitor_mentioned && (
+                    <Card className="border-orange-500/50">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-orange-500" />
+                          Concorrente Mencionado
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-xs font-medium mb-2">{analysis.competitor_mentioned}</p>
+                        <div className="space-y-2">
+                          <div className="text-xs">
+                            <p className="text-muted-foreground mb-1">Vantagens:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              <li>Melhor custo-benefício</li>
+                              <li>Suporte personalizado</li>
+                              <li>Integração completa</li>
+                            </ul>
+                          </div>
+                          <div className="text-xs">
+                            <p className="text-muted-foreground mb-1">Resposta sugerida:</p>
+                            <p className="italic">
+                              "Entendo sua comparação. Nossa solução se diferencia pelo..."
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Inicie uma conversa para receber sugestões da IA</p>
+                </div>
               )}
-            </>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Inicie uma conversa para receber sugestões da IA</p>
             </div>
           )}
         </div>

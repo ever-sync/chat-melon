@@ -32,6 +32,7 @@ import { TabulationsManager } from '@/components/settings/TabulationsManager';
 import { VariablesManager } from '@/components/settings/VariablesManager';
 import UsersPage from '@/pages/settings/UsersPage';
 import AISettingsPage from '@/pages/settings/AISettingsPage';
+import { AssistantSettings } from '@/components/ai-assistant/AssistantSettings';
 import {
   Settings,
   User,
@@ -57,7 +58,23 @@ import {
   Package,
   Sparkles,
   CheckCircle2,
+  Palette,
+  Gauge,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// Função utilitária para decidir se o texto deve ser preto ou branco com base no fundo
+const getContrastColor = (hexcolor: string) => {
+  if (!hexcolor) return '#ffffff';
+  if (hexcolor.startsWith('#')) {
+    const r = parseInt(hexcolor.slice(1, 3), 16);
+    const g = parseInt(hexcolor.slice(3, 5), 16);
+    const b = parseInt(hexcolor.slice(5, 7), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 128 ? '#000000' : '#ffffff';
+  }
+  return '#ffffff';
+};
 
 export default function NewSettings() {
   const { currentCompany } = useCompany();
@@ -70,6 +87,7 @@ export default function NewSettings() {
     nickname: '',
     email: '',
     phone: '',
+    message_color: '#6366f1',
   });
 
   useEffect(() => {
@@ -97,6 +115,7 @@ export default function NewSettings() {
         nickname: profileData.data.nickname || '',
         email: profileData.data.email || '',
         phone: profileData.data.phone || '',
+        message_color: (profileData.data as any).message_color || '#6366f1',
       });
     }
   };
@@ -108,12 +127,24 @@ export default function NewSettings() {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from('profiles').update(profile).eq('id', user.id);
+    // Apenas atualizar campos permitidos no perfil
+    // Removemos o email daqui pois ele deve ser gerenciado via Auth para evitar conflitos de RLS/Triggers
+    const { email, ...updateData } = profile;
+
+    console.log('Salvando perfil:', updateData);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id);
 
     if (error) {
-      toast.error('Erro ao salvar perfil');
+      console.error('Erro ao salvar perfil:', error);
+      toast.error('Erro ao salvar perfil: ' + (error.message || 'Erro desconhecido'));
     } else {
       toast.success('Perfil atualizado com sucesso');
+      // Recarregar dados para garantir sincronia
+      fetchData();
     }
     setLoading(false);
   };
@@ -198,6 +229,14 @@ export default function NewSettings() {
               >
                 <FileAudio className="h-4 w-4" />
                 <span className="font-medium">Transcrição</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="ai-monitoring"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <Gauge className="h-4 w-4" />
+                <span className="font-medium">Monitor de Atendimento</span>
               </TabsTrigger>
 
               <Separator className="my-3" />
@@ -473,6 +512,69 @@ export default function NewSettings() {
 
                   <Separator />
 
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Palette className="h-5 w-5 text-indigo-600" />
+                      <Label className="text-sm font-semibold">Cor das Suas Mensagens no Chat</Label>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Escolha a cor que suas bolhas de mensagem terão para você e seus colegas.
+                    </p>
+
+                    <div className="flex flex-wrap gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      {[
+                        '#6366f1', // Indigo (Default)
+                        '#ef4444', // Red
+                        '#f97316', // Orange
+                        '#f59e0b', // Amber
+                        '#10b981', // Emerald
+                        '#06b6d4', // Cyan
+                        '#3b82f6', // Blue
+                        '#8b5cf6', // Violet
+                        '#ec4899', // Pink
+                        '#000000', // Black
+                      ].map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setProfile({ ...profile, message_color: color })}
+                          className={cn(
+                            "w-10 h-10 rounded-full border-2 transition-all duration-200 hover:scale-110",
+                            profile.message_color === color ? "border-indigo-600 scale-110 shadow-md" : "border-transparent"
+                          )}
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+
+                      <div className="flex items-center gap-2 ml-auto">
+                        <Label htmlFor="custom_color" className="text-xs font-medium text-gray-400">Personalizada:</Label>
+                        <input
+                          id="custom_color"
+                          type="color"
+                          value={profile.message_color}
+                          onChange={(e) => setProfile({ ...profile, message_color: e.target.value })}
+                          className="w-10 h-10 rounded-full border-0 p-0 overflow-hidden cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 mt-2">
+                      <span className="text-xs text-gray-400">Prévia:</span>
+                      <div
+                        className="px-4 py-2 rounded-2xl shadow-sm text-sm"
+                        style={{
+                          backgroundColor: profile.message_color,
+                          color: getContrastColor(profile.message_color)
+                        }}
+                      >
+                        Olá! Esta é a sua cor personalizada.
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
                   <div className="flex justify-end">
                     <Button
                       onClick={handleSaveProfile}
@@ -496,6 +598,10 @@ export default function NewSettings() {
 
             <TabsContent value="ai" className="m-0">
               <AISettingsPage embedded={true} />
+            </TabsContent>
+
+            <TabsContent value="ai-monitoring" className="m-0">
+              {companyId && <AssistantSettings companyId={companyId} />}
             </TabsContent>
 
             <TabsContent value="channels" className="m-0">

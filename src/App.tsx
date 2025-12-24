@@ -66,6 +66,7 @@ const Orders = lazy(() => import('./pages/Orders'));
 const Integrations = lazy(() => import('./pages/Integrations'));
 const Security = lazy(() => import('./pages/Security'));
 const Channels = lazy(() => import('./pages/Channels'));
+const AIInsights = lazy(() => import('./pages/AIInsights'));
 const Imobiliarias = lazy(() => import('./pages/Imobiliarias'));
 const Concessionarias = lazy(() => import('./pages/Concessionarias'));
 const Educacao = lazy(() => import('./pages/Educacao'));
@@ -398,6 +399,14 @@ const App = () => {
                         <FeatureGate feature="channels">
                           <Channels />
                         </FeatureGate>
+                      }
+                    />
+                    <Route
+                      path="/ai-insights"
+                      element={
+                        <ErrorBoundary context="ai-insights">
+                          <AIInsights />
+                        </ErrorBoundary>
                       }
                     />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

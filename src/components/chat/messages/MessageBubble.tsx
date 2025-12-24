@@ -23,6 +23,19 @@ import { ContactAvatar } from '@/components/ContactAvatar';
 import { useCompany } from '@/contexts/CompanyContext';
 import { AudioTranscription } from './AudioTranscription';
 
+// Função utilitária para decidir se o texto deve ser preto ou branco com base no fundo
+const getContrastColor = (hexcolor: string) => {
+  if (!hexcolor) return '#ffffff';
+  if (hexcolor.startsWith('#')) {
+    const r = parseInt(hexcolor.slice(1, 3), 16);
+    const g = parseInt(hexcolor.slice(3, 5), 16);
+    const b = parseInt(hexcolor.slice(5, 7), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 128 ? '#000000' : '#ffffff';
+  }
+  return '#ffffff';
+};
+
 // Função para converter URLs em links clicáveis
 const linkifyText = (text: string): React.ReactNode[] => {
   // Regex para detectar URLs (http, https, www)
@@ -85,6 +98,7 @@ interface MessageBubbleProps {
     sender?: {
       name: string;
       avatar_url?: string;
+      message_color?: string;
     };
   };
   showSender?: boolean;
@@ -161,8 +175,21 @@ export function MessageBubble({
       // Mensagem da IA - verde esmeralda para diferenciar
       return 'bg-emerald-500 text-white';
     }
-    // Mensagem do atendente humano - indigo suave
+    // Mensagem do atendente humano - usar cor personalizada se disponível
+    if (message.sender?.message_color) {
+      return ''; // Retornamos vazio para aplicar via style inline
+    }
     return 'bg-indigo-500 text-white';
+  };
+
+  const getCustomStyle = () => {
+    if (isFromMe && !isFromAI && message.sender?.message_color) {
+      return {
+        backgroundColor: message.sender.message_color,
+        color: getContrastColor(message.sender.message_color)
+      };
+    }
+    return {};
   };
 
   const getSentimentBadge = () => {
@@ -253,6 +280,7 @@ export function MessageBubble({
               getBubbleStyle(),
               isFromMe ? 'rounded-br-md' : 'rounded-bl-md'
             )}
+            style={getCustomStyle()}
           >
             {/* Placeholder para mídia não disponível */}
             {!message.media_url && message.media_type && (

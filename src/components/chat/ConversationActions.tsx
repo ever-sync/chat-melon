@@ -36,11 +36,19 @@ export const ConversationActions = ({
   status,
   onResolve,
 }: ConversationActionsProps) => {
-  const { currentCompany, currentUser } = useCompany();
+  const { currentCompany } = useCompany();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { assignConversation, resolveConversation, reopenConversation } =
     useConversationAssignment(conversationId);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Carregar usuário atual
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+  }, []);
 
   // Buscar membros da equipe
   useEffect(() => {
@@ -69,7 +77,7 @@ export const ConversationActions = ({
         setTeamMembers(data as TeamMember[]);
 
         // Verificar se o usuário atual é admin
-        const userMember = data.find((m) => m.user_id === currentUser?.id);
+        const userMember = data.find((m) => m.user_id === currentUserId);
         if (userMember) {
           setIsAdmin(['owner', 'admin', 'manager', 'supervisor'].includes(userMember.role));
         }
@@ -77,7 +85,7 @@ export const ConversationActions = ({
     };
 
     fetchTeamMembers();
-  }, [currentCompany?.id, currentUser?.id]);
+  }, [currentCompany?.id, currentUserId]);
 
   const handleAssign = (userId: string) => {
     assignConversation.mutate(userId);
@@ -160,7 +168,7 @@ export const ConversationActions = ({
       )}
 
       {/* Botão Resolvido - para atendente responsável ou admin */}
-      {(assignedTo === currentUser?.id || isAdmin) && (
+      {(assignedTo === currentUserId || isAdmin) && (
         <Button
           onClick={handleResolve}
           disabled={resolveConversation.isPending}

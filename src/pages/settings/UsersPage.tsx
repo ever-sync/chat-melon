@@ -268,6 +268,9 @@ export default function UsersPage() {
       console.log('Invite created:', inviteData);
 
       // 2. Enviar o email usando a Edge Function
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('Token do usuário para a função:', sessionData.session?.access_token ? 'Presente (starts with ' + sessionData.session.access_token.substring(0, 15) + '...)' : 'Ausente');
+
       const { error: emailError } = await supabase.functions.invoke('send-invite-email', {
         body: {
           invite_id: inviteData.id,
@@ -279,8 +282,21 @@ export default function UsersPage() {
       });
 
       if (emailError) {
-        console.error('Erro ao enviar email:', emailError);
-        toast.warning('Convite criado, mas houve erro ao enviar o email.');
+        console.error('Erro detalhado da Edge Function:', emailError);
+
+        // Tentar extrair mensagem do corpo se for um erro de função
+        let errorMessage = emailError.message;
+        try {
+          if ((emailError as any).context?.body) {
+            const body = await (emailError as any).context.json();
+            console.error('Corpo do erro:', body);
+            errorMessage = body.error || body.message || errorMessage;
+          }
+        } catch (e) {
+          console.error('Erro ao ler corpo do erro:', e);
+        }
+
+        toast.warning('Convite criado, mas houve erro ao enviar o email: ' + errorMessage);
       } else {
         toast.success(`Convite enviado para ${inviteEmail}`);
       }

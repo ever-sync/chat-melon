@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
 
@@ -64,8 +64,8 @@ export const CelebrationModal = ({ open, onOpenChange, type, data }: Celebration
       try {
         const audio = new Audio('/sounds/celebration.mp3');
         audio.volume = 0.3;
-        audio.play().catch(() => {});
-      } catch (e) {}
+        audio.play().catch(() => { });
+      } catch (e) { }
 
       return () => clearInterval(interval);
     }
@@ -109,16 +109,20 @@ export const CelebrationModal = ({ open, onOpenChange, type, data }: Celebration
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md text-center">
-        <div className="py-8 space-y-4">
-          <div className="text-6xl animate-bounce">
-            {type === 'deal_won' ? '🎉' : type === 'goal_achieved' ? '🏆' : data.icon || '⭐'}
+        <DialogHeader className="p-0">
+          <div className="py-8 space-y-4">
+            <div className="text-6xl animate-bounce">
+              {type === 'deal_won' ? '🎉' : type === 'goal_achieved' ? '🏆' : data.icon || '⭐'}
+            </div>
+            <DialogTitle className="text-2xl font-bold text-center w-full">{getTitle()}</DialogTitle>
+            <DialogDescription className="text-lg text-muted-foreground text-center">
+              {getMessage()}
+            </DialogDescription>
+            <Button size="lg" className="w-full mt-4" onClick={() => onOpenChange(false)}>
+              Continuar
+            </Button>
           </div>
-          <h2 className="text-2xl font-bold">{getTitle()}</h2>
-          <p className="text-lg text-muted-foreground">{getMessage()}</p>
-          <Button size="lg" className="w-full" onClick={() => onOpenChange(false)}>
-            Continuar
-          </Button>
-        </div>
+        </DialogHeader>
       </DialogContent>
     </Dialog>
   );

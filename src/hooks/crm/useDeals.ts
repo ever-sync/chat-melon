@@ -28,7 +28,7 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
           *,
           contacts (*),
           pipeline_stages (*),
-          profiles:assigned_to (*)
+          profiles!assigned_to (*)
         `
         )
         .eq('company_id', companyId)
@@ -64,7 +64,7 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
           *,
           contacts (*),
           pipeline_stages (*),
-          profiles:assigned_to (*)
+          profiles!assigned_to (*)
         `
         )
         .single();
@@ -100,7 +100,7 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
           *,
           contacts (*),
           pipeline_stages (*),
-          profiles:assigned_to (*)
+          profiles!assigned_to (*)
         `
         )
         .single();
@@ -131,7 +131,7 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
           *,
           contacts (*),
           pipeline_stages (*),
-          profiles:assigned_to (*)
+          profiles!assigned_to (*)
         `
         )
         .single();
@@ -154,7 +154,7 @@ export const useDeals = (pipelineId?: string, contactId?: string) => {
 
       // Execute automation rules if any
       if (newStage?.automation_rules) {
-        executeAutomations(dealId, newStage.automation_rules as AutomationRule[]).catch((err) => {
+        executeAutomations(dealId, newStage.automation_rules as unknown as AutomationRule[]).catch((err) => {
           console.error('Erro ao executar automações:', err);
         });
       }

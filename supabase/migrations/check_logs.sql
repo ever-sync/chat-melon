@@ -1,2 +1,0 @@
--- CHECAR LOGS RECENTES
-SELECT * FROM webhook_logs ORDER BY created_at DESC LIMIT 10;
