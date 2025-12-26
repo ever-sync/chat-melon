@@ -86,8 +86,8 @@ export interface BaseNodeData {
 
 export interface StartNodeData extends BaseNodeData {
   label: string;
-  triggerType?: 'keyword' | 'first_message' | 'webhook' | 'schedule' | 'button' | 'qr_code';
-  triggerKeywords?: string[];
+  triggerType?: 'keyword' | 'first_message' | 'webhook' | 'all_messages' | 'schedule' | 'button' | 'qr_code';
+  triggerKeywords?: string;
   welcomeDelay?: number;
 }
 

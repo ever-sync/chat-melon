@@ -237,6 +237,8 @@ const SearchBar = ({
         onFiltersChange={onFilterChange}
         conversationCounts={conversationCounts}
         onSelectConversation={onSelectConversation}
+        open={showFiltersDialog}
+        onOpenChange={setShowFiltersDialog}
       />
     </div>
   );

@@ -352,6 +352,13 @@ async function handleChatbotTrigger(
       const triggers = chatbot.triggers || [];
 
       for (const trigger of triggers) {
+        // Check all_messages trigger (always activates for any message)
+        if (trigger.type === "all_messages") {
+          matchedChatbot = chatbot;
+          triggerType = "all_messages";
+          break;
+        }
+
         // Check first_message trigger for new contacts
         if (trigger.type === "first_message" && isNewContact) {
           matchedChatbot = chatbot;

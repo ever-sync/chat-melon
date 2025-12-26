@@ -19,7 +19,6 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Conversation } from '@/types/chat';
@@ -35,7 +34,6 @@ import { AudioRecorder } from '@/components/chat/AudioRecorder';
 import { QuickReplies } from '@/components/chat/QuickReplies';
 import { FAQSelector } from '@/components/chat/FAQSelector';
 import { DocumentSelector } from '@/components/chat/DocumentSelector';
-import { AIAssistant } from '@/components/chat/AIAssistant';
 import { ProductSelector } from '@/components/chat/ProductSelector';
 import { MessageStatus } from './MessageStatus';
 import { useSendPresence } from '@/hooks/useSendPresence';
@@ -49,6 +47,7 @@ import { ShortcutHelpModal } from '@/components/chat/ShortcutHelpModal';
 import { SnoozeMenu } from '@/components/chat/SnoozeMenu';
 import { useQuickResponses, useShortcutNavigation } from '@/hooks/chat/useQuickResponses';
 import { CopilotToggle } from '@/components/chat/CopilotToggle';
+import { AIAssistant } from '@/components/chat/AIAssistant';
 import { TabulationModal } from '../TabulationModal';
 import { VariablePicker } from '@/components/chat/VariablePicker';
 import { useVariables } from '@/hooks/useVariables';
@@ -338,9 +337,16 @@ const MessageArea = ({
 
   useEffect(() => {
     if (conversation) {
+      // Limpar mensagens ao mudar de conversa
+      setMessages([]);
+      setFilteredMessages([]);
       loadMessages();
+    } else {
+      // Limpar quando não há conversa selecionada
+      setMessages([]);
+      setFilteredMessages([]);
     }
-  }, [conversation]);
+  }, [conversation?.id]); // Usar conversation.id para garantir re-render
 
   useEffect(() => {
     if (!conversation) return;
@@ -362,7 +368,10 @@ const MessageArea = ({
           // Add message only if it doesn't exist (prevent duplicates)
           setMessages((prev) => {
             const exists = prev.some((m) => m.id === newMsg.id);
-            if (exists) return prev;
+            if (exists) {
+              console.log('⚠️ Mensagem duplicada ignorada:', newMsg.id);
+              return prev;
+            }
 
             // Injetar informações do remetente se for eu (para garantir a cor)
             if (newMsg.is_from_me && !newMsg.sender && currentUserProfile) {
@@ -372,6 +381,7 @@ const MessageArea = ({
               };
             }
 
+            console.log('✅ Nova mensagem adicionada via realtime:', newMsg.id);
             return [...prev, newMsg];
           });
 
@@ -429,8 +439,13 @@ const MessageArea = ({
   }, [conversation]);
 
   useEffect(() => {
+    // Só fazer scroll se tiver mensagens e não for o primeiro carregamento
     if (messages.length > 0) {
-      scrollToBottom('auto');
+      // Pequeno delay para garantir que o DOM foi atualizado
+      const timer = setTimeout(() => {
+        scrollToBottom('auto');
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [messages]);
 
@@ -489,6 +504,7 @@ const MessageArea = ({
       console.log('✅ Mensagens carregadas:', data?.length || 0);
       console.log('📨 Primeiras 3 mensagens:', data?.slice(0, 3));
 
+      // Garantir que sempre temos um array válido
       setMessages((data as any) || []);
 
       // Marcar mensagens como lidas quando abrir a conversa
@@ -497,6 +513,10 @@ const MessageArea = ({
       }
     } catch (error) {
       console.error('❌ Erro ao carregar mensagens:', error);
+      toast.error('Erro ao carregar mensagens', {
+        description: 'Tente recarregar a página'
+      });
+      setMessages([]); // Limpar mensagens em caso de erro
     }
   };
 
@@ -552,8 +572,9 @@ const MessageArea = ({
       //   throw new Error("Evolution API não configurada. Configure em Configurações");
       // }
 
+      const tempId = `temp-${Date.now()}`;
       const tempMessage: Message = {
-        id: `temp-${Date.now()}`,
+        id: tempId,
         content: messageToSend,
         is_from_me: true,
         timestamp: new Date().toISOString(),
@@ -564,7 +585,13 @@ const MessageArea = ({
         } : undefined
       };
 
-      setMessages((prev) => [...prev, tempMessage]);
+      // Adicionar mensagem temporária (otimistic update)
+      setMessages((prev) => {
+        // Verificar se já não existe (prevenir duplicação)
+        const exists = prev.some(m => m.id === tempId);
+        if (exists) return prev;
+        return [...prev, tempMessage];
+      });
 
       // Enviar via Edge Function (seguro - não expõe credenciais)
       const { data: sendResult, error: sendError } = await supabase.functions.invoke(
@@ -584,9 +611,10 @@ const MessageArea = ({
 
       // Salvar no banco de dados
       const { data: companyUser } = await supabase
-        .from('company_members')
+        .from('company_users')
         .select('company_id')
         .eq('user_id', user.id)
+        .eq('is_default', true)
         .maybeSingle();
 
       await supabase.from('messages').insert({
@@ -651,9 +679,9 @@ const MessageArea = ({
   }
 
   return (
-    <div className="flex-1 flex">
-      <div className="flex-1 flex flex-col bg-background overflow-hidden">
-        <div className="p-4 border-b border-border flex items-center gap-3 bg-card shrink-0">
+    <div className="flex-1 flex flex-row h-full overflow-hidden">
+      <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 min-h-0 overflow-hidden">
+        <div className="p-4 border-b border-border/50 flex items-center gap-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -738,7 +766,10 @@ const MessageArea = ({
               </Button>
               <CopilotToggle
                 conversationId={conversation.id}
-                onToggle={setCopilotEnabled}
+                isActive={copilotEnabled}
+                onToggle={(enabled) => {
+                  setCopilotEnabled(enabled);
+                }}
               />
             </>
           )}
@@ -747,7 +778,7 @@ const MessageArea = ({
         {/* Legenda de cores */}
         <ChatLegend />
 
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6" ref={scrollRef}>
           <div className="space-y-2">
             {filteredMessages.length === 0 && searchQuery ? (
               <div className="text-center text-muted-foreground py-8">
@@ -768,9 +799,9 @@ const MessageArea = ({
             )}
             <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>
+        </div>
 
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card space-y-2 shrink-0">
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card space-y-2 flex-shrink-0">
           {conversation.status === 'closed' ? (
             <div className="text-center py-2 text-muted-foreground bg-muted rounded-lg">
               Esta conversa está encerrada. Clique em "Reabrir" para continuar o atendimento.
@@ -1022,6 +1053,7 @@ const MessageArea = ({
         />
       </div>
 
+      {/* Painel do Copiloto - Assistente de IA */}
       {showAIAssistant && conversation && copilotEnabled && (
         <AIAssistant
           conversation={conversation}

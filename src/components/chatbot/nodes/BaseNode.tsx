@@ -313,6 +313,311 @@ export const SetVariableNode = memo(function SetVariableNode({ data, selected }:
   );
 });
 
+// Goto Node
+export const GotoNode = memo(function GotoNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="goto" selected={selected}>
+      <p className="text-xs text-muted-foreground">
+        Ir para: {data.targetNodeId || 'Nenhum destino'}
+      </p>
+    </BaseNode>
+  );
+});
+
+// Random Node
+export const RandomNode = memo(function RandomNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="random" selected={selected}>
+      <p className="text-xs text-muted-foreground">Escolha aleatória entre caminhos</p>
+    </BaseNode>
+  );
+});
+
+// Split Node
+export const SplitNode = memo(function SplitNode({ data, selected }: NodeProps) {
+  const paths = data.paths || [];
+  return (
+    <BaseNode type="split" selected={selected}>
+      <div className="space-y-1">
+        {paths.map((path: { id: string; label: string; percentage: number }) => (
+          <div key={path.id} className="flex items-center justify-between text-xs">
+            <span>{path.label}</span>
+            <span className="text-muted-foreground">{path.percentage}%</span>
+          </div>
+        ))}
+      </div>
+    </BaseNode>
+  );
+});
+
+// Image Node
+export const ImageNode = memo(function ImageNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="image" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Image className="h-8 w-8 text-muted-foreground" />
+        {data.caption && <p className="text-xs line-clamp-2">{data.caption}</p>}
+      </div>
+    </BaseNode>
+  );
+});
+
+// Video Node
+export const VideoNode = memo(function VideoNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="video" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Video className="h-8 w-8 text-muted-foreground" />
+        {data.caption && <p className="text-xs line-clamp-2">{data.caption}</p>}
+      </div>
+    </BaseNode>
+  );
+});
+
+// Audio Node
+export const AudioNode = memo(function AudioNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="audio" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Music className="h-8 w-8 text-muted-foreground" />
+        {data.duration && <p className="text-xs text-muted-foreground">{data.duration}s</p>}
+      </div>
+    </BaseNode>
+  );
+});
+
+// Document Node
+export const DocumentNode = memo(function DocumentNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="document" selected={selected}>
+      <div className="space-y-1">
+        <Icons.FileText className="h-8 w-8 text-muted-foreground" />
+        {data.fileName && <p className="text-xs truncate">{data.fileName}</p>}
+      </div>
+    </BaseNode>
+  );
+});
+
+// Sticker Node
+export const StickerNode = memo(function StickerNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="sticker" selected={selected}>
+      <div className="flex items-center justify-center">
+        <Icons.Smile className="h-8 w-8 text-muted-foreground" />
+      </div>
+    </BaseNode>
+  );
+});
+
+// Quick Reply Node
+export const QuickReplyNode = memo(function QuickReplyNode({ data, selected }: NodeProps) {
+  const replies = data.replies || [];
+  return (
+    <BaseNode type="quick_reply" selected={selected}>
+      <p className="text-sm mb-2">{data.message || 'Escolha uma opção:'}</p>
+      <div className="space-y-1">
+        {replies.slice(0, 3).map((reply: { id: string; label: string; emoji?: string }) => (
+          <div key={reply.id} className="rounded bg-muted px-2 py-1 text-xs">
+            {reply.emoji} {reply.label}
+          </div>
+        ))}
+      </div>
+    </BaseNode>
+  );
+});
+
+// List Node
+export const ListNode = memo(function ListNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="list" selected={selected}>
+      <div className="space-y-1">
+        <p className="text-sm font-medium">{data.title || 'Lista'}</p>
+        <p className="text-xs text-muted-foreground">
+          {(data.sections || []).length} seções
+        </p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// Carousel Node
+export const CarouselNode = memo(function CarouselNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="carousel" selected={selected}>
+      <div className="flex items-center gap-2">
+        <Icons.LayoutGrid className="h-4 w-4" />
+        <span className="text-sm">{(data.cards || []).length} cards</span>
+      </div>
+    </BaseNode>
+  );
+});
+
+// File Upload Node
+export const FileUploadNode = memo(function FileUploadNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="file_upload" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Upload className="h-6 w-6 text-muted-foreground" />
+        <p className="text-xs">{data.prompt || 'Envie um arquivo'}</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// Location Node
+export const LocationNode = memo(function LocationNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="location" selected={selected}>
+      <div className="space-y-1">
+        <Icons.MapPin className="h-6 w-6 text-muted-foreground" />
+        {data.address && <p className="text-xs line-clamp-2">{data.address}</p>}
+      </div>
+    </BaseNode>
+  );
+});
+
+// Contact Card Node
+export const ContactCardNode = memo(function ContactCardNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="contact_card" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Contact className="h-6 w-6 text-muted-foreground" />
+        {data.name && <p className="text-sm font-medium">{data.name}</p>}
+        {data.phone && <p className="text-xs text-muted-foreground">{data.phone}</p>}
+      </div>
+    </BaseNode>
+  );
+});
+
+// Rating Node
+export const RatingNode = memo(function RatingNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="rating" selected={selected}>
+      <div className="space-y-1">
+        <p className="text-sm">{data.question || 'Avalie nosso atendimento'}</p>
+        <div className="flex items-center gap-1">
+          {Array.from({ length: data.maxRating || 5 }).map((_, i) => (
+            <Icons.Star key={i} className="h-3 w-3 text-yellow-500" />
+          ))}
+        </div>
+      </div>
+    </BaseNode>
+  );
+});
+
+// NPS Node
+export const NPSNode = memo(function NPSNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="nps" selected={selected}>
+      <div className="space-y-1">
+        <p className="text-sm">{data.question || 'Qual a probabilidade de nos recomendar?'}</p>
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>0</span>
+          <span>10</span>
+        </div>
+      </div>
+    </BaseNode>
+  );
+});
+
+// Calendar Node
+export const CalendarNode = memo(function CalendarNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="calendar" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Calendar className="h-6 w-6 text-muted-foreground" />
+        <p className="text-xs">{data.prompt || 'Agendar horário'}</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// Switch Node
+export const SwitchNode = memo(function SwitchNode({ data, selected }: NodeProps) {
+  const cases = data.cases || [];
+  return (
+    <BaseNode type="switch" selected={selected}>
+      <div className="space-y-1">
+        <p className="text-xs text-muted-foreground">Variável: {data.variable}</p>
+        <p className="text-xs">{cases.length} casos</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// A/B Test Node
+export const ABTestNode = memo(function ABTestNode({ data, selected }: NodeProps) {
+  const variants = data.variants || [];
+  return (
+    <BaseNode type="ab_test" selected={selected}>
+      <div className="space-y-1">
+        <p className="text-sm font-medium">{data.testName || 'Teste A/B'}</p>
+        <p className="text-xs text-muted-foreground">{variants.length} variantes</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// AI Classifier Node
+export const AIClassifierNode = memo(function AIClassifierNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="ai_classifier" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Sparkles className="h-6 w-6 text-purple-500" />
+        <p className="text-xs">{(data.categories || []).length} categorias</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// AI Sentiment Node
+export const AISentimentNode = memo(function AISentimentNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="ai_sentiment" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Heart className="h-6 w-6 text-purple-500" />
+        <p className="text-xs text-muted-foreground">Análise de sentimento</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// AI Extract Node
+export const AIExtractNode = memo(function AIExtractNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="ai_extract" selected={selected}>
+      <div className="space-y-1">
+        <Icons.ScanText className="h-6 w-6 text-purple-500" />
+        <p className="text-xs">{(data.extractions || []).length} campos</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// AI Summarize Node
+export const AISummarizeNode = memo(function AISummarizeNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="ai_summarize" selected={selected}>
+      <div className="space-y-1">
+        <Icons.FileText className="h-6 w-6 text-purple-500" />
+        <p className="text-xs text-muted-foreground">Resumir texto</p>
+      </div>
+    </BaseNode>
+  );
+});
+
+// AI Translate Node
+export const AITranslateNode = memo(function AITranslateNode({ data, selected }: NodeProps) {
+  return (
+    <BaseNode type="ai_translate" selected={selected}>
+      <div className="space-y-1">
+        <Icons.Languages className="h-6 w-6 text-purple-500" />
+        <p className="text-xs">Para: {data.targetLanguage || 'en'}</p>
+      </div>
+    </BaseNode>
+  );
+});
+
 // Export all node types for ReactFlow
 export const nodeTypes = {
   start: StartNode,
@@ -327,4 +632,33 @@ export const nodeTypes = {
   webhook: WebhookNode,
   action: ActionNode,
   set_variable: SetVariableNode,
+  // Control Flow
+  goto: GotoNode,
+  random: RandomNode,
+  split: SplitNode,
+  // Multimedia
+  image: ImageNode,
+  video: VideoNode,
+  audio: AudioNode,
+  document: DocumentNode,
+  sticker: StickerNode,
+  // Advanced Interaction
+  quick_reply: QuickReplyNode,
+  list: ListNode,
+  carousel: CarouselNode,
+  file_upload: FileUploadNode,
+  location: LocationNode,
+  contact_card: ContactCardNode,
+  rating: RatingNode,
+  nps: NPSNode,
+  calendar: CalendarNode,
+  // Logic
+  switch: SwitchNode,
+  ab_test: ABTestNode,
+  // AI
+  ai_classifier: AIClassifierNode,
+  ai_sentiment: AISentimentNode,
+  ai_extract: AIExtractNode,
+  ai_summarize: AISummarizeNode,
+  ai_translate: AITranslateNode,
 };

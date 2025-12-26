@@ -1,5 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Filter, Save, Star, Trash2, StarOff } from 'lucide-react';
+import {
+  Filter,
+  Save,
+  Star,
+  Trash2,
+  StarOff,
+  User,
+  Building2,
+  Tag,
+  Circle,
+  Calendar,
+  Clock,
+  Image,
+  Mail,
+  MessageSquare,
+  Wifi,
+  CheckCircle2,
+  ClipboardCheck,
+  Timer,
+  FileVideo,
+  FileAudio,
+  FileText,
+  MessageCircle
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -55,6 +78,8 @@ interface AdvancedFiltersDialogProps {
     closed: number;
   };
   onSelectConversation?: (conversationId: string) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const AdvancedFiltersDialog = ({
@@ -62,8 +87,14 @@ export const AdvancedFiltersDialog = ({
   onFiltersChange,
   conversationCounts,
   onSelectConversation,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: AdvancedFiltersDialogProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
   const { currentCompany } = useCompany();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
@@ -219,20 +250,30 @@ export const AdvancedFiltersDialog = ({
     filters.search !== '' ||
     filters.lastMessageDate !== undefined ||
     filters.noResponseTime !== undefined ||
-    filters.hasMedia !== undefined;
+    filters.hasMedia !== undefined ||
+    filters.mediaType !== undefined ||
+    filters.channelType !== undefined ||
+    filters.contactOnline === true ||
+    filters.optedIn === true ||
+    filters.hasTabulation === true ||
+    filters.assignedTime !== undefined;
 
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filtros
-          </Button>
-        </DialogTrigger>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Filtros e Configurações</DialogTitle>
+          <DialogHeader className="space-y-3 pb-4 border-b">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Filter className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">Filtros e Configurações</DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Personalize a visualização das suas conversas
+                </p>
+              </div>
+            </div>
           </DialogHeader>
 
           <Tabs defaultValue="filters" className="w-full">
@@ -244,12 +285,20 @@ export const AdvancedFiltersDialog = ({
 
             <TabsContent value="filters" className="space-y-6 py-4">
               {/* Filtros Básicos */}
-              <div className="space-y-4 pb-4 border-b">
-                <h3 className="text-sm font-semibold text-foreground">Filtros Básicos</h3>
+              <div className="space-y-5 pb-6 border-b">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-blue-500/10">
+                    <Filter className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-foreground">Filtros Básicos</h3>
+                </div>
 
                 {/* Atribuído */}
                 <div className="space-y-2">
-                  <Label>Atribuído</Label>
+                  <Label className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    Atribuído
+                  </Label>
                   <Select
                     value={filters.assignedTo}
                     onValueChange={(value) => onFiltersChange({ assignedTo: value })}
@@ -277,7 +326,10 @@ export const AdvancedFiltersDialog = ({
 
                 {/* Setor */}
                 <div className="space-y-2">
-                  <Label>Setor</Label>
+                  <Label className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    Setor
+                  </Label>
                   <Select
                     value={filters.sector || 'all'}
                     onValueChange={(value) =>
@@ -308,7 +360,10 @@ export const AdvancedFiltersDialog = ({
 
                 {/* Labels */}
                 <div className="space-y-2">
-                  <Label>Labels</Label>
+                  <Label className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    Labels
+                  </Label>
                   <Select
                     value={filters.labels.length > 0 ? filters.labels[0] : 'all'}
                     onValueChange={handleLabelChange}
@@ -329,7 +384,10 @@ export const AdvancedFiltersDialog = ({
 
                 {/* Status do Usuário */}
                 <div className="space-y-2">
-                  <Label>Seu Status</Label>
+                  <Label className="flex items-center gap-2">
+                    <Circle className="h-4 w-4 text-muted-foreground" />
+                    Seu Status
+                  </Label>
                   <Select value={userStatus} onValueChange={updateUserStatus}>
                     <SelectTrigger>
                       <div className="flex items-center gap-2">
@@ -362,12 +420,20 @@ export const AdvancedFiltersDialog = ({
               </div>
 
               {/* Filtros Avançados */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground">Filtros Avançados</h3>
+              <div className="space-y-5">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-violet-500/10">
+                    <Filter className="h-4 w-4 text-violet-600" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-foreground">Filtros Avançados</h3>
+                </div>
 
                 {/* Data da última mensagem */}
                 <div className="space-y-2">
-                  <Label>Data da última mensagem</Label>
+                  <Label className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    Data da última mensagem
+                  </Label>
                   <Select
                     value={filters.lastMessageDate || 'all'}
                     onValueChange={(value) =>
@@ -392,7 +458,10 @@ export const AdvancedFiltersDialog = ({
 
                 {/* Tempo sem resposta */}
                 <div className="space-y-2">
-                  <Label>Tempo sem resposta</Label>
+                  <Label className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    Tempo sem resposta
+                  </Label>
                   <Select
                     value={filters.noResponseTime || 'all'}
                     onValueChange={(value) =>
@@ -416,8 +485,11 @@ export const AdvancedFiltersDialog = ({
                 </div>
 
                 {/* Contém mídia */}
-                <div className="flex items-center justify-between">
-                  <Label>Contém mídia</Label>
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Image className="h-4 w-4 text-muted-foreground" />
+                    Contém mídia
+                  </Label>
                   <div className="flex gap-2">
                     <Button
                       variant={filters.hasMedia === true ? 'default' : 'outline'}
@@ -443,22 +515,184 @@ export const AdvancedFiltersDialog = ({
                   </div>
                 </div>
 
+                {/* Tipo de Mídia Específico */}
+                {filters.hasMedia === true && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      Tipo de mídia
+                    </Label>
+                    <Select
+                      value={filters.mediaType || 'all'}
+                      onValueChange={(value) =>
+                        onFiltersChange({
+                          mediaType: value === 'all' ? undefined : (value as any),
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos os tipos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os tipos</SelectItem>
+                        <SelectItem value="image">
+                          <div className="flex items-center gap-2">
+                            <Image className="h-4 w-4" />
+                            Imagens
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="video">
+                          <div className="flex items-center gap-2">
+                            <FileVideo className="h-4 w-4" />
+                            Vídeos
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="audio">
+                          <div className="flex items-center gap-2">
+                            <FileAudio className="h-4 w-4" />
+                            Áudios
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="document">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            Documentos
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Canal de Comunicação */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    Canal de comunicação
+                  </Label>
+                  <Select
+                    value={filters.channelType || 'all'}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        channelType: value === 'all' ? undefined : (value as any),
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os canais" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os canais</SelectItem>
+                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                      <SelectItem value="instagram">Instagram</SelectItem>
+                      <SelectItem value="messenger">Messenger</SelectItem>
+                      <SelectItem value="telegram">Telegram</SelectItem>
+                      <SelectItem value="widget">Widget</SelectItem>
+                      <SelectItem value="email">E-mail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Tempo de Atribuição */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Timer className="h-4 w-4 text-muted-foreground" />
+                    Atribuído há
+                  </Label>
+                  <Select
+                    value={filters.assignedTime || 'all'}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        assignedTime: value === 'all' ? undefined : (value as any),
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Qualquer tempo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Qualquer tempo</SelectItem>
+                      <SelectItem value="1h">Menos de 1 hora</SelectItem>
+                      <SelectItem value="4h">Menos de 4 horas</SelectItem>
+                      <SelectItem value="24h">Menos de 24 horas</SelectItem>
+                      <SelectItem value="48h">Menos de 48 horas</SelectItem>
+                      <SelectItem value="week">Menos de 1 semana</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Apenas não lidas */}
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="unread-only">Apenas não lidas</Label>
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                  <Label htmlFor="unread-only" className="flex items-center gap-2 cursor-pointer">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    Apenas não lidas
+                  </Label>
                   <Switch
                     id="unread-only"
                     checked={filters.hasUnread}
                     onCheckedChange={(checked) => onFiltersChange({ hasUnread: checked })}
                   />
                 </div>
+
+                {/* Status Online do Contato */}
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                  <Label htmlFor="contact-online" className="flex items-center gap-2 cursor-pointer">
+                    <Wifi className="h-4 w-4 text-muted-foreground" />
+                    Apenas contatos online
+                  </Label>
+                  <Switch
+                    id="contact-online"
+                    checked={filters.contactOnline === true}
+                    onCheckedChange={(checked) =>
+                      onFiltersChange({ contactOnline: checked ? true : 'all' })
+                    }
+                  />
+                </div>
+
+                {/* Opt-in Status */}
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                  <Label htmlFor="opted-in" className="flex items-center gap-2 cursor-pointer">
+                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                    Apenas com opt-in
+                  </Label>
+                  <Switch
+                    id="opted-in"
+                    checked={filters.optedIn === true}
+                    onCheckedChange={(checked) =>
+                      onFiltersChange({ optedIn: checked ? true : 'all' })
+                    }
+                  />
+                </div>
+
+                {/* Com Tabulação */}
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                  <Label htmlFor="has-tabulation" className="flex items-center gap-2 cursor-pointer">
+                    <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+                    Apenas com tabulação
+                  </Label>
+                  <Switch
+                    id="has-tabulation"
+                    checked={filters.hasTabulation === true}
+                    onCheckedChange={(checked) =>
+                      onFiltersChange({ hasTabulation: checked ? true : 'all' })
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleApply}>Aplicar</Button>
+              <div className="flex justify-between items-center gap-3 pt-6 mt-2 border-t">
+                <p className="text-xs text-muted-foreground">
+                  {hasActiveFilters ? 'Filtros ativos aplicados' : 'Nenhum filtro ativo'}
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleApply} className="gap-2">
+                    <Filter className="h-4 w-4" />
+                    Aplicar Filtros
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 

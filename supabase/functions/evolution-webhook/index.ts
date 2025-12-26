@@ -354,10 +354,14 @@ serve(async (req) => {
       }
 
       if (!companyId || !userId) {
+        console.log(`⚠️ Instância "${instanceName}" não encontrada em evolution_settings, buscando qualquer configuração...`);
+
         const { data: allSettings } = await supabase
           .from('evolution_settings')
-          .select('user_id, company_id')
-          .limit(1);
+          .select('user_id, company_id, instance_name')
+          .limit(5);
+
+        console.log('📋 Configurações disponíveis:', JSON.stringify(allSettings));
 
         if (!allSettings || allSettings.length === 0) {
           throw new Error('Nenhum usuário configurado');
@@ -366,6 +370,8 @@ serve(async (req) => {
         userId = allSettings[0].user_id;
         companyId = allSettings[0].company_id;
       }
+
+      console.log(`🏢 Usando company_id: ${companyId}, user_id: ${userId}, instance: ${instanceName}`);
 
       // ============================================
       // FUNÇÃO: DOWNLOAD E ARMAZENAMENTO DE MÍDIAS
@@ -751,6 +757,206 @@ serve(async (req) => {
       }
 
       console.log('Mensagem processada com sucesso');
+
+      // ========================================
+      // EXECUTAR CHATBOT (SE HOUVER ATIVO)
+      // ========================================
+      // Só processa chatbot se for mensagem RECEBIDA (não enviada por mim)
+      if (!isFromMe) {
+        try {
+          // Verificar se já existe uma execução ativa para esta conversa
+          const { data: activeExecution } = await supabase
+            .from('chatbot_executions')
+            .select('id, chatbot_id, status, current_node_id')
+            .eq('conversation_id', conversationId)
+            .in('status', ['running', 'waiting_input'])
+            .order('started_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (activeExecution) {
+            // Continuar execução existente
+            console.log('🤖 Continuando execução de chatbot:', activeExecution.id);
+
+            const supabaseUrl = Deno.env.get('SUPABASE_URL');
+            const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+            const executeChatbotResponse = await fetch(
+              `${supabaseUrl}/functions/v1/execute-chatbot`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${supabaseKey}`,
+                },
+                body: JSON.stringify({
+                  executionId: activeExecution.id,
+                  userMessage: messageContent,
+                  companyId: companyId,
+                }),
+              }
+            );
+
+            if (executeChatbotResponse.ok) {
+              const result = await executeChatbotResponse.json();
+              console.log('✅ Chatbot executou:', result.status);
+
+              // Se o chatbot ainda está ativo, não chama N8N
+              if (result.status === 'running' || result.status === 'waiting_input') {
+                return new Response(
+                  JSON.stringify({ success: true, message: 'Chatbot processou a mensagem', chatbot_status: result.status }),
+                  { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+              }
+              // Se completou ou handoff, continua para N8N/humano
+              console.log('ℹ️ Chatbot finalizou, status:', result.status);
+            } else {
+              console.error('❌ Erro ao executar chatbot:', await executeChatbotResponse.text());
+            }
+          } else {
+            // Verificar se há chatbot ativo para novo gatilho
+            console.log(`🔍 Procurando chatbots ativos para empresa ${companyId}...`);
+            
+            const { data: activeChatbots, error: fetchError } = await supabase
+              .from('chatbots')
+              .select('id, name, triggers, nodes, edges, version, settings')
+              .eq('company_id', companyId)
+              .eq('status', 'active');
+
+            if (fetchError) {
+              console.error('❌ Erro ao buscar chatbots:', fetchError);
+            }
+
+            console.log(`🤖 Encontrados ${activeChatbots?.length || 0} chatbots ativos para company_id: ${companyId}`);
+            if (activeChatbots && activeChatbots.length > 0) {
+              console.log('📋 Chatbots encontrados:', activeChatbots.map(c => ({ id: c.id, name: c.name })));
+            }
+
+            if (activeChatbots && activeChatbots.length > 0) {
+              // Verificar triggers
+              for (const chatbot of activeChatbots) {
+                const triggers = Array.isArray(chatbot.triggers) ? chatbot.triggers : [];
+                console.log(`⚙️ Verificando triggers do chatbot "${chatbot.name}" (${chatbot.id}):`, JSON.stringify(triggers));
+                
+                let shouldTrigger = false;
+                let triggerType = '';
+                let triggerValue = '';
+
+                for (const trigger of (triggers as any[])) {
+                  if (trigger.type === 'first_message') {
+                    const { count } = await supabase
+                      .from('messages')
+                      .select('id', { count: 'exact', head: true })
+                      .eq('conversation_id', conversationId)
+                      .eq('is_from_me', false);
+
+                    if (count === 1) {
+                      shouldTrigger = true;
+                      triggerType = 'first_message';
+                    }
+                  } else if (trigger.type === 'keyword') {
+                    // Suporta ambos os formatos: string separada por vírgula ou array
+                    let keywords: string[] = [];
+                    if (Array.isArray(trigger.value)) {
+                      keywords = trigger.value.map((k: string) => k.trim().toLowerCase());
+                    } else if (typeof trigger.value === 'string') {
+                      keywords = trigger.value.split(',').map((k: string) => k.trim().toLowerCase());
+                    }
+                    keywords = keywords.filter((k: string) => k.length > 0);
+
+                    const normalizedContent = (messageContent || '').toLowerCase().trim();
+
+                    console.log(`📝 Checando palavra-chave: "${normalizedContent}" contra [${keywords.join(', ')}]`);
+
+                    if (keywords.some((kw: string) => normalizedContent.includes(kw) || normalizedContent === kw)) {
+                      shouldTrigger = true;
+                      triggerType = 'keyword';
+                      triggerValue = Array.isArray(trigger.value) ? trigger.value.join(',') : trigger.value;
+                    }
+                  } else if (trigger.type === 'all_messages') {
+                    shouldTrigger = true;
+                    triggerType = 'all_messages';
+                  }
+
+                  if (shouldTrigger) break;
+                }
+
+                if (shouldTrigger) {
+                  console.log(`🤖 Iniciando chatbot "${chatbot.name}" por trigger: ${triggerType}`);
+
+                  // Criar nova execução
+                  const { data: newExecution, error: execError } = await supabase
+                    .from('chatbot_executions')
+                    .insert({
+                      chatbot_id: chatbot.id,
+                      chatbot_version: chatbot.version || 1,
+                      conversation_id: conversationId,
+                      contact_id: contact?.id,
+                      status: 'running',
+                      session_variables: {},
+                      execution_log: [],
+                      trigger_type: triggerType,
+                      trigger_value: triggerValue,
+                      channel_type: 'whatsapp',
+                    })
+                    .select()
+                    .single();
+
+                  if (execError) {
+                    console.error('❌ Erro ao criar execução:', execError);
+                  } else {
+                    // Incrementar estatísticas do chatbot
+                    await supabase
+                      .from('chatbots')
+                      .update({ total_executions: (chatbot.total_executions || 0) + 1 })
+                      .eq('id', chatbot.id);
+
+                    // Executar o chatbot
+                    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+                    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+                    const executeChatbotResponse = await fetch(
+                      `${supabaseUrl}/functions/v1/execute-chatbot`,
+                      {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${supabaseKey}`,
+                        },
+                        body: JSON.stringify({
+                          executionId: newExecution.id,
+                          userMessage: null, // Primeira execução, não tem mensagem ainda
+                          companyId: companyId,
+                        }),
+                      }
+                    );
+
+                    if (executeChatbotResponse.ok) {
+                      const result = await executeChatbotResponse.json();
+                      console.log('✅ Chatbot iniciou:', result.status);
+
+                      // Se o chatbot está ativo, não passa para N8N
+                      if (result.status === 'running' || result.status === 'waiting_input') {
+                        return new Response(
+                          JSON.stringify({ success: true, message: 'Chatbot iniciado', chatbot_status: result.status }),
+                          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                        );
+                      }
+                    } else {
+                      console.error('❌ Erro ao iniciar chatbot:', await executeChatbotResponse.text());
+                    }
+                  }
+
+                  break; // Só executa um chatbot por vez
+                }
+              }
+            }
+          }
+        } catch (chatbotError) {
+          console.error('❌ Erro no processamento do chatbot:', chatbotError);
+          // Não falha o webhook, continua para N8N/humano
+        }
+      }
 
       // ========================================
       // CHAMAR N8N PARA PROCESSAR COM IA

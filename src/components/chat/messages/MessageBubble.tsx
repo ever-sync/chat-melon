@@ -165,21 +165,22 @@ export function MessageBubble({
     );
   }
 
-  // Definir cores baseado no tipo
+  // Definir cores baseado no tipo - Design mais elegante
   const getBubbleStyle = () => {
     if (!isFromMe) {
-      // Mensagem do lead - cinza
-      return 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+      // Mensagem do lead - white com borda sutil
+      return 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700';
     }
     if (isFromAI) {
-      // Mensagem da IA - verde esmeralda para diferenciar
-      return 'bg-emerald-500 text-white';
+      // Mensagem da IA - gradiente verde moderno
+      return 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white';
     }
     // Mensagem do atendente humano - usar cor personalizada se disponível
     if (message.sender?.message_color) {
       return ''; // Retornamos vazio para aplicar via style inline
     }
-    return 'bg-indigo-500 text-white';
+    // Mensagem padrão do atendente - gradiente azul elegante
+    return 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white';
   };
 
   const getCustomStyle = () => {
@@ -233,31 +234,36 @@ export function MessageBubble({
 
   return (
     <TooltipProvider>
-      <div className={cn('flex gap-2 mb-4', isFromMe ? 'justify-end' : 'justify-start')}>
+      <div className={cn(
+        'flex gap-3 mb-3 group',
+        isFromMe ? 'justify-end pr-3' : 'justify-start pl-3'
+      )}>
         {/* Avatar do lead (esquerda) */}
         {!isFromMe && contactPhone && (
-          <ContactAvatar
-            phoneNumber={contactPhone}
-            name={contactName}
-            instanceName={currentCompany?.evolution_instance_name || ''}
-            profilePictureUrl={contactAvatar}
-            size="sm"
-          />
+          <div className="flex-shrink-0 self-end mb-1">
+            <ContactAvatar
+              phoneNumber={contactPhone}
+              name={contactName}
+              instanceName={currentCompany?.evolution_instance_name || ''}
+              profilePictureUrl={contactAvatar}
+              size="sm"
+            />
+          </div>
         )}
 
-        <div className={cn('max-w-[70%] flex flex-col', isFromMe ? 'items-end' : 'items-start')}>
+        <div className={cn('max-w-[75%] flex flex-col gap-1', isFromMe ? 'items-end' : 'items-start')}>
           {/* Header com nome e indicador IA */}
           {(showSender || isFromAI) && isFromMe && (
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 px-2">
               {isFromAI ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 text-xs text-emerald-600">
-                      <Bot className="h-3 w-3" />
-                      <span>IA</span>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      <Bot className="h-3.5 w-3.5" />
+                      <span>Assistente IA</span>
                       {message.ai_confidence && (
-                        <span className="text-gray-400">
-                          ({Math.round(message.ai_confidence * 100)}%)
+                        <span className="text-gray-400 text-[10px]">
+                          {Math.round(message.ai_confidence * 100)}%
                         </span>
                       )}
                     </div>
@@ -268,17 +274,19 @@ export function MessageBubble({
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <span className="text-xs text-gray-500">{message.sender?.name || 'Atendente'}</span>
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                  {message.sender?.name || 'Você'}
+                </span>
               )}
             </div>
           )}
 
-          {/* Bolha da mensagem */}
+          {/* Bolha da mensagem - design mais elegante */}
           <div
             className={cn(
-              'px-4 py-2 rounded-2xl shadow-sm',
+              'px-4 py-3 rounded-2xl',
               getBubbleStyle(),
-              isFromMe ? 'rounded-br-md' : 'rounded-bl-md'
+              isFromMe ? 'rounded-br-sm' : 'rounded-bl-sm'
             )}
             style={getCustomStyle()}
           >
@@ -333,8 +341,11 @@ export function MessageBubble({
                     {message.media_type?.includes('image') && (
                       <div className="relative group min-h-[100px] min-w-[200px]">
                         {isMediaLoading && (
-                          <div className="w-full aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
-                            <Clock className="h-5 w-5 text-gray-400" />
+                          <div className="w-full min-h-[200px] bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
+                            <div className="flex flex-col items-center gap-2">
+                              <Clock className="h-6 w-6 text-gray-400 animate-spin" />
+                              <span className="text-xs text-gray-500">Carregando imagem...</span>
+                            </div>
                           </div>
                         )}
                         <img
@@ -345,30 +356,39 @@ export function MessageBubble({
                             isMediaLoading ? "opacity-0 invisible absolute" : "opacity-100 visible h-auto"
                           )}
                           onClick={() => window.open(message.media_url, '_blank')}
-                          onLoad={() => setIsMediaLoading(false)}
-                          onError={() => {
-                            console.error('Erro ao carregar imagem:', message.media_url);
+                          onLoad={() => {
+                            console.log('✅ Imagem carregada com sucesso:', message.media_url);
+                            setIsMediaLoading(false);
+                          }}
+                          onError={(e) => {
+                            console.error('❌ Erro ao carregar imagem:', message.media_url, e);
                             setMediaError(true);
                             setIsMediaLoading(false);
                           }}
+                          loading="lazy"
                         />
-                        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <a
-                            href={message.media_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-black/50 text-white px-2 py-1 rounded text-xs backdrop-blur-sm"
-                          >
-                            Abrir
-                          </a>
-                        </div>
+                        {!isMediaLoading && !mediaError && (
+                          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a
+                              href={message.media_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-black/50 text-white px-2 py-1 rounded text-xs backdrop-blur-sm hover:bg-black/70"
+                            >
+                              Abrir
+                            </a>
+                          </div>
+                        )}
                       </div>
                     )}
                     {message.media_type?.includes('video') && (
                       <div className="relative group">
                         {isMediaLoading && (
-                          <div className="w-full aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
-                            <Clock className="h-5 w-5 text-gray-400" />
+                          <div className="w-full min-h-[300px] bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
+                            <div className="flex flex-col items-center gap-2">
+                              <Clock className="h-6 w-6 text-gray-400 animate-spin" />
+                              <span className="text-xs text-gray-500">Carregando vídeo...</span>
+                            </div>
                           </div>
                         )}
                         <video
@@ -380,9 +400,12 @@ export function MessageBubble({
                             isMediaLoading ? "opacity-0 absolute" : "opacity-100"
                           )}
                           preload="metadata"
-                          onLoadedMetadata={() => setIsMediaLoading(false)}
-                          onError={() => {
-                            console.error('Erro ao carregar video:', message.media_url);
+                          onLoadedMetadata={() => {
+                            console.log('✅ Vídeo carregado com sucesso:', message.media_url);
+                            setIsMediaLoading(false);
+                          }}
+                          onError={(e) => {
+                            console.error('❌ Erro ao carregar vídeo:', message.media_url, e);
                             setMediaError(true);
                             setIsMediaLoading(false);
                           }}
@@ -393,36 +416,55 @@ export function MessageBubble({
                     )}
                     {message.media_type?.includes('audio') && (
                       <div className="space-y-2">
+                        {isMediaLoading && (
+                          <div className="w-full max-w-sm h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-gray-400 animate-spin" />
+                              <span className="text-xs text-gray-500">Carregando áudio...</span>
+                            </div>
+                          </div>
+                        )}
                         <audio
                           src={message.media_url}
                           controls
                           controlsList="nodownload"
-                          className="w-full max-w-sm"
+                          className={cn(
+                            "w-full max-w-sm",
+                            isMediaLoading ? "opacity-0 h-0" : "opacity-100"
+                          )}
                           preload="metadata"
-                          onLoadedMetadata={() => setIsMediaLoading(false)}
-                          onError={() => {
-                            console.error('Erro ao carregar audio:', message.media_url);
+                          onLoadedMetadata={() => {
+                            console.log('✅ Áudio carregado com sucesso:', message.media_url);
+                            setIsMediaLoading(false);
+                          }}
+                          onError={(e) => {
+                            console.error('❌ Erro ao carregar áudio:', message.media_url, e);
                             setMediaError(true);
                             setIsMediaLoading(false);
                           }}
                         >
                           Seu navegador não suporta áudio.
                         </audio>
-                        <AudioTranscription
-                          messageId={message.id}
-                          transcription={message.audio_transcription}
-                          status={message.transcription_status}
-                          language={message.transcription_language}
-                          confidence={message.transcription_confidence}
-                          onTranscribe={onUpdated}
-                        />
+                        {!mediaError && (
+                          <AudioTranscription
+                            messageId={message.id}
+                            transcription={message.audio_transcription}
+                            status={message.transcription_status}
+                            language={message.transcription_language}
+                            confidence={message.transcription_confidence}
+                            onTranscribe={onUpdated}
+                          />
+                        )}
                       </div>
                     )}
                     {message.media_type?.includes('sticker') && (
                       <div className="relative group">
                         {isMediaLoading && (
                           <div className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center animate-pulse">
-                            <Clock className="h-5 w-5 text-gray-400" />
+                            <div className="flex flex-col items-center gap-1">
+                              <Clock className="h-5 w-5 text-gray-400 animate-spin" />
+                              <span className="text-[10px] text-gray-500">Carregando...</span>
+                            </div>
                           </div>
                         )}
                         <img
@@ -433,9 +475,12 @@ export function MessageBubble({
                             isMediaLoading ? "opacity-0 absolute" : "opacity-100"
                           )}
                           loading="lazy"
-                          onLoad={() => setIsMediaLoading(false)}
-                          onError={() => {
-                            console.error('Erro ao carregar figurinha:', message.media_url);
+                          onLoad={() => {
+                            console.log('✅ Figurinha carregada com sucesso:', message.media_url);
+                            setIsMediaLoading(false);
+                          }}
+                          onError={(e) => {
+                            console.error('❌ Erro ao carregar figurinha:', message.media_url, e);
                             setMediaError(true);
                             setIsMediaLoading(false);
                           }}
@@ -521,23 +566,43 @@ export function MessageBubble({
               </div>
             )}
 
-            <p className="whitespace-pre-wrap break-words text-sm">{linkifyText(message.content)}</p>
+            {/* Conteúdo da mensagem */}
+            <div className={cn(
+              "leading-relaxed text-[15px]",
+              isFromMe ? "text-white" : "text-gray-800 dark:text-gray-100"
+            )}>
+              {linkifyText(message.content)}
+            </div>
+
+            {/* Footer com hora, status e badges */}
+            <div className={cn(
+              "flex items-center gap-2 mt-2 pt-1",
+              isFromMe ? "justify-end" : "justify-start"
+            )}>
+              <span className={cn(
+                "text-[11px] font-medium",
+                isFromMe ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+              )}>
+                {format(new Date(message.timestamp), 'HH:mm', { locale: ptBR })}
+              </span>
+
+              {isFromMe && (
+                <div className="flex items-center gap-1">
+                  {getStatusIcon()}
+                  {message.edited_at && (
+                    <span className="text-[10px] italic text-white/60">editado</span>
+                  )}
+                </div>
+              )}
+
+              {/* Badge de sentimento (só para mensagens do lead analisadas) */}
+              {!isFromMe && message.ai_sentiment && getSentimentBadge()}
+            </div>
           </div>
 
-          {/* Footer com hora, status e sentimento */}
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-gray-400">
-              {format(new Date(message.timestamp), 'HH:mm', { locale: ptBR })}
-            </span>
-
-            {isFromMe && getStatusIcon()}
-            {message.edited_at && <span className="text-xs italic text-gray-400">(editado)</span>}
-
-            {/* Badge de sentimento (só para mensagens do lead analisadas) */}
-            {!isFromMe && message.ai_sentiment && getSentimentBadge()}
-
-            {/* Message actions */}
-            {isFromMe && onUpdated && (
+          {/* Message actions - aparece no hover */}
+          {isFromMe && onUpdated && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <MessageActions
                 messageId={message.id}
                 content={message.content}
@@ -545,31 +610,35 @@ export function MessageBubble({
                 isFromMe={message.is_from_me}
                 onUpdated={onUpdated}
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* Avatar do atendente/IA (direita) */}
+        {/* Avatar do atendente/IA (direita) - design mais elegante */}
         {isFromMe && (
-          <Avatar
-            className={cn(
-              'h-8 w-8 flex-shrink-0',
-              isFromAI ? 'ring-2 ring-emerald-500' : 'ring-2 ring-indigo-500'
-            )}
-          >
-            {isFromAI ? (
-              <AvatarFallback className="bg-emerald-100">
-                <Bot className="h-4 w-4 text-emerald-600" />
-              </AvatarFallback>
-            ) : (
-              <>
-                <AvatarImage src={message.sender?.avatar_url} />
-                <AvatarFallback className="bg-indigo-100 text-indigo-700">
-                  {message.sender?.name?.charAt(0) || 'A'}
+          <div className="flex-shrink-0 self-end mb-1">
+            <Avatar
+              className={cn(
+                'h-9 w-9 shadow-md',
+                isFromAI
+                  ? 'ring-2 ring-emerald-400 ring-offset-2'
+                  : 'ring-2 ring-blue-400 ring-offset-2'
+              )}
+            >
+              {isFromAI ? (
+                <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-teal-500">
+                  <Bot className="h-4 w-4 text-white" />
                 </AvatarFallback>
-              </>
-            )}
-          </Avatar>
+              ) : (
+                <>
+                  <AvatarImage src={message.sender?.avatar_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-semibold text-sm">
+                    {message.sender?.name?.charAt(0)?.toUpperCase() || 'A'}
+                  </AvatarFallback>
+                </>
+              )}
+            </Avatar>
+          </div>
         )}
       </div>
     </TooltipProvider>

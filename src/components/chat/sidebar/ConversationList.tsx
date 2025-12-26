@@ -234,7 +234,7 @@ const ConversationList = ({
 
   return (
     <>
-      <div className="w-full md:w-96 border-r border-border flex flex-col bg-card">
+      <div className="h-full flex flex-col bg-card overflow-hidden md:pr-2.5">
         <div className="p-4 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
@@ -311,7 +311,7 @@ const ConversationList = ({
           labels={labels}
         />
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0">
           {isLoading ? (
             <div className="p-4 space-y-4">
               {[1, 2, 3].map((i) => (

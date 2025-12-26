@@ -66,11 +66,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <SidebarProvider open={sidebarOpen} onOpenChange={handleSidebarChange}>
-      <div className="min-h-screen flex w-full overflow-hidden bg-[#111111]">
+      <div className="min-h-screen flex w-full bg-[#111111]">
         {!isMobile && <AppSidebar />}
 
-        <div className="flex flex-1 flex-col overflow-hidden h-screen p-2 pl-0">
-          <div className="flex-1 flex flex-col bg-[#F3F4F6] rounded-[32px] overflow-hidden shadow-2xl relative">
+        <div className="flex flex-1 flex-col h-screen p-2 pl-0">
+          <div className="flex-1 flex flex-col bg-[#F3F4F6] rounded-[32px] overflow-hidden shadow-2xl">
             {!isMobile && <Header />}
             <TrialBanner />
             <main
@@ -78,7 +78,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 isMobile
                   ? 'flex-1 overflow-auto'
                   : isFullHeightPage
-                    ? 'flex-1 overflow-auto'
+                    ? 'flex-1 overflow-hidden'
                     : 'flex-1 p-6 overflow-auto'
               }
             >

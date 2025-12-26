@@ -62,6 +62,8 @@ interface ChatbotExecution {
       max_retries?: number;
       session_timeout_minutes?: number;
     };
+    successful_completions?: number;
+    handoffs_count?: number;
   };
   conversation: {
     id: string;
@@ -128,19 +130,34 @@ async function sendWhatsAppMessage(
     const apiKey = Deno.env.get("EVOLUTION_API_KEY");
 
     // Get company's Evolution instance
-    const { data: company } = await supabase
-      .from("companies")
-      .select("evolution_instance_name")
-      .eq("id", companyId)
-      .single();
+    let instanceName: string | null = null;
 
-    if (!apiUrl || !apiKey || !company?.evolution_instance_name) {
-      console.error("Evolution API not configured");
+    // First try evolution_settings
+    const { data: settings } = await supabase
+      .from("evolution_settings")
+      .select("instance_name")
+      .eq("company_id", companyId)
+      .maybeSingle();
+      
+    if (settings?.instance_name) {
+      instanceName = settings.instance_name;
+    } else {
+      // Fallback to companies table
+      const { data: company } = await supabase
+        .from("companies")
+        .select("evolution_instance_name")
+        .eq("id", companyId)
+        .single();
+      instanceName = company?.evolution_instance_name;
+    }
+
+    if (!apiUrl || !apiKey || !instanceName) {
+      console.error(`Evolution API not configured for company ${companyId}. InstanceName: ${instanceName}`);
       return false;
     }
 
     const response = await fetch(
-      `${apiUrl}/message/sendText/${company.evolution_instance_name}`,
+      `${apiUrl}/message/sendText/${instanceName}`,
       {
         method: "POST",
         headers: {
@@ -577,6 +594,1233 @@ async function processNode(
       logEntry.completed = true;
       break;
 
+    // ===== CONTROLE DE FLUXO =====
+    case "delay":
+      // Simular digitação com delay
+      const delayMs = node.data.duration || 1000;
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+
+      // Opcional: enviar status "digitando..." via Evolution API
+      if (node.data.showTyping) {
+        try {
+          const apiUrl = Deno.env.get("EVOLUTION_API_URL");
+          const apiKey = Deno.env.get("EVOLUTION_API_KEY");
+
+          const { data: settings } = await supabase
+            .from("evolution_settings")
+            .select("instance_name")
+            .eq("company_id", execution.chatbot.company_id)
+            .maybeSingle();
+
+          const instanceName = settings?.instance_name;
+
+          if (apiUrl && apiKey && instanceName) {
+            await fetch(`${apiUrl}/chat/presence/${instanceName}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": apiKey,
+              },
+              body: JSON.stringify({
+                number: conversation.contact_number,
+                state: "composing",
+              }),
+            });
+          }
+        } catch (error) {
+          console.error("Error sending typing status:", error);
+        }
+      }
+
+      logEntry.delay = delayMs;
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    case "goto":
+      // Saltar para outro nó
+      const targetNodeId = node.data.targetNodeId;
+      if (!targetNodeId) {
+        throw new Error('Goto node missing targetNodeId');
+      }
+      logEntry.goto_target = targetNodeId;
+      nextNodeId = targetNodeId;
+      break;
+
+    case "random":
+      // Escolha aleatória entre múltiplos caminhos
+      const randomEdges = execution.chatbot.edges.filter(e => e.source === node.id);
+      if (randomEdges.length > 0) {
+        const randomEdge = randomEdges[Math.floor(Math.random() * randomEdges.length)];
+        nextNodeId = randomEdge.target;
+        logEntry.random_choice = randomEdge.sourceHandle || randomEdge.target;
+      }
+      break;
+
+    case "split":
+      // Divisão de fluxo baseado em porcentagem
+      const splitType = node.data.splitType || 'percentage';
+
+      if (splitType === 'percentage') {
+        const random = Math.random() * 100;
+        const paths = node.data.paths || [];
+
+        let accumulated = 0;
+        for (const path of paths) {
+          accumulated += path.percentage;
+          if (random <= accumulated) {
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id, path.id);
+            logEntry.split_path = path.id;
+            logEntry.split_percentage = path.percentage;
+            break;
+          }
+        }
+      }
+
+      if (!nextNodeId) {
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      }
+      break;
+
+    // ===== MULTIMÍDIA =====
+    case "image":
+    case "video":
+    case "audio":
+    case "document":
+    case "sticker":
+      // Enviar mídia via Evolution API
+      try {
+        const mediaUrl = interpolateVariables(node.data.url || node.data.mediaUrl || "", variables, contact);
+        const caption = interpolateVariables(node.data.caption || "", variables, contact);
+
+        const apiUrl = Deno.env.get("EVOLUTION_API_URL");
+        const apiKey = Deno.env.get("EVOLUTION_API_KEY");
+
+        const { data: settings } = await supabase
+          .from("evolution_settings")
+          .select("instance_name")
+          .eq("company_id", execution.chatbot.company_id)
+          .maybeSingle();
+
+        const instanceName = settings?.instance_name;
+
+        if (!apiUrl || !apiKey || !instanceName) {
+          throw new Error(`Evolution API not configured for company ${execution.chatbot.company_id}`);
+        }
+
+        // Determinar tipo de mídia
+        let mediaType = node.type;
+        if (mediaType === 'document') {
+          mediaType = 'document';
+        }
+
+        // Simular digitação antes de enviar mídia
+        await new Promise(resolve => setTimeout(resolve, typingDelay));
+
+        const mediaResponse = await fetch(
+          `${apiUrl}/message/sendMedia/${instanceName}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": apiKey,
+            },
+            body: JSON.stringify({
+              number: conversation.contact_number,
+              mediatype: mediaType,
+              media: mediaUrl,
+              caption: caption || undefined,
+              fileName: node.data.fileName || undefined,
+            }),
+          }
+        );
+
+        if (mediaResponse.ok) {
+          const data = await mediaResponse.json();
+
+          // Salvar mensagem no banco
+          await supabase.from("messages").insert({
+            conversation_id: conversation.id,
+            company_id: execution.chatbot.company_id,
+            content: caption || `[${mediaType.toUpperCase()}]`,
+            is_from_me: true,
+            status: "sent",
+            external_id: data?.key?.id,
+            metadata: {
+              source: "chatbot",
+              media_type: mediaType,
+              media_url: mediaUrl,
+            },
+          });
+
+          // Atualizar conversa
+          await supabase
+            .from("conversations")
+            .update({
+              last_message: caption || `[${mediaType.toUpperCase()}]`,
+              last_message_time: new Date().toISOString(),
+            })
+            .eq("id", conversation.id);
+
+          messageSent = true;
+          logEntry.media_type = mediaType;
+          logEntry.media_url = mediaUrl;
+          logEntry.caption = caption;
+        } else {
+          throw new Error(`Failed to send ${mediaType}: ${await mediaResponse.text()}`);
+        }
+      } catch (error) {
+        console.error(`Error sending ${node.type}:`, error);
+        logEntry.error = error.message;
+      }
+
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    // ===== INTERAÇÃO AVANÇADA =====
+    case "quick_reply":
+      if (!userMessage) {
+        // Enviar mensagem com botões de resposta rápida
+        const qrMessage = interpolateVariables(node.data.message || "", variables, contact);
+        const replies = node.data.replies || [];
+
+        const apiUrl = Deno.env.get("EVOLUTION_API_URL");
+        const apiKey = Deno.env.get("EVOLUTION_API_KEY");
+
+        const { data: settings } = await supabase
+          .from("evolution_settings")
+          .select("instance_name")
+          .eq("company_id", execution.chatbot.company_id)
+          .maybeSingle();
+
+        const instanceName = settings?.instance_name;
+
+        if (apiUrl && apiKey && instanceName) {
+          await new Promise(resolve => setTimeout(resolve, typingDelay));
+
+          const buttons = replies.slice(0, 3).map(r => ({
+            buttonId: r.id,
+            buttonText: { displayText: `${r.emoji || ''} ${r.label}`.trim() }
+          }));
+
+          await fetch(`${apiUrl}/message/sendButtons/${instanceName}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": apiKey,
+            },
+            body: JSON.stringify({
+              number: conversation.contact_number,
+              text: qrMessage,
+              buttons: buttons,
+            }),
+          });
+
+          // Salvar mensagem no banco
+          await supabase.from("messages").insert({
+            conversation_id: conversation.id,
+            company_id: execution.chatbot.company_id,
+            content: qrMessage,
+            is_from_me: true,
+            status: "sent",
+            metadata: { source: "chatbot", type: "quick_reply", buttons: replies },
+          });
+
+          messageSent = true;
+          waitForInput = true;
+          logEntry.message = qrMessage;
+          logEntry.buttons = replies;
+        }
+      } else {
+        // Processar resposta
+        const replies = node.data.replies || [];
+        const selectedReply = replies.find(r =>
+          userMessage.toLowerCase().includes(r.label.toLowerCase()) ||
+          userMessage === r.id ||
+          userMessage === r.value
+        );
+
+        if (selectedReply) {
+          variables[node.data.variableName || 'quick_reply_response'] = selectedReply.value;
+          logEntry.selected = selectedReply.value;
+          nextNodeId = findNextNode(execution.chatbot.edges, node.id, selectedReply.value);
+        }
+
+        if (!nextNodeId) {
+          nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+        }
+      }
+      break;
+
+    case "list":
+      if (!userMessage) {
+        // Enviar lista
+        const listTitle = interpolateVariables(node.data.title || "", variables, contact);
+        const sections = node.data.sections || [];
+
+        const apiUrl = Deno.env.get("EVOLUTION_API_URL");
+        const apiKey = Deno.env.get("EVOLUTION_API_KEY");
+
+        const { data: settings } = await supabase
+          .from("evolution_settings")
+          .select("instance_name")
+          .eq("company_id", execution.chatbot.company_id)
+          .maybeSingle();
+
+        const instanceName = settings?.instance_name;
+
+        if (apiUrl && apiKey && instanceName) {
+          await new Promise(resolve => setTimeout(resolve, typingDelay));
+
+          const formattedSections = sections.map(section => ({
+            title: section.title,
+            rows: section.items.map(item => ({
+              rowId: item.id,
+              title: item.title,
+              description: item.description || ''
+            }))
+          }));
+
+          await fetch(`${apiUrl}/message/sendList/${instanceName}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": apiKey,
+            },
+            body: JSON.stringify({
+              number: conversation.contact_number,
+              title: listTitle,
+              description: node.data.subtitle || '',
+              buttonText: node.data.buttonText || 'Ver opções',
+              sections: formattedSections,
+            }),
+          });
+
+          await supabase.from("messages").insert({
+            conversation_id: conversation.id,
+            company_id: execution.chatbot.company_id,
+            content: listTitle,
+            is_from_me: true,
+            status: "sent",
+            metadata: { source: "chatbot", type: "list", sections: sections },
+          });
+
+          messageSent = true;
+          waitForInput = true;
+          logEntry.title = listTitle;
+        }
+      } else {
+        // Processar seleção
+        const sections = node.data.sections || [];
+        let selectedItem = null;
+
+        for (const section of sections) {
+          selectedItem = section.items.find(item =>
+            userMessage.toLowerCase().includes(item.title.toLowerCase()) ||
+            userMessage === item.id ||
+            userMessage === item.value
+          );
+          if (selectedItem) break;
+        }
+
+        if (selectedItem) {
+          variables[node.data.variableName || 'list_selection'] = selectedItem.value;
+          logEntry.selected = selectedItem.value;
+          nextNodeId = findNextNode(execution.chatbot.edges, node.id, selectedItem.value);
+        }
+
+        if (!nextNodeId) {
+          nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+        }
+      }
+      break;
+
+    case "carousel":
+      // Enviar carrossel de cards
+      const cards = node.data.cards || [];
+
+      for (const card of cards) {
+        const cardImage = interpolateVariables(card.imageUrl || "", variables, contact);
+        const cardTitle = interpolateVariables(card.title || "", variables, contact);
+        const cardSubtitle = interpolateVariables(card.subtitle || "", variables, contact);
+
+        let caption = `*${cardTitle}*`;
+        if (cardSubtitle) caption += `\n${cardSubtitle}`;
+        if (card.price) caption += `\n\n💰 R$ ${card.price}`;
+        if (card.originalPrice && card.originalPrice > card.price) {
+          caption += ` ~R$ ${card.originalPrice}~`;
+        }
+        if (card.badge) caption += `\n🏷️ ${card.badge}`;
+
+        // Enviar imagem do card
+        const apiUrl = Deno.env.get("EVOLUTION_API_URL");
+        const apiKey = Deno.env.get("EVOLUTION_API_KEY");
+
+        const { data: settings } = await supabase
+          .from("evolution_settings")
+          .select("instance_name")
+          .eq("company_id", execution.chatbot.company_id)
+          .maybeSingle();
+
+        const instanceName = settings?.instance_name;
+
+        if (apiUrl && apiKey && instanceName && cardImage) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          await fetch(`${apiUrl}/message/sendMedia/${instanceName}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": apiKey,
+            },
+            body: JSON.stringify({
+              number: conversation.contact_number,
+              mediatype: "image",
+              media: cardImage,
+              caption: caption,
+            }),
+          });
+        }
+      }
+
+      messageSent = true;
+      logEntry.cards_count = cards.length;
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    case "file_upload":
+      if (!userMessage) {
+        // Solicitar upload de arquivo
+        const uploadPrompt = interpolateVariables(node.data.prompt || "Por favor, envie o arquivo", variables, contact);
+
+        await sendWhatsAppMessage(
+          conversation.contact_number,
+          uploadPrompt,
+          execution.chatbot.company_id,
+          conversation.id,
+          supabase
+        );
+
+        messageSent = true;
+        waitForInput = true;
+        logEntry.prompt = uploadPrompt;
+      } else {
+        // Arquivo será processado pelo webhook
+        // Por enquanto, apenas salvar a URL se fornecida
+        variables[node.data.variableName || 'uploaded_file'] = userMessage;
+        logEntry.file_received = userMessage;
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      }
+      break;
+
+    case "location":
+      if (node.data.requestType === 'request' || !node.data.requestType) {
+        // Solicitar localização do usuário
+        if (!userMessage) {
+          const locationPrompt = interpolateVariables(
+            node.data.prompt || "Por favor, compartilhe sua localização",
+            variables,
+            contact
+          );
+
+          await sendWhatsAppMessage(
+            conversation.contact_number,
+            locationPrompt,
+            execution.chatbot.company_id,
+            conversation.id,
+            supabase
+          );
+
+          messageSent = true;
+          waitForInput = true;
+          logEntry.prompt = locationPrompt;
+        } else {
+          // Localização recebida (será processada pelo webhook)
+          variables[node.data.variableName || 'location'] = userMessage;
+          logEntry.location_received = true;
+          nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+        }
+      } else {
+        // Enviar localização
+        const apiUrl = Deno.env.get("EVOLUTION_API_URL");
+        const apiKey = Deno.env.get("EVOLUTION_API_KEY");
+
+        const { data: settings } = await supabase
+          .from("evolution_settings")
+          .select("instance_name")
+          .eq("company_id", execution.chatbot.company_id)
+          .maybeSingle();
+
+        const instanceName = settings?.instance_name;
+
+        if (apiUrl && apiKey && instanceName) {
+          await new Promise(resolve => setTimeout(resolve, typingDelay));
+
+          await fetch(`${apiUrl}/message/sendLocation/${instanceName}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": apiKey,
+            },
+            body: JSON.stringify({
+              number: conversation.contact_number,
+              latitude: node.data.latitude,
+              longitude: node.data.longitude,
+              name: node.data.address || '',
+              address: node.data.address || '',
+            }),
+          });
+
+          messageSent = true;
+          logEntry.location_sent = { lat: node.data.latitude, lng: node.data.longitude };
+        }
+
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      }
+      break;
+
+    case "contact_card":
+      // Enviar cartão de contato
+      const apiUrl2 = Deno.env.get("EVOLUTION_API_URL");
+      const apiKey2 = Deno.env.get("EVOLUTION_API_KEY");
+
+      const { data: settings2 } = await supabase
+        .from("evolution_settings")
+        .select("instance_name")
+        .eq("company_id", execution.chatbot.company_id)
+        .maybeSingle();
+
+      const instanceName2 = settings2?.instance_name;
+
+      if (apiUrl2 && apiKey2 && instanceName2) {
+        await new Promise(resolve => setTimeout(resolve, typingDelay));
+
+        await fetch(`${apiUrl2}/message/sendContact/${instanceName2}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": apiKey2,
+          },
+          body: JSON.stringify({
+            number: conversation.contact_number,
+            contact: {
+              fullName: interpolateVariables(node.data.name || "", variables, contact),
+              organization: interpolateVariables(node.data.company || "", variables, contact),
+              phoneNumber: interpolateVariables(node.data.phone || "", variables, contact),
+              email: interpolateVariables(node.data.email || "", variables, contact),
+            },
+          }),
+        });
+
+        messageSent = true;
+        logEntry.contact_sent = node.data.name;
+      }
+
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    case "rating":
+      if (!userMessage) {
+        // Enviar solicitação de avaliação
+        const ratingQuestion = interpolateVariables(
+          node.data.question || "Como você avalia nosso atendimento?",
+          variables,
+          contact
+        );
+        const maxRating = node.data.maxRating || 5;
+        const ratingType = node.data.ratingType || 'stars';
+
+        let ratingMessage = ratingQuestion + '\n\n';
+
+        if (ratingType === 'stars') {
+          for (let i = 1; i <= maxRating; i++) {
+            ratingMessage += `${i} - ${'⭐'.repeat(i)}\n`;
+          }
+        } else if (ratingType === 'numbers') {
+          ratingMessage += `Digite um número de 1 a ${maxRating}`;
+        } else if (ratingType === 'emoji') {
+          const emojis = ['😠', '😟', '😐', '🙂', '😊'];
+          for (let i = 1; i <= Math.min(maxRating, 5); i++) {
+            ratingMessage += `${i} - ${emojis[i - 1]}\n`;
+          }
+        }
+
+        await sendWhatsAppMessage(
+          conversation.contact_number,
+          ratingMessage,
+          execution.chatbot.company_id,
+          conversation.id,
+          supabase
+        );
+
+        messageSent = true;
+        waitForInput = true;
+        logEntry.question = ratingQuestion;
+      } else {
+        // Processar avaliação
+        const rating = parseInt(userMessage);
+        const maxRating = node.data.maxRating || 5;
+
+        if (!isNaN(rating) && rating >= 1 && rating <= maxRating) {
+          variables[node.data.variableName || 'rating'] = rating;
+
+          // Salvar avaliação no banco
+          await supabase.from("messages").insert({
+            conversation_id: conversation.id,
+            company_id: execution.chatbot.company_id,
+            content: `Avaliação: ${rating}/${maxRating}`,
+            is_from_me: false,
+            metadata: {
+              source: "chatbot",
+              type: "rating",
+              rating: rating,
+              max_rating: maxRating
+            },
+          });
+
+          logEntry.rating = rating;
+
+          // Verificar threshold para baixa avaliação
+          if (node.data.lowRatingThreshold && rating <= node.data.lowRatingThreshold) {
+            if (node.data.lowRatingAction === 'handoff') {
+              nextNodeId = null;
+              // Trigger handoff
+            } else {
+              nextNodeId = findNextNode(execution.chatbot.edges, node.id, 'low');
+            }
+          } else {
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id, 'high') ||
+                        findNextNode(execution.chatbot.edges, node.id);
+          }
+        } else {
+          // Avaliação inválida
+          await sendWhatsAppMessage(
+            conversation.contact_number,
+            `Por favor, digite um número de 1 a ${maxRating}`,
+            execution.chatbot.company_id,
+            conversation.id,
+            supabase
+          );
+          messageSent = true;
+          waitForInput = true;
+        }
+      }
+      break;
+
+    case "nps":
+      if (!userMessage) {
+        // Enviar pergunta NPS
+        const npsQuestion = interpolateVariables(
+          node.data.question || "De 0 a 10, qual a probabilidade de você nos recomendar?",
+          variables,
+          contact
+        );
+
+        await sendWhatsAppMessage(
+          conversation.contact_number,
+          npsQuestion + "\n\n0️⃣ 1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ 6️⃣ 7️⃣ 8️⃣ 9️⃣ 🔟",
+          execution.chatbot.company_id,
+          conversation.id,
+          supabase
+        );
+
+        messageSent = true;
+        waitForInput = true;
+        logEntry.question = npsQuestion;
+      } else {
+        // Processar NPS
+        const score = parseInt(userMessage);
+
+        if (!isNaN(score) && score >= 0 && score <= 10) {
+          variables[node.data.variableName || 'nps_score'] = score;
+
+          // Classificar NPS
+          let npsCategory = '';
+          let followUpMsg = '';
+
+          if (score <= 6) {
+            npsCategory = 'detractor';
+            followUpMsg = node.data.followUpDetractor || '';
+          } else if (score <= 8) {
+            npsCategory = 'passive';
+            followUpMsg = node.data.followUpPassive || '';
+          } else {
+            npsCategory = 'promoter';
+            followUpMsg = node.data.followUpPromoter || '';
+          }
+
+          variables['nps_category'] = npsCategory;
+
+          // Salvar NPS no banco
+          await supabase.from("messages").insert({
+            conversation_id: conversation.id,
+            company_id: execution.chatbot.company_id,
+            content: `NPS: ${score}/10 (${npsCategory})`,
+            is_from_me: false,
+            metadata: {
+              source: "chatbot",
+              type: "nps",
+              score: score,
+              category: npsCategory
+            },
+          });
+
+          // Enviar mensagem de follow-up se configurada
+          if (followUpMsg) {
+            await sendWhatsAppMessage(
+              conversation.contact_number,
+              interpolateVariables(followUpMsg, variables, contact),
+              execution.chatbot.company_id,
+              conversation.id,
+              supabase
+            );
+            messageSent = true;
+          }
+
+          logEntry.nps_score = score;
+          logEntry.nps_category = npsCategory;
+
+          nextNodeId = findNextNode(execution.chatbot.edges, node.id, npsCategory) ||
+                      findNextNode(execution.chatbot.edges, node.id);
+        } else {
+          // Resposta inválida
+          await sendWhatsAppMessage(
+            conversation.contact_number,
+            "Por favor, digite um número de 0 a 10",
+            execution.chatbot.company_id,
+            conversation.id,
+            supabase
+          );
+          messageSent = true;
+          waitForInput = true;
+        }
+      }
+      break;
+
+    case "calendar":
+      // Agendamento - implementação simplificada
+      if (!userMessage) {
+        const calendarPrompt = interpolateVariables(
+          node.data.prompt || "Escolha uma data e horário para o agendamento",
+          variables,
+          contact
+        );
+
+        // Aqui poderia integrar com APIs de calendário
+        // Por ora, solicita data/hora por texto
+        await sendWhatsAppMessage(
+          conversation.contact_number,
+          calendarPrompt + "\n\nExemplo: 25/12/2024 14:00",
+          execution.chatbot.company_id,
+          conversation.id,
+          supabase
+        );
+
+        messageSent = true;
+        waitForInput = true;
+        logEntry.prompt = calendarPrompt;
+      } else {
+        // Salvar agendamento
+        variables[node.data.variableName || 'appointment'] = userMessage;
+
+        await supabase.from("messages").insert({
+          conversation_id: conversation.id,
+          company_id: execution.chatbot.company_id,
+          content: `Agendamento: ${userMessage}`,
+          is_from_me: false,
+          metadata: {
+            source: "chatbot",
+            type: "calendar",
+            appointment: userMessage
+          },
+        });
+
+        logEntry.appointment = userMessage;
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      }
+      break;
+
+    // ===== LÓGICA =====
+    case "switch":
+      // Switch case baseado em variável
+      const switchVariable = variables[node.data.variable];
+      const cases = node.data.cases || [];
+
+      let matchedCase = null;
+      for (const caseItem of cases) {
+        if (String(switchVariable) === String(caseItem.value)) {
+          matchedCase = caseItem;
+          break;
+        }
+      }
+
+      if (matchedCase) {
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id, matchedCase.id);
+        logEntry.matched_case = matchedCase.value;
+      } else {
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id, 'default') ||
+                    findNextNode(execution.chatbot.edges, node.id);
+        logEntry.matched_case = 'default';
+      }
+      break;
+
+    case "ab_test":
+      // Teste A/B com rastreamento
+      const testName = node.data.testName || node.id;
+      const variants = node.data.variants || [];
+
+      // Verificar se o contato já tem uma variante atribuída
+      let assignedVariant = null;
+      const { data: existingTest } = await supabase
+        .from("chatbot_ab_tests")
+        .select("variant_id")
+        .eq("contact_id", contact.id)
+        .eq("test_name", testName)
+        .maybeSingle();
+
+      if (existingTest) {
+        assignedVariant = existingTest.variant_id;
+      } else {
+        // Atribuir variante baseado em peso
+        const totalWeight = variants.reduce((sum, v) => sum + (v.weight || 1), 0);
+        const random = Math.random() * totalWeight;
+
+        let accumulated = 0;
+        for (const variant of variants) {
+          accumulated += variant.weight || 1;
+          if (random <= accumulated) {
+            assignedVariant = variant.id;
+            break;
+          }
+        }
+
+        // Salvar atribuição
+        await supabase.from("chatbot_ab_tests").insert({
+          contact_id: contact.id,
+          chatbot_id: execution.chatbot_id,
+          test_name: testName,
+          variant_id: assignedVariant,
+          assigned_at: new Date().toISOString(),
+        });
+      }
+
+      variables[`ab_test_${testName}`] = assignedVariant;
+      logEntry.ab_test = testName;
+      logEntry.variant = assignedVariant;
+
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id, assignedVariant) ||
+                  findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    // ===== INTELIGÊNCIA ARTIFICIAL =====
+    case "ai_response":
+      // Gerar resposta com IA
+      try {
+        const aiPrompt = interpolateVariables(node.data.userPromptTemplate || node.data.prompt || "", variables, contact);
+        const systemPrompt = node.data.systemPrompt || "Você é um assistente útil e amigável.";
+        const model = node.data.model || "gpt-3.5-turbo";
+
+        // Buscar API key da empresa
+        const { data: apiKeyData } = await supabase
+          .from("api_keys")
+          .select("key_value")
+          .eq("company_id", execution.chatbot.company_id)
+          .eq("service", "openai")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!apiKeyData?.key_value) {
+          throw new Error("OpenAI API key not configured");
+        }
+
+        // Construir histórico se configurado
+        const messages = [{ role: "system", content: systemPrompt }];
+
+        if (node.data.useConversationHistory && node.data.historyMessages) {
+          // Buscar últimas mensagens
+          const { data: recentMessages } = await supabase
+            .from("messages")
+            .select("content, is_from_me")
+            .eq("conversation_id", conversation.id)
+            .order("created_at", { ascending: false })
+            .limit(node.data.historyMessages);
+
+          if (recentMessages) {
+            recentMessages.reverse().forEach(msg => {
+              messages.push({
+                role: msg.is_from_me ? "assistant" : "user",
+                content: msg.content
+              });
+            });
+          }
+        }
+
+        messages.push({ role: "user", content: aiPrompt });
+
+        // Chamar OpenAI
+        const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKeyData.key_value}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: messages,
+            temperature: node.data.temperature || 0.7,
+            max_tokens: node.data.maxTokens || 500,
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          const aiMessage = aiData.choices[0]?.message?.content;
+
+          if (aiMessage) {
+            // Enviar resposta da IA
+            await sendWhatsAppMessage(
+              conversation.contact_number,
+              aiMessage,
+              execution.chatbot.company_id,
+              conversation.id,
+              supabase
+            );
+
+            messageSent = true;
+            variables[node.data.saveToVariable || 'ai_response'] = aiMessage;
+            logEntry.ai_response = aiMessage;
+            logEntry.model = model;
+          }
+        } else {
+          throw new Error(`OpenAI API error: ${await aiResponse.text()}`);
+        }
+      } catch (error) {
+        console.error("AI Response error:", error);
+        logEntry.error = error.message;
+
+        // Enviar mensagem fallback se configurada
+        if (node.data.fallbackMessage) {
+          await sendWhatsAppMessage(
+            conversation.contact_number,
+            node.data.fallbackMessage,
+            execution.chatbot.company_id,
+            conversation.id,
+            supabase
+          );
+          messageSent = true;
+        }
+      }
+
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    case "ai_classifier":
+      // Classificar texto com IA
+      try {
+        const textToClassify = variables[node.data.inputVariable || 'last_message'] || userMessage || '';
+        const categories = node.data.categories || [];
+
+        const { data: apiKeyData } = await supabase
+          .from("api_keys")
+          .select("key_value")
+          .eq("company_id", execution.chatbot.company_id)
+          .eq("service", "openai")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!apiKeyData?.key_value) {
+          throw new Error("OpenAI API key not configured");
+        }
+
+        const categoryList = categories.map(c => `- ${c.name}: ${c.description}`).join('\n');
+        const prompt = `Classifique o seguinte texto em uma das categorias abaixo. Responda APENAS com o nome da categoria, nada mais.
+
+Categorias:
+${categoryList}
+
+Texto: "${textToClassify}"
+
+Categoria:`;
+
+        const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKeyData.key_value}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: node.data.model || "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3,
+            max_tokens: 50,
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          const classification = aiData.choices[0]?.message?.content.trim();
+
+          // Encontrar categoria correspondente
+          const matchedCategory = categories.find(c =>
+            classification.toLowerCase().includes(c.name.toLowerCase())
+          );
+
+          if (matchedCategory) {
+            variables['ai_classification'] = matchedCategory.name;
+            logEntry.classification = matchedCategory.name;
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id, matchedCategory.id) ||
+                        findNextNode(execution.chatbot.edges, node.id);
+          } else {
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+          }
+        }
+      } catch (error) {
+        console.error("AI Classifier error:", error);
+        logEntry.error = error.message;
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      }
+      break;
+
+    case "ai_sentiment":
+      // Análise de sentimento
+      try {
+        const sentimentText = variables[node.data.inputVariable || 'last_message'] || userMessage || '';
+
+        const { data: apiKeyData } = await supabase
+          .from("api_keys")
+          .select("key_value")
+          .eq("company_id", execution.chatbot.company_id)
+          .eq("service", "openai")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!apiKeyData?.key_value) {
+          throw new Error("OpenAI API key not configured");
+        }
+
+        const prompt = `Analise o sentimento do seguinte texto e responda APENAS com uma palavra: "positive", "neutral" ou "negative".
+
+Texto: "${sentimentText}"
+
+Sentimento:`;
+
+        const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKeyData.key_value}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3,
+            max_tokens: 10,
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          const sentiment = aiData.choices[0]?.message?.content.trim().toLowerCase();
+
+          variables[node.data.resultVariable || 'sentiment'] = sentiment;
+          logEntry.sentiment = sentiment;
+
+          // Rotear baseado no sentimento
+          if (sentiment.includes('positive')) {
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id, 'positive');
+          } else if (sentiment.includes('negative')) {
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id, 'negative');
+          } else {
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id, 'neutral');
+          }
+
+          if (!nextNodeId) {
+            nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+          }
+        }
+      } catch (error) {
+        console.error("AI Sentiment error:", error);
+        logEntry.error = error.message;
+        nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      }
+      break;
+
+    case "ai_extract":
+      // Extrair dados com IA
+      try {
+        const extractText = variables[node.data.inputVariable || 'last_message'] || userMessage || '';
+        const extractions = node.data.extractions || [];
+
+        const { data: apiKeyData } = await supabase
+          .from("api_keys")
+          .select("key_value")
+          .eq("company_id", execution.chatbot.company_id)
+          .eq("service", "openai")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!apiKeyData?.key_value) {
+          throw new Error("OpenAI API key not configured");
+        }
+
+        const fieldsList = extractions.map(e => `- ${e.name}: ${e.description} (tipo: ${e.type})`).join('\n');
+        const prompt = `Extraia as seguintes informações do texto abaixo. Retorne APENAS um JSON válido com os campos solicitados.
+
+Campos:
+${fieldsList}
+
+Texto: "${extractText}"
+
+JSON:`;
+
+        const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKeyData.key_value}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: node.data.model || "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3,
+            max_tokens: 500,
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          const jsonText = aiData.choices[0]?.message?.content;
+
+          try {
+            const extracted = JSON.parse(jsonText);
+
+            // Salvar cada campo extraído em variável
+            extractions.forEach(extraction => {
+              if (extracted[extraction.name]) {
+                variables[extraction.variableName] = extracted[extraction.name];
+              }
+            });
+
+            logEntry.extracted = extracted;
+          } catch (parseError) {
+            console.error("Error parsing AI extraction:", parseError);
+            logEntry.error = "Failed to parse AI response";
+          }
+        }
+      } catch (error) {
+        console.error("AI Extract error:", error);
+        logEntry.error = error.message;
+      }
+
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    case "ai_summarize":
+      // Resumir texto
+      try {
+        const textToSummarize = variables[node.data.inputVariable || 'conversation'] || '';
+        const maxLength = node.data.maxLength || 100;
+
+        const { data: apiKeyData } = await supabase
+          .from("api_keys")
+          .select("key_value")
+          .eq("company_id", execution.chatbot.company_id)
+          .eq("service", "openai")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!apiKeyData?.key_value) {
+          throw new Error("OpenAI API key not configured");
+        }
+
+        const prompt = `Resuma o seguinte texto em no máximo ${maxLength} palavras:\n\n${textToSummarize}`;
+
+        const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKeyData.key_value}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.5,
+            max_tokens: maxLength * 2,
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          const summary = aiData.choices[0]?.message?.content;
+
+          variables[node.data.resultVariable || 'summary'] = summary;
+          logEntry.summary = summary;
+        }
+      } catch (error) {
+        console.error("AI Summarize error:", error);
+        logEntry.error = error.message;
+      }
+
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
+    case "ai_translate":
+      // Traduzir texto
+      try {
+        const textToTranslate = variables[node.data.inputVariable || 'last_message'] || userMessage || '';
+        const targetLang = node.data.targetLanguage || 'en';
+
+        const { data: apiKeyData } = await supabase
+          .from("api_keys")
+          .select("key_value")
+          .eq("company_id", execution.chatbot.company_id)
+          .eq("service", "openai")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (!apiKeyData?.key_value) {
+          throw new Error("OpenAI API key not configured");
+        }
+
+        const langNames = {
+          'en': 'inglês',
+          'es': 'espanhol',
+          'fr': 'francês',
+          'de': 'alemão',
+          'it': 'italiano',
+          'pt': 'português'
+        };
+
+        const prompt = `Traduza o seguinte texto para ${langNames[targetLang] || targetLang}. Retorne APENAS a tradução, sem explicações:\n\n${textToTranslate}`;
+
+        const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKeyData.key_value}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.3,
+            max_tokens: 500,
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          const translated = aiData.choices[0]?.message?.content;
+
+          variables[node.data.resultVariable || 'translated_text'] = translated;
+          logEntry.translated = translated;
+        }
+      } catch (error) {
+        console.error("AI Translate error:", error);
+        logEntry.error = error.message;
+      }
+
+      nextNodeId = findNextNode(execution.chatbot.edges, node.id);
+      break;
+
     default:
       console.log(`Unknown node type: ${node.type}`);
       nextNodeId = findNextNode(execution.chatbot.edges, node.id);
@@ -602,7 +1846,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { executionId, userMessage, companyId } = await req.json();
+    const { executionId, userMessage, companyId: _companyId } = await req.json();
 
     if (!executionId) {
       throw new Error("executionId is required");
@@ -788,7 +2032,7 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error executing chatbot:", error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),

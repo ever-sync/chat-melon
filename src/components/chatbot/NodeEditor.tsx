@@ -61,6 +61,58 @@ export const NodeEditor = memo(function NodeEditor({
                 placeholder="Início"
               />
             </div>
+
+            <div>
+              <Label>Tipo de Gatilho</Label>
+              <Select
+                value={(localData.triggerType as string) || 'first_message'}
+                onValueChange={(v) => handleChange('triggerType', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o gatilho" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="first_message">Primeira Mensagem</SelectItem>
+                  <SelectItem value="keyword">Palavra-chave</SelectItem>
+                  <SelectItem value="all_messages">Todas as Mensagens</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {localData.triggerType === 'first_message' && 'Ativa quando um novo contato envia a primeira mensagem'}
+                {localData.triggerType === 'keyword' && 'Ativa quando a mensagem contém palavras específicas'}
+                {localData.triggerType === 'all_messages' && 'Ativa em todas as mensagens recebidas'}
+                {!localData.triggerType && 'Ativa quando um novo contato envia a primeira mensagem'}
+              </p>
+            </div>
+
+            {localData.triggerType === 'keyword' && (
+              <div>
+                <Label>Palavras-chave</Label>
+                <Input
+                  value={(localData.triggerKeywords as string) || ''}
+                  onChange={(e) => handleChange('triggerKeywords', e.target.value)}
+                  placeholder="oi, olá, menu, ajuda"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Separe múltiplas palavras com vírgula
+                </p>
+              </div>
+            )}
+
+            <div>
+              <Label>Delay Inicial (ms)</Label>
+              <Input
+                type="number"
+                value={(localData.welcomeDelay as number) || 500}
+                onChange={(e) => handleChange('welcomeDelay', parseInt(e.target.value))}
+                min={0}
+                max={5000}
+                step={100}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tempo antes de iniciar o fluxo
+              </p>
+            </div>
           </div>
         );
 
@@ -561,6 +613,572 @@ export const NodeEditor = memo(function NodeEditor({
                 placeholder="Obrigado pelo contato!"
                 rows={2}
               />
+            </div>
+          </div>
+        );
+
+      // ===== CONTROLE DE FLUXO =====
+      case 'delay':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Duração (ms)</Label>
+              <Input
+                type="number"
+                value={(localData.duration as number) || 1000}
+                onChange={(e) => handleChange('duration', parseInt(e.target.value))}
+                min={100}
+                max={10000}
+                step={100}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tempo de espera em milissegundos
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Mostrar "Digitando..."</Label>
+                <p className="text-xs text-muted-foreground">Enviar status de digitação no WhatsApp</p>
+              </div>
+              <Switch
+                checked={(localData.showTyping as boolean) || false}
+                onCheckedChange={(v) => handleChange('showTyping', v)}
+              />
+            </div>
+          </div>
+        );
+
+      case 'goto':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Nó de Destino</Label>
+              <Input
+                value={(localData.targetNodeId as string) || ''}
+                onChange={(e) => handleChange('targetNodeId', e.target.value)}
+                placeholder="ID do nó de destino"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                ID do nó para onde o fluxo deve saltar
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'random':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Escolha Aleatória</Label>
+              <p className="text-xs text-muted-foreground">
+                O fluxo seguirá aleatoriamente uma das conexões de saída
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'split':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Tipo de Divisão</Label>
+              <Select
+                value={(localData.splitType as string) || 'percentage'}
+                onValueChange={(v) => handleChange('splitType', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">Por Porcentagem</SelectItem>
+                  <SelectItem value="round_robin">Round Robin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {localData.splitType === 'percentage' && (
+              <div>
+                <Label>Distribuição (%)</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Configure as porcentagens nas conexões de saída
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      // ===== MULTIMÍDIA =====
+      case 'image':
+      case 'video':
+      case 'audio':
+      case 'document':
+      case 'sticker':
+        return (
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <Label>URL do Arquivo</Label>
+                <VariablePicker
+                  onSelect={(v) => handleChange('url', (localData.url || '') + v)}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Variable className="h-3 w-3" />
+                      Variáveis
+                    </Button>
+                  }
+                />
+              </div>
+              <Input
+                value={(localData.url as string) || (localData.mediaUrl as string) || ''}
+                onChange={(e) => handleChange('url', e.target.value)}
+                placeholder="https://exemplo.com/arquivo.jpg"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                URL pública do arquivo (deve ser acessível pela internet)
+              </p>
+            </div>
+
+            {(node.type === 'image' || node.type === 'video' || node.type === 'document') && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Legenda (opcional)</Label>
+                  <VariablePicker
+                    onSelect={(v) => handleChange('caption', (localData.caption || '') + v)}
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                      >
+                        <Variable className="h-3 w-3" />
+                        Variáveis
+                      </Button>
+                    }
+                  />
+                </div>
+                <Textarea
+                  value={(localData.caption as string) || ''}
+                  onChange={(e) => handleChange('caption', e.target.value)}
+                  placeholder="Texto que acompanha o arquivo..."
+                  rows={3}
+                />
+              </div>
+            )}
+
+            {node.type === 'document' && (
+              <div>
+                <Label>Nome do Arquivo</Label>
+                <Input
+                  value={(localData.fileName as string) || ''}
+                  onChange={(e) => handleChange('fileName', e.target.value)}
+                  placeholder="documento.pdf"
+                />
+              </div>
+            )}
+
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-900">
+                <strong>Dica:</strong> O arquivo deve estar hospedado em um servidor acessível publicamente.
+                {node.type === 'image' && ' Formatos suportados: JPG, PNG, GIF, WEBP'}
+                {node.type === 'video' && ' Formatos suportados: MP4, 3GP, MOV'}
+                {node.type === 'audio' && ' Formatos suportados: MP3, OGG, AAC, WAV'}
+                {node.type === 'document' && ' Formatos suportados: PDF, DOC, DOCX, XLS, XLSX, etc'}
+                {node.type === 'sticker' && ' Formato: WEBP (512x512px)'}
+              </p>
+            </div>
+          </div>
+        );
+
+      // ===== INTERAÇÃO AVANÇADA =====
+      case 'quick_reply':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Mensagem</Label>
+              <Textarea
+                value={(localData.message as string) || ''}
+                onChange={(e) => handleChange('message', e.target.value)}
+                placeholder="Escolha uma opção abaixo..."
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label>Nome da Variável</Label>
+              <Input
+                value={(localData.variableName as string) || 'quick_reply_response'}
+                onChange={(e) => handleChange('variableName', e.target.value)}
+                placeholder="quick_reply_response"
+              />
+            </div>
+
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-900">
+                <strong>Dica:</strong> Configure os botões de resposta rápida (máx. 3) através das conexões do nó.
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'list':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Título</Label>
+              <Input
+                value={(localData.title as string) || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Escolha uma opção"
+              />
+            </div>
+
+            <div>
+              <Label>Subtítulo (opcional)</Label>
+              <Input
+                value={(localData.subtitle as string) || ''}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Selecione na lista abaixo"
+              />
+            </div>
+
+            <div>
+              <Label>Texto do Botão</Label>
+              <Input
+                value={(localData.buttonText as string) || 'Ver opções'}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Ver opções"
+              />
+            </div>
+
+            <div>
+              <Label>Nome da Variável</Label>
+              <Input
+                value={(localData.variableName as string) || 'list_selection'}
+                onChange={(e) => handleChange('variableName', e.target.value)}
+                placeholder="list_selection"
+              />
+            </div>
+          </div>
+        );
+
+      case 'carousel':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Título (opcional)</Label>
+              <Input
+                value={(localData.title as string) || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Nossos Produtos"
+              />
+            </div>
+
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-900">
+                <strong>Dica:</strong> O carrossel enviará uma sequência de imagens com legendas. Configure os cards editando o JSON do nó.
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'file_upload':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Mensagem de Solicitação</Label>
+              <Textarea
+                value={(localData.prompt as string) || ''}
+                onChange={(e) => handleChange('prompt', e.target.value)}
+                placeholder="Por favor, envie o arquivo..."
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>Nome da Variável</Label>
+              <Input
+                value={(localData.variableName as string) || 'uploaded_file'}
+                onChange={(e) => handleChange('variableName', e.target.value)}
+                placeholder="uploaded_file"
+              />
+            </div>
+
+            <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-xs text-yellow-900">
+                <strong>Nota:</strong> Os arquivos serão processados pelo webhook. Configure a validação de tipos no webhook.
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'location':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Modo</Label>
+              <Select
+                value={(localData.requestType as string) || 'request'}
+                onValueChange={(v) => handleChange('requestType', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="request">Solicitar Localização</SelectItem>
+                  <SelectItem value="send">Enviar Localização</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(localData.requestType === 'request' || !localData.requestType) ? (
+              <>
+                <div>
+                  <Label>Mensagem de Solicitação</Label>
+                  <Textarea
+                    value={(localData.prompt as string) || ''}
+                    onChange={(e) => handleChange('prompt', e.target.value)}
+                    placeholder="Por favor, compartilhe sua localização"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label>Nome da Variável</Label>
+                  <Input
+                    value={(localData.variableName as string) || 'location'}
+                    onChange={(e) => handleChange('variableName', e.target.value)}
+                    placeholder="location"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label>Latitude</Label>
+                  <Input
+                    type="number"
+                    value={(localData.latitude as number) || ''}
+                    onChange={(e) => handleChange('latitude', parseFloat(e.target.value))}
+                    placeholder="-23.550520"
+                    step="0.000001"
+                  />
+                </div>
+
+                <div>
+                  <Label>Longitude</Label>
+                  <Input
+                    type="number"
+                    value={(localData.longitude as number) || ''}
+                    onChange={(e) => handleChange('longitude', parseFloat(e.target.value))}
+                    placeholder="-46.633308"
+                    step="0.000001"
+                  />
+                </div>
+
+                <div>
+                  <Label>Endereço/Nome do Local</Label>
+                  <Input
+                    value={(localData.address as string) || ''}
+                    onChange={(e) => handleChange('address', e.target.value)}
+                    placeholder="Av. Paulista, 1000"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        );
+
+      case 'contact_card':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Nome Completo</Label>
+              <Input
+                value={(localData.name as string) || ''}
+                onChange={(e) => handleChange('name', e.target.value)}
+                placeholder="João Silva"
+              />
+            </div>
+
+            <div>
+              <Label>Telefone</Label>
+              <Input
+                value={(localData.phone as string) || ''}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="+55 11 99999-9999"
+              />
+            </div>
+
+            <div>
+              <Label>Email (opcional)</Label>
+              <Input
+                value={(localData.email as string) || ''}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="contato@empresa.com"
+              />
+            </div>
+
+            <div>
+              <Label>Empresa (opcional)</Label>
+              <Input
+                value={(localData.company as string) || ''}
+                onChange={(e) => handleChange('company', e.target.value)}
+                placeholder="Empresa LTDA"
+              />
+            </div>
+          </div>
+        );
+
+      case 'rating':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Pergunta</Label>
+              <Textarea
+                value={(localData.question as string) || ''}
+                onChange={(e) => handleChange('question', e.target.value)}
+                placeholder="Como você avalia nosso atendimento?"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>Tipo de Avaliação</Label>
+              <Select
+                value={(localData.ratingType as string) || 'stars'}
+                onValueChange={(v) => handleChange('ratingType', v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="stars">Estrelas ⭐</SelectItem>
+                  <SelectItem value="numbers">Números</SelectItem>
+                  <SelectItem value="emoji">Emojis 😊</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Avaliação Máxima</Label>
+              <Input
+                type="number"
+                value={(localData.maxRating as number) || 5}
+                onChange={(e) => handleChange('maxRating', parseInt(e.target.value))}
+                min={1}
+                max={10}
+              />
+            </div>
+
+            <div>
+              <Label>Nome da Variável</Label>
+              <Input
+                value={(localData.variableName as string) || 'rating'}
+                onChange={(e) => handleChange('variableName', e.target.value)}
+                placeholder="rating"
+              />
+            </div>
+
+            <div>
+              <Label>Threshold para Baixa Avaliação (opcional)</Label>
+              <Input
+                type="number"
+                value={(localData.lowRatingThreshold as number) || ''}
+                onChange={(e) => handleChange('lowRatingThreshold', parseInt(e.target.value))}
+                placeholder="3"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Avaliações ≤ este valor seguirão o caminho "low"
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'nps':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Pergunta NPS</Label>
+              <Textarea
+                value={(localData.question as string) || ''}
+                onChange={(e) => handleChange('question', e.target.value)}
+                placeholder="De 0 a 10, qual a probabilidade de você nos recomendar?"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>Nome da Variável</Label>
+              <Input
+                value={(localData.variableName as string) || 'nps_score'}
+                onChange={(e) => handleChange('variableName', e.target.value)}
+                placeholder="nps_score"
+              />
+            </div>
+
+            <div>
+              <Label>Mensagem para Detratores (0-6)</Label>
+              <Textarea
+                value={(localData.followUpDetractor as string) || ''}
+                onChange={(e) => handleChange('followUpDetractor', e.target.value)}
+                placeholder="Lamentamos que sua experiência não tenha sido boa..."
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>Mensagem para Passivos (7-8)</Label>
+              <Textarea
+                value={(localData.followUpPassive as string) || ''}
+                onChange={(e) => handleChange('followUpPassive', e.target.value)}
+                placeholder="Obrigado pelo feedback! Como podemos melhorar?"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>Mensagem para Promotores (9-10)</Label>
+              <Textarea
+                value={(localData.followUpPromoter as string) || ''}
+                onChange={(e) => handleChange('followUpPromoter', e.target.value)}
+                placeholder="Que ótimo! Ficamos felizes que você gostou!"
+                rows={2}
+              />
+            </div>
+          </div>
+        );
+
+      case 'calendar':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Mensagem de Solicitação</Label>
+              <Textarea
+                value={(localData.prompt as string) || ''}
+                onChange={(e) => handleChange('prompt', e.target.value)}
+                placeholder="Escolha uma data e horário para o agendamento"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>Nome da Variável</Label>
+              <Input
+                value={(localData.variableName as string) || 'appointment'}
+                onChange={(e) => handleChange('variableName', e.target.value)}
+                placeholder="appointment"
+              />
+            </div>
+
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-900">
+                <strong>Nota:</strong> Por enquanto, o usuário digitará a data/hora. Integração com calendários pode ser adicionada futuramente.
+              </p>
             </div>
           </div>
         );

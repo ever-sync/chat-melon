@@ -5,6 +5,7 @@ import ConversationList from '@/components/chat/sidebar/ConversationList';
 import MessageArea from '@/components/chat/messages/MessageArea';
 import ContactDetailPanel from '@/components/chat/ContactDetailPanel';
 import { AIControlPanel } from '@/components/chat/AIControlPanel';
+import { AIAssistant } from '@/components/chat/AIAssistant';
 import { BulkActionsToolbar } from '@/components/chat/BulkActionsToolbar';
 import { SnoozedConversationsBadge } from '@/components/chat/sidebar/SnoozedConversationsBadge';
 import { ConversationActions } from '@/components/chat/ConversationActions';
@@ -17,6 +18,7 @@ import { ChatFilters, getDefaultFilters } from '@/types/chatFilters';
 import { useBulkConversationActions } from '@/hooks/chat/useBulkConversationActions';
 
 import type { Conversation } from '@/types/chat';
+import { cn } from '@/lib/utils';
 
 
 const Chat = () => {
@@ -30,6 +32,7 @@ const Chat = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
+  const [showCopilotPanel, setShowCopilotPanel] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [filters, setFilters] = useState<ChatFilters>(() => {
@@ -82,17 +85,6 @@ const Chat = () => {
     console.log('🔄 Chat: Carregando conversas para empresa:', companyId);
 
     try {
-      // Testar query SEM withCompanyFilter primeiro
-      console.log('🔍 Chat: Testando query direta sem filtro...');
-      const { data: testData, error: testError } = await supabase
-        .from('conversations')
-        .select('id, company_id, contact_name')
-        .eq('company_id', companyId)
-        .limit(5);
-
-      console.log('🔍 Chat: Query direta retornou:', testData?.length, 'conversas', testError);
-      console.log('🔍 Chat: Dados:', testData);
-
       const { data, error } = await withCompanyFilter(
         supabase.from('conversations').select(`
             *,
@@ -358,6 +350,63 @@ const Chat = () => {
       });
     }
 
+    // Novos filtros avançados
+
+    // Filtro por canal de comunicação
+    if (filters.channelType && filters.channelType !== 'all') {
+      filtered = filtered.filter((conv) => conv.channel_type === filters.channelType);
+    }
+
+    // Filtro por status online do contato
+    if (filters.contactOnline === true) {
+      filtered = filtered.filter((conv) => conv.is_online === true);
+    }
+
+    // Filtro por opt-in
+    if (filters.optedIn === true) {
+      filtered = filtered.filter((conv) => conv.opted_in === true);
+    }
+
+    // Filtro por tabulação
+    if (filters.hasTabulation === true) {
+      filtered = filtered.filter((conv) => !!conv.tabulation_id);
+    }
+
+    // Filtro por tempo de atribuição
+    if (filters.assignedTime && filters.assignedTime !== 'all') {
+      const now = new Date();
+      const hourLimits = { '1h': 1, '4h': 4, '24h': 24, '48h': 48, 'week': 168 };
+      const hours = hourLimits[filters.assignedTime];
+      const cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
+
+      filtered = filtered.filter((conv) => {
+        if (!conv.assigned_at) return false;
+        return new Date(conv.assigned_at) >= cutoff;
+      });
+    }
+
+    // Filtro por tipo de mídia (requer consulta ao banco)
+    if (filters.mediaType && filters.mediaType !== 'all' && filters.hasMedia === true) {
+      try {
+        const conversationIds = filtered.map((c) => c.id);
+        const { data: conversationsWithMediaType } = await supabase
+          .from('messages')
+          .select('conversation_id')
+          .in('conversation_id', conversationIds)
+          .like('media_type', `%${filters.mediaType}%`)
+          .not('media_type', 'is', null);
+
+        const conversationIdsWithMedia =
+          conversationsWithMediaType?.map((m) => m.conversation_id) || [];
+
+        // Remover duplicatas
+        const uniqueIds = Array.from(new Set(conversationIdsWithMedia));
+        filtered = filtered.filter((conv) => uniqueIds.includes(conv.id));
+      } catch (error) {
+        console.error('Erro ao filtrar por tipo de mídia:', error);
+      }
+    }
+
     setFilteredConversations(filtered);
     setIsSearching(false);
   };
@@ -404,32 +453,7 @@ const Chat = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [selectedConversation, conversations]);
 
-  useEffect(() => {
-    // Só criar subscription se houver empresa selecionada
-    if (!companyId) return;
-
-    const channel = supabase
-      .channel('conversations-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'conversations',
-        },
-        (payload) => {
-          console.log('Realtime: Conversation changed', payload);
-          loadConversations();
-        }
-      )
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status);
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [companyId, loadConversations]);
+  // Subscription já existe acima (linhas 170-244), removendo duplicação
 
   const handleSelectFromNotification = async (conversationId: string) => {
     if (!companyId) return;
@@ -504,9 +528,8 @@ const Chat = () => {
 
 
   return (
-
     <MainLayout>
-      <div className="flex flex-col h-[calc(100vh-5rem)]">
+      <div className="flex flex-col h-full">
         {/* Bulk Actions Toolbar - appears when conversations are selected */}
         {selectedIds.size > 0 && (
           <BulkActionsToolbar
@@ -516,75 +539,89 @@ const Chat = () => {
           />
         )}
 
-        <div className="flex flex-1 overflow-hidden">
-          <ConversationList
-            conversations={filteredConversations}
-            selectedConversation={selectedConversation}
-            onSelectConversation={handleSelectConversation}
-            isLoading={isLoading}
-            searchQuery={searchQuery}
-            startDate={startDate}
-            endDate={endDate}
-            onSearch={handleSearch}
-            onDateFilter={handleDateFilter}
-            isSearching={isSearching}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            onClearAllFilters={handleClearFilters}
-            conversationCounts={conversationCounts}
-            onSelectConversationFromNotification={handleSelectFromNotification}
-            isSelectionMode={isSelectionMode}
-            onToggleSelectionMode={toggleSelectionMode}
-            onToggleSelection={toggleSelection}
-            isSelected={isSelected}
-            onSelectAll={() => selectAll(filteredConversations.map((c) => c.id))}
-            snoozedBadge={
-              <SnoozedConversationsBadge onSelectConversation={handleSelectFromNotification} />
-            }
-          />
-          {selectedConversation && (
-            <ConversationActions
-              conversationId={selectedConversation.id}
-              assignedTo={selectedConversation.assigned_to}
-              status={selectedConversation.status}
-              onResolve={() => {
-                setSelectedConversation(null);
-                loadConversations();
-              }}
+        <div className="flex flex-1 overflow-hidden min-h-0">
+          {/* Sidebar de Conversas */}
+          <aside className={cn(
+            "w-full md:w-80 flex-shrink-0 border-r border-border bg-card flex flex-col overflow-hidden",
+            selectedConversation ? "hidden md:flex" : "flex"
+          )}>
+            <ConversationList
+              conversations={filteredConversations}
+              selectedConversation={selectedConversation}
+              onSelectConversation={handleSelectConversation}
+              isLoading={isLoading}
+              searchQuery={searchQuery}
+              startDate={startDate}
+              endDate={endDate}
+              onSearch={handleSearch}
+              onDateFilter={handleDateFilter}
+              isSearching={isSearching}
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onClearAllFilters={handleClearFilters}
+              conversationCounts={conversationCounts}
+              onSelectConversationFromNotification={handleSelectFromNotification}
+              isSelectionMode={isSelectionMode}
+              onToggleSelectionMode={toggleSelectionMode}
+              onToggleSelection={toggleSelection}
+              isSelected={isSelected}
+              onSelectAll={() => selectAll(filteredConversations.map((c) => c.id))}
+              snoozedBadge={
+                <SnoozedConversationsBadge onSelectConversation={handleSelectFromNotification} />
+              }
             />
-          )}
-          <MessageArea
-            conversation={selectedConversation}
-            onBack={() => setSelectedConversation(null)}
-            searchQuery={searchQuery}
-            onToggleDetailPanel={() => setShowDetailPanel(!showDetailPanel)}
-            onToggleAIPanel={() => setShowAIPanel(!showAIPanel)}
-            showAIPanel={showAIPanel}
-          />
-          {showAIPanel && selectedConversation && companyId && (
-            <AIControlPanel
-              conversationId={selectedConversation.id}
-              contactId={selectedConversation.contact_id || ''}
-              companyId={companyId}
-            />
-          )}
-          {showDetailPanel && selectedConversation && (
-            <ContactDetailPanel
+          </aside>
+
+          {/* Área Principal de Mensagens */}
+          <main className={cn(
+            "flex-1 flex flex-col min-w-0 bg-background overflow-hidden",
+            !selectedConversation ? "hidden md:flex" : "flex"
+          )}>
+            <MessageArea
               conversation={selectedConversation}
-              onClose={() => setShowDetailPanel(false)}
-              onConversationUpdated={loadConversations}
+              onBack={() => setSelectedConversation(null)}
+              searchQuery={searchQuery}
+              onToggleDetailPanel={() => setShowDetailPanel(!showDetailPanel)}
+              onToggleAIPanel={() => setShowAIPanel(!showAIPanel)}
+              showAIPanel={showAIPanel}
             />
+          </main>
+
+          {/* AI Control Panel */}
+          {showAIPanel && selectedConversation && companyId && (
+            <aside className="hidden lg:flex w-80 flex-shrink-0 border-l border-border bg-card flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto">
+                <AIControlPanel
+                  conversationId={selectedConversation.id}
+                  contactId={selectedConversation.contact_id || ''}
+                  companyId={companyId}
+                />
+              </div>
+            </aside>
+          )}
+
+          {/* Contact Detail Panel */}
+          {showDetailPanel && selectedConversation && (
+            <aside className="hidden xl:flex w-96 flex-shrink-0 border-l border-border bg-card flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto">
+                <ContactDetailPanel
+                  conversation={selectedConversation}
+                  onClose={() => setShowDetailPanel(false)}
+                  onConversationUpdated={loadConversations}
+                />
+              </div>
+            </aside>
           )}
         </div>
-
-        {/* Assistente IA Flutuante */}
-        {companyId && (
-          <FloatingAssistantWrapper
-            companyId={companyId}
-            currentConversationId={selectedConversation?.id}
-          />
-        )}
       </div>
+
+      {/* Assistente IA Flutuante - Portal fora do MainLayout */}
+      {companyId && (
+        <FloatingAssistantWrapper
+          companyId={companyId}
+          currentConversationId={selectedConversation?.id}
+        />
+      )}
     </MainLayout>
   );
 };

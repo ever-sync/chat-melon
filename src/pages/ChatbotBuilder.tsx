@@ -51,7 +51,8 @@ import { useChatbot, useChatbotVersions } from '@/hooks/chat/useChatbots';
 import { nodeTypes } from '@/components/chatbot/nodes/BaseNode';
 import { NodePalette } from '@/components/chatbot/NodePalette';
 import { NodeEditor } from '@/components/chatbot/NodeEditor';
-import { NODE_TYPE_INFO, type ChatbotNodeType, type ChatbotNode } from '@/types/chatbot';
+import { ChatbotAssistant } from '@/components/chatbot/ChatbotAssistant';
+import { NODE_TYPE_INFO, type ChatbotNodeType, type ChatbotNode, type ChatbotEdge } from '@/types/chatbot';
 
 function ChatbotBuilderContent() {
   const { id } = useParams<{ id: string }>();
@@ -180,13 +181,62 @@ function ChatbotBuilderContent() {
 
     setIsSaving(true);
     try {
-      await saveFlow.mutateAsync({ nodes, edges });
+      // Extract triggers from start nodes
+      const triggers: Array<{ type: string; value?: string | string[]; channel?: string }> = [];
+
+      nodes
+        .filter((node) => node.type === 'start')
+        .forEach((node: any) => {
+          const triggerType = node.data?.triggerType || 'first_message';
+
+          if (triggerType === 'keyword') {
+            // Parse keywords from comma-separated string
+            const keywords = (node.data?.triggerKeywords || '')
+              .split(',')
+              .map((k: string) => k.trim().toLowerCase())
+              .filter((k: string) => k.length > 0);
+
+            if (keywords.length > 0) {
+              triggers.push({
+                type: 'keyword',
+                value: keywords,
+                channel: 'whatsapp',
+              });
+            }
+          } else if (triggerType === 'first_message') {
+            triggers.push({
+              type: 'first_message',
+              channel: 'whatsapp',
+            });
+          } else if (triggerType === 'all_messages') {
+            triggers.push({
+              type: 'all_messages',
+              channel: 'whatsapp',
+            });
+          }
+        });
+
+      // If no triggers defined, add default first_message trigger
+      if (triggers.length === 0) {
+        triggers.push({ type: 'first_message', channel: 'whatsapp' });
+      }
+
+      console.log('Saving chatbot with triggers:', triggers);
+
+      await saveFlow.mutateAsync({
+        nodes: nodes as unknown as ChatbotNode[],
+        edges,
+        name,
+        triggers
+      });
+
       setHasChanges(false);
       toast({
         title: 'Salvo',
-        description: 'Alterações salvas com sucesso.',
+        description: 'Alterações salvas e gatilhos atualizados com sucesso.',
       });
-    } catch {
+    } catch (error) {
+      console.error('Error saving chatbot:', error);
       toast({
         title: 'Erro ao salvar',
         description: 'Não foi possível salvar as alterações.',
@@ -201,7 +251,10 @@ function ChatbotBuilderContent() {
     try {
       // Save first
       if (hasChanges) {
-        await saveFlow.mutateAsync({ nodes, edges });
+        await saveFlow.mutateAsync({ 
+          nodes: nodes as unknown as ChatbotNode[], 
+          edges 
+        });
       }
       await publish.mutateAsync({ release_notes: releaseNotes });
       setPublishDialogOpen(false);
@@ -415,6 +468,18 @@ function ChatbotBuilderContent() {
             onDelete={deleteNode}
           />
         )}
+
+        {/* AI Assistant */}
+        <ChatbotAssistant
+          onAddNodes={(newNodes, newEdges) => {
+            setNodes(prev => [...prev, ...newNodes]);
+            setEdges(prev => [...prev, ...newEdges]);
+            setHasChanges(true);
+          }}
+          currentNodes={nodes}
+          currentEdges={edges}
+          companyId={chatbot?.company_id || ''}
+        />
       </div>
 
       {/* Publish Dialog */}

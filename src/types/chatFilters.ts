@@ -9,7 +9,14 @@ export interface ChatFilters {
   lastMessageDate?: 'today' | 'yesterday' | 'week' | 'month' | 'custom';
   noResponseTime?: '1h' | '4h' | '24h' | '48h';
   hasMedia?: boolean;
+  mediaType?: 'image' | 'video' | 'audio' | 'document' | 'all';
   sector?: string | null;
+  // New filters
+  channelType?: 'whatsapp' | 'instagram' | 'messenger' | 'telegram' | 'widget' | 'email' | 'all';
+  contactOnline?: boolean | 'all';
+  optedIn?: boolean | 'all';
+  hasTabulation?: boolean | 'all';
+  assignedTime?: '1h' | '4h' | '24h' | '48h' | 'week' | 'all';
 }
 
 export interface SavedFilter {

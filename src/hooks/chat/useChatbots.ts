@@ -175,12 +175,26 @@ export function useChatbot(id: string | undefined) {
   });
 
   const saveFlow = useMutation({
-    mutationFn: async ({ nodes, edges }: { nodes: ChatbotNode[]; edges: ChatbotEdge[] }) => {
+    mutationFn: async ({ 
+      nodes, 
+      edges, 
+      name, 
+      triggers 
+    }: { 
+      nodes: ChatbotNode[]; 
+      edges: ChatbotEdge[]; 
+      name?: string; 
+      triggers?: any[];
+    }) => {
       if (!id) throw new Error('Chatbot ID required');
+
+      const updateData: any = { nodes, edges };
+      if (name) updateData.name = name;
+      if (triggers) updateData.triggers = triggers;
 
       const { data, error } = await supabase
         .from('chatbots')
-        .update({ nodes, edges })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
