@@ -61,7 +61,7 @@ serve(async (req) => {
 
     // Enviar email via Resend
     const emailResponse = await resend.emails.send({
-      from: `${fromName} <onboarding@resend.dev>`,
+      from: `${fromName} <noreply@eversync.space>`,
       to: [to_email],
       subject: subject,
       html: bodyWithTracking,

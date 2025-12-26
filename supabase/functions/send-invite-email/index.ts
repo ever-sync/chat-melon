@@ -110,7 +110,7 @@ serve(async (req) => {
     console.log(`Enviando convite para ${email} (Invite ID: ${invite_id})`);
 
     const emailResponse = await resend.emails.send({
-      from: "ChatHub <onboarding@resend.dev>", // Idealmente configurar um domínio verificado
+      from: "EverSync <noreply@eversync.space>",
       to: [email],
       subject: `Você foi convidado para participar da ${company_name} no ChatHub`,
       html: `

@@ -32,7 +32,8 @@
       "Bash(then grep -E \"RESEND|APP_URL\" .env)",
       "Bash(ls:*)",
       "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\supabase\\migrations\\20251223000010_ai_assistant_tables_backup.sql\")",
-      "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\src\\pages\\api\\chatbot\\generate-flow.ts\")"
+      "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\src\\pages\\api\\chatbot\\generate-flow.ts\")",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

@@ -63,6 +63,9 @@ import {
   RefreshCw,
   Building2,
   Power,
+  Send,
+  X,
+  AlertCircle,
 } from 'lucide-react';
 
 interface Member {
@@ -123,6 +126,7 @@ export default function UsersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -146,6 +150,7 @@ export default function UsersPage() {
       loadMembers();
       loadTeams();
       loadDepartments();
+      loadPendingInvites();
     }
   }, [companyId]);
 
@@ -225,6 +230,22 @@ export default function UsersPage() {
     setDepartments(data || []);
   };
 
+  const loadPendingInvites = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('company_invites')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPendingInvites(data || []);
+    } catch (err) {
+      console.error('Erro ao carregar convites pendentes:', err);
+    }
+  };
+
   const handleInvite = async () => {
     if (!inviteEmail) {
       toast.error('Digite o email');
@@ -271,7 +292,15 @@ export default function UsersPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       console.log('Token do usuário para a função:', sessionData.session?.access_token ? 'Presente (starts with ' + sessionData.session.access_token.substring(0, 15) + '...)' : 'Ausente');
 
-      const { error: emailError } = await supabase.functions.invoke('send-invite-email', {
+      console.log('Invocando Edge Function send-invite-email com dados:', {
+        invite_id: inviteData.id,
+        email: inviteEmail,
+        role: inviteRole,
+        company_name: currentCompany?.name || 'Nossa Empresa',
+        invited_by_name: user?.user_metadata?.full_name,
+      });
+
+      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-invite-email', {
         body: {
           invite_id: inviteData.id,
           email: inviteEmail,
@@ -281,23 +310,39 @@ export default function UsersPage() {
         },
       });
 
-      if (emailError) {
+      console.log('Resposta da Edge Function:', { emailData, emailError });
+
+      // Verificar se há erro na resposta da função (mesmo quando emailError é null)
+      if (emailData?.data?.error) {
+        console.error('Erro retornado pela API do Resend:', emailData.data.error);
+        const resendError = emailData.data.error;
+
+        // Verificar se é o erro de domínio não verificado
+        if (resendError.message && resendError.message.includes('verify a domain')) {
+          toast.error('⚠️ Domínio não verificado no Resend. Por enquanto, você só pode enviar emails para app@eversync.space', {
+            duration: 10000,
+          });
+        } else {
+          toast.error('Erro ao enviar email: ' + (resendError.message || JSON.stringify(resendError)));
+        }
+      } else if (emailError) {
         console.error('Erro detalhado da Edge Function:', emailError);
+        console.error('Tipo do erro:', typeof emailError);
+        console.error('Propriedades do erro:', Object.keys(emailError));
 
         // Tentar extrair mensagem do corpo se for um erro de função
-        let errorMessage = emailError.message;
-        try {
-          if ((emailError as any).context?.body) {
-            const body = await (emailError as any).context.json();
-            console.error('Corpo do erro:', body);
-            errorMessage = body.error || body.message || errorMessage;
-          }
-        } catch (e) {
-          console.error('Erro ao ler corpo do erro:', e);
+        let errorMessage = emailError.message || 'Erro desconhecido';
+
+        // Se o erro tem uma resposta (FunctionsHttpError)
+        if ('context' in emailError && emailError.context) {
+          console.error('Context presente:', emailError.context);
         }
 
         toast.warning('Convite criado, mas houve erro ao enviar o email: ' + errorMessage);
+        console.error('===== ERRO COMPLETO =====');
+        console.error(JSON.stringify(emailError, null, 2));
       } else {
+        console.log('Email enviado com sucesso:', emailData);
         toast.success(`Convite enviado para ${inviteEmail}`);
       }
 
@@ -306,12 +351,64 @@ export default function UsersPage() {
       setInviteRole('seller');
       setInviteTeam('');
       setInviteDepartment('');
+
+      // Recarregar lista de convites pendentes
+      loadPendingInvites();
     } catch (err: any) {
       console.error('Erro no processo de convite:', err);
       console.error('Full error object:', JSON.stringify(err, null, 2));
       toast.error(err.message || 'Erro ao convidar');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleResendInvite = async (invite: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-invite-email', {
+        body: {
+          invite_id: invite.id,
+          email: invite.email,
+          role: invite.role,
+          company_name: currentCompany?.name || 'Nossa Empresa',
+          invited_by_name: user?.user_metadata?.full_name,
+        },
+      });
+
+      if (emailData?.data?.error) {
+        const resendError = emailData.data.error;
+        if (resendError.message && resendError.message.includes('verify a domain')) {
+          toast.error('⚠️ Domínio não verificado no Resend', { duration: 10000 });
+        } else {
+          toast.error('Erro ao reenviar: ' + (resendError.message || JSON.stringify(resendError)));
+        }
+      } else if (emailError) {
+        toast.error('Erro ao reenviar convite: ' + emailError.message);
+      } else {
+        toast.success(`Convite reenviado para ${invite.email}`);
+      }
+    } catch (err: any) {
+      console.error('Erro ao reenviar convite:', err);
+      toast.error('Erro ao reenviar convite');
+    }
+  };
+
+  const handleDeleteInvite = async (inviteId: string) => {
+    try {
+      const { error } = await supabase
+        .from('company_invites')
+        .delete()
+        .eq('id', inviteId);
+
+      if (error) throw error;
+
+      toast.success('Convite removido');
+      loadPendingInvites();
+    } catch (err: any) {
+      console.error('Erro ao remover convite:', err);
+      toast.error('Erro ao remover convite');
     }
   };
 
@@ -619,6 +716,74 @@ export default function UsersPage() {
                 </TableBody>
               </Table>
             </Card>
+
+            {/* Convites Pendentes */}
+            {pendingInvites.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-yellow-600" />
+                    Convites Pendentes ({pendingInvites.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Usuários convidados que ainda não aceitaram o convite
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Cargo</TableHead>
+                        <TableHead>Enviado em</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingInvites.map((invite) => (
+                        <TableRow key={invite.id}>
+                          <TableCell className="font-medium">{invite.email}</TableCell>
+                          <TableCell>
+                            <Badge className={ROLE_LABELS[invite.role]?.color}>
+                              {ROLE_LABELS[invite.role]?.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(invite.created_at).toLocaleDateString('pt-BR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleResendInvite(invite)}
+                              >
+                                <Send className="h-4 w-4 mr-1" />
+                                Reenviar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeleteInvite(invite.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Modal de Convite */}
             <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>

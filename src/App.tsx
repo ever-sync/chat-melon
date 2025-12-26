@@ -76,6 +76,8 @@ const Concessionarias = lazy(() => import('./pages/Concessionarias'));
 const Educacao = lazy(() => import('./pages/Educacao'));
 const PoliticaPrivacidade = lazy(() => import('./pages/PoliticaPrivacidade'));
 const TermosUso = lazy(() => import('./pages/TermosUso'));
+const TestEmailConfig = lazy(() => import('./pages/TestEmailConfig'));
+const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,9 +113,11 @@ const App = () => {
                     <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
                     <Route path="/termos-uso" element={<TermosUso />} />
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/set-password" element={<SetPassword />} />
+                    <Route path="/test-email-config" element={<TestEmailConfig />} />
                     <Route
                       path="/dashboard"
                       element={
