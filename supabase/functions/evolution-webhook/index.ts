@@ -626,8 +626,14 @@ serve(async (req) => {
         };
 
         // Atualizar push_name se mudou
-        if (pushName && pushName !== contact.push_name) {
-          updateData.push_name = pushName;
+        const pushNameChanged = pushName && pushName !== contact.push_name;
+        const shouldUpdateName = !contact.name && pushName && pushName !== fromNumber;
+
+        if (pushNameChanged || shouldUpdateName) {
+          if (pushNameChanged) {
+             updateData.push_name = pushName;
+          }
+          
           // Atualizar name apenas se não estava definido ou era igual ao push_name antigo
           if (!contact.name || contact.name === contact.push_name) {
             updateData.name = pushName !== fromNumber ? pushName : null;

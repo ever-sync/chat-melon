@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { action, taskId, userId, companyId } = await req.json();
+    const { action, taskId, userId, companyId, event: eventData } = await req.json();
 
     // Busca token do usuário
     const { data: profile } = await supabase
@@ -202,7 +202,7 @@ serve(async (req) => {
       // Lista eventos do dia
       const timeMin = new Date();
       timeMin.setHours(0, 0, 0, 0);
-      
+
       const timeMax = new Date();
       timeMax.setHours(23, 59, 59, 999);
 
@@ -228,9 +228,65 @@ serve(async (req) => {
       );
     }
 
+    if (action === 'list_month_events') {
+      // Lista eventos do mês inteiro
+      const now = new Date();
+      const timeMin = new Date(now.getFullYear(), now.getMonth(), 1);
+      const timeMax = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
+        `timeMin=${timeMin.toISOString()}&` +
+        `timeMax=${timeMax.toISOString()}&` +
+        `singleEvents=true&` +
+        `orderBy=startTime&` +
+        `maxResults=100`,
+        { headers }
+      );
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+
+      return new Response(
+        JSON.stringify({ events: data.items || [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'create_direct_event') {
+      // Cria evento diretamente no Google Calendar sem vincular a tarefa
+      if (!eventData) throw new Error('Event data is required');
+
+      const response = await fetch(
+        'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(eventData),
+        }
+      );
+
+      const googleEvent = await response.json();
+
+      if (googleEvent.error) {
+        throw new Error(googleEvent.error.message);
+      }
+
+      console.log('Direct event created:', googleEvent.id);
+
+      return new Response(
+        JSON.stringify({ success: true, eventId: googleEvent.id, eventLink: googleEvent.htmlLink }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (action === 'check_availability') {
       // Verifica disponibilidade para uma data
-      const { date } = await req.json();
+      const requestBody = await req.json();
+      const { date } = requestBody;
       
       const timeMin = new Date(date);
       const timeMax = new Date(date);

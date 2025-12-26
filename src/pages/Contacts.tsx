@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import { ContactAvatar } from '@/components/ContactAvatar';
 import { useContacts } from '@/hooks/crm/useContacts';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -82,6 +82,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useContactSettings } from '@/hooks/useContactSettings';
 import { useContactCategories } from '@/hooks/useContactCategories';
 import { Textarea } from '@/components/ui/textarea';
+import { useNavigate } from 'react-router-dom';
 
 // Icon mapping
 const ICON_MAP: Record<string, any> = {
@@ -256,6 +257,7 @@ function ContactDetails({ contactId }: { contactId: string }) {
 
 export default function Contacts() {
   const { currentCompany } = useCompany();
+  const navigate = useNavigate();
   const { settings, updateSettings } = useContactSettings();
   const { categories, createCategory, updateCategory, deleteCategory } = useContactCategories();
 
@@ -280,6 +282,15 @@ export default function Contacts() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [categoryForm, setCategoryForm] = useState({ name: '', color: '#6366F1' });
 
+  // Column Filters
+  const [columnFilters, setColumnFilters] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    category: 'all',
+    temperature: 'all'
+  });
+
   const [showFieldModal, setShowFieldModal] = useState(false);
   const [editingField, setEditingField] = useState<any>(null);
   const [fieldForm, setFieldForm] = useState({
@@ -294,6 +305,7 @@ export default function Contacts() {
   const [formData, setFormData] = useState({
     name: '',
     phone_number: '',
+    email: '',
     company_cnpj: '',
     category_id: '',
   });
@@ -336,6 +348,7 @@ export default function Contacts() {
       setFormData({
         name: contact.name || '',
         phone_number: contact.phone_number || '',
+        email: contact.email || '',
         company_cnpj: contact.company_cnpj || '',
         category_id: (contact as any).category_id || '',
       });
@@ -344,12 +357,49 @@ export default function Contacts() {
       setFormData({
         name: '',
         phone_number: '',
+        email: '',
         company_cnpj: '',
         category_id: '',
       });
       setCustomFieldsData({});
     }
     setShowModal(true);
+  };
+
+  const handleStartChat = async (contact: any) => {
+      if (!currentCompany?.id) return;
+
+      const { data: existing } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('company_id', currentCompany.id)
+        .eq('contact_id', contact.id)
+        .neq('status', 'closed')
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        navigate(`/chat?conversationId=${existing.id}`);
+      } else {
+        const { data: newConv } = await supabase
+          .from('conversations')
+          .insert({
+            company_id: currentCompany.id,
+            contact_id: contact.id,
+            contact_name: contact.name,
+            contact_number: contact.phone_number,
+            status: 'active',
+            user_id: (await supabase.auth.getUser()).data.user?.id || '', // Add user_id
+          } as any) // Type assertion to bypass strict type check for now
+          .select()
+          .single();
+
+        if (newConv) {
+          navigate(`/chat?conversationId=${newConv.id}`);
+        } else {
+            toast.error("Erro ao iniciar conversa");
+        }
+      }
   };
 
   const handleSubmit = async () => {
@@ -374,7 +424,7 @@ export default function Contacts() {
 
       const { data } = await supabase
         .from('contacts')
-        .insert(formData as TablesInsert<'contacts'>)
+        .insert(formData as unknown as TablesInsert<'contacts'>)
         .select()
         .single();
 
@@ -394,18 +444,55 @@ export default function Contacts() {
     }
   };
 
-  const filteredContacts = contacts
-    .filter((contact) => {
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        contact.name?.toLowerCase().includes(searchLower) ||
-        contact.phone_number?.toLowerCase().includes(searchLower)
-      );
-    })
-    .sort((a, b) => {
-      if (sortBy === 'score') return (b.lead_score || 0) - (a.lead_score || 0);
-      return (a.name || '').localeCompare(b.name || '');
-    });
+  const filteredContacts = useMemo(() => {
+    try {
+      if (!contacts) return [];
+      return contacts
+        .filter((contact: any) => {
+          // Global Search
+          const searchLower = searchQuery.toLowerCase();
+          const matchesGlobal = !searchQuery || (
+            (contact.name?.toLowerCase() || '').includes(searchLower) ||
+            (contact.push_name?.toLowerCase() || '').includes(searchLower) ||
+            (contact.phone_number?.toLowerCase() || '').includes(searchLower)
+          );
+          
+          if (!matchesGlobal) return false;
+
+          // Column Filters
+          if (columnFilters.name) {
+             const nameFilter = columnFilters.name.toLowerCase();
+             const nameMatches = (contact.name?.toLowerCase() || '').includes(nameFilter);
+             const pushNameMatches = (contact.push_name?.toLowerCase() || '').includes(nameFilter);
+             if (!nameMatches && !pushNameMatches) return false;
+          }
+          
+          if (columnFilters.phone && !(contact.phone_number || '').includes(columnFilters.phone)) return false;
+          
+          if (columnFilters.email && !(contact.email?.toLowerCase() || '').includes(columnFilters.email.toLowerCase())) return false;
+          
+          if (columnFilters.category && columnFilters.category !== 'all' && contact.category_id !== columnFilters.category) return false;
+          
+          if (columnFilters.temperature && columnFilters.temperature !== 'all') {
+            const contactTemp = contact.temperature || 'cold';
+            if (contactTemp !== columnFilters.temperature) return false;
+          }
+
+          return true;
+        })
+        .sort((a, b) => {
+          // Robust sort
+          if (sortBy === 'score') return (b.lead_score || 0) - (a.lead_score || 0);
+          
+          const nameA = a.name || a.push_name || '';
+          const nameB = b.name || b.push_name || '';
+          return nameA.localeCompare(nameB);
+        });
+    } catch (error) {
+      console.error("Erro ao filtrar contatos:", error);
+      return contacts; // Fallback to all contacts if filter fails
+    }
+  }, [contacts, searchQuery, columnFilters, sortBy]);
 
   const entityName = settings?.entity_name || 'Contato';
   const entityNamePlural = settings?.entity_name_plural || 'Contatos';
@@ -552,7 +639,75 @@ export default function Contacts() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {filteredContacts.map((contact) => (
+                    {/* Header Row with Filters */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-2 text-sm font-medium text-muted-foreground border-b bg-muted/20">
+                      <div className="col-span-3 p-2">
+                        <Label className="mb-2 block">Nome</Label>
+                        <Input 
+                            placeholder="Filtrar por nome..." 
+                            className="h-8 text-xs"
+                            value={columnFilters.name}
+                            onChange={(e) => setColumnFilters(prev => ({...prev, name: e.target.value}))}
+                        />
+                      </div>
+                      <div className="col-span-2 p-2">
+                        <Label className="mb-2 block">Telefone</Label>
+                        <Input 
+                            placeholder="Filtrar..." 
+                            className="h-8 text-xs"
+                            value={columnFilters.phone}
+                            onChange={(e) => setColumnFilters(prev => ({...prev, phone: e.target.value}))}
+                        />
+                      </div>
+                      <div className="col-span-2 p-2">
+                        <Label className="mb-2 block">Email</Label>
+                         <Input 
+                            placeholder="Filtrar por email..." 
+                            className="h-8 text-xs"
+                            value={columnFilters.email}
+                            onChange={(e) => setColumnFilters(prev => ({...prev, email: e.target.value}))}
+                        />
+                      </div>
+                      <div className="col-span-2 p-2">
+                         <Label className="mb-2 block">Temperatura</Label>
+                         <Select 
+                            value={columnFilters.temperature} 
+                            onValueChange={(v) => setColumnFilters(prev => ({...prev, temperature: v}))}
+                        >
+                            <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="Todas" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todas</SelectItem>
+                                <SelectItem value="hot">🔥 Quente</SelectItem>
+                                <SelectItem value="warm">☀️ Morno</SelectItem>
+                                <SelectItem value="cold">❄️ Frio</SelectItem>
+                            </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-2 p-2">
+                        <Label className="mb-2 block">Categoria</Label>
+                        <Select 
+                            value={columnFilters.category} 
+                            onValueChange={(v) => setColumnFilters(prev => ({...prev, category: v}))}
+                        >
+                            <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="Todas" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todas</SelectItem>
+                                {categories.map(cat => (
+                                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-1 text-right p-2 flex flex-col justify-end">
+                        <span className="mb-2 block">Ações</span>
+                      </div>
+                    </div>
+
+                    {filteredContacts.map((contact: any) => (
                       <Collapsible
                         key={contact.id}
                         open={expandedContact === contact.id}
@@ -561,23 +716,59 @@ export default function Contacts() {
                         }
                       >
                         <div className="border rounded-lg hover:bg-muted/50 transition-colors">
-                          <div className="flex items-center justify-between p-4">
-                            <div className="flex items-center gap-4 flex-1">
-                              <ContactAvatar
-                                phoneNumber={contact.phone_number}
-                                name={contact.name || undefined}
-                                instanceName={currentCompany?.evolution_instance_name || ''}
-                                profilePictureUrl={contact.profile_pic_url}
-                                size="md"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium">{contact.name || 'Sem nome'}</p>
-                                  <LeadScoreBadge
-                                    score={contact.lead_score || 0}
-                                    breakdown={contact.score_breakdown as Record<string, number>}
-                                  />
-                                  {(contact as any).category_id &&
+                          <div className="p-4">
+                            {/* Grid Layout for Desktop */}
+                            <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                              {/* Name Column */}
+                              <div className="col-span-3 flex items-center gap-3">
+                                <ContactAvatar
+                                  phoneNumber={contact.phone_number}
+                                  name={contact.name || undefined}
+                                  instanceName={currentCompany?.evolution_instance_name || ''}
+                                  profilePictureUrl={contact.profile_pic_url}
+                                  size="sm"
+                                />
+                                <div className="flex flex-col">
+                                    <span className="font-medium truncate text-sm">
+                                        {contact.name || contact.push_name || 'Sem nome'}
+                                    </span>
+                                </div>
+                              </div>
+
+                              {/* Phone Column */}
+                              <div className="col-span-2 flex items-center gap-2 text-sm text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                <span className="truncate">{contact.phone_number}</span>
+                              </div>
+
+                              {/* Email Column */}
+                              <div className="col-span-2 flex items-center gap-2 text-sm text-muted-foreground">
+                                {contact.email ? (
+                                    <>
+                                        <Mail className="h-3 w-3" />
+                                        <span className="truncate" title={contact.email}>{contact.email}</span>
+                                    </>
+                                ) : (
+                                    <span className="text-muted-foreground/50">-</span>
+                                )}
+                              </div>
+                              
+                              {/* Temperature Column */}
+                              <div className="col-span-2 flex items-center">
+                                  <Badge variant="outline" className={`
+                                    ${!contact.temperature || contact.temperature === 'cold' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
+                                    ${contact.temperature === 'warm' ? 'bg-orange-50 text-orange-700 border-orange-200' : ''}
+                                    ${contact.temperature === 'hot' ? 'bg-red-50 text-red-700 border-red-200' : ''}
+                                  `}>
+                                    {contact.temperature === 'hot' ? '🔥 Quente' : 
+                                     contact.temperature === 'warm' ? '☀️ Morno' : 
+                                     '❄️ Frio'}
+                                  </Badge>
+                              </div>
+
+                              {/* Category Column */}
+                              <div className="col-span-2">
+                                {(contact as any).category_id ? (
                                     (() => {
                                       const cat = categories.find(
                                         (c) => c.id === (contact as any).category_id
@@ -586,73 +777,81 @@ export default function Contacts() {
                                         return (
                                           <Badge
                                             style={{ backgroundColor: cat.color, color: 'white' }}
+                                            className="whitespace-nowrap"
                                           >
                                             {cat.name}
                                           </Badge>
                                         );
-                                      return null;
-                                    })()}
-                                </div>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Phone className="h-3 w-3" />
-                                    {contact.phone_number}
-                                  </span>
-                                  {contact.enrichment_status && (
-                                    <Badge variant="outline" className="ml-2">
-                                      {contact.enrichment_status === 'enriched'
-                                        ? '✅'
-                                        : contact.enrichment_status === 'pending'
-                                          ? '⏳'
-                                          : '❌'}
-                                    </Badge>
-                                  )}
-                                </div>
+                                      return <span className="text-sm text-muted-foreground">-</span>;
+                                    })()
+                                ) : (
+                                    <span className="text-sm text-muted-foreground">-</span>
+                                )}
+                              </div>
+
+                              {/* Actions Column */}
+                              <div className="col-span-1 flex justify-end gap-1">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  title="Chat"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStartChat(contact);
+                                  }}
+                                >
+                                  <MessageSquare className="h-4 w-4" />
+                                </Button>
+                                
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    {expandedContact === contact.id ? (
+                                      <ChevronUp className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </CollapsibleTrigger>
+
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleOpenModal(contact)}
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  try {
-                                    await calculateLeadScore(contact.id);
-                                    toast.success('Score recalculado!');
-                                  } catch (error) {
-                                    toast.error('Erro ao recalcular score');
-                                  }
-                                }}
-                              >
-                                Recalcular Score
-                              </Button>
-                              <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  {expandedContact === contact.id ? (
-                                    <ChevronUp className="h-4 w-4" />
-                                  ) : (
-                                    <ChevronDown className="h-4 w-4" />
-                                  )}
+
+                            {/* Mobile Layout (Falback) */}
+                            <div className="md:hidden flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <ContactAvatar
+                                    phoneNumber={contact.phone_number}
+                                    name={contact.name || undefined}
+                                    instanceName={currentCompany?.evolution_instance_name || ''}
+                                    profilePictureUrl={contact.profile_pic_url}
+                                    size="md"
+                                  />
+                                  <div>
+                                    <p className="font-medium">{contact.name || 'Sem nome'}</p>
+                                    <p className="text-sm text-muted-foreground">{contact.phone_number}</p>
+                                  </div>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => handleOpenModal(contact)}>
+                                    <Pencil className="h-4 w-4" />
                                 </Button>
-                              </CollapsibleTrigger>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenModal(contact)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDelete(contact.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
                             </div>
                           </div>
+                          
                           <CollapsibleContent>
                             <div className="px-4 pb-4">
+                              <div className="md:hidden space-y-2 mb-4 pt-2 border-t">
+                                  {contact.email && <div className="flex items-center gap-2 text-sm"><Mail className="h-3 w-3"/> {contact.email}</div>}
+                                  {/* Add other mobile fields here if needed */}
+                              </div>
                               <ContactDetails contactId={contact.id} />
                             </div>
                           </CollapsibleContent>
@@ -822,262 +1021,270 @@ export default function Contacts() {
           <TabsContent value="settings" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Configurações da Entidade</CardTitle>
+                <CardTitle>Configurações de Exibição</CardTitle>
                 <CardDescription>
-                  Personalize como esta entidade é chamada no sistema
+                  Personalize como os contatos são exibidos no sistema
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 max-w-xl">
-                  <div className="grid gap-2">
-                    <Label>Nome no Singular</Label>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nome da Entidade (Singular)</Label>
                     <Input
                       value={configForm.entity_name}
                       onChange={(e) =>
-                        setConfigForm((s) => ({ ...s, entity_name: e.target.value }))
+                        setConfigForm({ ...configForm, entity_name: e.target.value })
                       }
-                      placeholder="Ex: Cliente, Lead, Paciente"
+                      placeholder="Ex: Contato, Cliente, Lead..."
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label>Nome no Plural</Label>
+                  <div className="space-y-2">
+                    <Label>Nome da Entidade (Plural)</Label>
                     <Input
                       value={configForm.entity_name_plural}
                       onChange={(e) =>
-                        setConfigForm((s) => ({ ...s, entity_name_plural: e.target.value }))
+                        setConfigForm({ ...configForm, entity_name_plural: e.target.value })
                       }
-                      placeholder="Ex: Clientes, Leads, Pacientes"
+                      placeholder="Ex: Contatos, Clientes, Leads..."
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label>Ícone</Label>
-                    <div className="grid grid-cols-6 gap-2 border p-4 rounded-lg">
-                      {AVAILABLE_ICONS.map((icon) => {
-                        const IconComp = ICON_MAP[icon.name] || Package;
-                        return (
-                          <button
-                            key={icon.name}
-                            onClick={() => setConfigForm((s) => ({ ...s, entity_icon: icon.name }))}
-                            className={`flex flex-col items-center justify-center p-2 rounded hover:bg-muted transition-colors ${configForm.entity_icon === icon.name ? 'bg-primary/10 text-primary ring-2 ring-primary' : ''}`}
-                          >
-                            <IconComp className="h-6 w-6 mb-1" />
-                            <span className="text-[10px] truncate w-full text-center">
-                              {icon.label}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <Button onClick={() => updateSettings.mutate(configForm)}>
-                    Salvar Configurações
-                  </Button>
                 </div>
+
+                <div className="space-y-2">
+                  <Label>Ícone</Label>
+                  <Select
+                    value={configForm.entity_icon}
+                    onValueChange={(val) =>
+                      setConfigForm({ ...configForm, entity_icon: val })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_ICONS.map((icon) => (
+                        <SelectItem key={icon.name} value={icon.name}>
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const Ico = ICON_MAP[icon.name];
+                              return <Ico className="h-4 w-4" />;
+                            })()}
+                            {icon.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  onClick={() =>
+                    updateSettings.mutate({
+                      entity_name: configForm.entity_name,
+                      entity_name_plural: configForm.entity_name_plural,
+                      entity_icon: configForm.entity_icon,
+                    })
+                  }
+                >
+                  Salvar Configurações
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingContact ? `Editar ${entityName}` : `Novo ${entityName}`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="phone">Telefone *</Label>
-              <Input
-                id="phone"
-                value={formData.phone_number}
-                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                placeholder="+55 11 99999-9999"
-              />
-            </div>
-            <div>
-              <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="João Silva"
-              />
-            </div>
-            <div>
-              <Label htmlFor="category">Categoria</Label>
-              <Select
-                value={formData.category_id}
-                onValueChange={(v) => setFormData({ ...formData, category_id: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: cat.color }}
+        {/* Create/Edit Contact Modal */}
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{editingContact ? `Editar ${entityName}` : `Novo ${entityName}`}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>Nome</Label>
+                        <Input 
+                            value={formData.name} 
+                            onChange={e => setFormData({...formData, name: e.target.value})} 
+                            placeholder="Nome completo"
                         />
-                        {cat.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="cnpj">CNPJ da Empresa</Label>
-              <Input
-                id="cnpj"
-                value={formData.company_cnpj}
-                onChange={(e) => setFormData({ ...formData, company_cnpj: e.target.value })}
-                placeholder="00.000.000/0000-00"
-              />
-            </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Telefone (WhatsApp)</Label>
+                        <Input 
+                            value={formData.phone_number} 
+                            onChange={e => setFormData({...formData, phone_number: e.target.value})} 
+                            placeholder="5511999999999"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input 
+                            value={formData.email} 
+                            onChange={e => setFormData({...formData, email: e.target.value})} 
+                            placeholder="email@exemplo.com"
+                            type="email"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Categoria</Label>
+                        <Select 
+                            value={formData.category_id} 
+                            onValueChange={v => setFormData({...formData, category_id: v})}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione uma categoria" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map(cat => (
+                                    <SelectItem key={cat.id} value={cat.id}>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full" style={{backgroundColor: cat.color}} />
+                                            {cat.name}
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-            {fields.length > 0 && (
-              <>
-                <Separator className="my-4" />
-                <div className="space-y-4">
-                  <h3 className="font-medium text-sm">Campos Personalizados</h3>
-                  {fields.map((field) => (
-                    <CustomFieldInput
-                      key={field.id}
-                      field={field}
-                      value={customFieldsData[field.id] || ''}
-                      onChange={(value) =>
-                        setCustomFieldsData({ ...customFieldsData, [field.id]: value })
-                      }
-                    />
-                  ))}
+                    <Separator />
+                    
+                    {fields.length > 0 && (
+                        <div className="space-y-4">
+                            <h4 className="font-medium text-sm text-muted-foreground">Campos Personalizados</h4>
+                            {fields.map(field => (
+                                <CustomFieldInput
+                                    key={field.id}
+                                    field={field}
+                                    value={customFieldsData[field.id] || ''}
+                                    onChange={(val) => setCustomFieldsData(prev => ({...prev, [field.id]: val}))}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowModal(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSubmit}>{editingContact ? 'Salvar' : 'Criar'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowModal(false)}>Cancelar</Button>
+                    <Button onClick={handleSubmit}>Salvar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
-      {/* Category Modal */}
-      <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingCategory ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label>Nome</Label>
-              <Input
-                value={categoryForm.name}
-                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Cor</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  className="w-12 p-1 h-10"
-                  value={categoryForm.color}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, color: e.target.value })}
-                />
-                <Input
-                  value={categoryForm.color}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, color: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCategorySubmit}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Category Modal */}
+        <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{editingCategory ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>Nome</Label>
+                        <Input 
+                            value={categoryForm.name}
+                            onChange={e => setCategoryForm({...categoryForm, name: e.target.value})}
+                            placeholder="Ex: Cliente VIP"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Cor</Label>
+                        <div className="flex gap-2">
+                            <Input 
+                                type="color" 
+                                value={categoryForm.color}
+                                onChange={e => setCategoryForm({...categoryForm, color: e.target.value})}
+                                className="w-12 p-1 h-10"
+                            />
+                            <Input 
+                                value={categoryForm.color}
+                                onChange={e => setCategoryForm({...categoryForm, color: e.target.value})}
+                                placeholder="#000000"
+                            />
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowCategoryModal(false)}>Cancelar</Button>
+                    <Button onClick={handleCategorySubmit}>Salvar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
-      {/* Field Modal */}
-      <Dialog open={showFieldModal} onOpenChange={setShowFieldModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingField ? 'Editar Campo' : 'Novo Campo'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label>Nome do Campo (interno)</Label>
-              <Input
-                value={fieldForm.name}
-                onChange={(e) => setFieldForm({ ...fieldForm, name: e.target.value })}
-                placeholder="Ex: data_nascimento (sem espaços)"
-                disabled={!!editingField}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Rótulo (exibido)</Label>
-              <Input
-                value={fieldForm.label}
-                onChange={(e) => setFieldForm({ ...fieldForm, label: e.target.value })}
-                placeholder="Ex: Data de Nascimento"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Tipo</Label>
-              <Select
-                value={fieldForm.field_type}
-                onValueChange={(v) => setFieldForm({ ...fieldForm, field_type: v as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="text">Texto</SelectItem>
-                  <SelectItem value="number">Número</SelectItem>
-                  <SelectItem value="date">Data</SelectItem>
-                  <SelectItem value="select">Seleção</SelectItem>
-                  <SelectItem value="boolean">Sim/Não</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="url">URL</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {(fieldForm.field_type === 'select' || fieldForm.field_type === 'multiselect') && (
-              <div className="grid gap-2">
-                <Label>Opções (separadas por vírgula)</Label>
-                <Input
-                  value={fieldForm.options}
-                  onChange={(e) => setFieldForm({ ...fieldForm, options: e.target.value })}
-                  placeholder="Opção 1, Opção 2"
-                />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button onClick={handleFieldSubmit}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Field Modal */}
+        <Dialog open={showFieldModal} onOpenChange={setShowFieldModal}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{editingField ? 'Editar Campo' : 'Novo Campo'}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>Nome Interno (sem espaços)</Label>
+                        <Input 
+                            value={fieldForm.name}
+                            onChange={e => setFieldForm({...fieldForm, name: e.target.value})}
+                            placeholder="ex: cpf_cnpj"
+                            disabled={!!editingField}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Rótulo (Label visible)</Label>
+                        <Input 
+                            value={fieldForm.label}
+                            onChange={e => setFieldForm({...fieldForm, label: e.target.value})}
+                            placeholder="Ex: CPF/CNPJ"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Tipo de Campo</Label>
+                        <Select 
+                            value={fieldForm.field_type} 
+                            onValueChange={v => setFieldForm({...fieldForm, field_type: v})}
+                            disabled={!!editingField}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="text">Texto</SelectItem>
+                                <SelectItem value="number">Número</SelectItem>
+                                <SelectItem value="date">Data</SelectItem>
+                                <SelectItem value="select">Seleção</SelectItem>
+                                <SelectItem value="boolean">Sim/Não</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {fieldForm.field_type === 'select' && (
+                        <div className="space-y-2">
+                            <Label>Opções (separadas por vírgula)</Label>
+                            <Textarea 
+                                value={fieldForm.options}
+                                onChange={e => setFieldForm({...fieldForm, options: e.target.value})}
+                                placeholder="Opção 1, Opção 2, Opção 3"
+                            />
+                        </div>
+                    )}
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowFieldModal(false)}>Cancelar</Button>
+                    <Button onClick={handleFieldSubmit}>Salvar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
-      <ContactImportDialog
-        open={isImportOpen}
-        onOpenChange={setIsImportOpen}
-        onImportComplete={() => {
-          window.location.reload();
-        }}
-      />
+        <ContactImportDialog 
+          open={isImportOpen} 
+          onOpenChange={setIsImportOpen}
+          onImportComplete={() => {
+            // Refresh contacts or show success
+            toast.success('Importação concluída');
+          }}
+        />
 
-      <ContactExportDialog
-        open={isExportOpen}
-        onOpenChange={setIsExportOpen}
-        contacts={filteredContacts}
-      />
+        <ContactExportDialog 
+          open={isExportOpen} 
+          onOpenChange={setIsExportOpen}
+          contacts={filteredContacts}
+        />
+      </div>
     </MainLayout>
   );
 }

@@ -56,6 +56,10 @@ serve(async (req) => {
       );
       const userInfo = await userInfoResponse.json();
 
+      console.log('User info from Google:', userInfo);
+
+      const userEmail = userInfo.email || 'connected';
+
       // Save tokens to user profile
       await supabase
         .from('profiles')
@@ -66,7 +70,7 @@ serve(async (req) => {
           },
           google_calendar_refresh_token: tokens.refresh_token,
           google_calendar_connected: true,
-          google_calendar_email: userInfo.email,
+          google_calendar_email: userEmail,
         })
         .eq('id', callbackState);
 
@@ -74,11 +78,12 @@ serve(async (req) => {
       return new Response(
         `<html><body>
           <script>
-            window.opener && window.opener.postMessage({type: 'oauth-success', email: '${userInfo.email}'}, '*');
+            window.opener && window.opener.postMessage({type: 'oauth-success', email: '${userEmail}'}, '*');
             setTimeout(() => window.close(), 1000);
           </script>
           <p style="text-align: center; margin-top: 50px; font-family: sans-serif;">
             ✅ Conectado com sucesso!<br><br>
+            ${userEmail !== 'connected' ? `Email: ${userEmail}<br><br>` : ''}
             Esta janela será fechada automaticamente...
           </p>
         </body></html>`,

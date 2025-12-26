@@ -457,7 +457,7 @@ const ContactDetailPanel = ({
               )}
               <div>
                 <span className="text-muted-foreground">Total conversas:</span>
-                <p className="font-medium">{crmMetrics?.total_conversations || 0}</p>
+                <p className="font-medium">{(crmMetrics?.total_conversations || 0) + 1}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total gasto:</span>

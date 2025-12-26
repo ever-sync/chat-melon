@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MessageSquare, Kanban, CheckSquare, Menu, Bell } from 'lucide-react';
+import { MessageSquare, Kanban, CheckSquare, Menu, Bell, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/ui/useNotifications';
 import { useTasks } from '@/hooks/crm/useTasks';
@@ -21,16 +21,16 @@ export const MobileBottomNav = () => {
       badge: null,
     },
     {
-      path: '/crm',
-      icon: Kanban,
-      label: 'Pipeline',
+      path: '/agenda',
+      icon: Calendar,
+      label: 'Agenda',
       badge: null,
     },
     {
-      path: '/tasks',
-      icon: CheckSquare,
-      label: 'Tarefas',
-      badge: pendingTasks > 0 ? pendingTasks : null,
+      path: '/crm',
+      icon: Kanban,
+      label: 'CRM',
+      badge: null,
     },
     {
       path: '/settings',

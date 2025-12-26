@@ -28,6 +28,7 @@ import {
   BookOpen,
   Target,
   Library,
+  Calendar,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import React from 'react';
@@ -103,6 +104,11 @@ export function AppSidebar() {
       url: '/crm',
       icon: Users,
       featureKey: 'deals_pipeline',
+    },
+    {
+      title: 'Agenda',
+      url: '/agenda',
+      icon: Calendar,
     },
     {
       title: contactSettings?.entity_name_plural || 'Contatos',

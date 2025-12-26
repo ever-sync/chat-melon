@@ -208,7 +208,7 @@ export const useGoogleCalendar = () => {
     },
   });
 
-  // Listar eventos do dia
+  // Listar eventos do mês
   const { data: todayEvents, isLoading: isLoadingEvents } = useQuery({
     queryKey: ['google-calendar-events'],
     queryFn: async () => {
@@ -218,7 +218,7 @@ export const useGoogleCalendar = () => {
       if (!user) return [];
 
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
-        body: { action: 'list_events', userId: user.id },
+        body: { action: 'list_month_events', userId: user.id },
       });
 
       if (error) throw error;

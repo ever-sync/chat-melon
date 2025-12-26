@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { supabase } from '@/integrations/supabase/client';
 import ConversationList from '@/components/chat/sidebar/ConversationList';
@@ -22,6 +23,8 @@ import { cn } from '@/lib/utils';
 
 
 const Chat = () => {
+  const [searchParams] = useSearchParams();
+  const initialConversationId = searchParams.get('conversationId');
   const { withCompanyFilter, companyId } = useCompanyQuery();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
@@ -56,6 +59,15 @@ const Chat = () => {
   useEffect(() => {
     localStorage.setItem('chat-filters', JSON.stringify(filters));
   }, [filters]);
+
+  useEffect(() => {
+     if (initialConversationId && conversations.length > 0) {
+         const target = conversations.find(c => c.id === initialConversationId);
+         if (target) {
+            setSelectedConversation(target);
+         }
+     }
+  }, [initialConversationId, conversations]);
 
   const handleFilterChange = (newFilters: Partial<ChatFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));

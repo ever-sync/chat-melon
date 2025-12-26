@@ -23,6 +23,7 @@ const Chat = lazy(() => import('./pages/Chat'));
 const CRM = lazy(() => import('./pages/CRM'));
 const CRMDashboard = lazy(() => import('./pages/CRMDashboard'));
 const Tasks = lazy(() => import('./pages/Tasks'));
+const Agenda = lazy(() => import('./pages/Agenda'));
 const Templates = lazy(() => import('@/pages/Templates'));
 const Proposals = lazy(() => import('@/pages/Proposals'));
 const ProposalTemplates = lazy(() => import('@/pages/ProposalTemplates'));
@@ -165,6 +166,14 @@ const App = () => {
                       element={
                         <ErrorBoundary context="tasks">
                           <Tasks />
+                        </ErrorBoundary>
+                      }
+                    />
+                    <Route
+                      path="/agenda"
+                      element={
+                        <ErrorBoundary context="agenda">
+                          <Agenda />
                         </ErrorBoundary>
                       }
                     />
