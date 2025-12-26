@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import { useQuery } from '@tanstack/react-query';
@@ -28,6 +29,7 @@ import { formatCurrency } from '@/lib/formatters';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import { CreateEventModal } from '@/components/agenda/CreateEventModal';
+import { EventDetailModal } from '@/components/agenda/EventDetailModal';
 
 type CalendarEvent = {
   id: string;
@@ -49,67 +51,130 @@ type CalendarEvent = {
 export default function Agenda() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const { connectionStatus, todayEvents, isLoadingEvents } = useGoogleCalendar();
 
-  // Buscar tarefas do usuário
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['user-tasks', currentDate],
+  // Buscar perfil e permissões do usuário atual
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user-profile'],
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user) return null;
 
-      const start = startOfMonth(currentDate);
-      const end = endOfMonth(currentDate);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*, companies(owner_id)')
+        .eq('id', user.id)
+        .single();
 
-      const { data } = await supabase
-        .from('tasks')
-        .select('*, profiles(full_name, avatar_url)')
-        .eq('assigned_to', user.id)
-        .gte('due_date', start.toISOString())
-        .lte('due_date', end.toISOString());
-
-      return data || [];
+      return profile;
     },
   });
 
-  // Buscar deals do usuário
-  const { data: deals = [] } = useQuery({
-    queryKey: ['user-deals', currentDate],
+  // Verificar se o usuário é admin ou proprietário
+  const isAdminOrOwner =
+    currentUser?.role === 'admin' || currentUser?.companies?.owner_id === currentUser?.id;
+
+  // Buscar lista de atendentes (apenas para admin/owner)
+  const { data: attendants = [] } = useQuery({
+    queryKey: ['company-attendants', currentUser?.company_id],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!isAdminOrOwner || !currentUser?.company_id) return [];
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, email')
+        .eq('company_id', currentUser.company_id)
+        .order('full_name');
+
+      return data || [];
+    },
+    enabled: isAdminOrOwner && !!currentUser?.company_id,
+  });
+
+  // Definir o usuário a ser filtrado (usuário atual ou selecionado)
+  const filterUserId = isAdminOrOwner && selectedUserId ? selectedUserId : currentUser?.id;
+
+  // Buscar tarefas do usuário (ou usuário selecionado, ou todos se admin)
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['user-tasks', currentDate, filterUserId, isAdminOrOwner, selectedUserId],
+    queryFn: async () => {
+      if (!currentUser) return [];
 
       const start = startOfMonth(currentDate);
       const end = endOfMonth(currentDate);
 
-      const { data } = await supabase
+      let query = supabase
+        .from('tasks')
+        .select('*, profiles(full_name, avatar_url)')
+        .eq('company_id', currentUser.company_id)
+        .gte('due_date', start.toISOString())
+        .lte('due_date', end.toISOString());
+
+      // Se admin/owner e selecionou um usuário específico, filtrar por ele
+      // Se não é admin/owner ou admin não selecionou ninguém, filtrar pelo usuário atual
+      if (filterUserId) {
+        query = query.eq('assigned_to', filterUserId);
+      }
+
+      const { data } = await query;
+      return data || [];
+    },
+    enabled: !!currentUser,
+  });
+
+  // Buscar deals do usuário (ou usuário selecionado, ou todos se admin)
+  const { data: deals = [] } = useQuery({
+    queryKey: ['user-deals', currentDate, filterUserId, isAdminOrOwner, selectedUserId],
+    queryFn: async () => {
+      if (!currentUser) return [];
+
+      const start = startOfMonth(currentDate);
+      const end = endOfMonth(currentDate);
+
+      let query = supabase
         .from('deals')
         .select('*, contacts(name), pipeline_stages(name, color), profiles(full_name, avatar_url)')
-        .eq('assigned_to', user.id)
+        .eq('company_id', currentUser.company_id)
         .gte('expected_close_date', start.toISOString())
         .lte('expected_close_date', end.toISOString());
 
+      // Se admin/owner e selecionou um usuário específico, filtrar por ele
+      // Se não é admin/owner ou admin não selecionou ninguém, filtrar pelo usuário atual
+      if (filterUserId) {
+        query = query.eq('assigned_to', filterUserId);
+      }
+
+      const { data } = await query;
       return data || [];
     },
+    enabled: !!currentUser,
   });
 
   // Consolidar todos os eventos
   const allEvents = useMemo<CalendarEvent[]>(() => {
     const events: CalendarEvent[] = [];
 
+    console.log('🔍 Consolidating events...', {
+      googleEventsCount: todayEvents?.length || 0,
+      tasksCount: tasks?.length || 0,
+      dealsCount: deals?.length || 0,
+    });
+
     // Eventos do Google Calendar
     if (todayEvents && Array.isArray(todayEvents)) {
+      console.log('📅 Google Calendar events:', todayEvents);
       todayEvents.forEach((event: any) => {
         if (event.start?.dateTime || event.start?.date) {
-          events.push({
+          const calendarEvent = {
             id: event.id,
-            type: 'google',
+            type: 'google' as const,
             title: event.summary || 'Sem título',
             date: parseISO(event.start.dateTime || event.start.date),
             startTime: event.start.dateTime ? format(parseISO(event.start.dateTime), 'HH:mm') : undefined,
@@ -117,9 +182,13 @@ export default function Agenda() {
             description: event.description,
             color: '#4285F4', // Azul Google
             metadata: event,
-          });
+          };
+          console.log('➕ Adding Google event:', calendarEvent);
+          events.push(calendarEvent);
         }
       });
+    } else {
+      console.log('⚠️ No Google events or invalid format:', todayEvents);
     }
 
     // Tarefas
@@ -225,7 +294,7 @@ export default function Agenda() {
               </div>
               <div>
                 <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  Minha Agenda
+                  {isAdminOrOwner ? 'Agenda da Equipe' : 'Minha Agenda'}
                 </h1>
                 <p className="text-gray-500 mt-1 text-base">
                   Gerencie seus eventos, tarefas e negociações em um só lugar
@@ -234,13 +303,40 @@ export default function Agenda() {
             </div>
           </div>
 
-          <Button
-            onClick={() => handleCreateEvent(new Date())}
-            className="h-11 rounded-xl shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 transition-all duration-200 hover:scale-105 hover:shadow-lg"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Criar Evento
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Select de Atendente (apenas para admin/owner) */}
+            {isAdminOrOwner && attendants.length > 0 && (
+              <Select value={selectedUserId || 'all'} onValueChange={(value) => setSelectedUserId(value === 'all' ? null : value)}>
+                <SelectTrigger className="w-[220px] h-11 rounded-xl border-gray-300">
+                  <SelectValue placeholder="Todos os atendentes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os atendentes</SelectItem>
+                  {attendants.map((attendant: any) => (
+                    <SelectItem key={attendant.id} value={attendant.id}>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={attendant.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {attendant.full_name?.charAt(0).toUpperCase() || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{attendant.full_name || attendant.email}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            <Button
+              onClick={() => handleCreateEvent(new Date())}
+              className="h-11 rounded-xl shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Criar Evento
+            </Button>
+          </div>
         </div>
 
         {/* Google Calendar Status */}
@@ -355,7 +451,11 @@ export default function Agenda() {
                     {dayEvents.slice(0, 3).map((event) => (
                       <div
                         key={event.id}
-                        className="text-xs p-1.5 rounded border-l-2 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => {
+                          setSelectedEvent(event);
+                          setShowDetailModal(true);
+                        }}
+                        className="text-xs p-1.5 rounded border-l-2 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
                         style={{ borderLeftColor: event.color }}
                       >
                         <div className="flex items-start gap-1">
@@ -395,6 +495,13 @@ export default function Agenda() {
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
         selectedDate={selectedDate}
+      />
+
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        event={selectedEvent}
       />
     </MainLayout>
   );

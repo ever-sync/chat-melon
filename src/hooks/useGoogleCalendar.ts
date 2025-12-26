@@ -228,6 +228,72 @@ export const useGoogleCalendar = () => {
     refetchInterval: 5 * 60 * 1000, // Atualiza a cada 5 minutos
   });
 
+  // Atualizar evento do Google Calendar
+  const updateGoogleEvent = useMutation({
+    mutationFn: async ({ eventId, event }: { eventId: string; event: any }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+        body: {
+          action: 'update_google_event',
+          userId: user.id,
+          event: {
+            eventId,
+            ...event,
+          },
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data?.meetLink) {
+        toast.success(
+          `Evento atualizado! Link do Meet: ${data.meetLink}`,
+          { duration: 5000 }
+        );
+      } else {
+        toast.success('Evento do Google Calendar atualizado!');
+      }
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Erro ao atualizar evento: ' + error.message);
+    },
+  });
+
+  // Deletar evento do Google Calendar
+  const deleteGoogleEvent = useMutation({
+    mutationFn: async ({ eventId }: { eventId: string }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+        body: {
+          action: 'delete_google_event',
+          userId: user.id,
+          event: { eventId },
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Evento do Google Calendar excluído!');
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Erro ao excluir evento: ' + error.message);
+    },
+  });
+
   // Verificar disponibilidade
   const checkAvailability = async (date: Date) => {
     const {
@@ -239,7 +305,7 @@ export const useGoogleCalendar = () => {
       body: {
         action: 'check_availability',
         userId: user.id,
-        date: date.toISOString(),
+        event: { date: date.toISOString() },
       },
     });
 
@@ -255,6 +321,8 @@ export const useGoogleCalendar = () => {
     createCalendarEvent,
     updateCalendarEvent,
     deleteCalendarEvent,
+    updateGoogleEvent,
+    deleteGoogleEvent,
     todayEvents,
     isLoadingEvents,
     checkAvailability,

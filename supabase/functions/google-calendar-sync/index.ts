@@ -234,21 +234,37 @@ serve(async (req) => {
       const timeMin = new Date(now.getFullYear(), now.getMonth(), 1);
       const timeMax = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-      const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
+      console.log('Fetching calendar events for:', {
+        timeMin: timeMin.toISOString(),
+        timeMax: timeMax.toISOString(),
+        userId,
+      });
+
+      const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
         `timeMin=${timeMin.toISOString()}&` +
         `timeMax=${timeMax.toISOString()}&` +
         `singleEvents=true&` +
         `orderBy=startTime&` +
-        `maxResults=100`,
-        { headers }
-      );
+        `maxResults=100`;
+
+      console.log('Calendar API URL:', url);
+
+      const response = await fetch(url, { headers });
 
       const data = await response.json();
 
+      console.log('Calendar API response:', {
+        status: response.status,
+        itemsCount: data.items?.length || 0,
+        hasError: !!data.error,
+      });
+
       if (data.error) {
+        console.error('Calendar API error:', data.error);
         throw new Error(data.error.message);
       }
+
+      console.log('Returning events:', data.items?.length || 0);
 
       return new Response(
         JSON.stringify({ events: data.items || [] }),
@@ -260,36 +276,124 @@ serve(async (req) => {
       // Cria evento diretamente no Google Calendar sem vincular a tarefa
       if (!eventData) throw new Error('Event data is required');
 
-      const response = await fetch(
-        'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-        {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(eventData),
-        }
-      );
+      // Se tem conferenceData, precisa adicionar o parâmetro conferenceDataVersion
+      const url = eventData.conferenceData
+        ? 'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1'
+        : 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+
+      console.log('Creating event with conferenceData:', !!eventData.conferenceData);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(eventData),
+      });
 
       const googleEvent = await response.json();
 
       if (googleEvent.error) {
+        console.error('Error creating event:', googleEvent.error);
         throw new Error(googleEvent.error.message);
       }
 
-      console.log('Direct event created:', googleEvent.id);
+      console.log('Direct event created:', {
+        id: googleEvent.id,
+        hasMeet: !!googleEvent.conferenceData,
+        meetLink: googleEvent.conferenceData?.entryPoints?.[0]?.uri,
+      });
 
       return new Response(
-        JSON.stringify({ success: true, eventId: googleEvent.id, eventLink: googleEvent.htmlLink }),
+        JSON.stringify({
+          success: true,
+          eventId: googleEvent.id,
+          eventLink: googleEvent.htmlLink,
+          meetLink: googleEvent.conferenceData?.entryPoints?.[0]?.uri,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'update_google_event') {
+      // Atualiza evento diretamente no Google Calendar
+      if (!eventData || !eventData.eventId) throw new Error('Event data and eventId are required');
+
+      const eventId = eventData.eventId;
+      delete eventData.eventId; // Remove eventId do body
+
+      console.log('Updating Google Calendar event:', eventId);
+
+      // Se tem conferenceData, precisa adicionar o parâmetro conferenceDataVersion
+      const url = eventData.conferenceData
+        ? `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}?conferenceDataVersion=1`
+        : `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`;
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(eventData),
+      });
+
+      const googleEvent = await response.json();
+
+      if (googleEvent.error) {
+        console.error('Error updating event:', googleEvent.error);
+        throw new Error(googleEvent.error.message);
+      }
+
+      console.log('Event updated successfully:', googleEvent.id);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          event: googleEvent,
+          meetLink: googleEvent.conferenceData?.entryPoints?.[0]?.uri,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'delete_google_event') {
+      // Deleta evento diretamente do Google Calendar
+      if (!eventData?.eventId) throw new Error('Event ID is required');
+
+      const eventId = eventData.eventId;
+
+      console.log('Deleting Google Calendar event:', eventId);
+
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+        {
+          method: 'DELETE',
+          headers,
+        }
+      );
+
+      if (response.status === 204) {
+        console.log('Event deleted successfully');
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const errorData = await response.json();
+      if (errorData.error) {
+        console.error('Error deleting event:', errorData.error);
+        throw new Error(errorData.error.message);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     if (action === 'check_availability') {
       // Verifica disponibilidade para uma data
-      const requestBody = await req.json();
-      const { date } = requestBody;
-      
-      const timeMin = new Date(date);
-      const timeMax = new Date(date);
+      if (!eventData?.date) throw new Error('Date is required');
+
+      const timeMin = new Date(eventData.date);
+      const timeMax = new Date(eventData.date);
       timeMax.setHours(23, 59, 59, 999);
 
       const response = await fetch(

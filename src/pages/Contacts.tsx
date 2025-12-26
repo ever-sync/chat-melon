@@ -464,10 +464,17 @@ export default function Contacts() {
              const nameFilter = columnFilters.name.toLowerCase();
              const nameMatches = (contact.name?.toLowerCase() || '').includes(nameFilter);
              const pushNameMatches = (contact.push_name?.toLowerCase() || '').includes(nameFilter);
+             
+             // Debug log for name filter
+             console.log(`Filtering name: ${contact.name} | ${contact.push_name} vs ${nameFilter} -> ${nameMatches || pushNameMatches}`);
+             
              if (!nameMatches && !pushNameMatches) return false;
           }
           
-          if (columnFilters.phone && !(contact.phone_number || '').includes(columnFilters.phone)) return false;
+          if (columnFilters.phone) {
+            const phoneStr = String(contact.phone_number || '');
+            if (!phoneStr.includes(columnFilters.phone)) return false;
+          }
           
           if (columnFilters.email && !(contact.email?.toLowerCase() || '').includes(columnFilters.email.toLowerCase())) return false;
           
@@ -630,16 +637,9 @@ export default function Contacts() {
               <CardContent>
                 {isLoading ? (
                   <p className="text-center text-muted-foreground py-8">Carregando...</p>
-                ) : filteredContacts.length === 0 ? (
-                  <div className="text-center py-8">
-                    <User className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">
-                      {searchQuery ? 'Nenhum encontrado' : 'Nenhum cadastrado'}
-                    </p>
-                  </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Header Row with Filters */}
+                    {/* Header Row with Filters - Always visible */}
                     <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-2 text-sm font-medium text-muted-foreground border-b bg-muted/20">
                       <div className="col-span-3 p-2">
                         <Label className="mb-2 block">Nome</Label>
@@ -707,7 +707,17 @@ export default function Contacts() {
                       </div>
                     </div>
 
-                    {filteredContacts.map((contact: any) => (
+                    {filteredContacts.length === 0 ? (
+                      <div className="text-center py-8">
+                        <User className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-muted-foreground">
+                          {searchQuery || Object.values(columnFilters).some(v => v && v !== 'all') 
+                            ? 'Nenhum contato encontrado com os filtros atuais' 
+                            : 'Nenhum contato cadastrado'}
+                        </p>
+                      </div>
+                    ) : (
+                      filteredContacts.map((contact: any) => (
                       <Collapsible
                         key={contact.id}
                         open={expandedContact === contact.id}
@@ -857,8 +867,9 @@ export default function Contacts() {
                           </CollapsibleContent>
                         </div>
                       </Collapsible>
-                    ))}
-                  </div>
+                    ))
+                  )}
+                </div>
                 )}
               </CardContent>
             </Card>

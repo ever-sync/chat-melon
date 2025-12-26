@@ -63,6 +63,7 @@ const ContactDetailPanel = ({
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [tempEmail, setTempEmail] = useState('');
   const [contactData, setContactData] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
@@ -235,6 +236,40 @@ const ContactDetailPanel = ({
     } catch (error) {
       console.error('Erro ao atualizar contato:', error);
       toast.error('Erro ao atualizar');
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!contactData || !tempEmail.trim()) return;
+
+    // Validação básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(tempEmail)) {
+      toast.error('Email inválido');
+      return;
+    }
+
+    try {
+      const enrichmentData = contactData.enrichment_data || {};
+      enrichmentData.email = tempEmail;
+
+      const { error } = await supabase
+        .from('contacts')
+        .update({ enrichment_data: enrichmentData })
+        .eq('id', conversation.contact_id);
+
+      if (error) throw error;
+
+      setContactData({ ...contactData, enrichment_data: enrichmentData });
+      setIsEditingEmail(false);
+      setTempEmail('');
+      toast.success('Email atualizado!');
+
+      // Abrir o composer de email após salvar
+      setShowEmailComposer(true);
+    } catch (error) {
+      console.error('Erro ao atualizar email:', error);
+      toast.error('Erro ao atualizar email');
     }
   };
 
@@ -476,8 +511,15 @@ const ContactDetailPanel = ({
               variant="outline"
               size="sm"
               className="flex-col h-auto py-2"
-              onClick={() => setShowEmailComposer(true)}
-              disabled={!contactData?.enrichment_data?.email}
+              onClick={() => {
+                const email = contactData?.enrichment_data?.email;
+                if (email) {
+                  setShowEmailComposer(true);
+                } else {
+                  setIsEditingEmail(true);
+                  setTempEmail('');
+                }
+              }}
             >
               <Mail className="w-4 h-4 mb-1" />
               <span className="text-xs">Email</span>
@@ -503,6 +545,48 @@ const ContactDetailPanel = ({
           </div>
 
           <Separator />
+
+          {/* ✉️ Adicionar/Editar Email */}
+          {isEditingEmail && (
+            <div className="space-y-3 border rounded-lg p-3 bg-muted/50">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm">Adicionar Email</h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsEditingEmail(false);
+                    setTempEmail('');
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Input
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={tempEmail}
+                  onChange={(e) => setTempEmail(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleUpdateEmail();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleUpdateEmail}
+                  className="w-full"
+                  size="sm"
+                  disabled={!tempEmail.trim()}
+                >
+                  Salvar e Enviar Email
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {isEditingEmail && <Separator />}
 
           {/* 🏢 Dados da Empresa */}
           {contactData?.company_cnpj && (

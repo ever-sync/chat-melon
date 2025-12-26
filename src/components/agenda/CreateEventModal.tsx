@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -21,7 +22,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Clock } from 'lucide-react';
+import { CalendarIcon, Clock, Video, Mail, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,6 +45,9 @@ export const CreateEventModal = ({ open, onOpenChange, selectedDate }: CreateEve
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [priority, setPriority] = useState('medium');
+  const [createMeet, setCreateMeet] = useState(false);
+  const [attendees, setAttendees] = useState<string[]>([]);
+  const [attendeeInput, setAttendeeInput] = useState('');
 
   const { connectionStatus, createCalendarEvent } = useGoogleCalendar();
   const queryClient = useQueryClient();
@@ -98,6 +102,8 @@ export const CreateEventModal = ({ open, onOpenChange, selectedDate }: CreateEve
 
   const createGoogleEventMutation = useMutation({
     mutationFn: async () => {
+      console.log('Creating Google Calendar event...');
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -114,31 +120,68 @@ export const CreateEventModal = ({ open, onOpenChange, selectedDate }: CreateEve
       const [endHours, endMinutes] = endTime.split(':');
       endDateTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
 
+      console.log('Invoking google-calendar-sync function...', {
+        action: 'create_direct_event',
+        userId: user.id,
+        title,
+        createMeet,
+      });
+
+      // Monta lista de participantes
+      const attendeesList = attendees.map(email => ({ email }));
+
+      const eventData: any = {
+        summary: title,
+        description: description || undefined,
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: 'America/Sao_Paulo',
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: 'America/Sao_Paulo',
+        },
+        attendees: attendeesList.length > 0 ? attendeesList : undefined,
+      };
+
+      // Se deve criar Google Meet, adiciona a configuração de conferência
+      if (createMeet) {
+        eventData.conferenceData = {
+          createRequest: {
+            requestId: `meet-${Date.now()}`,
+            conferenceSolutionKey: {
+              type: 'hangoutsMeet',
+            },
+          },
+        };
+      }
+
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
         body: {
           action: 'create_direct_event',
           userId: user.id,
           companyId: profile.company_id,
-          event: {
-            summary: title,
-            description,
-            start: {
-              dateTime: startDateTime.toISOString(),
-              timeZone: 'America/Sao_Paulo',
-            },
-            end: {
-              dateTime: endDateTime.toISOString(),
-              timeZone: 'America/Sao_Paulo',
-            },
-          },
+          event: eventData,
         },
       });
 
-      if (error) throw error;
+      console.log('Function response:', { data, error });
+
+      if (error) {
+        console.error('Error from function:', error);
+        throw error;
+      }
       return data;
     },
-    onSuccess: () => {
-      toast.success('Evento do Google Calendar criado com sucesso!');
+    onSuccess: (data) => {
+      if (data?.meetLink) {
+        toast.success(
+          `Evento criado com sucesso! Link do Meet: ${data.meetLink}`,
+          { duration: 5000 }
+        );
+      } else {
+        toast.success('Evento do Google Calendar criado com sucesso!');
+      }
       queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
       resetForm();
       onOpenChange(false);
@@ -156,14 +199,65 @@ export const CreateEventModal = ({ open, onOpenChange, selectedDate }: CreateEve
     setEndTime('10:00');
     setPriority('medium');
     setEventType('task');
+    setCreateMeet(false);
+    setAttendees([]);
+    setAttendeeInput('');
+  };
+
+  const addAttendee = () => {
+    const email = attendeeInput.trim();
+    if (email && !attendees.includes(email)) {
+      // Valida email básico
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(email)) {
+        setAttendees([...attendees, email]);
+        setAttendeeInput('');
+      } else {
+        toast.error('Email inválido');
+      }
+    }
+  };
+
+  const removeAttendee = (email: string) => {
+    setAttendees(attendees.filter(a => a !== email));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !date) {
-      toast.error('Preencha o título e a data');
+    // Validações
+    if (!title.trim()) {
+      toast.error('O título é obrigatório');
       return;
+    }
+
+    if (!date) {
+      toast.error('Selecione uma data');
+      return;
+    }
+
+    // Validar que a data não é no passado
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      toast.error('Não é possível agendar eventos em datas passadas');
+      return;
+    }
+
+    // Validar horários
+    if (startTime && endTime) {
+      const [startHours, startMinutes] = startTime.split(':').map(Number);
+      const [endHours, endMinutes] = endTime.split(':').map(Number);
+      const startInMinutes = startHours * 60 + startMinutes;
+      const endInMinutes = endHours * 60 + endMinutes;
+
+      if (startInMinutes >= endInMinutes) {
+        toast.error('O horário de término deve ser posterior ao horário de início');
+        return;
+      }
     }
 
     if (eventType === 'google') {
@@ -282,6 +376,72 @@ export const CreateEventModal = ({ open, onOpenChange, selectedDate }: CreateEve
               </div>
             </div>
           </div>
+
+          {/* Criar Google Meet automaticamente (apenas para eventos do Google) */}
+          {eventType === 'google' && (
+            <div className="flex items-center space-x-2 py-2">
+              <Checkbox
+                id="createMeet"
+                checked={createMeet}
+                onCheckedChange={(checked) => setCreateMeet(checked as boolean)}
+              />
+              <label
+                htmlFor="createMeet"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+              >
+                <Video className="h-4 w-4 text-blue-600" />
+                Criar link do Google Meet automaticamente
+              </label>
+            </div>
+          )}
+
+          {/* Participantes (apenas para eventos do Google) */}
+          {eventType === 'google' && (
+            <div className="space-y-2">
+              <Label htmlFor="attendees">Participantes (opcional)</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="attendees"
+                    placeholder="Email do participante"
+                    value={attendeeInput}
+                    onChange={(e) => setAttendeeInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addAttendee();
+                      }
+                    }}
+                    className="pl-9"
+                  />
+                </div>
+                <Button type="button" onClick={addAttendee} variant="outline">
+                  Adicionar
+                </Button>
+              </div>
+              {attendees.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {attendees.map((email) => (
+                    <div
+                      key={email}
+                      className="flex items-center gap-1 bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm"
+                    >
+                      <Mail className="h-3 w-3" />
+                      <span>{email}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttendee(email)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Prioridade (apenas para tarefas) */}
           {eventType === 'task' && (
