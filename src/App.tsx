@@ -40,6 +40,7 @@ const CampaignDetail = lazy(() => import('./pages/CampaignDetail'));
 const PipelineSettings = lazy(() => import('./pages/PipelineSettings'));
 const Products = lazy(() => import('./pages/Products'));
 const Reports = lazy(() => import('./pages/Reports'));
+const ReportsAtendimento = lazy(() => import('./pages/ReportsAtendimento'));
 const TeamPerformancePage = lazy(() => import('./pages/reports/TeamPerformancePage'));
 const UsersPage = lazy(() => import('./pages/settings/UsersPage'));
 const AISettingsPage = lazy(() => import('./pages/settings/AISettingsPage'));
@@ -67,6 +68,8 @@ const Integrations = lazy(() => import('./pages/Integrations'));
 const Security = lazy(() => import('./pages/Security'));
 const Channels = lazy(() => import('./pages/Channels'));
 const AIInsights = lazy(() => import('./pages/AIInsights'));
+const Marketing = lazy(() => import('./pages/Marketing'));
+const Biblioteca = lazy(() => import('./pages/Biblioteca'));
 const Imobiliarias = lazy(() => import('./pages/Imobiliarias'));
 const Concessionarias = lazy(() => import('./pages/Concessionarias'));
 const Educacao = lazy(() => import('./pages/Educacao'));
@@ -271,6 +274,16 @@ const App = () => {
                       }
                     />
                     <Route
+                      path="/reports/atendimento"
+                      element={
+                        <ErrorBoundary context="reports-atendimento">
+                          <FeatureGate feature="reports_basic">
+                            <ReportsAtendimento />
+                          </FeatureGate>
+                        </ErrorBoundary>
+                      }
+                    />
+                    <Route
                       path="/reports/team"
                       element={
                         <FeatureGate feature="team_performance">
@@ -296,6 +309,17 @@ const App = () => {
                         </FeatureGate>
                       }
                     />
+                    <Route
+                      path="/marketing"
+                      element={
+                        <ErrorBoundary context="marketing">
+                          <FeatureGate feature="marketing">
+                            <Marketing />
+                          </FeatureGate>
+                        </ErrorBoundary>
+                      }
+                    />
+                    <Route path="/biblioteca" element={<Biblioteca />} />
                     <Route path="/settings" element={<NewSettings />} />
                     <Route path="/instance-setup" element={<InstanceSetup />} />
                     <Route path="/companies" element={<Companies />} />

@@ -26,6 +26,8 @@ import {
   ShoppingBag,
   Bot,
   BookOpen,
+  Target,
+  Library,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import React from 'react';
@@ -97,34 +99,10 @@ export function AppSidebar() {
       featureKey: 'chat',
     },
     {
-      title: 'Grupos',
-      url: '/groups',
-      icon: UsersRound,
-      featureKey: 'groups',
-    },
-    {
       title: 'CRM',
       url: '/crm',
       icon: Users,
       featureKey: 'deals_pipeline',
-    },
-    {
-      title: 'Propostas',
-      url: '/proposals',
-      icon: FileBarChart,
-      featureKey: 'proposals',
-    },
-    {
-      title: 'Automações',
-      url: '/automation',
-      icon: Zap,
-      featureKey: 'workflows',
-    },
-    {
-      title: 'Campanhas',
-      url: '/campaigns',
-      icon: Send,
-      featureKey: 'campaigns',
     },
     {
       title: contactSettings?.entity_name_plural || 'Contatos',
@@ -133,10 +111,10 @@ export function AppSidebar() {
       featureKey: 'contacts',
     },
     {
-      title: productSettings?.entity_name_plural || 'Produtos',
-      url: '/products',
-      icon: productSettings?.entity_icon ? getIcon(productSettings.entity_icon, Package) : Package,
-      featureKey: 'products',
+      title: 'Propostas',
+      url: '/proposals',
+      icon: FileBarChart,
+      featureKey: 'proposals',
     },
     {
       title: 'Relatórios',
@@ -151,60 +129,15 @@ export function AppSidebar() {
       featureKey: 'gamification',
     },
     {
-      title: 'FAQ',
-      url: '/faq',
-      icon: HelpCircle,
-      featureKey: 'faq',
+      title: 'Marketing',
+      url: '/marketing',
+      icon: Target,
+      featureKey: 'marketing',
     },
     {
-      title: 'Documentos',
-      url: '/documents',
-      icon: FileText,
-      featureKey: 'documents',
-    },
-    {
-      title: 'Knowledge Base',
-      url: '/knowledge-base',
-      icon: BookOpen,
-      featureKey: 'knowledge_base',
-    },
-    {
-      title: 'Chatbots',
-      url: '/chatbots',
-      icon: Bot,
-      featureKey: 'chatbots',
-    },
-    {
-      title: 'Cadences',
-      url: '/cadences',
-      icon: GitMerge,
-      featureKey: 'cadences',
-    },
-    {
-      title: 'Pedidos',
-      url: '/orders',
-      icon: ShoppingBag,
-      featureKey: 'orders',
-    },
-    {
-      title: 'Integrações',
-      url: '/integrations',
-      icon: Zap,
-      featureKey: 'integrations',
-      comingSoon: true,
-    },
-    {
-      title: 'Segurança',
-      url: '/security',
-      icon: Shield,
-      featureKey: 'security',
-    },
-    {
-      title: 'Canais',
-      url: '/channels',
-      icon: MessageCircle,
-      featureKey: 'channels',
-      comingSoon: true,
+      title: 'Biblioteca',
+      url: '/biblioteca',
+      icon: Library,
     },
   ];
 

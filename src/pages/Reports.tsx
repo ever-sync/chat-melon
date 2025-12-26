@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,6 +45,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Reports() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { pipelines } = usePipelines();
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | undefined>(undefined);
   const { metrics, revenueData, funnelData, rankingData, forecastData, isLoading } = useAnalytics(
@@ -51,6 +54,7 @@ export default function Reports() {
     selectedPipelineId
   );
   const [greeting, setGreeting] = useState('');
+  const [reportType, setReportType] = useState('vendas');
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -107,6 +111,30 @@ export default function Reports() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Report Type Selection */}
+        <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit">
+          <button
+            onClick={() => setReportType('vendas')}
+            className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+              reportType === 'vendas'
+                ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            Vendas
+          </button>
+          <button
+            onClick={() => navigate('/reports/atendimento')}
+            className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+              location.pathname === '/reports/atendimento'
+                ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            Atendimento
+          </button>
         </div>
 
         {/* Metrics Grid */}

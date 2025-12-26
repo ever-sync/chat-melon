@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -77,6 +78,7 @@ const getContrastColor = (hexcolor: string) => {
 };
 
 export default function NewSettings() {
+  const navigate = useNavigate();
   const { currentCompany } = useCompany();
   const [loading, setLoading] = useState(false);
   const [companyId, setCompanyId] = useState<string | null>(null);
@@ -296,6 +298,14 @@ export default function NewSettings() {
                 <Shield className="h-4 w-4" />
                 <span className="font-medium">Privacidade</span>
               </TabsTrigger>
+
+              <button
+                onClick={() => navigate('/security')}
+                className="w-full justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50 flex items-center text-gray-700"
+              >
+                <Shield className="h-4 w-4" />
+                <span className="font-medium">Segurança</span>
+              </button>
 
               <TabsTrigger
                 value="blocked"

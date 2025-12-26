@@ -36,7 +36,8 @@ export type FeatureKey =
   | 'integrations'
   | 'security'
   | 'channels'
-  | 'reports_sales';
+  | 'reports_sales'
+  | 'marketing';
 
 interface PlatformFeature {
   id: string;
