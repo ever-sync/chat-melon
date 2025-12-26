@@ -14,12 +14,19 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const token_hash = searchParams.get('token_hash');
-        const type = searchParams.get('type');
-        const error = searchParams.get('error');
-        const error_description = searchParams.get('error_description');
+        // Obter parâmetros tanto de query string quanto de hash fragment
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
 
-        console.log('AuthCallback - Params:', { token_hash, type, error, error_description });
+        const token_hash = searchParams.get('token_hash') || hashParams.get('token_hash');
+        const type = searchParams.get('type') || hashParams.get('type');
+        const error = searchParams.get('error') || hashParams.get('error');
+        const error_description = searchParams.get('error_description') || hashParams.get('error_description');
+        const access_token = searchParams.get('access_token') || hashParams.get('access_token');
+        const refresh_token = searchParams.get('refresh_token') || hashParams.get('refresh_token');
+
+        console.log('AuthCallback - Query Params:', Object.fromEntries(searchParams.entries()));
+        console.log('AuthCallback - Hash Params:', Object.fromEntries(hashParams.entries()));
+        console.log('AuthCallback - Combined:', { token_hash, type, error, error_description, access_token, refresh_token });
 
         // Se houver erro nos params da URL
         if (error) {
@@ -31,13 +38,40 @@ export default function AuthCallback() {
           return;
         }
 
-        // Se for confirmação de signup
-        if (type === 'signup' && token_hash) {
+        // Se já tiver access_token e refresh_token (confirmação automática do Supabase)
+        if (access_token && refresh_token) {
+          console.log('Tokens presentes, estabelecendo sessão...');
+
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
+
+          if (sessionError) {
+            console.error('Erro ao estabelecer sessão:', sessionError);
+            setStatus('error');
+            setMessage('Erro ao estabelecer sessão');
+            toast.error('Erro ao confirmar email');
+            setTimeout(() => navigate('/login'), 3000);
+            return;
+          }
+
+          console.log('Sessão estabelecida com sucesso!', sessionData);
+          setStatus('success');
+          setMessage('Email confirmado com sucesso! Redirecionando...');
+          toast.success('Email confirmado! Bem-vindo!');
+          setTimeout(() => navigate('/dashboard'), 2000);
+          return;
+        }
+
+        // Se for confirmação de signup ou email
+        if ((type === 'signup' || type === 'email') && token_hash) {
           console.log('Verificando email com token_hash...');
 
-          const { error: verifyError } = await supabase.auth.verifyOtp({
+          // Usar o método correto do Supabase para verificar o token_hash
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
             token_hash,
-            type: 'email',
+            type: 'signup',
           });
 
           if (verifyError) {
@@ -49,13 +83,13 @@ export default function AuthCallback() {
             return;
           }
 
-          console.log('Email confirmado com sucesso!');
+          console.log('Email confirmado com sucesso!', data);
           setStatus('success');
           setMessage('Email confirmado com sucesso! Redirecionando...');
           toast.success('Email confirmado! Bem-vindo!');
 
-          // Redirecionar para o chat após 2 segundos
-          setTimeout(() => navigate('/'), 2000);
+          // Redirecionar para o dashboard após 2 segundos
+          setTimeout(() => navigate('/dashboard'), 2000);
           return;
         }
 
@@ -119,7 +153,20 @@ export default function AuthCallback() {
       }
     };
 
+    // Timeout de segurança - se ficar mais de 10 segundos carregando, mostrar erro
+    const timeout = setTimeout(() => {
+      if (status === 'loading') {
+        console.warn('Timeout ao processar confirmação');
+        setStatus('error');
+        setMessage('O processamento está demorando muito. Por favor, tente fazer login manualmente.');
+        toast.error('Timeout ao processar confirmação');
+        setTimeout(() => navigate('/login'), 3000);
+      }
+    }, 10000);
+
     handleCallback();
+
+    return () => clearTimeout(timeout);
   }, [searchParams, navigate]);
 
   return (

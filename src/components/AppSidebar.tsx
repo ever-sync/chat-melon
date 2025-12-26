@@ -148,9 +148,37 @@ export function AppSidebar() {
   ];
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/auth');
-    toast.success('Logout realizado com sucesso');
+    try {
+      console.log('Iniciando logout...');
+
+      // Fazer signOut do Supabase
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error('Erro ao fazer logout:', error);
+        throw error;
+      }
+
+      console.log('Logout realizado com sucesso');
+      toast.success('Logout realizado com sucesso');
+
+      // Limpar localStorage
+      localStorage.clear();
+
+      // Limpar sessionStorage
+      sessionStorage.clear();
+
+      // Redirecionar para a página de login
+      navigate('/auth', { replace: true });
+
+      // Forçar reload da página para limpar todo o estado
+      window.location.href = '/auth';
+    } catch (error) {
+      console.error('Erro no processo de logout:', error);
+      toast.error('Erro ao fazer logout, redirecionando...');
+      // Mesmo com erro, redirecionar para auth
+      window.location.href = '/auth';
+    }
   };
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + '/');

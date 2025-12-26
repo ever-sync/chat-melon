@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,10 @@ import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Quote } from 'lucide-react
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const inviteId = searchParams.get('invite');
 
   // Personal Data
   const [personalData, setPersonalData] = useState({
@@ -21,6 +23,49 @@ export default function SignUp() {
     phone: '',
     agreedToTerms: false,
   });
+
+  // Load invite data if invite ID is present
+  useEffect(() => {
+    const loadInviteData = async () => {
+      if (!inviteId) return;
+
+      try {
+        console.log('Carregando dados do convite:', inviteId);
+
+        const { data, error } = await supabase
+          .from('company_invites')
+          .select('email, role, company_id')
+          .eq('id', inviteId)
+          .eq('status', 'pending')
+          .maybeSingle(); // Use maybeSingle ao invés de single para evitar erro 406
+
+        console.log('Resultado da busca:', { data, error });
+
+        if (error) {
+          console.error('Erro ao carregar convite:', error);
+          toast.error('Convite inválido ou expirado');
+          return;
+        }
+
+        if (data) {
+          console.log('Convite encontrado:', data);
+          setPersonalData(prev => ({
+            ...prev,
+            email: data.email,
+          }));
+          toast.success('Convite encontrado! Complete seu cadastro.');
+        } else {
+          console.warn('Nenhum convite pendente encontrado');
+          toast.error('Convite inválido ou já foi usado');
+        }
+      } catch (err) {
+        console.error('Erro ao processar convite:', err);
+        toast.error('Erro ao carregar convite');
+      }
+    };
+
+    loadInviteData();
+  }, [inviteId]);
 
   const handlePersonalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPersonalData({ ...personalData, [e.target.name]: e.target.value });
@@ -42,26 +87,97 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      // Create Supabase auth user (email confirmation required)
-      const { data, error } = await supabase.auth.signUp({
-        email: personalData.email,
-        password: personalData.password,
-        options: {
-          data: {
-            full_name: personalData.fullName,
-            phone: personalData.phone,
+      // If coming from invite, update the existing invite and create user
+      if (inviteId) {
+        console.log('Processando convite:', inviteId);
+
+        // Get invite data
+        const { data: inviteData, error: inviteError } = await supabase
+          .from('company_invites')
+          .select('*')
+          .eq('id', inviteId)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+        if (inviteError || !inviteData) {
+          toast.error('Convite inválido ou expirado');
+          setLoading(false);
+          return;
+        }
+
+        // Create Supabase auth user
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: personalData.email,
+          password: personalData.password,
+          options: {
+            data: {
+              full_name: personalData.fullName,
+              phone: personalData.phone,
+            },
+            emailRedirectTo: `${window.location.origin}/dashboard`,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
+        });
 
-      if (error) throw error;
+        if (authError) throw authError;
 
-      if (data.user) {
-        toast.success('Conta criada! Por favor, verifique seu e-mail para continuar.', { duration: 8000 });
-        navigate('/auth');
+        if (authData.user) {
+          // Update invite status to accepted
+          const { error: updateError } = await supabase
+            .from('company_invites')
+            .update({ status: 'accepted' })
+            .eq('id', inviteId);
+
+          if (updateError) {
+            console.error('Erro ao atualizar convite:', updateError);
+          }
+
+          // Create company member
+          const { error: memberError } = await supabase
+            .from('company_members')
+            .insert({
+              user_id: authData.user.id,
+              company_id: inviteData.company_id,
+              role: inviteData.role,
+              display_name: personalData.fullName,
+              email: personalData.email,
+              phone: personalData.phone,
+              is_active: true,
+            });
+
+          if (memberError) {
+            console.error('Erro ao criar membro:', memberError);
+            toast.error('Erro ao adicionar você à empresa');
+            setLoading(false);
+            return;
+          }
+
+          toast.success('Conta criada com sucesso! Redirecionando...', { duration: 3000 });
+          // Redirect to dashboard directly (user is already authenticated)
+          setTimeout(() => navigate('/dashboard'), 1500);
+        }
+      } else {
+        // Normal signup without invite
+        const { data, error } = await supabase.auth.signUp({
+          email: personalData.email,
+          password: personalData.password,
+          options: {
+            data: {
+              full_name: personalData.fullName,
+              phone: personalData.phone,
+            },
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          toast.success('Conta criada! Por favor, verifique seu e-mail para continuar.', { duration: 8000 });
+          navigate('/auth');
+        }
       }
     } catch (error: any) {
+      console.error('Erro completo:', error);
       toast.error(error.message || 'Erro ao criar conta');
     } finally {
       setLoading(false);
@@ -184,6 +300,7 @@ export default function SignUp() {
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-slate-700 font-medium text-sm">
                   E-mail
+                  {inviteId && <span className="ml-2 text-xs text-indigo-600">(do convite)</span>}
                 </Label>
                 <Input
                   id="email"
@@ -192,9 +309,15 @@ export default function SignUp() {
                   value={personalData.email}
                   onChange={handlePersonalChange}
                   placeholder="seuemail@empresa.com"
-                  className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className="h-12 rounded-xl border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={!!inviteId}
                   required
                 />
+                {inviteId && (
+                  <p className="text-xs text-slate-500">
+                    Este email foi pré-definido pelo convite que você recebeu.
+                  </p>
+                )}
               </div>
 
               {/* Password and Phone */}
