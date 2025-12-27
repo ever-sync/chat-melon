@@ -12,15 +12,9 @@ dist
 dist-ssr
 *.local
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -29,11 +23,29 @@ dist-ssr
 *.sln
 *.sw?
 
-# Testing
-coverage
-.nyc_output
+# Environment variables
+.env
+.env.local
+.env.*.local
 
-# Build
+# Test coverage
+coverage
+*.lcov
+
+# Build outputs
+build
+out
+
+# Temporary files
+*.tmp
+*.temp
+lint_output.txt
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Supabase
+.branches
+.temp
 .turbo
-.cache
-evo-talk-gateway/
