@@ -61,15 +61,6 @@ const Chat = () => {
     localStorage.setItem('chat-filters', JSON.stringify(filters));
   }, [filters]);
 
-  useEffect(() => {
-     if (initialConversationId && conversations.length > 0) {
-         const target = conversations.find(c => c.id === initialConversationId);
-         if (target) {
-            setSelectedConversation(target);
-         }
-     }
-  }, [initialConversationId, conversations]);
-
   const handleFilterChange = (newFilters: Partial<ChatFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
@@ -158,6 +149,16 @@ const Chat = () => {
   useEffect(() => {
     loadCurrentUser();
   }, []);
+
+  // Seleciona conversa inicial da URL
+  useEffect(() => {
+    if (initialConversationId && conversations.length > 0) {
+      const target = conversations.find(c => c.id === initialConversationId);
+      if (target) {
+        setSelectedConversation(target);
+      }
+    }
+  }, [initialConversationId, conversations]);
 
   // Realtime subscription for conversations
   // Com paginação, o realtime apenas invalida a query para recarregar
