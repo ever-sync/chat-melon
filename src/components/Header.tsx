@@ -26,7 +26,6 @@ import { useState, useEffect } from 'react';
 import { useCompany } from '@/contexts/CompanyContext';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { GlobalSearch } from '@/components/GlobalSearch';
-import { TrialBadge } from '@/components/TrialBadge';
 import { InternalChatPanel } from '@/components/internal-chat/InternalChatPanel';
 
 export const Header = () => {
@@ -191,8 +190,6 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <TrialBadge />
-
           <InternalChatPanel />
 
           <NotificationBell />

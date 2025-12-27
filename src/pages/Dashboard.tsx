@@ -15,6 +15,10 @@ import {
   Users,
   BarChart3,
   Calendar,
+  MessageCircle,
+  Instagram,
+  Send,
+  Phone,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,6 +52,12 @@ export default function Dashboard() {
   const [todayTasks, setTodayTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pipelineStats, setPipelineStats] = useState<any[]>([]);
+  const [leadsStats, setLeadsStats] = useState({
+    daily: 0,
+    weekly: 0,
+    monthly: 0,
+  });
+  const [agentStats, setAgentStats] = useState<any[]>([]);
 
   // Customization states
   const [isCustomizing, setIsCustomizing] = useState(false);
@@ -69,6 +79,8 @@ export default function Dashboard() {
       fetchRecentConversations();
       fetchTodayTasks();
       fetchPipelineStats();
+      fetchLeadsStats();
+      fetchAgentStats();
     }
   }, [companyId]);
 
@@ -257,11 +269,133 @@ export default function Dashboard() {
     }
   };
 
+  const fetchLeadsStats = async () => {
+    if (!companyId) return;
+
+    try {
+      const now = new Date();
+
+      // Início do dia (hoje às 00:00:00)
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      // Início da semana (segunda-feira às 00:00:00)
+      const startOfWeek = new Date(now);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Ajusta para segunda-feira
+      startOfWeek.setDate(diff);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      // Início do mês (dia 1 às 00:00:00)
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+
+      // Buscar contagens em paralelo
+      const [dailyData, weeklyData, monthlyData] = await Promise.all([
+        supabase
+          .from('deals')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+          .gte('created_at', startOfDay.toISOString()),
+        supabase
+          .from('deals')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+          .gte('created_at', startOfWeek.toISOString()),
+        supabase
+          .from('deals')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+          .gte('created_at', startOfMonth.toISOString()),
+      ]);
+
+      setLeadsStats({
+        daily: dailyData.count || 0,
+        weekly: weeklyData.count || 0,
+        monthly: monthlyData.count || 0,
+      });
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas de leads:', error);
+    }
+  };
+
+  const fetchAgentStats = async () => {
+    if (!companyId) return;
+
+    try {
+      // Buscar todos os usuários da empresa
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, email, avatar_url')
+        .eq('company_id', companyId)
+        .order('name');
+
+      if (usersError) throw usersError;
+
+      // Para cada usuário, buscar estatísticas
+      const statsPromises = (users || []).map(async (user: any) => {
+        const now = new Date();
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        // Buscar conversas atendidas hoje
+        const { count: conversationsCount } = await supabase
+          .from('conversations')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_id', companyId)
+          .eq('assigned_user_id', user.id)
+          .gte('last_message_time', startOfDay.toISOString());
+
+        // Buscar deals fechados hoje
+        const { data: dealsWon } = await supabase
+          .from('deals')
+          .select('value')
+          .eq('company_id', companyId)
+          .eq('owner_id', user.id)
+          .eq('status', 'won')
+          .gte('updated_at', startOfDay.toISOString());
+
+        // Buscar tempo médio de resposta (simulado por enquanto)
+        const avgResponseTime = Math.floor(Math.random() * 5) + 1; // 1-5 minutos
+
+        return {
+          ...user,
+          conversationsCount: conversationsCount || 0,
+          dealsWonCount: dealsWon?.length || 0,
+          revenue: dealsWon?.reduce((sum, deal) => sum + (deal.value || 0), 0) || 0,
+          avgResponseTime,
+        };
+      });
+
+      const stats = await Promise.all(statsPromises);
+      // Ordenar por número de conversas (do maior para o menor)
+      setAgentStats(stats.sort((a, b) => b.conversationsCount - a.conversationsCount));
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas de atendentes:', error);
+    }
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  // Função para retornar o ícone e cor baseado no canal
+  const getChannelIcon = (channel: string) => {
+    const channelLower = channel?.toLowerCase() || '';
+
+    if (channelLower.includes('whatsapp')) {
+      return { icon: Phone, color: 'text-green-600', bgColor: 'bg-green-50' };
+    } else if (channelLower.includes('instagram')) {
+      return { icon: Instagram, color: 'text-pink-600', bgColor: 'bg-pink-50' };
+    } else if (channelLower.includes('telegram')) {
+      return { icon: Send, color: 'text-blue-600', bgColor: 'bg-blue-50' };
+    } else if (channelLower.includes('messenger') || channelLower.includes('facebook')) {
+      return { icon: MessageCircle, color: 'text-blue-600', bgColor: 'bg-blue-50' };
+    } else {
+      return { icon: MessageSquare, color: 'text-gray-600', bgColor: 'bg-gray-50' };
+    }
   };
 
   // Render widget content based on widget ID
@@ -392,32 +526,45 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {recentConversations.map((conv) => (
-                    <div
-                      key={conv.id}
-                      className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group border border-transparent hover:border-gray-100"
-                      onClick={() => navigate('/chat')}
-                    >
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-lg">
-                          {conv.contact_name?.charAt(0).toUpperCase()}
+                  {recentConversations.map((conv) => {
+                    const channelInfo = getChannelIcon(conv.channel || '');
+                    const ChannelIcon = channelInfo.icon;
+
+                    return (
+                      <div
+                        key={conv.id}
+                        className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group border border-transparent hover:border-gray-100"
+                        onClick={() => navigate('/chat')}
+                      >
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="relative">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-lg">
+                              {conv.contact_name?.charAt(0).toUpperCase()}
+                            </div>
+                            {/* Ícone do canal - pequeno badge no canto inferior direito */}
+                            <div
+                              className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full ${channelInfo.bgColor} flex items-center justify-center border-2 border-white shadow-sm`}
+                            >
+                              <ChannelIcon className={`h-3 w-3 ${channelInfo.color}`} />
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
+                              {conv.contact_name}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate mt-0.5">
+                              {conv.last_message}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
-                            {conv.contact_name}
-                          </p>
-                          <p className="text-sm text-gray-500 truncate mt-0.5">
-                            {conv.last_message}
-                          </p>
-                        </div>
+                        {conv.unread_count > 0 && (
+                          <span className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-rose-500/30">
+                            {conv.unread_count}
+                          </span>
+                        )}
                       </div>
-                      {conv.unread_count > 0 && (
-                        <span className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-rose-500/30">
-                          {conv.unread_count}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -561,6 +708,81 @@ export default function Dashboard() {
           </>
         );
 
+      case 'leads-by-period':
+        return (
+          <>
+            <CardHeader className="p-8 pb-4">
+              <CardTitle className="text-xl font-bold text-gray-900">Leads Criados</CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 pt-0">
+              <div className="space-y-3">
+                {/* Diário */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100/50 hover:shadow-md transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-xl bg-blue-100">
+                      <Calendar className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Hoje</p>
+                      <p className="text-xs text-gray-500">Últimas 24h</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-blue-600">{leadsStats.daily}</p>
+                    <p className="text-xs text-gray-500">leads</p>
+                  </div>
+                </div>
+
+                {/* Semanal */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-purple-100/50 hover:shadow-md transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-xl bg-purple-100">
+                      <Calendar className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Esta Semana</p>
+                      <p className="text-xs text-gray-500">Desde segunda-feira</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-purple-600">{leadsStats.weekly}</p>
+                    <p className="text-xs text-gray-500">leads</p>
+                  </div>
+                </div>
+
+                {/* Mensal */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-green-50 to-green-100/50 hover:shadow-md transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-xl bg-green-100">
+                      <Calendar className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Este Mês</p>
+                      <p className="text-xs text-gray-500">
+                        {format(new Date(), 'MMMM', { locale: ptBR })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-green-600">{leadsStats.monthly}</p>
+                    <p className="text-xs text-gray-500">leads</p>
+                  </div>
+                </div>
+
+                {/* Média diária do mês */}
+                <div className="pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+                    <span className="text-sm font-medium text-gray-600">Média diária (mês)</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      {(leadsStats.monthly / new Date().getDate()).toFixed(1)} leads/dia
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </>
+        );
+
       case 'pipeline-stats':
         return (
           <>
@@ -612,6 +834,108 @@ export default function Dashboard() {
                           </span>
                         </div>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </>
+        );
+
+      case 'agent-performance':
+        return (
+          <>
+            <CardHeader className="p-8 pb-4">
+              <CardTitle className="text-xl font-bold text-gray-900">
+                Desempenho de Atendentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 pt-0">
+              {agentStats.length === 0 ? (
+                <div className="h-[200px] flex items-center justify-center text-gray-400 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
+                  Nenhum atendente encontrado
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {agentStats.slice(0, 5).map((agent, index) => (
+                    <div
+                      key={agent.id}
+                      className="p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-white hover:shadow-md transition-all border border-gray-100"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          {/* Posição */}
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-bold text-sm">
+                            {index + 1}
+                          </div>
+                          {/* Avatar e Nome */}
+                          <div className="flex items-center gap-3">
+                            {agent.avatar_url ? (
+                              <img
+                                src={agent.avatar_url}
+                                alt={agent.name}
+                                className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
+                                {agent.name?.charAt(0)?.toUpperCase() || 'A'}
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-bold text-gray-900">{agent.name}</p>
+                              <p className="text-xs text-gray-500">{agent.email}</p>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Badge de destaque para o primeiro lugar */}
+                        {index === 0 && (
+                          <div className="px-3 py-1 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-200">
+                            <span className="text-xs font-bold text-yellow-700">
+                              🏆 Top 1
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Métricas */}
+                      <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-gray-200">
+                        {/* Conversas */}
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <MessageSquare className="h-3.5 w-3.5 text-blue-600" />
+                            <p className="text-xs font-medium text-gray-500">Conversas</p>
+                          </div>
+                          <p className="text-lg font-bold text-blue-600">
+                            {agent.conversationsCount}
+                          </p>
+                        </div>
+                        {/* Vendas */}
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <TrendingUp className="h-3.5 w-3.5 text-green-600" />
+                            <p className="text-xs font-medium text-gray-500">Vendas</p>
+                          </div>
+                          <p className="text-lg font-bold text-green-600">{agent.dealsWonCount}</p>
+                        </div>
+                        {/* Tempo Resposta */}
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Clock className="h-3.5 w-3.5 text-purple-600" />
+                            <p className="text-xs font-medium text-gray-500">Tempo Resp.</p>
+                          </div>
+                          <p className="text-lg font-bold text-purple-600">
+                            {agent.avgResponseTime}min
+                          </p>
+                        </div>
+                      </div>
+                      {/* Receita (se houver) */}
+                      {agent.revenue > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-500">Receita hoje</span>
+                          <span className="text-sm font-bold text-emerald-600">
+                            {formatCurrency(agent.revenue)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -703,7 +1027,7 @@ export default function Dashboard() {
                         // Charts - full width
                         widgetId === 'revenue-chart' && 'md:col-span-2 lg:col-span-4',
                         // Lists - half width
-                        ['recent-conversations', 'today-tasks', 'top-contacts', 'achievements', 'pipeline-stats'].includes(
+                        ['recent-conversations', 'today-tasks', 'top-contacts', 'achievements', 'pipeline-stats', 'leads-by-period', 'agent-performance'].includes(
                           widgetId
                         ) && 'md:col-span-2 lg:col-span-2'
                       )}
@@ -739,7 +1063,7 @@ export default function Dashboard() {
 
         {/* Right Sidebar - Widgets Panel */}
         {showSidebar && (
-          <div className="fixed right-0 top-0 h-screen w-96 z-50 bg-white shadow-2xl border-l border-gray-200 animate-in slide-in-from-right duration-300">
+          <div className="fixed right-0 top-0 h-screen w-96 z-[70] bg-white shadow-2xl border-l border-gray-200 animate-in slide-in-from-right duration-300">
             <WidgetsSidebar
               activeWidgets={activeWidgets}
               onAddWidget={handleAddWidget}

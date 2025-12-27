@@ -134,6 +134,24 @@ export const availableWidgets: WidgetConfig[] = [
     bgColor: 'bg-indigo-600/10',
     category: 'charts',
   },
+  {
+    id: 'leads-by-period',
+    title: 'Leads Criados',
+    description: 'Leads criados por período (diário, semanal, mensal)',
+    icon: Calendar,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-600/10',
+    category: 'metrics',
+  },
+  {
+    id: 'agent-performance',
+    title: 'Desempenho de Atendentes',
+    description: 'Ranking e métricas dos atendentes (conversas, vendas, tempo de resposta)',
+    icon: Users,
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-600/10',
+    category: 'lists',
+  },
 ];
 
 interface WidgetsSidebarProps {

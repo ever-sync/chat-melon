@@ -61,18 +61,22 @@ export function AssistantSettings({ companyId }: AssistantSettingsProps) {
     key: K,
     value: AssistantSettingsType[K]
   ) => {
+    console.log('[AssistantSettings] handleChange called:', { key, value, currentValue: localSettings[key] });
     setLocalSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = () => {
+    console.log('[AssistantSettings] Saving settings:', localSettings);
     updateSettings(localSettings, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        console.log('[AssistantSettings] Settings saved successfully:', data);
         toast({
           title: 'Configurações salvas!',
           description: 'Suas preferências do assistente foram atualizadas.',
         });
       },
-      onError: () => {
+      onError: (error) => {
+        console.error('[AssistantSettings] Error saving settings:', error);
         toast({
           title: 'Erro ao salvar',
           description: 'Não foi possível salvar as configurações. Tente novamente.',

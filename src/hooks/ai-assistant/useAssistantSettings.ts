@@ -91,21 +91,35 @@ export function useAssistantSettings() {
         return null;
       }
 
+      console.log('[useAssistantSettings] Updating settings:', { user_id: user.id, updates });
+
+      // Primeiro, buscar settings existentes para garantir que temos o company_id
+      const { data: existingSettings } = await supabase
+        .from('assistant_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      console.log('[useAssistantSettings] Existing settings:', existingSettings);
+
+      if (!existingSettings) {
+        console.error('[useAssistantSettings] No existing settings found. Cannot update without company_id.');
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('assistant_settings')
-        .upsert({
-          user_id: user.id,
-          ...updates
-        }, {
-          onConflict: 'user_id'
-        })
+        .update(updates)
+        .eq('user_id', user.id)
         .select()
         .single();
 
       if (error) {
-        console.error('Error updating assistant settings:', error);
+        console.error('[useAssistantSettings] Error updating assistant settings:', error);
         return null;
       }
+
+      console.log('[useAssistantSettings] Settings updated successfully:', data);
       return data as AssistantSettings;
     },
     onSuccess: (data) => {
