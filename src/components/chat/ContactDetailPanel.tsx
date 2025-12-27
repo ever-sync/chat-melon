@@ -227,12 +227,23 @@ const ContactDetailPanel = ({
       if (error) throw error;
 
       setContactData({ ...contactData, [field]: value });
-      toast.success('Contato atualizado!');
 
+      // Se o campo atualizado for o nome, atualizar também em todas as conversas deste contato
       if (field === 'name') {
+        const { error: conversationError } = await supabase
+          .from('conversations')
+          .update({ contact_name: value })
+          .eq('contact_id', conversation.contact_id);
+
+        if (conversationError) {
+          console.error('Erro ao atualizar nome nas conversas:', conversationError);
+        }
+
         setIsEditingName(false);
         onConversationUpdated();
       }
+
+      toast.success('Contato atualizado!');
     } catch (error) {
       console.error('Erro ao atualizar contato:', error);
       toast.error('Erro ao atualizar');
