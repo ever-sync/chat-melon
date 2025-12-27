@@ -21,7 +21,9 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/').filter(Boolean);
-    const action = pathParts[0]; // config, start, message, close
+    // Supabase adds function name to path, so action is the last segment
+    // URL pattern: /widget-api/config or /widget-api/start etc.
+    const action = pathParts[pathParts.length - 1] || pathParts[0];
 
     // Get company ID from header or query
     const companyId = req.headers.get('x-widget-company-id') || url.searchParams.get('companyId');
