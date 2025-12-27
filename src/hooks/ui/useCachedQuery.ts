@@ -11,7 +11,7 @@ import { env } from '@/config/env';
 
 /**
  * Hook que usa Redis cache se disponível, senão usa React Query normal
- * 
+ *
  * @example
  * ```ts
  * const { data } = useCachedQuery({
@@ -28,21 +28,18 @@ export function useCachedQuery<TData = unknown>(
     tags?: string[];
   }
 ) {
-  // Se cache não está habilitado, usar React Query normal
-  if (!env.VITE_CACHE_ENABLED) {
-    return useQuery<TData>(options);
-  }
+  const shouldUseRedisCache = env.VITE_CACHE_ENABLED && (options.cacheConfig || options.cacheTTL);
 
-  // Se tem configuração de cache, usar useRedisCache
-  if (options.cacheConfig || options.cacheTTL) {
-    return useRedisCache<TData>({
-      ...options,
-      queryKey: options.queryKey as unknown[],
-      queryFn: options.queryFn as () => Promise<TData>,
-    });
-  }
+  // Sempre chama ambos os hooks (regra dos hooks do React)
+  const redisCacheResult = useRedisCache<TData>({
+    ...options,
+    queryKey: options.queryKey as unknown[],
+    queryFn: options.queryFn as () => Promise<TData>,
+  });
 
-  // Caso contrário, usar React Query normal
-  return useQuery<TData>(options);
+  const normalQueryResult = useQuery<TData>(options);
+
+  // Retorna o resultado apropriado baseado na configuração
+  return shouldUseRedisCache ? redisCacheResult : normalQueryResult;
 }
 
