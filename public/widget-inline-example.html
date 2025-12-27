@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget MelonChat - Código Inline</title>
+</head>
+<body>
+    <h1>Página de Teste - Widget Inline</h1>
+    <p>O widget deve aparecer no canto inferior direito.</p>
+
+    <!-- WIDGET MELONCHAT - CÓDIGO INLINE (NÃO PRECISA DE ARQUIVO EXTERNO) -->
+    <script>
+    (function() {
+      'use strict';
+
+      // CONFIGURAÇÕES - ALTERE AQUI
+      const config = {
+        companyId: '44d1f270-1dc8-4ae9-9ff4-6a92849ae6a6',
+        primaryColor: '#22C55E',
+        apiUrl: 'https://nmbiuebxhovmwxrbaxsz.supabase.co/functions/v1/widget-api'
+      };
+
+      const API_BASE = config.apiUrl;
+      const SESSION_KEY = `melonchat_session_${config.companyId}`;
+      const CONV_KEY = `melonchat_conv_${config.companyId}`;
+      
+      let sessionId = localStorage.getItem(SESSION_KEY);
+      let conversationId = localStorage.getItem(CONV_KEY);
+      let widgetConfig = null;
+      let isOpen = false;
+      let lastMessageTime = null;
+      let pollingInterval = null;
+
+      if (!sessionId) {
+        sessionId = 'ses_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        localStorage.setItem(SESSION_KEY, sessionId);
+      }
+
+      const injectStyles = () => {
+        const style = document.createElement('style');
+        style.id = 'melonchat-styles';
+        style.textContent = `
+          #melonchat-widget { position: fixed; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; }
+          #melonchat-widget * { box-sizing: border-box; margin: 0; padding: 0; }
+          .melonchat-bubble { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: ${config.primaryColor}; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.3s; }
+          .melonchat-bubble:hover { transform: scale(1.1); }
+          .melonchat-bubble svg { width: 28px; height: 28px; }
+          .melonchat-window { position: fixed; bottom: 90px; right: 20px; width: 380px; height: 520px; max-height: calc(100vh - 120px); background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; flex-direction: column; overflow: hidden; }
+          .melonchat-window.open { display: flex; }
+          .melonchat-header { background: ${config.primaryColor}; color: white; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+          .melonchat-header-info { flex: 1; }
+          .melonchat-header-title { font-weight: 600; font-size: 16px; }
+          .melonchat-close { background: none; border: none; color: white; cursor: pointer; padding: 8px; }
+          .melonchat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #f9fafb; }
+          .melonchat-message { max-width: 80%; padding: 10px 14px; border-radius: 12px; word-wrap: break-word; }
+          .melonchat-message.visitor { align-self: flex-end; background: ${config.primaryColor}; color: white; }
+          .melonchat-message.agent { align-self: flex-start; background: white; color: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+          .melonchat-input-area { padding: 12px 16px; background: white; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; }
+          .melonchat-input { flex: 1; border: 1px solid #e5e7eb; border-radius: 20px; padding: 10px 16px; font-size: 14px; outline: none; }
+          .melonchat-input:focus { border-color: ${config.primaryColor}; }
+          .melonchat-send { width: 40px; height: 40px; border: none; border-radius: 50%; background: ${config.primaryColor}; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+          .melonchat-send:disabled { opacity: 0.5; }
+          .melonchat-prechat { padding: 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+          .melonchat-prechat-title { font-size: 20px; font-weight: 600; color: #1f2937; }
+          .melonchat-field { display: flex; flex-direction: column; gap: 6px; }
+          .melonchat-label { font-size: 13px; font-weight: 500; color: #374151; }
+          .melonchat-field input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; }
+          .melonchat-start-btn { background: ${config.primaryColor}; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; }
+          .melonchat-start-btn:disabled { opacity: 0.5; }
+          .melonchat-greeting { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 8px; }
+          @media (max-width: 480px) { .melonchat-window { width: calc(100vw - 20px); height: calc(100vh - 100px); right: 10px; } .melonchat-bubble { width: 54px; height: 54px; bottom: 15px; right: 15px; } }
+        `;
+        document.head.appendChild(style);
+      };
+
+      const icons = {
+        chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>',
+        close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+        send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>'
+      };
+
+      const createWidget = () => {
+        const container = document.createElement('div');
+        container.id = 'melonchat-widget';
+        container.innerHTML = `
+          <div class="melonchat-bubble" id="melonchat-bubble">${icons.chat}</div>
+          <div class="melonchat-window" id="melonchat-window">
+            <div class="melonchat-header">
+              <div class="melonchat-header-info">
+                <div class="melonchat-header-title">Atendimento</div>
+              </div>
+              <button class="melonchat-close" id="melonchat-close">${icons.close}</button>
+            </div>
+            <div id="melonchat-content"></div>
+          </div>
+        `;
+        document.body.appendChild(container);
+        document.getElementById('melonchat-bubble').addEventListener('click', toggleWidget);
+        document.getElementById('melonchat-close').addEventListener('click', toggleWidget);
+      };
+
+      const toggleWidget = () => {
+        isOpen = !isOpen;
+        const win = document.getElementById('melonchat-window');
+        const bubble = document.getElementById('melonchat-bubble');
+        if (isOpen) {
+          win.classList.add('open');
+          bubble.innerHTML = icons.close;
+          if (!conversationId) showPrechatForm(); else { showChat(); startPolling(); }
+        } else {
+          win.classList.remove('open');
+          bubble.innerHTML = icons.chat;
+          stopPolling();
+        }
+      };
+
+      const showPrechatForm = () => {
+        document.getElementById('melonchat-content').innerHTML = `
+          <div class="melonchat-prechat">
+            <div class="melonchat-prechat-title">Olá! 👋</div>
+            <div style="color:#6b7280">Como posso ajudar você hoje?</div>
+            <form id="melonchat-prechat-form">
+              <div class="melonchat-field"><label class="melonchat-label">Nome</label><input type="text" name="name" placeholder="Seu nome" required></div>
+              <div class="melonchat-field"><label class="melonchat-label">Email</label><input type="email" name="email" placeholder="seu@email.com" required></div>
+              <button type="submit" class="melonchat-start-btn">Iniciar conversa</button>
+            </form>
+          </div>
+        `;
+        document.getElementById('melonchat-prechat-form').addEventListener('submit', handlePrechatSubmit);
+      };
+
+      const handlePrechatSubmit = async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const btn = form.querySelector('button');
+        btn.disabled = true;
+        btn.textContent = 'Iniciando...';
+        const formData = new FormData(form);
+        try {
+          const response = await fetch(`${API_BASE}/start`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-widget-company-id': config.companyId, 'x-widget-session-id': sessionId },
+            body: JSON.stringify({ name: formData.get('name'), email: formData.get('email'), metadata: { page_url: window.location.href } })
+          });
+          if (!response.ok) throw new Error('Failed');
+          const result = await response.json();
+          conversationId = result.conversation_id;
+          localStorage.setItem(CONV_KEY, conversationId);
+          showChat();
+          startPolling();
+        } catch (err) {
+          console.error(err);
+          btn.disabled = false;
+          btn.textContent = 'Iniciar conversa';
+          alert('Erro ao iniciar. Tente novamente.');
+        }
+      };
+
+      const showChat = () => {
+        document.getElementById('melonchat-content').innerHTML = `
+          <div class="melonchat-messages" id="melonchat-messages">
+            <div class="melonchat-greeting"><div style="font-size:18px;font-weight:600;color:#1f2937">Olá! 👋</div><div style="color:#6b7280">Como posso ajudar?</div></div>
+          </div>
+          <div class="melonchat-input-area">
+            <input type="text" class="melonchat-input" id="melonchat-input" placeholder="Digite sua mensagem..." autocomplete="off">
+            <button class="melonchat-send" id="melonchat-send">${icons.send}</button>
+          </div>
+        `;
+        document.getElementById('melonchat-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        document.getElementById('melonchat-send').addEventListener('click', sendMessage);
+        loadMessages();
+      };
+
+      const sendMessage = async () => {
+        const input = document.getElementById('melonchat-input');
+        const content = input.value.trim();
+        if (!content || !conversationId) return;
+        input.value = '';
+        addMessageToUI(content, 'visitor');
+        try {
+          await fetch(`${API_BASE}/message`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-widget-company-id': config.companyId, 'x-widget-session-id': sessionId },
+            body: JSON.stringify({ conversation_id: conversationId, content, message_type: 'text' })
+          });
+        } catch (err) { console.error(err); }
+      };
+
+      const addMessageToUI = (content, type) => {
+        const messages = document.getElementById('melonchat-messages');
+        const msg = document.createElement('div');
+        msg.className = `melonchat-message ${type}`;
+        msg.textContent = content;
+        messages.appendChild(msg);
+        messages.scrollTop = messages.scrollHeight;
+      };
+
+      const loadMessages = async () => {
+        if (!conversationId) return;
+        try {
+          const url = `${API_BASE}/messages?conversation_id=${conversationId}${lastMessageTime ? '&after=' + lastMessageTime : ''}`;
+          const response = await fetch(url, { headers: { 'x-widget-company-id': config.companyId, 'x-widget-session-id': sessionId } });
+          if (!response.ok) return;
+          const data = await response.json();
+          if (data.messages && data.messages.length > 0) {
+            data.messages.forEach(msg => {
+              if (!lastMessageTime || msg.created_at > lastMessageTime) {
+                addMessageToUI(msg.content, msg.sender_type === 'visitor' ? 'visitor' : 'agent');
+              }
+            });
+            lastMessageTime = data.messages[data.messages.length - 1].created_at;
+          }
+        } catch (err) { console.error(err); }
+      };
+
+      const startPolling = () => { if (!pollingInterval) pollingInterval = setInterval(loadMessages, 3000); };
+      const stopPolling = () => { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } };
+
+      const loadConfig = async () => {
+        try {
+          const response = await fetch(`${API_BASE}/config?companyId=${config.companyId}`);
+          if (response.ok) widgetConfig = await response.json();
+          return response.ok;
+        } catch (err) { console.error(err); return false; }
+      };
+
+      const init = async () => {
+        await loadConfig();
+        injectStyles();
+        createWidget();
+      };
+
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
+    })();
+    </script>
+</body>
+</html>

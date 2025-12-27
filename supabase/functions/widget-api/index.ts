@@ -196,24 +196,26 @@ async function startConversation(
     .single();
 
   if (visitorError) {
+    console.error('Visitor error:', visitorError);
     return new Response(
       JSON.stringify({ error: 'Failed to create visitor' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
-  // Check for existing active conversation
-  const { data: existingConv } = await supabase
+  // Check for existing active widget conversation
+  const { data: existingWidgetConv } = await supabase
     .from('widget_conversations')
-    .select('id')
+    .select('id, main_conversation_id')
     .eq('visitor_id', visitor.id)
     .eq('status', 'active')
     .single();
 
-  if (existingConv) {
+  if (existingWidgetConv) {
     return new Response(
       JSON.stringify({
-        conversation_id: existingConv.id,
+        conversation_id: existingWidgetConv.id,
+        main_conversation_id: existingWidgetConv.main_conversation_id,
         session_id: visitorSessionId,
         visitor_id: visitor.id,
         resumed: true,
@@ -222,12 +224,103 @@ async function startConversation(
     );
   }
 
-  // Create new conversation
+  // Create or find contact in main contacts table for chat integration
+  let contactId = null;
+  const contactIdentifier = phone || email || `widget_${visitorSessionId}`;
+  
+  // Try to find existing contact by phone or email
+  let existingContact = null;
+  if (phone) {
+    const { data } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('company_id', companyId)
+      .eq('phone', phone)
+      .single();
+    existingContact = data;
+  }
+  
+  if (!existingContact && email) {
+    const { data } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('company_id', companyId)
+      .eq('email', email)
+      .single();
+    existingContact = data;
+  }
+
+  if (existingContact) {
+    contactId = existingContact.id;
+    // Update contact with latest info
+    await supabase
+      .from('contacts')
+      .update({ 
+        name: name || undefined,
+        phone: phone || undefined,
+        email: email || undefined,
+        last_seen_at: new Date().toISOString()
+      })
+      .eq('id', contactId);
+  } else {
+    // Create new contact
+    const { data: newContact, error: contactError } = await supabase
+      .from('contacts')
+      .insert({
+        company_id: companyId,
+        name: name || 'Visitante Web',
+        phone: phone || null,
+        email: email || null,
+        source: 'webchat',
+        metadata: {
+          ...metadata,
+          widget_session_id: visitorSessionId,
+          widget_visitor_id: visitor.id
+        }
+      })
+      .select('id')
+      .single();
+
+    if (!contactError && newContact) {
+      contactId = newContact.id;
+    }
+  }
+
+  // Create main conversation for chat integration
+  let mainConversationId = null;
+  if (contactId) {
+    const { data: mainConv, error: mainConvError } = await supabase
+      .from('conversations')
+      .insert({
+        company_id: companyId,
+        contact_id: contactId,
+        channel: 'webchat',
+        status: 'open',
+        last_message_at: new Date().toISOString(),
+        metadata: {
+          widget_session_id: visitorSessionId,
+          widget_visitor_id: visitor.id,
+          source_url: metadata.page_url || null,
+          source_title: metadata.page_title || null
+        }
+      })
+      .select('id')
+      .single();
+
+    if (!mainConvError && mainConv) {
+      mainConversationId = mainConv.id;
+    } else {
+      console.error('Main conversation error:', mainConvError);
+    }
+  }
+
+  // Create widget conversation
   const { data: conversation, error: convError } = await supabase
     .from('widget_conversations')
     .insert({
       company_id: companyId,
       visitor_id: visitor.id,
+      main_conversation_id: mainConversationId,
       status: 'active',
       first_message_at: new Date().toISOString(),
     })
@@ -235,6 +328,7 @@ async function startConversation(
     .single();
 
   if (convError) {
+    console.error('Widget conversation error:', convError);
     return new Response(
       JSON.stringify({ error: 'Failed to create conversation' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -252,6 +346,7 @@ async function startConversation(
   return new Response(
     JSON.stringify({
       conversation_id: conversation.id,
+      main_conversation_id: mainConversationId,
       session_id: visitorSessionId,
       visitor_id: visitor.id,
       created: true,
@@ -299,7 +394,14 @@ async function sendMessage(
     );
   }
 
-  // Create message
+  // Get the widget conversation to find main_conversation_id
+  const { data: widgetConv } = await supabase
+    .from('widget_conversations')
+    .select('main_conversation_id')
+    .eq('id', conversation_id)
+    .single();
+
+  // Create widget message
   const { data: message, error: msgError } = await supabase
     .from('widget_messages')
     .insert({
@@ -314,13 +416,46 @@ async function sendMessage(
     .single();
 
   if (msgError) {
+    console.error('Widget message error:', msgError);
     return new Response(
       JSON.stringify({ error: 'Failed to send message' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
-  // Update conversation
+  // Also create message in main messages table for chat integration
+  if (widgetConv?.main_conversation_id) {
+    const { error: mainMsgError } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: widgetConv.main_conversation_id,
+        direction: 'inbound',
+        content,
+        message_type,
+        sender_type: 'contact',
+        metadata: {
+          widget_message_id: message.id,
+          widget_conversation_id: conversation_id,
+          widget_visitor_id: visitor.id
+        }
+      });
+
+    if (mainMsgError) {
+      console.error('Main message error:', mainMsgError);
+    } else {
+      // Update main conversation last_message fields
+      await supabase
+        .from('conversations')
+        .update({ 
+          last_message_at: new Date().toISOString(),
+          last_message: content,
+          unread_count: supabase.sql`COALESCE(unread_count, 0) + 1`
+        })
+        .eq('id', widgetConv.main_conversation_id);
+    }
+  }
+
+  // Update widget conversation
   await supabase
     .from('widget_conversations')
     .update({ last_message_at: new Date().toISOString() })

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,6 +104,100 @@ export default function Channels() {
   const [showQRCode, setShowQRCode] = useState(false);
   const [qrCodeData, setQRCodeData] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+
+  // Função para verificar status na Evolution API e atualizar o canal
+  const checkAndUpdateChannelStatus = useCallback(async (showToast = false) => {
+    if (!currentCompany?.id) return;
+
+    const evolutionApiUrl = import.meta.env.VITE_EVOLUTION_API_URL || import.meta.env.VITE_WHATSAPP_API_URL;
+    const evolutionApiKey = import.meta.env.VITE_EVOLUTION_API_KEY || import.meta.env.VITE_WHATSAPP_API_KEY;
+
+    if (!evolutionApiUrl || !evolutionApiKey) return;
+
+    const instanceName = currentCompany.cnpj?.replace(/\D/g, '');
+    if (!instanceName) return;
+
+    setCheckingStatus(true);
+
+    try {
+      // Verificar status na Evolution API
+      const response = await fetch(`${evolutionApiUrl}/instance/connectionState/${instanceName}`, {
+        headers: {
+          'apikey': evolutionApiKey,
+        },
+      });
+
+      if (!response.ok) {
+        console.error('Erro ao verificar status da instância');
+        return;
+      }
+
+      const data = await response.json();
+      const isConnected = data.state === 'open';
+      const newStatus = isConnected ? 'connected' : 'disconnected';
+
+      console.log('📊 Status da Evolution:', data.state, '-> novo status:', newStatus);
+
+      // Buscar o canal WhatsApp da empresa
+      const { data: channelData } = await (supabase.from('channels' as any) as any)
+        .select('id, status')
+        .eq('company_id', currentCompany.id)
+        .eq('type', 'whatsapp')
+        .single();
+
+      if (channelData && channelData.status !== newStatus) {
+        // Atualiza o status do canal
+        const { error } = await (supabase.from('channels' as any) as any)
+          .update({ status: newStatus } as any)
+          .eq('id', channelData.id);
+
+        if (!error) {
+          console.log('✅ Status do canal atualizado para:', newStatus);
+          queryClient.invalidateQueries({ queryKey: ['channels'] });
+          
+          if (isConnected && showToast) {
+            toast.success('WhatsApp conectado com sucesso!');
+            setShowQRCode(false);
+            setQRCodeData(null);
+          }
+        }
+      }
+
+      // Também atualizar evolution_settings
+      await supabase
+        .from('evolution_settings')
+        .update({ 
+          is_connected: isConnected, 
+          instance_status: isConnected ? 'connected' : 'disconnected' 
+        })
+        .eq('company_id', currentCompany.id);
+
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+    } finally {
+      setCheckingStatus(false);
+    }
+  }, [currentCompany, queryClient]);
+
+  // Verificar status periodicamente quando QR Code está aberto
+  useEffect(() => {
+    if (!showQRCode) return;
+
+    // Verificar a cada 5 segundos
+    const interval = setInterval(() => {
+      checkAndUpdateChannelStatus(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [showQRCode, checkAndUpdateChannelStatus]);
+
+  // Verificar status ao carregar a página
+  useEffect(() => {
+    if (currentCompany?.id) {
+      checkAndUpdateChannelStatus(false);
+    }
+  }, [currentCompany?.id, checkAndUpdateChannelStatus]);
 
   // Fetch channels
   const { data: channels = [], isLoading } = useQuery({
@@ -503,6 +597,17 @@ export default function Channels() {
                         <Settings className="h-4 w-4 mr-1" />
                         Configurar
                       </Button>
+                      {channel.type === 'whatsapp' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => checkAndUpdateChannelStatus(true)}
+                          disabled={checkingStatus}
+                          title="Atualizar status"
+                        >
+                          <RefreshCw className={`h-4 w-4 ${checkingStatus ? 'animate-spin' : ''}`} />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

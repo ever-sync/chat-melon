@@ -145,6 +145,13 @@ export const useWidgetSettings = () => {
   const generateEmbedCode = (): string => {
     if (!companyId) return '';
 
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nmbiuebxhovmwxrbaxsz.supabase.co';
+    // Use Vercel URL for production, local for development
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168');
+    const widgetBaseUrl = isLocalhost ? window.location.origin : 'https://chat-melon.vercel.app';
+    const widgetUrl = `${widgetBaseUrl}/widget/v1/widget.js`;  
+    const apiUrl = `${supabaseUrl}/functions/v1/widget-api`;
+
     return `<!-- MelonChat Widget -->
 <script>
   (function(w,d,s,c){
@@ -152,11 +159,12 @@ export const useWidgetSettings = () => {
     var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s);
     j.async=true;
-    j.src='${window.location.origin}/widget/v1/widget.js';
+    j.src='${widgetUrl}';
     f.parentNode.insertBefore(j,f);
   })(window,document,'script',{
     companyId: '${companyId}',
-    primaryColor: '${settings?.primary_color || '#22C55E'}'
+    primaryColor: '${settings?.primary_color || '#22C55E'}',
+    apiUrl: '${apiUrl}'
   });
 </script>`;
   };
