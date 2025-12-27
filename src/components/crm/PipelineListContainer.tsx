@@ -27,8 +27,8 @@ export const PipelineListContainer = ({
   const { pipelines, defaultPipeline } = usePipelines();
   const activePipelineId = selectedPipelineId || defaultPipeline?.id;
 
-  const { deals, isLoading, createDeal, updateDeal, moveDeal, deleteDeal } =
-    useDeals(activePipelineId);
+  const { deals, isLoading, createDeal, updateDeal, moveDeal, deleteDeal, pagination } =
+    useDeals(activePipelineId, undefined, filters);
 
   // States for modals
   const [modalOpen, setModalOpen] = useState(false);
@@ -49,19 +49,8 @@ export const PipelineListContainer = ({
 
   const { celebrate, showModal, setShowModal, celebrationType, celebrationData } = useCelebration();
 
-  // Filter deals
-  const filteredDeals = useMemo(() => {
-    if (!filters || !deals) return deals || [];
-
-    return deals.filter((deal) => {
-      if (filters.search && !deal.title.toLowerCase().includes(filters.search.toLowerCase()))
-        return false;
-      if (filters.assignedTo !== 'all' && deal.assigned_to !== filters.assignedTo) return false;
-      if (filters.priority !== 'all' && deal.priority !== filters.priority) return false;
-      if (filters.temperature !== 'all' && deal.temperature !== filters.temperature) return false;
-      return true;
-    });
-  }, [deals, filters]);
+  // Filtros já são aplicados no useDeals, então apenas usar deals diretamente
+  const filteredDeals = deals || [];
 
   // Handlers
   const handleEditDeal = (deal: Deal) => {
@@ -147,6 +136,7 @@ export const PipelineListContainer = ({
           onBulkAssign={handleBulkAssign}
           onBulkSetPriority={handleBulkSetPriority}
           onBulkDelete={handleBulkDelete}
+          pagination={pagination}
         />
       )}
 

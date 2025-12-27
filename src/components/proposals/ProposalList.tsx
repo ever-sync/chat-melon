@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { ProposalVersionHistory } from './ProposalVersionHistory';
 import { ProposalComparison } from './ProposalComparison';
 import { useQuery } from '@tanstack/react-query';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 
 const statusColors = {
   draft: 'bg-gray-500',
@@ -30,7 +31,7 @@ const statusLabels = {
 };
 
 export const ProposalList = () => {
-  const { proposals, isLoading, generatePublicLink, getVersionHistory } = useProposals();
+  const { proposals, isLoading, generatePublicLink, getVersionHistory, pagination } = useProposals();
   const [selectedProposal, setSelectedProposal] = useState<string | null>(null);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [comparisonVersions, setComparisonVersions] = useState<{
@@ -205,6 +206,24 @@ export const ProposalList = () => {
           );
         })}
       </div>
+
+      {/* Paginação */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="mt-6 pt-4 border-t">
+          <PaginationControls
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            hasNext={pagination.hasNext}
+            hasPrev={pagination.hasPrev}
+            onPageChange={pagination.goToPage}
+            onPageSizeChange={pagination.setPageSize}
+            showPageSizeSelector={true}
+            showInfo={true}
+          />
+        </div>
+      )}
 
       <ProposalVersionHistory
         open={showVersionHistory}

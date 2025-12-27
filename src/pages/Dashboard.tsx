@@ -35,6 +35,8 @@ import { arrayMove, SortableContext, rectSortingStrategy } from '@dnd-kit/sortab
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
 import { WidgetsSidebar } from '@/components/dashboard/WidgetsSidebar';
 import { cn } from '@/lib/utils';
+import { useCachedQuery } from '@/hooks/ui/useCachedQuery';
+import { CACHE_TAGS } from '@/lib/cache/cache-strategies';
 
 export default function Dashboard() {
   const { companyId } = useCompanyQuery();
@@ -75,11 +77,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (companyId) {
+      // fetchStats agora retorna também recent_conversations e agent_stats
       fetchStats();
+      // fetchRecentConversations não é mais necessário se fetchStats foi bem-sucedido
+      // mas mantemos como fallback
       fetchRecentConversations();
       fetchTodayTasks();
       fetchPipelineStats();
       fetchLeadsStats();
+      // fetchAgentStats não é mais necessário se fetchStats foi bem-sucedido
+      // mas mantemos como fallback
       fetchAgentStats();
     }
   }, [companyId]);
@@ -135,9 +142,59 @@ export default function Dashboard() {
     setShowSidebar(!showSidebar);
   };
 
+  // Usar cached query para dashboard metrics
+  const dashboardMetricsQuery = useCachedQuery({
+    queryKey: ['dashboard-metrics', companyId],
+    queryFn: async () => {
+      if (!companyId) return null;
+      const { data, error } = await supabase.rpc('get_dashboard_metrics', {
+        p_company_id: companyId,
+      });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
+    cacheConfig: 'dashboard_metrics',
+    tags: companyId ? [CACHE_TAGS.DASHBOARD(companyId)] : [],
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
   const fetchStats = async () => {
     if (!companyId) return;
 
+    try {
+      // Usar dados do cache se disponível, senão buscar
+      let data = dashboardMetricsQuery.data;
+      if (!data) {
+        const result = await supabase.rpc('get_dashboard_metrics', {
+          p_company_id: companyId,
+        });
+        if (result.error) throw result.error;
+        data = result.data;
+      }
+
+      if (data) {
+        const metrics = data as any;
+        setStats({
+          totalConversations: metrics.conversations?.total || 0,
+          openDeals: metrics.deals?.total_open || 0,
+          totalRevenue: metrics.deals?.total_revenue || 0,
+          pendingTasks: metrics.tasks?.total_pending || 0,
+        });
+
+        // Atualizar conversas recentes
+        if (metrics.recent_conversations) {
+          setRecentConversations(metrics.recent_conversations);
+        }
+
+        // Atualizar estatísticas de agentes
+        if (metrics.agent_stats) {
+          setAgentStats(metrics.agent_stats);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas:', error);
+      // Fallback para queries individuais em caso de erro
     try {
       const [conversationsData, dealsData, tasksData] = await Promise.all([
         supabase
@@ -164,14 +221,18 @@ export default function Dashboard() {
         totalRevenue: revenue,
         pendingTasks: tasksData.count || 0,
       });
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
+      } catch (fallbackError) {
+        console.error('Erro no fallback:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const fetchRecentConversations = async () => {
+    // Conversas recentes já são retornadas pela função get_dashboard_metrics
+    // Esta função é mantida apenas para compatibilidade, mas não é mais necessária
+    // se fetchStats já foi chamado
     if (!companyId) return;
 
     try {

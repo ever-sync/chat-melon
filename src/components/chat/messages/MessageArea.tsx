@@ -116,8 +116,12 @@ const MessageArea = ({
   const [showTabulationModal, setShowTabulationModal] = useState(false);
   const [isResolvingConversation, setIsResolvingConversation] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<{ full_name: string; first_name: string; message_color?: string } | null>(null);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [oldestMessageTimestamp, setOldestMessageTimestamp] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesTopRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Quick responses hook for /shortcuts
@@ -340,11 +344,15 @@ const MessageArea = ({
       // Limpar mensagens ao mudar de conversa
       setMessages([]);
       setFilteredMessages([]);
-      loadMessages();
+      setHasMoreMessages(true);
+      setOldestMessageTimestamp(null);
+      loadMessages(false);
     } else {
       // Limpar quando não há conversa selecionada
       setMessages([]);
       setFilteredMessages([]);
+      setHasMoreMessages(true);
+      setOldestMessageTimestamp(null);
     }
   }, [conversation?.id]); // Usar conversation.id para garantir re-render
 
@@ -472,43 +480,72 @@ const MessageArea = ({
     }
   };
 
-  const loadMessages = async () => {
+  const MESSAGES_PER_PAGE = 50;
+
+  const loadMessages = async (loadOlder = false) => {
     if (!conversation) {
       console.log('❌ loadMessages: Nenhuma conversa selecionada');
       return;
     }
 
-    console.log('🔍 loadMessages: Carregando mensagens para conversa:', conversation.id);
-    console.log('📋 Dados da conversa:', {
-      id: conversation.id,
-      contact_name: conversation.contact_name,
-      unread_count: conversation.unread_count,
-    });
+    if (loadOlder) {
+      setIsLoadingMore(true);
+    }
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('messages')
         .select(
           `id, content, is_from_me, is_from_ai, ai_model, ai_confidence, ai_intent_detected, ai_sentiment, timestamp, status, media_url, media_type, message_type, edited_at, deleted_at, delivered_at, read_at, played_at, external_id, poll_data, list_data, location_data, contact_data, reaction,
-           sender:profiles!messages_user_id_fkey(name:full_name, avatar_url, message_color)`
+           sender:profiles!messages_user_id_fkey(name:full_name, avatar_url, message_color)`,
+          { count: 'exact' }
         )
         .eq('conversation_id', conversation.id)
-        .is('deleted_at', null)
-        .order('timestamp', { ascending: true });
+        .is('deleted_at', null);
+
+      if (loadOlder && oldestMessageTimestamp) {
+        // Carregar mensagens mais antigas que a mais antiga atual
+        query = query.lt('timestamp', oldestMessageTimestamp);
+      }
+
+      // Ordenar: mais recentes primeiro para pegar as últimas N
+      query = query.order('timestamp', { ascending: false }).limit(MESSAGES_PER_PAGE);
+
+      const { data, error, count } = await query;
 
       if (error) {
         console.error('❌ Erro na query:', error);
         throw error;
       }
 
-      console.log('✅ Mensagens carregadas:', data?.length || 0);
-      console.log('📨 Primeiras 3 mensagens:', data?.slice(0, 3));
+      if (!data) {
+        setHasMoreMessages(false);
+        return;
+      }
 
-      // Garantir que sempre temos um array válido
-      setMessages((data as any) || []);
+      // Reverter ordem para exibir (mais antigas primeiro na tela)
+      const orderedData = data.reverse();
 
-      // Marcar mensagens como lidas quando abrir a conversa
-      if (conversation.unread_count > 0) {
+      if (loadOlder) {
+        // Adicionar mensagens antigas no início
+        setMessages((prev) => [...orderedData, ...prev]);
+        if (orderedData.length > 0) {
+          setOldestMessageTimestamp(orderedData[0].timestamp);
+        }
+        setHasMoreMessages(data.length === MESSAGES_PER_PAGE);
+      } else {
+        // Primeira carga: substituir todas as mensagens
+        setMessages(orderedData);
+        if (orderedData.length > 0) {
+          setOldestMessageTimestamp(orderedData[0].timestamp);
+        }
+        setHasMoreMessages((count || 0) > MESSAGES_PER_PAGE);
+      }
+
+      console.log(`✅ Mensagens carregadas: ${orderedData.length} (total: ${count || 0})`);
+
+      // Marcar mensagens como lidas quando abrir a conversa (apenas na primeira carga)
+      if (!loadOlder && conversation.unread_count > 0) {
         markAsRead(conversation.id);
       }
     } catch (error) {
@@ -516,7 +553,17 @@ const MessageArea = ({
       toast.error('Erro ao carregar mensagens', {
         description: 'Tente recarregar a página'
       });
-      setMessages([]); // Limpar mensagens em caso de erro
+      if (!loadOlder) {
+        setMessages([]); // Limpar mensagens em caso de erro apenas na primeira carga
+      }
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const loadOlderMessages = () => {
+    if (!isLoadingMore && hasMoreMessages) {
+      loadMessages(true);
     }
   };
 
@@ -778,8 +825,33 @@ const MessageArea = ({
         {/* Legenda de cores */}
         <ChatLegend />
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6" ref={scrollRef}>
+        <div 
+          className="flex-1 min-h-0 overflow-y-auto px-4 py-6" 
+          ref={scrollRef}
+          onScroll={(e) => {
+            const target = e.target as HTMLDivElement;
+            // Carregar mais mensagens quando próximo do topo (50px)
+            if (target.scrollTop < 50 && hasMoreMessages && !isLoadingMore) {
+              loadOlderMessages();
+            }
+          }}
+        >
           <div className="space-y-2">
+            {/* Botão para carregar mensagens antigas */}
+            {hasMoreMessages && (
+              <div className="flex justify-center py-2" ref={messagesTopRef}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadOlderMessages}
+                  disabled={isLoadingMore}
+                  className="text-xs"
+                >
+                  {isLoadingMore ? 'Carregando...' : 'Carregar mensagens antigas'}
+                </Button>
+              </div>
+            )}
+            
             {filteredMessages.length === 0 && searchQuery ? (
               <div className="text-center text-muted-foreground py-8">
                 <p>Nenhuma mensagem encontrada para "{searchQuery}"</p>

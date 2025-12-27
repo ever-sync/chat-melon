@@ -47,9 +47,6 @@ export default function CRM() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'board' | 'list' | 'calendar'>('board');
 
-  // Hook para criar deals
-  const { createDeal } = useDeals(selectedPipelineId);
-
   // Estados de filtros
   const [filters, setFilters] = useState<DealFilters>({
     search: '',
@@ -57,6 +54,13 @@ export default function CRM() {
     priority: 'all',
     temperature: 'all',
   });
+
+  // Hook para criar deals e buscar deals com paginação
+  const { createDeal, deals, isLoading: isLoadingDeals, pagination } = useDeals(
+    selectedPipelineId,
+    undefined,
+    filters
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   // Estado do modal de criação de negócio

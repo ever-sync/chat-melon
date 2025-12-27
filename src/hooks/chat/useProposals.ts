@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyQuery } from '../crm/useCompanyQuery';
 import { toast } from 'sonner';
+import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
+import { PAGINATION } from '@/config/constants';
 
 export interface ProposalItem {
   id: string;
@@ -42,14 +44,16 @@ export interface Proposal {
   };
 }
 
-export const useProposals = (dealId?: string) => {
+export const useProposals = (dealId?: string, options?: { page?: number; pageSize?: number }) => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
-  const { data: proposals = [], isLoading } = useQuery({
+  const proposalsQuery = usePaginatedQuery<Proposal>({
     queryKey: ['proposals', companyId, dealId],
-    queryFn: async () => {
-      if (!companyId) return [];
+    queryFn: async ({ page, limit, offset }) => {
+      if (!companyId) {
+        return { data: [], count: 0 };
+      }
 
       let query = supabase
         .from('proposals')
@@ -61,25 +65,36 @@ export const useProposals = (dealId?: string) => {
             company_id,
             contacts(name, phone_number)
           )
-        `
+        `,
+          { count: 'exact' }
         )
         .eq('deals.company_id', companyId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
       if (dealId) {
         query = query.eq('deal_id', dealId);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
       if (error) throw error;
-      return data.map((p) => ({
-        ...p,
-        items: p.items as any as ProposalItem[],
-      })) as Proposal[];
+      return {
+        data:
+          data.map((p) => ({
+            ...p,
+            items: p.items as any as ProposalItem[],
+          })) as Proposal[] || [],
+        count: count || 0,
+      };
     },
     enabled: !!companyId,
+    pageSize: options?.pageSize || PAGINATION.LIST_PAGE_SIZE,
+    initialPage: options?.page || 1,
   });
+
+  const proposals = proposalsQuery.data || [];
+  const isLoading = proposalsQuery.isLoading;
 
   const createProposal = useMutation({
     mutationFn: async (proposal: Partial<Proposal>) => {
@@ -309,5 +324,18 @@ export const useProposals = (dealId?: string) => {
     createVersion: createVersion.mutateAsync,
     sendViaWhatsApp: sendViaWhatsApp.mutateAsync,
     getVersionHistory,
+    // Paginação
+    pagination: {
+      page: proposalsQuery.page,
+      pageSize: proposalsQuery.pageSize,
+      total: proposalsQuery.total,
+      totalPages: proposalsQuery.totalPages,
+      hasNext: proposalsQuery.hasNext,
+      hasPrev: proposalsQuery.hasPrev,
+      nextPage: proposalsQuery.nextPage,
+      prevPage: proposalsQuery.prevPage,
+      goToPage: proposalsQuery.goToPage,
+      setPageSize: proposalsQuery.setPageSize,
+    },
   };
 };

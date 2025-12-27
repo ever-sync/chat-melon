@@ -41,7 +41,10 @@
       "Bash(npm install:*)",
       "Bash(where psql)",
       "Bash(timeout /t 5)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(then grep -E \"POOLER|REDIS|CACHE\" .env)",
+      "Bash(then grep -E \"VITE_SUPABASE_POOLER_URL\" .env)",
+      "Bash(else echo \"Variável não encontrada no .env\")"
     ],
     "deny": [],
     "ask": []

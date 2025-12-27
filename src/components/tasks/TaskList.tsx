@@ -16,6 +16,7 @@ import { useTasks } from '@/hooks/crm/useTasks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { TablesInsert } from '@/integrations/supabase/types';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 
 export const TaskList = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -26,7 +27,7 @@ export const TaskList = () => {
     search: '',
   });
 
-  const { tasks, overdueTasks, isLoading, createTask, updateTask, completeTask, deleteTask } =
+  const { tasks, overdueTasks, isLoading, createTask, updateTask, completeTask, deleteTask, pagination } =
     useTasks({
       status: filters.status === 'all' ? undefined : filters.status || undefined,
       priority: filters.priority === 'all' ? undefined : filters.priority || undefined,

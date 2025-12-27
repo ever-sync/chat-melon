@@ -23,6 +23,7 @@ import type { Deal } from '@/hooks/crm/useDeals';
 import { formatCurrency } from '@/lib/formatters';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 
 interface PipelineListViewProps {
   deals: Deal[];
@@ -38,6 +39,17 @@ interface PipelineListViewProps {
   onBulkAssign: (userId: string) => void;
   onBulkSetPriority: (priority: string) => void;
   onBulkDelete: () => void;
+  // Pagination
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+    onPageChange: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
+  };
 }
 
 type SortField = 'title' | 'value' | 'stage' | 'created_at' | 'expected_close_date';
@@ -55,6 +67,7 @@ export const PipelineListView = ({
   onBulkAssign,
   onBulkSetPriority,
   onBulkDelete,
+  pagination,
 }: PipelineListViewProps) => {
   // const [selectedDeals, setSelectedDeals] = useState<Set<string>>(new Set()); // Removed internal state
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -272,6 +285,24 @@ export const PipelineListView = ({
           onDelete={() => handleBulkAction(() => onBulkDelete())}
           pipelineId={pipelineId}
         />
+      )}
+
+      {/* Paginação */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="mt-6 pt-4 border-t">
+          <PaginationControls
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            hasNext={pagination.hasNext}
+            hasPrev={pagination.hasPrev}
+            onPageChange={pagination.onPageChange}
+            onPageSizeChange={pagination.onPageSizeChange}
+            showPageSizeSelector={true}
+            showInfo={true}
+          />
+        </div>
       )}
     </>
   );

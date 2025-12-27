@@ -1,0 +1,14 @@
+name: Refresh Dashboard Views
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # A cada 5 minutos
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Edge Function
+        run: |
+          curl -X POST "https://nmbiuebxhovmwxrbaxsz.supabase.co/functions/v1/refresh-dashboard-views" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"

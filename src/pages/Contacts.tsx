@@ -71,6 +71,7 @@ import { LeadScoreBadge } from '@/components/contacts/LeadScoreBadge';
 import { useScoringRules } from '@/hooks/useScoringRules';
 import { toast } from 'sonner';
 import { useSegments } from '@/hooks/useSegments';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 import {
   Select,
   SelectContent,
@@ -262,7 +263,7 @@ export default function Contacts() {
   const { categories, createCategory, updateCategory, deleteCategory } = useContactCategories();
 
   const [selectedSegmentId, setSelectedSegmentId] = useState<string>('');
-  const { contacts, isLoading, createContact, updateContact, deleteContact } = useContacts(
+  const { contacts, isLoading, createContact, updateContact, deleteContact, pagination } = useContacts(
     selectedSegmentId || undefined
   );
   const { fields, createField, updateField, deleteField } = useCustomFields('contact');
@@ -869,6 +870,24 @@ export default function Contacts() {
                       </Collapsible>
                     ))
                   )}
+                </div>
+                )}
+
+                {/* Paginação */}
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="mt-6 pt-4 border-t">
+                    <PaginationControls
+                      page={pagination.page}
+                      pageSize={pagination.pageSize}
+                      total={pagination.total}
+                      totalPages={pagination.totalPages}
+                      hasNext={pagination.hasNext}
+                      hasPrev={pagination.hasPrev}
+                      onPageChange={pagination.goToPage}
+                      onPageSizeChange={pagination.setPageSize}
+                      showPageSizeSelector={true}
+                      showInfo={true}
+                    />
                 </div>
                 )}
               </CardContent>

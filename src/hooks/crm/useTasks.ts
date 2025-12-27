@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCompanyQuery } from './useCompanyQuery';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
+import { PAGINATION } from '@/config/constants';
 
 export type Task = Tables<'tasks'> & {
   contacts: Tables<'contacts'> | null;
@@ -19,14 +21,16 @@ interface TaskFilters {
   dateTo?: string;
 }
 
-export const useTasks = (filters?: TaskFilters) => {
+export const useTasks = (filters?: TaskFilters, options?: { page?: number; pageSize?: number }) => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const tasksQuery = usePaginatedQuery<Task>({
     queryKey: ['tasks', companyId, filters],
-    queryFn: async () => {
-      if (!companyId) return [];
+    queryFn: async ({ page, limit, offset }) => {
+      if (!companyId) {
+        return { data: [], count: 0 };
+      }
 
       let query = supabase
         .from('tasks')
@@ -37,10 +41,12 @@ export const useTasks = (filters?: TaskFilters) => {
           deals (*),
           profiles!tasks_assigned_to_fkey (*),
           creator:profiles!tasks_created_by_fkey (*)
-        `
+        `,
+          { count: 'exact' }
         )
         .eq('company_id', companyId)
-        .order('due_date', { ascending: true });
+        .order('due_date', { ascending: true })
+        .range(offset, offset + limit - 1);
 
       if (filters?.status) {
         query = query.eq('status', filters.status);
@@ -62,13 +68,18 @@ export const useTasks = (filters?: TaskFilters) => {
         query = query.lte('due_date', filters.dateTo);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
       if (error) throw error;
-      return data as Task[];
+      return { data: (data as Task[]) || [], count: count || 0 };
     },
     enabled: !!companyId,
+    pageSize: options?.pageSize || PAGINATION.LIST_PAGE_SIZE,
+    initialPage: options?.page || 1,
   });
+
+  const tasks = tasksQuery.data || [];
+  const isLoading = tasksQuery.isLoading;
 
   const overdueTasks = tasks.filter(
     (task) =>
@@ -195,5 +206,18 @@ export const useTasks = (filters?: TaskFilters) => {
     updateTask,
     completeTask,
     deleteTask,
+    // Paginação
+    pagination: {
+      page: tasksQuery.page,
+      pageSize: tasksQuery.pageSize,
+      total: tasksQuery.total,
+      totalPages: tasksQuery.totalPages,
+      hasNext: tasksQuery.hasNext,
+      hasPrev: tasksQuery.hasPrev,
+      nextPage: tasksQuery.nextPage,
+      prevPage: tasksQuery.prevPage,
+      goToPage: tasksQuery.goToPage,
+      setPageSize: tasksQuery.setPageSize,
+    },
   };
 };

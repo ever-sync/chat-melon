@@ -16,10 +16,11 @@ import { CampaignBuilder } from '@/components/campaigns/CampaignBuilder';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 
 export default function Campaigns() {
   const [showBuilder, setShowBuilder] = useState(false);
-  const { campaigns, isLoading, startCampaign, pauseCampaign, resumeCampaign, deleteCampaign } =
+  const { campaigns, isLoading, startCampaign, pauseCampaign, resumeCampaign, deleteCampaign, pagination } =
     useCampaigns();
 
   const getStatusBadge = (status: string) => {
@@ -220,6 +221,24 @@ export default function Campaigns() {
                 </Card>
               );
             })}
+          </div>
+        )}
+
+        {/* Paginação */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-6 pt-4 border-t">
+            <PaginationControls
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              totalPages={pagination.totalPages}
+              hasNext={pagination.hasNext}
+              hasPrev={pagination.hasPrev}
+              onPageChange={pagination.goToPage}
+              onPageSizeChange={pagination.setPageSize}
+              showPageSizeSelector={true}
+              showInfo={true}
+            />
           </div>
         )}
 

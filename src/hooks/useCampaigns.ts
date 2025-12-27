@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyQuery } from './crm/useCompanyQuery';
 import { toast } from 'sonner';
+import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
+import { PAGINATION } from '@/config/constants';
 
 export interface Campaign {
   id: string;
@@ -29,26 +31,34 @@ export interface Campaign {
   created_at: string;
 }
 
-export const useCampaigns = () => {
+export const useCampaigns = (options?: { page?: number; pageSize?: number }) => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
-  const { data: campaigns, isLoading } = useQuery({
+  const campaignsQuery = usePaginatedQuery<Campaign>({
     queryKey: ['campaigns', companyId],
-    queryFn: async () => {
-      if (!companyId) return [];
+    queryFn: async ({ page, limit, offset }) => {
+      if (!companyId) {
+        return { data: [], count: 0 };
+      }
 
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('campaigns')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('company_id', companyId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
       if (error) throw error;
-      return data as Campaign[];
+      return { data: (data as Campaign[]) || [], count: count || 0 };
     },
     enabled: !!companyId,
+    pageSize: options?.pageSize || PAGINATION.LIST_PAGE_SIZE,
+    initialPage: options?.page || 1,
   });
+
+  const campaigns = campaignsQuery.data || [];
+  const isLoading = campaignsQuery.isLoading;
 
   const createCampaign = useMutation({
     mutationFn: async (campaign: Partial<Campaign>) => {
@@ -229,7 +239,7 @@ export const useCampaigns = () => {
   });
 
   return {
-    campaigns: campaigns || [],
+    campaigns,
     isLoading,
     createCampaign,
     updateCampaign,
@@ -238,5 +248,18 @@ export const useCampaigns = () => {
     pauseCampaign,
     resumeCampaign,
     resendToContact,
+    // Paginação
+    pagination: {
+      page: campaignsQuery.page,
+      pageSize: campaignsQuery.pageSize,
+      total: campaignsQuery.total,
+      totalPages: campaignsQuery.totalPages,
+      hasNext: campaignsQuery.hasNext,
+      hasPrev: campaignsQuery.hasPrev,
+      nextPage: campaignsQuery.nextPage,
+      prevPage: campaignsQuery.prevPage,
+      goToPage: campaignsQuery.goToPage,
+      setPageSize: campaignsQuery.setPageSize,
+    },
   };
 };

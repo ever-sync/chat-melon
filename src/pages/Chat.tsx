@@ -19,6 +19,8 @@ import { ChatFilters, getDefaultFilters } from '@/types/chatFilters';
 import { useBulkConversationActions } from '@/hooks/chat/useBulkConversationActions';
 import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
 import { PAGINATION } from '@/config/constants';
+import { useCachedQuery } from '@/hooks/ui/useCachedQuery';
+import { CACHE_TAGS } from '@/lib/cache/cache-strategies';
 
 import type { Conversation } from '@/types/chat';
 import { cn } from '@/lib/utils';
@@ -87,7 +89,7 @@ const Chat = () => {
   const conversationsQuery = usePaginatedQuery<Conversation>({
     queryKey: ['conversations', companyId, filters],
     queryFn: async ({ page, limit, offset }) => {
-      if (!companyId) {
+    if (!companyId) {
         return { data: [], count: 0 };
       }
 
@@ -217,8 +219,6 @@ const Chat = () => {
   }, [companyId, conversationsQuery]);
 
   // Filtrar conversas no cliente (para filtros complexos que não podem ser feitos no servidor)
-  const [isSearching, setIsSearching] = useState(false);
-  
   useEffect(() => {
     setIsSearching(true);
     // Simular processamento de filtros
@@ -254,19 +254,12 @@ const Chat = () => {
     }
 
     // Filtro por labels (múltiplas)
+    // Note: This filter would need to be implemented server-side for better performance
+    // For now, we skip this filter in the client-side filtering
+    // TODO: Implement label filtering in the server query
     if (filters.labels.length > 0) {
-      try {
-        const { data: conversationsWithLabel } = await supabase
-          .from('conversation_labels')
-          .select('conversation_id')
-          .in('label_id', filters.labels);
-
-        const conversationIdsWithLabel =
-          conversationsWithLabel?.map((cl) => cl.conversation_id) || [];
-        filtered = filtered.filter((conv) => conversationIdsWithLabel.includes(conv.id));
-      } catch (error) {
-        console.error('Erro ao filtrar por label:', error);
-      }
+      // Labels filtering should be done server-side
+      console.warn('Label filtering is not implemented in client-side filtering');
     }
 
     // Filtro por data da última mensagem
@@ -373,28 +366,13 @@ const Chat = () => {
     }
 
     // Filtro por tipo de mídia (requer consulta ao banco)
+    // Note: This filter would need to be implemented server-side for better performance
+    // For now, we skip this filter in the client-side filtering
+    // TODO: Implement media type filtering in the server query
     if (filters.mediaType && filters.mediaType !== 'all' && filters.hasMedia === true) {
-      try {
-        const conversationIds = filtered.map((c) => c.id);
-        const { data: conversationsWithMediaType } = await supabase
-          .from('messages')
-          .select('conversation_id')
-          .in('conversation_id', conversationIds)
-          .like('media_type', `%${filters.mediaType}%`)
-          .not('media_type', 'is', null);
-
-        const conversationIdsWithMedia =
-          conversationsWithMediaType?.map((m) => m.conversation_id) || [];
-
-        // Remover duplicatas
-        const uniqueIds = Array.from(new Set(conversationIdsWithMedia));
-        filtered = filtered.filter((conv) => uniqueIds.includes(conv.id));
-      } catch (error) {
-        console.error('Erro ao filtrar por tipo de mídia:', error);
-      }
+      // Media type filtering should be done server-side
+      console.warn('Media type filtering is not implemented in client-side filtering');
     }
-
-    setIsSearching(false);
     return filtered;
   }, [conversations, filters, searchQuery, startDate, endDate, currentUserId]);
 
@@ -480,18 +458,10 @@ const Chat = () => {
 
         if (error) throw error;
 
-        // Atualizar localmente
-        setConversations((prev) =>
-          prev.map((c) =>
-            c.id === conversation.id
-              ? {
-                ...c,
-                status: c.status === 'waiting' ? 'active' : c.status,
-                unread_count: 0,
-              }
-              : c
-          )
-        );
+        // Invalidar query para recarregar dados atualizados
+        conversationsQuery.refetch();
+        
+        // Atualizar conversa selecionada localmente
         setSelectedConversation((prev) =>
           prev
             ? {

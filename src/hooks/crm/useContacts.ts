@@ -3,59 +3,70 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCompanyQuery } from './useCompanyQuery';
 import { toast } from 'sonner';
 import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
+import { PAGINATION } from '@/config/constants';
+import { useCachedQuery } from '@/hooks/ui/useCachedQuery';
+import { CACHE_TAGS } from '@/lib/cache/cache-strategies';
 
-export const useContacts = (segmentId?: string) => {
+export const useContacts = (segmentId?: string, options?: { page?: number; pageSize?: number }) => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
-  const { data: contacts = [], isLoading } = useQuery({
+  // Hook paginado para contatos
+  const contactsQuery = usePaginatedQuery({
     queryKey: ['contacts', companyId, segmentId],
-    queryFn: async () => {
-      if (!companyId) return [];
-
-      // Sem filtro de segmento, buscar todos
-      if (!segmentId) {
-        const { data, error } = await supabase
-          .from('contacts')
-          .select('*')
-          .eq('company_id', companyId)
-          .is('deleted_at', null)
-          .order('name');
-
-        if (error) throw error;
-        return data;
+    queryFn: async ({ page, limit, offset }) => {
+      if (!companyId) {
+        return { data: [], count: 0 };
       }
 
-      // Com filtro de segmento
+      // Sem filtro de segmento, buscar com paginação
+      if (!segmentId) {
+        const { data, error, count } = await supabase
+          .from('contacts')
+          .select('*', { count: 'exact' })
+          .eq('company_id', companyId)
+          .is('deleted_at', null)
+          .order('name')
+          .range(offset, offset + limit - 1);
+
+        if (error) throw error;
+        return { data: data || [], count: count || 0 };
+      }
+
+      // Com filtro de segmento, precisamos buscar todos e filtrar
+      // (limitação: filtros complexos não podem ser feitos no servidor)
       const { data: segment } = await supabase
         .from('segments')
         .select('filters')
         .eq('id', segmentId)
         .single();
 
-      // Se segmento não tem filtros, retornar todos
+      // Se segmento não tem filtros, buscar com paginação normal
       if (!segment?.filters || !Array.isArray(segment.filters)) {
-        const { data, error } = await supabase
+        const { data, error, count } = await supabase
           .from('contacts')
-          .select('*')
+          .select('*', { count: 'exact' })
           .eq('company_id', companyId)
           .is('deleted_at', null)
-          .order('name');
+          .order('name')
+          .range(offset, offset + limit - 1);
 
         if (error) throw error;
-        return data;
+        return { data: data || [], count: count || 0 };
       }
 
-      // Buscar todos os contatos e filtrar manualmente
-      const { data: allContacts, error } = await supabase
+      // Para segmentos com filtros complexos, buscar todos e filtrar
+      // Nota: Isso não é ideal para grandes volumes, mas necessário para filtros complexos
+      const { data: allContacts, error, count } = await supabase
         .from('contacts')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('company_id', companyId)
         .is('deleted_at', null)
         .order('name');
 
       if (error) throw error;
-      if (!allContacts) return [];
+      if (!allContacts) return { data: [], count: 0 };
 
       // Aplicar filtros manualmente
       const filters = segment.filters as any[];
@@ -96,10 +107,18 @@ export const useContacts = (segmentId?: string) => {
         });
       });
 
-      return filteredContacts;
+      // Aplicar paginação manualmente após filtrar
+      const paginatedContacts = filteredContacts.slice(offset, offset + limit);
+
+      return { data: paginatedContacts, count: filteredContacts.length };
     },
     enabled: !!companyId,
+    pageSize: options?.pageSize || PAGINATION.LIST_PAGE_SIZE,
+    initialPage: options?.page || 1,
   });
+
+  const contacts = contactsQuery.data || [];
+  const isLoading = contactsQuery.isLoading;
 
   const createContact = useMutation({
     mutationFn: async (contact: TablesInsert<'contacts'>) => {
@@ -169,5 +188,18 @@ export const useContacts = (segmentId?: string) => {
     createContact: createContact.mutate,
     updateContact: updateContact.mutate,
     deleteContact: deleteContact.mutate,
+    // Paginação
+    pagination: {
+      page: contactsQuery.page,
+      pageSize: contactsQuery.pageSize,
+      total: contactsQuery.total,
+      totalPages: contactsQuery.totalPages,
+      hasNext: contactsQuery.hasNext,
+      hasPrev: contactsQuery.hasPrev,
+      nextPage: contactsQuery.nextPage,
+      prevPage: contactsQuery.prevPage,
+      goToPage: contactsQuery.goToPage,
+      setPageSize: contactsQuery.setPageSize,
+    },
   };
 };

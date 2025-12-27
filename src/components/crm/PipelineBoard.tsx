@@ -51,36 +51,11 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
     updateDeal,
     moveDeal,
     deleteDeal,
-  } = useDeals(activePipelineId);
+    pagination,
+  } = useDeals(activePipelineId, undefined, filters);
 
-  // Aplicar filtros aos deals
-  const filteredDeals = useMemo(() => {
-    if (!filters || !deals) return deals;
-
-    return deals.filter((deal) => {
-      // Filtro de busca por título
-      if (filters.search && !deal.title.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
-      }
-
-      // Filtro de responsável
-      if (filters.assignedTo !== 'all' && deal.assigned_to !== filters.assignedTo) {
-        return false;
-      }
-
-      // Filtro de prioridade
-      if (filters.priority !== 'all' && deal.priority !== filters.priority) {
-        return false;
-      }
-
-      // Filtro de temperatura
-      if (filters.temperature !== 'all' && deal.temperature !== filters.temperature) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [deals, filters]);
+  // Filtros já são aplicados no useDeals, então apenas usar deals diretamente
+  const filteredDeals = deals || [];
   const { celebrate, showModal, setShowModal, celebrationType, celebrationData } = useCelebration();
   const { checkAchievements } = useGamification();
 
