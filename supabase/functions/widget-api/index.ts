@@ -317,15 +317,21 @@ async function startConversation(
   }
 
   // Create widget conversation
+  const widgetConvData: Record<string, unknown> = {
+    company_id: companyId,
+    visitor_id: visitor.id,
+    status: 'active',
+    first_message_at: new Date().toISOString(),
+  };
+
+  // Add main_conversation_id if it was created
+  if (mainConversationId) {
+    widgetConvData.main_conversation_id = mainConversationId;
+  }
+
   const { data: conversation, error: convError } = await supabase
     .from('widget_conversations')
-    .insert({
-      company_id: companyId,
-      visitor_id: visitor.id,
-      main_conversation_id: mainConversationId,
-      status: 'active',
-      first_message_at: new Date().toISOString(),
-    })
+    .insert(widgetConvData)
     .select()
     .single();
 
@@ -337,13 +343,7 @@ async function startConversation(
     );
   }
 
-  // Update widget stats
-  await supabase
-    .from('widget_settings')
-    .update({
-      total_conversations: supabase.sql`total_conversations + 1`,
-    })
-    .eq('company_id', companyId);
+  // Note: Stats update removed - would need RPC function for atomic increment
 
   return new Response(
     JSON.stringify({
@@ -450,8 +450,7 @@ async function sendMessage(
         .from('conversations')
         .update({ 
           last_message_at: new Date().toISOString(),
-          last_message: content,
-          unread_count: supabase.sql`COALESCE(unread_count, 0) + 1`
+          last_message: content
         })
         .eq('id', widgetConv.main_conversation_id);
     }
@@ -468,17 +467,10 @@ async function sendMessage(
     .from('widget_visitors')
     .update({
       last_seen_at: new Date().toISOString(),
-      total_messages: supabase.sql`total_messages + 1`,
     })
     .eq('id', visitor.id);
 
-  // Update widget stats
-  await supabase
-    .from('widget_settings')
-    .update({
-      total_messages: supabase.sql`total_messages + 1`,
-    })
-    .eq('company_id', companyId);
+  // Note: Stats update removed - would need RPC function for atomic increment
 
   return new Response(
     JSON.stringify({

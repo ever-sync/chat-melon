@@ -38,7 +38,9 @@
       "Bash(if [ -f .env.example ])",
       "Bash(then grep -E \"EVOLUTION|WHATSAPP\" .env.example)",
       "Bash(else echo \"Arquivo não encontrado\")",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(where psql)",
+      "Bash(timeout /t 5)"
     ],
     "deny": [],
     "ask": []

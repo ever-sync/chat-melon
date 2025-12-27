@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -129,10 +130,14 @@ export function useAssistantSettings() {
     },
   });
 
-  const ensureSettings = async (companyId: string): Promise<AssistantSettings | null> => {
-    if (settings) return settings;
-    return createSettingsMutation.mutateAsync(companyId);
-  };
+  const ensureSettings = useCallback(
+    async (companyId: string): Promise<AssistantSettings | null> => {
+      if (settings) return settings;
+      return createSettingsMutation.mutateAsync(companyId);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [settings]
+  );
 
   return {
     settings,
