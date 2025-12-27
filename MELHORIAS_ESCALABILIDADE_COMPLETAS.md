@@ -61,8 +61,14 @@
   - Edge Function para refresh automático
   - Pronta para ser chamada via cron job externo
 
+#### Vercel Cron (Opcional)
+- ✅ `app/api/cron/refresh-dashboard/route.ts` - API endpoint para Vercel
+- ✅ `vercel.json` - Configuração do cron job (*/5 minutos)
+- ✅ Variável `CRON_SECRET` para segurança
+
 #### Documentação
 - ✅ `docs/DASHBOARD_REFRESH_CRON.md` - Guia completo de configuração
+- ✅ `docs/VERCEL_CRON_SETUP.md` - Guia específico para Vercel
 
 ### 4. Cache Distribuído com Redis ✅
 
@@ -132,6 +138,11 @@
 ### Documentação
 13. `docs/CONNECTION_POOLING.md`
 14. `docs/DASHBOARD_REFRESH_CRON.md`
+15. `docs/VERCEL_CRON_SETUP.md`
+
+### Vercel Cron
+16. `app/api/cron/refresh-dashboard/route.ts`
+17. `vercel.json`
 
 ## Arquivos Modificados
 
@@ -175,8 +186,14 @@ VITE_CACHE_ENABLED=true
 
 Configure um dos seguintes:
 
-1. **Vercel Cron** (se usar Vercel)
-2. **GitHub Actions** (gratuito)
+1. **Vercel Cron** (se usar Vercel) - ✅ Arquivos criados
+   - Veja `docs/VERCEL_CRON_SETUP.md` para configuração
+   - Requer Vercel Pro ou superior
+
+2. **GitHub Actions** (gratuito) - ✅ Workflow criado
+   - Veja `.github/workflows/refresh-dashboard.yml`
+   - Funciona em qualquer plano
+
 3. **pg_cron** (se disponível no plano Supabase)
 4. **Serviço externo** (cron-job.org, etc.)
 
@@ -198,7 +215,7 @@ Veja `docs/DASHBOARD_REFRESH_CRON.md` para instruções detalhadas.
 
 ## Próximos Passos (Opcional)
 
-1. Configurar cron job para refresh das views
+1. ✅ Configurar cron job para refresh das views (Vercel ou GitHub Actions)
 2. Monitorar métricas de performance
 3. Ajustar TTLs de cache conforme necessário
 4. Adicionar mais queries ao cache Redis
