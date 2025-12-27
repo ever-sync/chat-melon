@@ -17,6 +17,8 @@ import { useNotifications } from '@/hooks/ui/useNotifications';
 import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 import { ChatFilters, getDefaultFilters } from '@/types/chatFilters';
 import { useBulkConversationActions } from '@/hooks/chat/useBulkConversationActions';
+import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
+import { PAGINATION } from '@/config/constants';
 
 import type { Conversation } from '@/types/chat';
 import { cn } from '@/lib/utils';
@@ -26,10 +28,7 @@ const Chat = () => {
   const [searchParams] = useSearchParams();
   const initialConversationId = searchParams.get('conversationId');
   const { withCompanyFilter, companyId } = useCompanyQuery();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -84,61 +83,55 @@ const Chat = () => {
     if (user) setCurrentUserId(user.id);
   };
 
-  const loadConversations = useCallback(async () => {
-    // Não carregar se não houver empresa selecionada
-    if (!companyId) {
-      console.log('❌ Chat: Nenhuma empresa selecionada (companyId is null/undefined)');
-      setIsLoading(false);
-      setConversations([]);
-      setFilteredConversations([]);
-      return;
-    }
+  // Paginação de conversas
+  const conversationsQuery = usePaginatedQuery<Conversation>({
+    queryKey: ['conversations', companyId, filters],
+    queryFn: async ({ page, limit, offset }) => {
+      if (!companyId) {
+        return { data: [], count: 0 };
+      }
 
-    console.log('🔄 Chat: Carregando conversas para empresa:', companyId);
-
-    try {
-      const { data, error } = await withCompanyFilter(
-        supabase.from('conversations').select(`
+      let query = withCompanyFilter(
+        supabase
+          .from('conversations')
+          .select(
+            `
             *,
             contacts!left (
               profile_pic_url
             )
-          `)
+          `,
+            { count: 'exact' }
+          )
       )
-        .neq('status', 'closed') // Ocultar conversas encerradas
-        .order('last_message_time', { ascending: false });
+        .neq('status', 'closed')
+        .order('last_message_time', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      // Aplicar filtros no servidor quando possível
+      if (filters.status.length > 0) {
+        query = query.in('status', filters.status);
+      }
+
+      if (filters.channelType && filters.channelType !== 'all') {
+        query = query.eq('channel_type', filters.channelType);
+      }
+
+      if (filters.assignedTo === 'me' && currentUserId) {
+        query = query.eq('assigned_to', currentUserId);
+      } else if (filters.assignedTo === 'unassigned') {
+        query = query.is('assigned_to', null);
+      }
+
+      if (filters.hasUnread) {
+        query = query.gt('unread_count', 0);
+      }
+
+      const { data, error, count } = await query;
 
       if (error) {
         console.error('❌ Chat: Erro na query:', error);
         throw error;
-      }
-
-      console.log(`✅ Chat: ${data?.length || 0} conversas carregadas`);
-      console.log('📊 Chat: Primeiras 3 conversas:', data?.slice(0, 3));
-
-      // Debug adicional
-      if (data && data.length === 0) {
-        console.log('⚠️ Chat: Nenhuma conversa retornada. Verificando se existem mensagens...');
-
-        // Verificar quantas mensagens existem
-        const { data: messages, error: msgError } = await supabase
-          .from('messages')
-          .select('conversation_id, company_id', { count: 'exact' })
-          .eq('company_id', companyId)
-          .limit(5);
-
-        console.log('📨 Chat: Mensagens encontradas:', messages?.length, msgError);
-        console.log('📨 Chat: Exemplos de conversation_ids:', messages?.map(m => m.conversation_id));
-
-        // Verificar se existem conversas criadas
-        const { data: allConvs, error: convError } = await supabase
-          .from('conversations')
-          .select('id, company_id, contact_name')
-          .eq('company_id', companyId)
-          .limit(5);
-
-        console.log('💬 Chat: Conversas no banco:', allConvs?.length, convError);
-        console.log('💬 Chat: Exemplos de conversas:', allConvs);
       }
 
       // Mesclar profile_pic_url do contact na conversation
@@ -147,29 +140,25 @@ const Chat = () => {
         profile_pic_url: conv.contacts?.profile_pic_url || conv.profile_pic_url,
       }));
 
-      setConversations(conversationsWithPhotos || []);
-      setFilteredConversations(conversationsWithPhotos || []);
-    } catch (error) {
-      console.error('❌ Chat: Erro ao carregar conversas:', error);
-      toast.error('Não foi possível carregar as conversas');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [companyId, withCompanyFilter]);
+      return {
+        data: conversationsWithPhotos,
+        count: count || 0,
+      };
+    },
+    enabled: !!companyId,
+    pageSize: PAGINATION.LIST_PAGE_SIZE,
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+
+  const conversations = conversationsQuery.data || [];
+  const isLoading = conversationsQuery.isLoading;
 
   useEffect(() => {
     loadCurrentUser();
   }, []);
 
-  // Recarregar conversas quando empresa mudar
-  useEffect(() => {
-    if (companyId) {
-      loadConversations();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId]); // Only depend on companyId, loadConversations is already memoized
-
   // Realtime subscription for conversations
+  // Com paginação, o realtime apenas invalida a query para recarregar
   useEffect(() => {
     if (!companyId) return;
 
@@ -183,13 +172,10 @@ const Chat = () => {
           table: 'conversations',
           filter: `company_id=eq.${companyId}`,
         },
-        (payload) => {
-          console.log('Realtime: New conversation', payload);
-          const newConv = payload.new as Conversation;
-          // Só adicionar se não estiver fechada
-          if (newConv.status !== 'closed') {
-            setConversations((prev) => [newConv, ...prev]);
-          }
+        () => {
+          console.log('Realtime: New conversation - invalidating query');
+          // Invalidar query para recarregar (mantém página atual se for nova conversa)
+          conversationsQuery.refetch();
         }
       )
       .on(
@@ -200,25 +186,9 @@ const Chat = () => {
           table: 'conversations',
           filter: `company_id=eq.${companyId}`,
         },
-        (payload) => {
-          console.log('Realtime: Conversation updated', payload);
-          const updatedConv = payload.new as Conversation;
-
-          setConversations((prev) => {
-            // Se foi fechada, remover da lista
-            if (updatedConv.status === 'closed') {
-              return prev.filter((conv) => conv.id !== updatedConv.id);
-            }
-
-            // Se foi reaberta ou atualizada, atualizar na lista
-            const exists = prev.find((conv) => conv.id === updatedConv.id);
-            if (exists) {
-              return prev.map((conv) => (conv.id === updatedConv.id ? updatedConv : conv));
-            } else {
-              // Se não existe e não está fechada, adicionar (foi reaberta)
-              return [updatedConv, ...prev];
-            }
-          });
+        () => {
+          console.log('Realtime: Conversation updated - invalidating query');
+          conversationsQuery.refetch();
         }
       )
       .on(
@@ -229,9 +199,9 @@ const Chat = () => {
           table: 'conversations',
           filter: `company_id=eq.${companyId}`,
         },
-        (payload) => {
-          console.log('Realtime: Conversation deleted', payload);
-          setConversations((prev) => prev.filter((conv) => conv.id !== payload.old.id));
+        () => {
+          console.log('Realtime: Conversation deleted - invalidating query');
+          conversationsQuery.refetch();
         }
       )
       .subscribe((status) => {
@@ -244,14 +214,19 @@ const Chat = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId]);
+  }, [companyId, conversationsQuery]);
 
+  // Filtrar conversas no cliente (para filtros complexos que não podem ser feitos no servidor)
+  const [isSearching, setIsSearching] = useState(false);
+  
   useEffect(() => {
-    filterConversations();
-  }, [searchQuery, startDate, endDate, conversations, filters]);
-
-  const filterConversations = async () => {
     setIsSearching(true);
+    // Simular processamento de filtros
+    const timer = setTimeout(() => setIsSearching(false), 100);
+    return () => clearTimeout(timer);
+  }, [conversations, filters, searchQuery, startDate, endDate]);
+
+  const filteredConversations = useMemo(() => {
     let filtered = [...conversations];
 
     // Filtro por status (múltiplos)
@@ -419,11 +394,15 @@ const Chat = () => {
       }
     }
 
-    setFilteredConversations(filtered);
     setIsSearching(false);
-  };
+    return filtered;
+  }, [conversations, filters, searchQuery, startDate, endDate, currentUserId]);
 
+  // Buscar contagens totais (não apenas da página atual)
   const conversationCounts = useMemo(() => {
+    // Com paginação, só temos os dados da página atual
+    // Para contagens precisas, precisaríamos de uma query separada
+    // Por enquanto, usamos os dados da página atual como aproximação
     return {
       myAttendances: conversations.filter((c) => c.assigned_to === currentUserId).length,
       unread: conversations.filter((c) => c.unread_count > 0).length,
@@ -581,6 +560,16 @@ const Chat = () => {
               snoozedBadge={
                 <SnoozedConversationsBadge onSelectConversation={handleSelectFromNotification} />
               }
+              pagination={{
+                page: conversationsQuery.page,
+                pageSize: conversationsQuery.pageSize,
+                total: conversationsQuery.total,
+                totalPages: conversationsQuery.totalPages,
+                hasNext: conversationsQuery.hasNext,
+                hasPrev: conversationsQuery.hasPrev,
+                onPageChange: conversationsQuery.goToPage,
+                onPageSizeChange: conversationsQuery.setPageSize,
+              }}
             />
           </aside>
 

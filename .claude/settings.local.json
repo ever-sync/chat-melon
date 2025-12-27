@@ -40,7 +40,8 @@
       "Bash(else echo \"Arquivo não encontrado\")",
       "Bash(npm install:*)",
       "Bash(where psql)",
-      "Bash(timeout /t 5)"
+      "Bash(timeout /t 5)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

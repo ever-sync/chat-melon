@@ -18,6 +18,7 @@ import { LabelBadge } from '@/components/chat/LabelBadge';
 import { SatisfactionBadge } from '@/components/chat/SatisfactionBadge';
 import { useCompany } from '@/contexts/CompanyContext';
 import { ChannelIcon } from '@/components/chat/ChannelIcon';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 
 type ConversationListProps = {
   conversations: Conversation[];
@@ -50,6 +51,16 @@ type ConversationListProps = {
   isSelected?: (conversationId: string) => boolean;
   onSelectAll?: () => void;
   snoozedBadge?: ReactNode;
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+    onPageChange: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
+  };
 };
 
 const ConversationList = ({
@@ -74,6 +85,7 @@ const ConversationList = ({
   isSelected,
   onSelectAll,
   snoozedBadge,
+  pagination,
 }: ConversationListProps) => {
   const { currentCompany } = useCompany();
   const [showNewConversation, setShowNewConversation] = useState(false);
@@ -434,6 +446,24 @@ const ConversationList = ({
             </div>
           )}
         </div>
+
+        {/* Paginação */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="border-t border-border p-4">
+            <PaginationControls
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              totalPages={pagination.totalPages}
+              hasNext={pagination.hasNext}
+              hasPrev={pagination.hasPrev}
+              onPageChange={pagination.onPageChange}
+              onPageSizeChange={pagination.onPageSizeChange}
+              showPageSizeSelector={true}
+              showInfo={true}
+            />
+          </div>
+        )}
       </div>
 
       <NewConversationDialog open={showNewConversation} onOpenChange={setShowNewConversation} />
