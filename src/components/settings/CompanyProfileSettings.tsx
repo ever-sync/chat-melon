@@ -324,10 +324,21 @@ export function CompanyProfileSettings() {
                 <Upload className="h-4 w-4 mr-2" />
                 {uploading ? 'Enviando...' : 'Alterar Logo'}
               </Button>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">
+                  PNG, JPG, JPEG ou WebP
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Máximo 5MB
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Recomendado: 512x512px
+                </p>
+              </div>
               <input
                 id="logo-upload"
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
                 className="hidden"
                 onChange={handleLogoUpload}
               />
@@ -350,6 +361,7 @@ export function CompanyProfileSettings() {
                 <div>
                   <Label htmlFor="cnpj">
                     CNPJ <span className="text-red-500">*</span>
+                    <span className="text-xs text-muted-foreground ml-2">(não editável)</span>
                   </Label>
                   <Input
                     id="cnpj"
@@ -358,6 +370,8 @@ export function CompanyProfileSettings() {
                       setCompanyData({ ...companyData, cnpj: formatCNPJ(e.target.value) })
                     }
                     placeholder="00.000.000/0000-00"
+                    disabled
+                    className="bg-muted"
                   />
                 </div>
               </div>

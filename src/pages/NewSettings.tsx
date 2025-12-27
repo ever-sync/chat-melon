@@ -9,9 +9,16 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCompany } from '@/contexts/CompanyContext';
-import { EvolutionInstanceManager } from '@/components/evolution/EvolutionInstanceManager';
-import { InstancesList } from '@/components/settings/InstancesList';
 import { CompanyProfileSettings } from '@/components/settings/CompanyProfileSettings';
 import { PrivacySettings } from '@/components/settings/PrivacySettings';
 import { BlockedContactsManager } from '@/components/settings/BlockedContactsManager';
@@ -28,7 +35,6 @@ import { TranscriptionSettings } from '@/components/settings/TranscriptionSettin
 import { WidgetSettings } from '@/components/settings/WidgetSettings';
 import { ApiKeyManager } from '@/components/settings/ApiKeyManager';
 import { WebhookManager } from '@/components/settings/WebhookManager';
-import { ChannelsSettings } from '@/components/settings/ChannelsSettings';
 import { TabulationsManager } from '@/components/settings/TabulationsManager';
 import { VariablesManager } from '@/components/settings/VariablesManager';
 import UsersPage from '@/pages/settings/UsersPage';
@@ -40,8 +46,6 @@ import {
   Building2,
   Users,
   Bot,
-  Share2,
-  MessageSquare,
   Activity,
   Calendar,
   Mail,
@@ -61,6 +65,8 @@ import {
   CheckCircle2,
   Palette,
   Gauge,
+  Upload,
+  Camera,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -91,6 +97,12 @@ export default function NewSettings() {
     phone: '',
     message_color: '#6366f1',
   });
+  const [showEmailChangeDialog, setShowEmailChangeDialog] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [confirmNewEmail, setConfirmNewEmail] = useState('');
+  const [isChangingEmail, setIsChangingEmail] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -119,6 +131,7 @@ export default function NewSettings() {
         phone: profileData.data.phone || '',
         message_color: (profileData.data as any).message_color || '#6366f1',
       });
+      setAvatarUrl((profileData.data as any).avatar_url || '');
     }
   };
 
@@ -149,6 +162,163 @@ export default function NewSettings() {
       fetchData();
     }
     setLoading(false);
+  };
+
+  const formatPhoneNumber = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 10) {
+      // Telefone fixo: (11) 1234-5678
+      return cleaned
+        .replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3')
+        .replace(/\-$/, '');
+    } else {
+      // Celular: (11) 91234-5678
+      return cleaned
+        .replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3')
+        .replace(/\-$/, '');
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 11) {
+      setProfile({ ...profile, phone: formatPhoneNumber(value) });
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Validar tipo de arquivo
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Formato inválido', {
+          description: 'Use PNG, JPG, JPEG ou WebP',
+        });
+        return;
+      }
+
+      // Validar tamanho (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Arquivo muito grande', {
+          description: 'O tamanho máximo é 5MB',
+        });
+        return;
+      }
+
+      setUploading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Nome do arquivo único
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      // Upload para o bucket user-avatars
+      const { error: uploadError, data } = await supabase.storage
+        .from('user-avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Obter URL pública
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('user-avatars').getPublicUrl(filePath);
+
+      // Atualizar avatar_url no perfil
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast.success('Foto de perfil atualizada!');
+    } catch (error: any) {
+      console.error('Erro ao fazer upload:', error);
+      toast.error('Erro ao enviar foto', {
+        description: error.message || 'Tente novamente',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    // Validações
+    if (!newEmail || !confirmNewEmail) {
+      toast.error('Preencha ambos os campos de email');
+      return;
+    }
+
+    if (newEmail !== confirmNewEmail) {
+      toast.error('Os emails não coincidem');
+      return;
+    }
+
+    if (newEmail === profile.email) {
+      toast.error('O novo email deve ser diferente do atual');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      toast.error('Email inválido');
+      return;
+    }
+
+    setIsChangingEmail(true);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Supabase Auth envia automaticamente email de confirmação
+      const { error: updateError } = await supabase.auth.updateUser({
+        email: newEmail,
+      });
+
+      if (updateError) throw updateError;
+
+      toast.success('Email de confirmação enviado!', {
+        description: `Verifique sua caixa de entrada em ${newEmail} e clique no link para confirmar a alteração.`,
+        duration: 8000,
+      });
+
+      // Fechar o modal
+      setShowEmailChangeDialog(false);
+      setNewEmail('');
+      setConfirmNewEmail('');
+
+      // Mostrar aviso que precisa confirmar
+      setTimeout(() => {
+        toast.info('Aguardando confirmação', {
+          description: 'Seu email será atualizado assim que você confirmar no link enviado.',
+          duration: 6000,
+        });
+      }, 1000);
+    } catch (error: any) {
+      console.error('Erro ao alterar email:', error);
+      toast.error('Erro ao alterar email', {
+        description: error.message || 'Tente novamente mais tarde',
+      });
+    } finally {
+      setIsChangingEmail(false);
+    }
   };
 
   return (
@@ -249,22 +419,6 @@ export default function NewSettings() {
                   Comunicação
                 </p>
               </div>
-
-              <TabsTrigger
-                value="channels"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="font-medium">Canais</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="evolution"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span className="font-medium">WhatsApp</span>
-              </TabsTrigger>
 
               <TabsTrigger
                 value="notifications"
@@ -434,6 +588,60 @@ export default function NewSettings() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-8 space-y-6">
+                  {/* Foto de Perfil */}
+                  <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
+                    <div className="relative">
+                      <div className="h-24 w-24 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg ring-4 ring-white">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt="Avatar"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-12 w-12 text-white" />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('avatar-upload')?.click()}
+                        className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-indigo-50 transition-colors border-2 border-indigo-100"
+                        disabled={uploading}
+                      >
+                        <Camera className="h-4 w-4 text-indigo-600" />
+                      </button>
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-gray-900 mb-1">Foto de Perfil</h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Esta foto aparecerá no chat e em outras áreas do sistema
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading}
+                        onClick={() => document.getElementById('avatar-upload')?.click()}
+                        className="rounded-xl"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploading ? 'Enviando...' : 'Alterar Foto'}
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-2">
+                        PNG, JPG, JPEG ou WebP • Máximo 5MB • Recomendado: 512x512px
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="first_name" className="text-sm font-semibold">
@@ -496,15 +704,29 @@ export default function NewSettings() {
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm font-semibold">
                         Email
+                        <span className="text-xs text-muted-foreground ml-2">(não editável)</span>
                       </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="joao@empresa.com"
-                        value={profile.email}
-                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                        className="rounded-xl h-11"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="joao@empresa.com"
+                          value={profile.email}
+                          disabled
+                          className="rounded-xl h-11 bg-muted"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowEmailChangeDialog(true)}
+                          className="rounded-xl whitespace-nowrap"
+                        >
+                          Alterar Email
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        A alteração de email requer confirmação por email
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-sm font-semibold">
@@ -514,9 +736,13 @@ export default function NewSettings() {
                         id="phone"
                         placeholder="(11) 99999-9999"
                         value={profile.phone}
-                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                        onChange={handlePhoneChange}
                         className="rounded-xl h-11"
+                        maxLength={15}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Formato: (11) 91234-5678 ou (11) 1234-5678
+                      </p>
                     </div>
                   </div>
 
@@ -614,14 +840,6 @@ export default function NewSettings() {
               {companyId && <AssistantSettings companyId={companyId} />}
             </TabsContent>
 
-            <TabsContent value="channels" className="m-0">
-              <ChannelsSettings />
-            </TabsContent>
-
-            <TabsContent value="evolution" className="m-0">
-              <InstancesList />
-            </TabsContent>
-
             <TabsContent value="health" className="m-0">
               <InstanceHealthDashboard />
             </TabsContent>
@@ -684,6 +902,87 @@ export default function NewSettings() {
 
           </div>
         </Tabs>
+
+        {/* Modal de Alteração de Email */}
+        <Dialog open={showEmailChangeDialog} onOpenChange={setShowEmailChangeDialog}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">Alterar Email</DialogTitle>
+              <DialogDescription>
+                Por questões de segurança, você receberá um email de confirmação no novo endereço.
+                O email será atualizado em todas as empresas vinculadas.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <Alert>
+                <AlertDescription className="text-sm">
+                  <strong>Email atual:</strong> {profile.email}
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Label htmlFor="new-email" className="text-sm font-semibold">
+                  Novo Email *
+                </Label>
+                <Input
+                  id="new-email"
+                  type="email"
+                  placeholder="novo@email.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="rounded-xl h-11"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-email" className="text-sm font-semibold">
+                  Confirme o Novo Email *
+                </Label>
+                <Input
+                  id="confirm-email"
+                  type="email"
+                  placeholder="novo@email.com"
+                  value={confirmNewEmail}
+                  onChange={(e) => setConfirmNewEmail(e.target.value)}
+                  className="rounded-xl h-11"
+                  autoComplete="off"
+                />
+              </div>
+
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertDescription className="text-sm text-blue-800">
+                  <strong>Importante:</strong> Após confirmar, você receberá um email com um link de verificação.
+                  Clique no link para completar a alteração. Até lá, seu email atual continuará ativo.
+                </AlertDescription>
+              </Alert>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowEmailChangeDialog(false);
+                  setNewEmail('');
+                  setConfirmNewEmail('');
+                }}
+                disabled={isChangingEmail}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleChangeEmail}
+                disabled={isChangingEmail || !newEmail || !confirmNewEmail}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600"
+              >
+                {isChangingEmail ? 'Enviando...' : 'Confirmar Alteração'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );

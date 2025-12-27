@@ -105,7 +105,8 @@ export default function SignUp() {
           return;
         }
 
-        // Create Supabase auth user
+        // Try to sign up (create new user)
+        console.log('Tentando criar novo usuário...');
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: personalData.email,
           password: personalData.password,
@@ -118,43 +119,98 @@ export default function SignUp() {
           },
         });
 
-        if (authError) throw authError;
+        let userId: string | null = null;
 
-        if (authData.user) {
-          // Update invite status to accepted
-          const { error: updateError } = await supabase
-            .from('company_invites')
-            .update({ status: 'accepted' })
-            .eq('id', inviteId);
+        // Se deu erro de usuário já existente, tentar fazer login
+        if (authError) {
+          // Detecta vários tipos de erro de usuário duplicado
+          const isDuplicateUser = authError.message.includes('already registered') ||
+                                  authError.message.includes('User already registered') ||
+                                  authError.message.includes('Database error updating user') ||
+                                  authError.status === 500;
 
-          if (updateError) {
-            console.error('Erro ao atualizar convite:', updateError);
-          }
+          if (isDuplicateUser) {
+            console.log('Usuário já existe, fazendo login...');
 
-          // Create company member
-          const { error: memberError } = await supabase
-            .from('company_members')
-            .insert({
-              user_id: authData.user.id,
-              company_id: inviteData.company_id,
-              role: inviteData.role,
-              display_name: personalData.fullName,
+            // Tentar fazer login
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
               email: personalData.email,
-              phone: personalData.phone,
-              is_active: true,
+              password: personalData.password,
             });
 
-          if (memberError) {
-            console.error('Erro ao criar membro:', memberError);
-            toast.error('Erro ao adicionar você à empresa');
-            setLoading(false);
-            return;
-          }
+            if (loginError) {
+              toast.error('Credenciais inválidas. Este email já está cadastrado com outra senha.');
+              setLoading(false);
+              return;
+            }
 
-          toast.success('Conta criada com sucesso! Redirecionando...', { duration: 3000 });
-          // Redirect to dashboard directly (user is already authenticated)
-          setTimeout(() => navigate('/dashboard'), 1500);
+            userId = loginData.user?.id || null;
+          } else {
+            // Outro erro que não é de usuário duplicado
+            throw authError;
+          }
+        } else {
+          userId = authData.user?.id || null;
         }
+
+        if (!userId) {
+          toast.error('Erro ao criar/autenticar usuário');
+          setLoading(false);
+          return;
+        }
+
+        console.log('Usuário autenticado, ID:', userId);
+
+        // Update invite status to accepted
+        const { error: updateError } = await supabase
+          .from('company_invites')
+          .update({ status: 'accepted' })
+          .eq('id', inviteId);
+
+        if (updateError) {
+          console.error('Erro ao atualizar convite:', updateError);
+        }
+
+        // Check if user is already a member
+        const { data: existingMember } = await supabase
+          .from('company_members')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('company_id', inviteData.company_id)
+          .maybeSingle();
+
+        if (existingMember) {
+          console.log('Usuário já é membro desta empresa');
+          toast.success('Você já faz parte desta empresa! Redirecionando...', { duration: 3000 });
+          setTimeout(() => navigate('/dashboard'), 1500);
+          return;
+        }
+
+        // Create company member
+        console.log('Adicionando usuário à empresa...');
+        const { error: memberError } = await supabase
+          .from('company_members')
+          .insert({
+            user_id: userId,
+            company_id: inviteData.company_id,
+            role: inviteData.role,
+            display_name: personalData.fullName,
+            email: personalData.email,
+            phone: personalData.phone,
+            is_active: true,
+          });
+
+        if (memberError) {
+          console.error('Erro ao criar membro:', memberError);
+          toast.error('Erro ao adicionar você à empresa: ' + memberError.message);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Usuário adicionado à empresa com sucesso!');
+        toast.success('Conta criada com sucesso! Redirecionando...', { duration: 3000 });
+        // Redirect to dashboard directly (user is already authenticated)
+        setTimeout(() => navigate('/dashboard'), 1500);
       } else {
         // Normal signup without invite
         const { data, error } = await supabase.auth.signUp({

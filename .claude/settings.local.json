@@ -33,7 +33,11 @@
       "Bash(ls:*)",
       "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\supabase\\migrations\\20251223000010_ai_assistant_tables_backup.sql\")",
       "Bash(del \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\src\\pages\\api\\chatbot\\generate-flow.ts\")",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(then grep -E \"EVOLUTION|WHATSAPP\" .env)",
+      "Bash(if [ -f .env.example ])",
+      "Bash(then grep -E \"EVOLUTION|WHATSAPP\" .env.example)",
+      "Bash(else echo \"Arquivo não encontrado\")"
     ],
     "deny": [],
     "ask": []

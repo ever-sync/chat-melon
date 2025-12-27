@@ -101,6 +101,9 @@ export default function Channels() {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [configData, setConfigData] = useState<Record<string, any>>({});
   const [testingConnection, setTestingConnection] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [qrCodeData, setQRCodeData] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
 
   // Fetch channels
   const { data: channels = [], isLoading } = useQuery({
@@ -182,6 +185,141 @@ export default function Channels() {
     },
   });
 
+  const handleConnectWhatsApp = async () => {
+    if (!currentCompany?.cnpj) {
+      toast.error('CNPJ da empresa não configurado');
+      return;
+    }
+
+    // Buscar credenciais da Evolution das variáveis de ambiente
+    const evolutionApiUrl = import.meta.env.VITE_EVOLUTION_API_URL || import.meta.env.VITE_WHATSAPP_API_URL;
+    const evolutionApiKey = import.meta.env.VITE_EVOLUTION_API_KEY || import.meta.env.VITE_WHATSAPP_API_KEY;
+
+    if (!evolutionApiUrl || !evolutionApiKey) {
+      toast.error('Configuração da Evolution API não encontrada. Entre em contato com o suporte.');
+      return;
+    }
+
+    setConnecting(true);
+    try {
+      // Usar o CNPJ (somente números) como nome da instância
+      const instanceName = currentCompany.cnpj.replace(/\D/g, '');
+
+      // Verificar se já existe configuração para esta empresa
+      const { data: existing } = await supabase
+        .from('evolution_settings')
+        .select('id')
+        .eq('company_id', currentCompany?.id)
+        .single();
+
+      let evolutionError;
+
+      if (existing) {
+        // Atualizar existente
+        const { error } = await supabase
+          .from('evolution_settings')
+          .update({
+            instance_name: instanceName,
+            api_url: evolutionApiUrl,
+            api_key: evolutionApiKey,
+            is_connected: false,
+            instance_status: 'connecting',
+          })
+          .eq('company_id', currentCompany?.id);
+        evolutionError = error;
+      } else {
+        // Criar novo
+        const { error } = await supabase
+          .from('evolution_settings')
+          .insert({
+            company_id: currentCompany?.id,
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+            instance_name: instanceName,
+            api_url: evolutionApiUrl,
+            api_key: evolutionApiKey,
+            is_connected: false,
+            instance_status: 'connecting',
+          });
+        evolutionError = error;
+      }
+
+      if (evolutionError) throw evolutionError;
+
+      // Criar ou conectar instância na Evolution API
+      console.log('🔄 Tentando criar instância:', instanceName);
+      console.log('📍 URL:', `${evolutionApiUrl}/instance/create`);
+
+      const response = await fetch(`${evolutionApiUrl}/instance/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': evolutionApiKey,
+        },
+        body: JSON.stringify({
+          instanceName: instanceName,
+          qrcode: true,
+          integration: 'WHATSAPP-BAILEYS', // ou 'WHATSAPP-BUSINESS' dependendo da sua Evolution
+        }),
+      });
+
+      console.log('📊 Response status:', response.status);
+
+      let data;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Erro da Evolution API:', errorData);
+
+        // Se a instância já existe, tentar conectar
+        if (response.status === 400 && errorData.message?.includes('already exists')) {
+          console.log('⚠️ Instância já existe, tentando conectar...');
+          const connectResponse = await fetch(`${evolutionApiUrl}/instance/connect/${instanceName}`, {
+            method: 'GET',
+            headers: {
+              'apikey': evolutionApiKey,
+            },
+          });
+
+          if (!connectResponse.ok) {
+            throw new Error('Erro ao conectar à instância existente');
+          }
+
+          data = await connectResponse.json();
+        } else {
+          throw new Error(errorData.message || `Erro ${response.status}: ${response.statusText}`);
+        }
+      } else {
+        data = await response.json();
+      }
+
+      console.log('✅ Resposta da Evolution API:', data);
+
+      // Exibir QR Code
+      if (data.qrcode?.base64) {
+        setQRCodeData(data.qrcode.base64);
+        setShowQRCode(true);
+        setShowAddDialog(false);
+
+        // Criar canal no banco de dados
+        const credentials = {
+          instance_name: instanceName,
+          api_url: evolutionApiUrl,
+        };
+        const name = `WhatsApp - ${currentCompany.name}`;
+
+        createChannel.mutate({ type: 'whatsapp', name, credentials });
+
+        toast.success('Escaneie o QR Code com seu WhatsApp!');
+      } else {
+        toast.info('Instância já conectada ou aguardando conexão');
+      }
+    } catch (error: any) {
+      console.error('Error connecting WhatsApp:', error);
+      toast.error(error.message || 'Erro ao conectar WhatsApp');
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   const handleAddChannel = async () => {
     if (!selectedType) return;
 
@@ -189,67 +327,9 @@ export default function Channels() {
     let name = channelConfig[selectedType as keyof typeof channelConfig]?.name || selectedType;
 
     if (selectedType === 'whatsapp') {
-      // Validação dos campos obrigatórios
-      if (!configData.instance_name || !configData.api_url || !configData.api_key) {
-        toast.error('Preencha todos os campos obrigatórios');
-        return;
-      }
-
-      try {
-        // Verificar se já existe configuração para esta empresa
-        const { data: existing } = await supabase
-          .from('evolution_settings')
-          .select('id')
-          .eq('company_id', currentCompany?.id)
-          .single();
-
-        let evolutionError;
-
-        if (existing) {
-          // Atualizar existente
-          const { error } = await supabase
-            .from('evolution_settings')
-            .update({
-              instance_name: configData.instance_name,
-              api_url: configData.api_url,
-              api_key: configData.api_key,
-              webhook_url: configData.webhook_url || `${window.location.origin}/api/evolution/webhook`,
-              reject_calls: configData.reject_calls !== false,
-              read_messages: configData.read_messages !== false,
-              is_connected: false,
-            })
-            .eq('company_id', currentCompany?.id);
-          evolutionError = error;
-        } else {
-          // Criar novo
-          const { error } = await supabase
-            .from('evolution_settings')
-            .insert({
-              company_id: currentCompany?.id,
-              instance_name: configData.instance_name,
-              api_url: configData.api_url,
-              api_key: configData.api_key,
-              webhook_url: configData.webhook_url || `${window.location.origin}/api/evolution/webhook`,
-              reject_calls: configData.reject_calls !== false,
-              read_messages: configData.read_messages !== false,
-              is_connected: false,
-            });
-          evolutionError = error;
-        }
-
-        if (evolutionError) throw evolutionError;
-
-        credentials = {
-          instance_name: configData.instance_name,
-          api_url: configData.api_url,
-        };
-        name = `WhatsApp - ${configData.instance_name}`;
-
-        toast.success('Configurações do WhatsApp salvas!');
-      } catch (error: any) {
-        toast.error(error.message || 'Erro ao salvar configurações');
-        return;
-      }
+      // Para WhatsApp, usar a função específica
+      handleConnectWhatsApp();
+      return;
     } else if (selectedType === 'instagram') {
       credentials = {
         instagram_id: configData.instagram_id,
@@ -641,130 +721,31 @@ export default function Channels() {
 
               {selectedType === 'whatsapp' && (
                 <>
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
-                    <p className="text-sm text-green-800 mb-2">
-                      <strong>Conecte via Evolution API</strong>
+                  <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-center mb-4">
+                      <MessageSquare className="h-16 w-16 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-green-900 text-center mb-2">
+                      Conecte seu WhatsApp
+                    </h3>
+                    <p className="text-sm text-green-800 text-center mb-4">
+                      Sua instância será criada automaticamente usando o CNPJ da empresa
                     </p>
-                    <p className="text-xs text-green-700">
-                      Insira as credenciais para conectar este canal
+                    <div className="bg-white rounded-lg p-4 border border-green-300">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">Instância:</span>
+                        <span className="text-sm font-mono text-green-700">
+                          {currentCompany?.cnpj?.replace(/\D/g, '') || 'Configure o CNPJ primeiro'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm font-medium text-gray-700">Empresa:</span>
+                        <span className="text-sm text-gray-600">{currentCompany?.name}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-green-700 text-center mt-4">
+                      Após clicar em conectar, você receberá um QR Code para escanear com seu WhatsApp
                     </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="instance_name">Nome da Instância *</Label>
-                      <Input
-                        id="instance_name"
-                        placeholder="Ex: meuchat"
-                        value={configData.instance_name || ''}
-                        onChange={(e) =>
-                          setConfigData({ ...configData, instance_name: e.target.value })
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Nome único da sua instância na Evolution API
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="api_url">URL da Evolution API *</Label>
-                      <Input
-                        id="api_url"
-                        type="url"
-                        placeholder="https://api.evolution.com"
-                        value={configData.api_url || ''}
-                        onChange={(e) =>
-                          setConfigData({ ...configData, api_url: e.target.value })
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        URL base da sua Evolution API
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="api_key">API Key *</Label>
-                      <Input
-                        id="api_key"
-                        type="password"
-                        placeholder="sua-api-key-aqui"
-                        value={configData.api_key || ''}
-                        onChange={(e) =>
-                          setConfigData({ ...configData, api_key: e.target.value })
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Chave de autenticação da Evolution API
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="webhook_url">Webhook URL</Label>
-                      <Input
-                        id="webhook_url"
-                        type="url"
-                        placeholder={`${window.location.origin}/api/evolution/webhook`}
-                        value={configData.webhook_url || `${window.location.origin}/api/evolution/webhook`}
-                        onChange={(e) =>
-                          setConfigData({ ...configData, webhook_url: e.target.value })
-                        }
-                        disabled
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        URL do webhook (gerada automaticamente)
-                      </p>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="reject_calls"
-                        checked={configData.reject_calls !== false}
-                        onCheckedChange={(checked) =>
-                          setConfigData({ ...configData, reject_calls: checked })
-                        }
-                      />
-                      <Label htmlFor="reject_calls" className="cursor-pointer">
-                        Rejeitar chamadas automaticamente
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="read_messages"
-                        checked={configData.read_messages !== false}
-                        onCheckedChange={(checked) =>
-                          setConfigData({ ...configData, read_messages: checked })
-                        }
-                      />
-                      <Label htmlFor="read_messages" className="cursor-pointer">
-                        Marcar mensagens como lidas automaticamente
-                      </Label>
-                    </div>
-
-                    <div className="pt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={testWhatsAppConnection}
-                        disabled={testingConnection}
-                      >
-                        {testingConnection ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Testando conexão...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Testar Conexão
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-2 text-center">
-                        Clique para verificar se a Evolution API está acessível
-                      </p>
-                    </div>
                   </div>
                 </>
               )}
@@ -806,11 +787,63 @@ export default function Channels() {
               Cancelar
             </Button>
             {selectedType && ['instagram', 'messenger', 'whatsapp'].includes(selectedType) && (
-              <Button onClick={handleAddChannel} disabled={createChannel.isPending}>
-                {createChannel.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              <Button onClick={handleAddChannel} disabled={connecting || createChannel.isPending}>
+                {(connecting || createChannel.isPending) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {selectedType === 'whatsapp' ? 'Conectar WhatsApp' : 'Salvar Canal'}
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Dialog */}
+      <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Escaneie o QR Code</DialogTitle>
+            <DialogDescription>
+              Abra o WhatsApp no seu celular e escaneie este código para conectar
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center justify-center p-6 space-y-4">
+            {qrCodeData ? (
+              <>
+                <div className="p-4 bg-white rounded-lg border-2 border-green-500">
+                  <img
+                    src={qrCodeData}
+                    alt="QR Code WhatsApp"
+                    className="w-64 h-64"
+                  />
+                </div>
+                <div className="text-center space-y-2">
+                  <p className="text-sm font-medium">Como escanear:</p>
+                  <ol className="text-xs text-muted-foreground space-y-1 text-left">
+                    <li>1. Abra o WhatsApp no seu celular</li>
+                    <li>2. Toque em Menu ou Configurações</li>
+                    <li>3. Toque em Aparelhos conectados</li>
+                    <li>4. Toque em Conectar um aparelho</li>
+                    <li>5. Aponte seu celular para esta tela</li>
+                  </ol>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowQRCode(false);
+                setQRCodeData(null);
+              }}
+            >
+              Fechar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -355,6 +355,19 @@ export function AppSidebar() {
           </SidebarMenuButton>
 
           <SidebarMenuButton
+            onClick={() => window.open('https://wa.me/5511999999999?text=Olá,%20preciso%20de%20ajuda%20com%20o%20sistema', '_blank')}
+            tooltip={state === 'collapsed' ? 'Suporte' : undefined}
+            className="h-9 rounded-md hover:bg-green-500/10 text-gray-400 hover:text-green-400 transition-colors"
+          >
+            <div
+              className={`flex items-center w-full ${state === 'expanded' ? 'gap-3 px-2' : 'justify-center'}`}
+            >
+              <HelpCircle className="h-4 w-4 opacity-70" />
+              {state === 'expanded' && <span className="text-xs font-medium">Suporte</span>}
+            </div>
+          </SidebarMenuButton>
+
+          <SidebarMenuButton
             onClick={handleLogout}
             tooltip={state === 'collapsed' ? 'Sair' : undefined}
             className="h-9 rounded-md hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors mt-1"
