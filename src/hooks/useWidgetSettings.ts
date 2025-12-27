@@ -149,7 +149,7 @@ export const useWidgetSettings = () => {
     // Use Vercel URL for production, local for development
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168');
     const widgetBaseUrl = isLocalhost ? window.location.origin : 'https://chat-melon.vercel.app';
-    const widgetUrl = `${widgetBaseUrl}/widget/v1/widget.js`;  
+    const widgetUrl = `${widgetBaseUrl}/widget/v1/widget.js?v=${Date.now()}`;
     const apiUrl = `${supabaseUrl}/functions/v1/widget-api`;
 
     return `<!-- MelonChat Widget -->

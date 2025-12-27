@@ -273,7 +273,7 @@
                 };
 
                 const script = document.createElement("script");
-                script.src = "/widget/v1/widget.js";
+                script.src = "/widget/v1/widget.js?v=" + Date.now();
                 script.async = true;
                 script.onload = function () {
                     statusEl.className = "status success";

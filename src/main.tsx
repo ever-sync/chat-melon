@@ -10,10 +10,10 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       .then((registration) => {
         console.log('Service Worker registrado com sucesso:', registration.scope);
 
-        // Verifica atualizações periodicamente
+        // Verifica atualizações periodicamente (otimizado: a cada 5 minutos)
         setInterval(() => {
           registration.update();
-        }, 60000); // A cada 1 minuto
+        }, 5 * 60000); // A cada 5 minutos (reduzido de 1 minuto para melhor performance)
       })
       .catch((error) => {
         console.log('Erro ao registrar Service Worker:', error);
