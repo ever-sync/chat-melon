@@ -20,12 +20,24 @@ serve(async (req) => {
     // Handle OAuth callback from Google (GET request with code and state)
     const url = new URL(req.url);
     const callbackCode = url.searchParams.get('code');
-    const callbackState = url.searchParams.get('state'); // This is the userId
+    const callbackState = url.searchParams.get('state'); // Format: userId:companyId
 
     if (req.method === 'GET' && callbackCode && callbackState) {
       const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')!;
       const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')!;
       const REDIRECT_URI = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-oauth`;
+
+      // Parse state to get userId and companyId
+      const [userId, companyId] = callbackState.split(':');
+
+      if (!userId || !companyId) {
+        return new Response(
+          `<html><body><p>Erro: State inválido (userId ou companyId ausente)</p></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+
+      console.log('🔐 OAuth callback received:', { userId, companyId });
 
       // Exchange code for tokens
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -56,23 +68,34 @@ serve(async (req) => {
       );
       const userInfo = await userInfoResponse.json();
 
-      console.log('User info from Google:', userInfo);
+      console.log('📧 User info from Google:', userInfo);
 
       const userEmail = userInfo.email || 'connected';
 
-      // Save tokens to user profile
-      await supabase
-        .from('profiles')
-        .update({
-          google_calendar_token: {
-            access_token: tokens.access_token,
-            expires_at: Date.now() + tokens.expires_in * 1000,
-          },
-          google_calendar_refresh_token: tokens.refresh_token,
-          google_calendar_connected: true,
-          google_calendar_email: userEmail,
-        })
-        .eq('id', callbackState);
+      // 🔥 IMPORTANTE: Salvar na nova tabela google_calendar_tokens (isolado por empresa)
+      const { error: upsertError } = await supabase
+        .from('google_calendar_tokens')
+        .upsert({
+          user_id: userId,
+          company_id: companyId,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          token_expiry: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+          google_email: userEmail,
+          connected_at: new Date().toISOString(),
+        }, {
+          onConflict: 'company_id,user_id' // Atualiza se já existir
+        });
+
+      if (upsertError) {
+        console.error('❌ Erro ao salvar token:', upsertError);
+        return new Response(
+          `<html><body><p>Erro ao salvar conexão: ${upsertError.message}</p></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+
+      console.log('✅ Token salvo com sucesso para empresa:', companyId);
 
       // Return HTML that closes popup and notifies parent window
       return new Response(
@@ -91,18 +114,28 @@ serve(async (req) => {
       );
     }
 
-    const { action, code, userId } = await req.json();
+    const { action, code, userId, companyId } = await req.json();
 
     const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')!;
     const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')!;
     const REDIRECT_URI = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-oauth`;
 
     if (action === 'get_auth_url') {
-      // Gera URL de autorização
+      // Valida que companyId foi fornecido
+      if (!companyId) {
+        throw new Error('companyId é obrigatório');
+      }
+
+      console.log('📅 Generating auth URL:', { userId, companyId });
+
+      // Gera URL de autorização com userId:companyId no state
       const scopes = [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/calendar.events',
       ].join(' ');
+
+      // 🔥 IMPORTANTE: State agora inclui userId E companyId
+      const state = `${userId}:${companyId}`;
 
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${GOOGLE_CLIENT_ID}&` +
@@ -111,7 +144,7 @@ serve(async (req) => {
         `scope=${encodeURIComponent(scopes)}&` +
         `access_type=offline&` +
         `prompt=consent&` +
-        `state=${userId}`;
+        `state=${encodeURIComponent(state)}`;
 
       return new Response(
         JSON.stringify({ authUrl }),
@@ -171,15 +204,23 @@ serve(async (req) => {
     }
 
     if (action === 'refresh_token') {
-      // Busca refresh token do usuário
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('google_calendar_refresh_token')
-        .eq('id', userId)
-        .single();
+      // Valida que companyId foi fornecido
+      if (!companyId) {
+        throw new Error('companyId é obrigatório');
+      }
 
-      if (!profile?.google_calendar_refresh_token) {
-        throw new Error('No refresh token found');
+      console.log('🔄 Refreshing token:', { userId, companyId });
+
+      // 🔥 IMPORTANTE: Buscar refresh token da nova tabela (isolado por empresa)
+      const { data: tokenData } = await supabase
+        .from('google_calendar_tokens')
+        .select('refresh_token')
+        .eq('user_id', userId)
+        .eq('company_id', companyId)
+        .maybeSingle();
+
+      if (!tokenData?.refresh_token) {
+        throw new Error('No refresh token found for this user and company');
       }
 
       // Atualiza o token
@@ -187,7 +228,7 @@ serve(async (req) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          refresh_token: profile.google_calendar_refresh_token,
+          refresh_token: tokenData.refresh_token,
           client_id: GOOGLE_CLIENT_ID,
           client_secret: GOOGLE_CLIENT_SECRET,
           grant_type: 'refresh_token',
@@ -196,16 +237,22 @@ serve(async (req) => {
 
       const tokens = await tokenResponse.json();
 
-      // Salva novo access token
+      if (tokens.error) {
+        throw new Error(tokens.error_description || tokens.error);
+      }
+
+      // 🔥 IMPORTANTE: Atualizar access token na nova tabela
       await supabase
-        .from('profiles')
+        .from('google_calendar_tokens')
         .update({
-          google_calendar_token: {
-            access_token: tokens.access_token,
-            expires_at: Date.now() + tokens.expires_in * 1000,
-          },
+          access_token: tokens.access_token,
+          token_expiry: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+          last_sync_at: new Date().toISOString(),
         })
-        .eq('id', userId);
+        .eq('user_id', userId)
+        .eq('company_id', companyId);
+
+      console.log('✅ Token refreshed successfully');
 
       return new Response(
         JSON.stringify({ access_token: tokens.access_token }),
@@ -214,16 +261,26 @@ serve(async (req) => {
     }
 
     if (action === 'disconnect') {
-      // Desconecta o Google Calendar
-      await supabase
-        .from('profiles')
-        .update({
-          google_calendar_token: null,
-          google_calendar_refresh_token: null,
-          google_calendar_connected: false,
-          google_calendar_email: null,
-        })
-        .eq('id', userId);
+      // Valida que companyId foi fornecido
+      if (!companyId) {
+        throw new Error('companyId é obrigatório');
+      }
+
+      console.log('🔌 Disconnecting Google Calendar:', { userId, companyId });
+
+      // 🔥 IMPORTANTE: Deletar da tabela google_calendar_tokens (isolado por empresa)
+      const { error: deleteError } = await supabase
+        .from('google_calendar_tokens')
+        .delete()
+        .eq('user_id', userId)
+        .eq('company_id', companyId);
+
+      if (deleteError) {
+        console.error('❌ Erro ao desconectar:', deleteError);
+        throw deleteError;
+      }
+
+      console.log('✅ Google Calendar desconectado com sucesso');
 
       return new Response(
         JSON.stringify({ success: true }),

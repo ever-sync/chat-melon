@@ -29,6 +29,7 @@ import {
   Target,
   Library,
   Calendar,
+  Radio,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import React from 'react';
@@ -97,6 +98,12 @@ export function AppSidebar() {
       title: 'Conversas',
       url: '/chat',
       icon: MessageSquare,
+      featureKey: 'chat',
+    },
+    {
+      title: 'Canais',
+      url: '/channels',
+      icon: Radio,
       featureKey: 'chat',
     },
     {

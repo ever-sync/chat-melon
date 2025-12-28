@@ -146,6 +146,9 @@ export default function Channels() {
         .eq('type', 'whatsapp')
         .single();
 
+      // Verificar se acabou de conectar (mudou de disconnected para connected)
+      const justConnected = channelData && channelData.status !== 'connected' && isConnected;
+
       if (channelData && channelData.status !== newStatus) {
         // Atualiza o status do canal
         const { error } = await (supabase.from('channels' as any) as any)
@@ -155,7 +158,7 @@ export default function Channels() {
         if (!error) {
           console.log('✅ Status do canal atualizado para:', newStatus);
           queryClient.invalidateQueries({ queryKey: ['channels'] });
-          
+
           if (isConnected && showToast) {
             toast.success('WhatsApp conectado com sucesso!');
             setShowQRCode(false);
@@ -167,11 +170,101 @@ export default function Channels() {
       // Também atualizar evolution_settings
       await supabase
         .from('evolution_settings')
-        .update({ 
-          is_connected: isConnected, 
-          instance_status: isConnected ? 'connected' : 'disconnected' 
+        .update({
+          is_connected: isConnected,
+          instance_status: isConnected ? 'connected' : 'disconnected'
         })
         .eq('company_id', currentCompany.id);
+
+      // 🔥 SE ACABOU DE CONECTAR: Reconfigurar webhook e settings
+      if (justConnected) {
+        console.log('🎉 WhatsApp acabou de conectar! Configurando webhook e settings...');
+
+        // 1. Reconfigurar WEBHOOK
+        try {
+          const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-webhook`;
+          console.log('🔧 Reconfigurando webhook:', webhookUrl);
+
+          const webhookResponse = await fetch(`${evolutionApiUrl}/webhook/set/${instanceName}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionApiKey,
+            },
+            body: JSON.stringify({
+              url: webhookUrl,
+              webhook_by_events: true,
+              webhook_base64: true,
+              events: [
+                'APPLICATION_STARTUP',
+                'QRCODE_UPDATED',
+                'MESSAGES_SET',
+                'MESSAGES_UPSERT',
+                'MESSAGES_UPDATE',
+                'MESSAGES_DELETE',
+                'SEND_MESSAGE',
+                'CONTACTS_SET',
+                'CONTACTS_UPSERT',
+                'CONTACTS_UPDATE',
+                'PRESENCE_UPDATE',
+                'CHATS_SET',
+                'CHATS_UPSERT',
+                'CHATS_UPDATE',
+                'CHATS_DELETE',
+                'CONNECTION_UPDATE',
+                'GROUPS_UPSERT',
+                'GROUP_UPDATE',
+                'GROUP_PARTICIPANTS_UPDATE',
+                'CALL',
+                'NEW_JWT_TOKEN',
+              ],
+            }),
+          });
+
+          if (webhookResponse.ok) {
+            console.log('✅ Webhook reconfigurado com sucesso!');
+            toast.success('✅ Webhook configurado automaticamente!');
+          } else {
+            const errorText = await webhookResponse.text();
+            console.error('⚠️ Erro ao reconfigurar webhook:', errorText);
+            toast.warning('⚠️ Erro ao configurar webhook. Configure manualmente.');
+          }
+        } catch (webhookError) {
+          console.error('⚠️ Erro ao reconfigurar webhook:', webhookError);
+        }
+
+        // 2. Configurar SETTINGS da instância
+        try {
+          console.log('⚙️ Configurando settings da instância...');
+
+          const settingsResponse = await fetch(`${evolutionApiUrl}/settings/set/${instanceName}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionApiKey,
+            },
+            body: JSON.stringify({
+              reject_call: false,
+              msg_call: 'Desculpe, não posso atender chamadas no momento.',
+              groups_ignore: true,
+              always_online: true,
+              read_messages: true,
+              read_status: false,
+              sync_full_history: false,
+            }),
+          });
+
+          if (settingsResponse.ok) {
+            console.log('✅ Settings configurados com sucesso!');
+            toast.success('✅ Configurações aplicadas automaticamente!');
+          } else {
+            const errorText = await settingsResponse.text();
+            console.error('⚠️ Erro ao configurar settings:', errorText);
+          }
+        } catch (settingsError) {
+          console.error('⚠️ Erro ao configurar settings:', settingsError);
+        }
+      }
 
     } catch (error) {
       console.error('Erro ao verificar status:', error);
@@ -339,10 +432,29 @@ export default function Channels() {
 
       if (evolutionError) throw evolutionError;
 
-      // Criar ou conectar instância na Evolution API
-      console.log('🔄 Tentando criar instância:', instanceName);
-      console.log('📍 URL:', `${evolutionApiUrl}/instance/create`);
+      // Primeiro, tentar deletar instância existente (se houver)
+      console.log('🗑️ Tentando deletar instância existente:', instanceName);
+      try {
+        await fetch(`${evolutionApiUrl}/instance/delete/${instanceName}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': evolutionApiKey,
+          },
+        });
+        console.log('✅ Instância antiga deletada (se existia)');
+        // Aguardar um pouco para garantir que foi deletada
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (deleteError) {
+        console.log('ℹ️ Nenhuma instância para deletar ou erro ao deletar:', deleteError);
+      }
 
+      // Criar nova instância na Evolution API
+      console.log('🔄 Criando nova instância:', instanceName);
+      console.log('📍 URL:', `${evolutionApiUrl}/instance/create`);
+      console.log('🔑 API Key:', evolutionApiKey.substring(0, 10) + '...');
+
+      // Primeiro criar a instância SEM configurar webhook
+      // O webhook será configurado depois automaticamente
       const response = await fetch(`${evolutionApiUrl}/instance/create`, {
         method: 'POST',
         headers: {
@@ -352,7 +464,7 @@ export default function Channels() {
         body: JSON.stringify({
           instanceName: instanceName,
           qrcode: true,
-          integration: 'WHATSAPP-BAILEYS', // ou 'WHATSAPP-BUSINESS' dependendo da sua Evolution
+          integration: 'WHATSAPP-BAILEYS',
         }),
       });
 
@@ -360,32 +472,86 @@ export default function Channels() {
 
       let data;
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorText = await response.text();
+        console.error('❌ Resposta completa:', errorText);
+
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
+
         console.error('❌ Erro da Evolution API:', errorData);
 
-        // Se a instância já existe, tentar conectar
-        if (response.status === 400 && errorData.message?.includes('already exists')) {
-          console.log('⚠️ Instância já existe, tentando conectar...');
-          const connectResponse = await fetch(`${evolutionApiUrl}/instance/connect/${instanceName}`, {
+        // Mensagens de erro mais claras
+        if (response.status === 403) {
+          throw new Error('API Key inválida ou sem permissão. Verifique a chave da Evolution API.');
+        } else if (response.status === 400 && errorData.message?.includes('already exists')) {
+          // Se ainda assim já existe, tentar buscar o QR Code
+          console.log('⚠️ Instância já existe, buscando informações...');
+          const fetchResponse = await fetch(`${evolutionApiUrl}/instance/fetchInstances`, {
             method: 'GET',
             headers: {
               'apikey': evolutionApiKey,
             },
           });
 
-          if (!connectResponse.ok) {
-            throw new Error('Erro ao conectar à instância existente');
+          if (fetchResponse.ok) {
+            const instances = await fetchResponse.json();
+            const existing = instances.find((i: any) => i.instanceName === instanceName);
+            if (existing && existing.qrcode?.base64) {
+              data = existing;
+            } else {
+              throw new Error('Instância existe mas não tem QR Code disponível. Tente fazer logout primeiro.');
+            }
+          } else {
+            throw new Error('Erro ao buscar instância existente');
           }
-
-          data = await connectResponse.json();
         } else {
-          throw new Error(errorData.message || `Erro ${response.status}: ${response.statusText}`);
+          throw new Error(errorData.message || `Erro ${response.status}: ${errorData.error || response.statusText}`);
         }
       } else {
         data = await response.json();
       }
 
       console.log('✅ Resposta da Evolution API:', data);
+
+      // Configurar webhook DEPOIS de criar a instância
+      try {
+        console.log('🔧 Configurando webhook para a instância...');
+        const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-webhook`;
+
+        const webhookResponse = await fetch(`${evolutionApiUrl}/webhook/set/${instanceName}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': evolutionApiKey,
+          },
+          body: JSON.stringify({
+            url: webhookUrl,
+            webhook_by_events: true,
+            webhook_base64: true,
+            events: [
+              'QRCODE_UPDATED',
+              'CONNECTION_UPDATE',
+              'MESSAGES_UPSERT',
+              'MESSAGES_UPDATE',
+              'SEND_MESSAGE',
+              'CONTACTS_UPDATE',
+              'PRESENCE_UPDATE',
+            ],
+          }),
+        });
+
+        if (webhookResponse.ok) {
+          console.log('✅ Webhook configurado com sucesso!');
+        } else {
+          console.warn('⚠️ Falha ao configurar webhook (não crítico):', await webhookResponse.text());
+        }
+      } catch (webhookError) {
+        console.warn('⚠️ Erro ao configurar webhook (não crítico):', webhookError);
+      }
 
       // Exibir QR Code
       if (data.qrcode?.base64) {
@@ -402,7 +568,7 @@ export default function Channels() {
 
         createChannel.mutate({ type: 'whatsapp', name, credentials });
 
-        toast.success('Escaneie o QR Code com seu WhatsApp!');
+        toast.success('✅ Instância criada! Escaneie o QR Code com seu WhatsApp!');
       } else {
         toast.info('Instância já conectada ou aguardando conexão');
       }

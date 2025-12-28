@@ -1,30 +1,42 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCompany } from '@/contexts/CompanyContext';
 
 export const useGoogleCalendar = () => {
   const queryClient = useQueryClient();
+  const { currentCompany } = useCompany();
 
-  // Verifica status de conexão
+  // Verifica status de conexão ISOLADO POR EMPRESA
   const { data: connectionStatus, isLoading: isCheckingConnection } = useQuery({
-    queryKey: ['google-calendar-connection'],
+    queryKey: ['google-calendar-connection', currentCompany?.id],
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return { connected: false };
+      if (!user || !currentCompany?.id) return { connected: false };
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('google_calendar_connected, google_calendar_email')
-        .eq('id', user.id)
-        .single();
+      // Buscar token na nova tabela google_calendar_tokens (isolado por empresa)
+      const { data: token } = await supabase
+        .from('google_calendar_tokens')
+        .select('google_email, connected_at')
+        .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id)
+        .maybeSingle();
+
+      console.log('🔍 Google Calendar status:', {
+        userId: user.id,
+        companyId: currentCompany.id,
+        connected: !!token,
+        email: token?.google_email,
+      });
 
       return {
-        connected: profile?.google_calendar_connected || false,
-        email: profile?.google_calendar_email || null,
+        connected: !!token,
+        email: token?.google_email || null,
       };
     },
+    enabled: !!currentCompany?.id,
   });
 
   // Conectar ao Google Calendar
@@ -33,11 +45,20 @@ export const useGoogleCalendar = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user || !currentCompany?.id) throw new Error('Not authenticated or no company selected');
 
-      // Pede URL de autorização
+      console.log('📅 Connecting Google Calendar:', {
+        userId: user.id,
+        companyId: currentCompany.id,
+      });
+
+      // Pede URL de autorização COM company_id
       const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-        body: { action: 'get_auth_url', userId: user.id },
+        body: {
+          action: 'get_auth_url',
+          userId: user.id,
+          companyId: currentCompany.id, // 👈 IMPORTANTE: Passar company_id
+        },
       });
 
       if (error) throw error;
@@ -63,17 +84,20 @@ export const useGoogleCalendar = () => {
             // Verifica se conectou
             queryClient.invalidateQueries({ queryKey: ['google-calendar-connection'] });
 
-            // Aguarda um pouco e verifica
+            // Aguarda um pouco e verifica se conectou na empresa atual
             setTimeout(async () => {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('google_calendar_connected')
-                .eq('id', user.id)
-                .single();
+              const { data: token } = await supabase
+                .from('google_calendar_tokens')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('company_id', currentCompany.id)
+                .maybeSingle();
 
-              if (profile?.google_calendar_connected) {
+              if (token) {
+                console.log('✅ Google Calendar conectado com sucesso para empresa:', currentCompany.id);
                 resolve(true);
               } else {
+                console.log('❌ Conexão cancelada ou falhou');
                 reject(new Error('Conexão cancelada'));
               }
             }, 1000);
@@ -108,10 +132,19 @@ export const useGoogleCalendar = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user || !currentCompany?.id) throw new Error('Not authenticated or no company selected');
+
+      console.log('🔌 Disconnecting Google Calendar:', {
+        userId: user.id,
+        companyId: currentCompany.id,
+      });
 
       const { error } = await supabase.functions.invoke('google-calendar-oauth', {
-        body: { action: 'disconnect', userId: user.id },
+        body: {
+          action: 'disconnect',
+          userId: user.id,
+          companyId: currentCompany.id, // 👈 IMPORTANTE: Passar company_id
+        },
       });
 
       if (error) throw error;

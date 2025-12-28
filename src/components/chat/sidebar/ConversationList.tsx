@@ -13,12 +13,14 @@ import SearchBar from './SearchBar';
 import { AdvancedFiltersDialog } from '@/components/chat/dialogs/AdvancedFiltersDialog';
 import { ChatFilters } from '@/types/chatFilters';
 import { ChatFiltersBar } from './ChatFiltersBar';
+import { QuickStatusFilters } from './QuickStatusFilters';
 import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { LabelBadge } from '@/components/chat/LabelBadge';
 import { SatisfactionBadge } from '@/components/chat/SatisfactionBadge';
 import { useCompany } from '@/contexts/CompanyContext';
 import { ChannelIcon } from '@/components/chat/ChannelIcon';
 import { PaginationControls } from '@/components/ui/PaginationControls';
+import { useConversationCounts } from '@/hooks/chat/useConversationCounts';
 
 type ConversationListProps = {
   conversations: Conversation[];
@@ -98,6 +100,17 @@ const ConversationList = ({
   const [labels, setLabels] = useState<
     Array<{ id: string; name: string; color: string; icon?: string | null }>
   >([]);
+  const [quickFilterMode, setQuickFilterMode] = useState<'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia'>('all');
+
+  // Buscar contadores reais do banco de dados
+  const { data: realCounts, isLoading: isLoadingCounts, error: countsError } = useConversationCounts();
+
+  // Debug: log dos contadores
+  useEffect(() => {
+    console.log('🎯 ConversationList - realCounts:', realCounts);
+    console.log('🎯 ConversationList - isLoadingCounts:', isLoadingCounts);
+    console.log('🎯 ConversationList - countsError:', countsError);
+  }, [realCounts, isLoadingCounts, countsError]);
 
   // Carregar labels das conversas
   useEffect(() => {
@@ -244,6 +257,46 @@ const ConversationList = ({
     );
   };
 
+  // Filtrar conversas por modo rápido
+  const filteredByQuickMode = conversations.filter((conv) => {
+    if (quickFilterMode === 'all') return true;
+
+    // Atendimento: conversas com assigned_to (atribuídas a um atendente)
+    if (quickFilterMode === 'atendimento') {
+      return conv.assigned_to && conv.status !== 'chatbot' && !conv.ai_enabled;
+    }
+
+    // Aguardando: conversas que saíram do bot/IA e estão esperando atendente (status waiting ou re_entry)
+    if (quickFilterMode === 'aguardando') {
+      return (conv.status === 'waiting' || conv.status === 're_entry') && !conv.assigned_to;
+    }
+
+    // Bot: conversas com status chatbot
+    if (quickFilterMode === 'bot') {
+      return conv.status === 'chatbot' && !conv.ai_enabled;
+    }
+
+    // IA: conversas com ai_enabled = true
+    if (quickFilterMode === 'ia') {
+      return conv.ai_enabled === true;
+    }
+
+    return true;
+  });
+
+  // Usar contadores reais do banco ou fallback para contadores locais
+  const quickModeCounts = realCounts || {
+    all: conversations.length,
+    atendimento: conversations.filter(c => c.assigned_to && c.status !== 'chatbot' && !c.ai_enabled).length,
+    aguardando: conversations.filter(c => (c.status === 'waiting' || c.status === 're_entry') && !c.assigned_to).length,
+    bot: conversations.filter(c => c.status === 'chatbot' && !c.ai_enabled).length,
+    ia: conversations.filter(c => c.ai_enabled === true).length,
+  };
+
+  const handleQuickModeChange = (mode: 'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia') => {
+    setQuickFilterMode(mode);
+  };
+
   return (
     <>
       <div className="h-full flex flex-col bg-card overflow-hidden md:pr-2.5">
@@ -308,6 +361,12 @@ const ConversationList = ({
           onSelectConversation={onSelectConversationFromNotification}
         />
 
+        <QuickStatusFilters
+          selectedMode={quickFilterMode}
+          onModeChange={handleQuickModeChange}
+          counts={quickModeCounts}
+        />
+
         <ChatFiltersBar
           filters={filters}
           onRemoveStatus={(status) => {
@@ -336,7 +395,7 @@ const ConversationList = ({
                 </div>
               ))}
             </div>
-          ) : conversations.length === 0 ? (
+          ) : filteredByQuickMode.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <MessageSquarePlus className="w-12 h-12 mx-auto mb-4 opacity-50" />
               {!currentCompany?.id ? (
@@ -348,7 +407,7 @@ const ConversationList = ({
                 <>
                   <p>Nenhuma conversa encontrada</p>
                   <p className="text-sm mt-2">
-                    {Object.values(filters).some(v => Array.isArray(v) ? v.length > 0 : !!v)
+                    {Object.values(filters).some(v => Array.isArray(v) ? v.length > 0 : !!v) || quickFilterMode !== 'all'
                       ? "Tente limpar os filtros para ver mais resultados."
                       : "Clique em + para iniciar uma nova conversa"}
                   </p>
@@ -357,7 +416,7 @@ const ConversationList = ({
             </div>
           ) : (
             <div className="p-2">
-              {conversations.map((conversation) => (
+              {filteredByQuickMode.map((conversation) => (
                 <button
                   key={conversation.id}
                   onClick={() => {

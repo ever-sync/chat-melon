@@ -165,11 +165,19 @@ export default function Agenda() {
       googleEventsCount: todayEvents?.length || 0,
       tasksCount: tasks?.length || 0,
       dealsCount: deals?.length || 0,
+      isAdminOrOwner,
+      selectedUserId,
+      currentUserId: currentUser?.id,
     });
 
     // Eventos do Google Calendar
-    if (todayEvents && Array.isArray(todayEvents)) {
-      console.log('📅 Google Calendar events:', todayEvents);
+    // IMPORTANTE: Só mostra eventos do Google Calendar se:
+    // 1. For o próprio usuário logado vendo seu calendário OU
+    // 2. Admin não selecionou nenhum usuário específico (ver todos)
+    const shouldShowGoogleEvents = !selectedUserId || selectedUserId === currentUser?.id;
+
+    if (shouldShowGoogleEvents && todayEvents && Array.isArray(todayEvents)) {
+      console.log('📅 Google Calendar events (usuário logado):', todayEvents);
       todayEvents.forEach((event: any) => {
         if (event.start?.dateTime || event.start?.date) {
           const calendarEvent = {
@@ -188,7 +196,10 @@ export default function Agenda() {
         }
       });
     } else {
-      console.log('⚠️ No Google events or invalid format:', todayEvents);
+      console.log('⚠️ Google events hidden (viewing another user) or no events:', {
+        shouldShowGoogleEvents,
+        hasEvents: !!todayEvents,
+      });
     }
 
     // Tarefas
@@ -235,7 +246,7 @@ export default function Agenda() {
     });
 
     return events;
-  }, [todayEvents, tasks, deals]);
+  }, [todayEvents, tasks, deals, selectedUserId, currentUser?.id, isAdminOrOwner]);
 
   // Agrupar eventos por data
   const eventsByDate = useMemo(() => {

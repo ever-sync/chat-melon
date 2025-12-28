@@ -225,13 +225,57 @@ class EvolutionApiClient {
   // ============================================
 
   async createInstance(instanceName: string, qrcode = true): Promise<EvolutionInstance> {
-    return this.request<EvolutionInstance>('/instance/create', {
+    // Criar instância
+    const instance = await this.request<EvolutionInstance>('/instance/create', {
       method: 'POST',
       body: JSON.stringify({
         instanceName,
         qrcode,
       }),
     });
+
+    // CONFIGURAR WEBHOOK AUTOMATICAMENTE
+    try {
+      console.log('🔧 Configurando webhook automaticamente para:', instanceName);
+
+      const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-webhook`;
+
+      await this.setWebhook(instanceName, {
+        url: webhookUrl,
+        webhook_by_events: true,
+        webhook_base64: true,
+        events: [
+          'APPLICATION_STARTUP',
+          'QRCODE_UPDATED',
+          'MESSAGES_SET',
+          'MESSAGES_UPSERT',
+          'MESSAGES_UPDATE',
+          'MESSAGES_DELETE',
+          'SEND_MESSAGE',
+          'CONTACTS_SET',
+          'CONTACTS_UPSERT',
+          'CONTACTS_UPDATE',
+          'PRESENCE_UPDATE',
+          'CHATS_SET',
+          'CHATS_UPSERT',
+          'CHATS_UPDATE',
+          'CHATS_DELETE',
+          'CONNECTION_UPDATE',
+          'GROUPS_UPSERT',
+          'GROUP_UPDATE',
+          'GROUP_PARTICIPANTS_UPDATE',
+          'CALL',
+          'NEW_JWT_TOKEN',
+        ],
+      });
+
+      console.log('✅ Webhook configurado automaticamente!');
+    } catch (webhookError) {
+      console.error('⚠️ Erro ao configurar webhook (não crítico):', webhookError);
+      // Não falhar a criação da instância se o webhook falhar
+    }
+
+    return instance;
   }
 
   async connectInstance(instanceName: string): Promise<EvolutionInstance> {
