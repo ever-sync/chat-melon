@@ -28,6 +28,7 @@ import {
   RefreshCw,
   Trash2,
   ExternalLink,
+  QrCode,
   Loader2,
 } from 'lucide-react';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -122,6 +123,9 @@ export default function Channels() {
 
     try {
       // Verificar status na Evolution API
+      console.log('🔍 Verificando status da instância:', instanceName);
+      console.log('📍 URL:', `${evolutionApiUrl}/instance/connectionState/${instanceName}`);
+
       const response = await fetch(`${evolutionApiUrl}/instance/connectionState/${instanceName}`, {
         headers: {
           'apikey': evolutionApiKey,
@@ -129,11 +133,24 @@ export default function Channels() {
       });
 
       if (!response.ok) {
-        console.error('Erro ao verificar status da instância');
+        console.error('❌ Erro ao verificar status da instância:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('📄 Resposta:', errorText);
+
+        if (showToast) {
+          toast.error('Erro ao verificar status do WhatsApp');
+        }
         return;
       }
 
       const data = await response.json();
+      console.log('📦 Dados recebidos da Evolution:', data);
+
+      // Verificar se state existe
+      if (!data.state) {
+        console.warn('⚠️ Estado não encontrado na resposta:', data);
+      }
+
       const isConnected = data.state === 'open';
       const newStatus = isConnected ? 'connected' : 'disconnected';
 
@@ -272,6 +289,71 @@ export default function Channels() {
       setCheckingStatus(false);
     }
   }, [currentCompany, queryClient]);
+
+  // Função para reconectar WhatsApp (buscar novo QR Code)
+  const handleReconnectWhatsApp = async () => {
+    if (!currentCompany?.cnpj) {
+      toast.error('CNPJ da empresa não configurado');
+      return;
+    }
+
+    const evolutionApiUrl = import.meta.env.VITE_EVOLUTION_API_URL || import.meta.env.VITE_WHATSAPP_API_URL;
+    const evolutionApiKey = import.meta.env.VITE_EVOLUTION_API_KEY || import.meta.env.VITE_WHATSAPP_API_KEY;
+
+    if (!evolutionApiUrl || !evolutionApiKey) {
+      toast.error('Configuração da Evolution API não encontrada');
+      return;
+    }
+
+    setConnecting(true);
+
+    try {
+      const instanceName = currentCompany.cnpj.replace(/\D/g, '');
+      console.log('🔄 Reconectando WhatsApp, buscando QR Code...');
+
+      // Tentar fazer logout primeiro para limpar a sessão
+      try {
+        await fetch(`${evolutionApiUrl}/instance/logout/${instanceName}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': evolutionApiKey,
+          },
+        });
+        console.log('✅ Logout realizado');
+      } catch (logoutError) {
+        console.warn('⚠️ Erro ao fazer logout (não crítico):', logoutError);
+      }
+
+      // Buscar o QR Code da instância
+      const connectResponse = await fetch(`${evolutionApiUrl}/instance/connect/${instanceName}`, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+        },
+      });
+
+      if (!connectResponse.ok) {
+        throw new Error('Erro ao buscar QR Code');
+      }
+
+      const connectData = await connectResponse.json();
+      console.log('📦 Dados de reconexão:', connectData);
+
+      if (connectData.qrcode?.base64) {
+        setQRCodeData(connectData.qrcode.base64);
+        setShowQRCode(true);
+        toast.success('QR Code gerado! Escaneie com seu WhatsApp');
+      } else {
+        toast.error('QR Code não disponível. Tente novamente em alguns segundos.');
+      }
+
+    } catch (error: any) {
+      console.error('❌ Erro ao reconectar WhatsApp:', error);
+      toast.error(error.message || 'Erro ao reconectar WhatsApp');
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   // Verificar status periodicamente quando QR Code está aberto
   useEffect(() => {
@@ -662,6 +744,104 @@ export default function Channels() {
     });
   };
 
+  const handleGmailOAuth = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+      toast.error('Google Client ID não configurado. Configure as variáveis de ambiente.');
+      return;
+    }
+
+    const redirectUri = `${window.location.origin}/oauth/gmail-callback`;
+    const scope = [
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/gmail.send',
+      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/userinfo.email',
+    ].join(' ');
+
+    const state = JSON.stringify({
+      companyId: currentCompany?.id,
+      type: 'gmail',
+    });
+
+    const oauthUrl = [
+      'https://accounts.google.com/o/oauth2/v2/auth',
+      `?client_id=${encodeURIComponent(clientId)}`,
+      `&redirect_uri=${encodeURIComponent(redirectUri)}`,
+      `&scope=${encodeURIComponent(scope)}`,
+      '&response_type=code',
+      '&access_type=offline',
+      '&prompt=consent',
+      `&state=${encodeURIComponent(state)}`,
+    ].join('');
+
+    // Abrir janela OAuth
+    const width = 500;
+    const height = 600;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    const authWindow = window.open(
+      oauthUrl,
+      'Google OAuth',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+
+    // Listener para mensagem de sucesso
+    const messageHandler = async (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === 'gmail-oauth-success') {
+        window.removeEventListener('message', messageHandler);
+        authWindow?.close();
+
+        const { code } = event.data;
+
+        try {
+          // Trocar código por tokens
+          const { data: { user } } = await supabase.auth.getUser();
+
+          const response = await supabase.functions.invoke('gmail-oauth', {
+            body: {
+              action: 'exchange_code',
+              code: code,
+              companyId: currentCompany?.id,
+              userId: user?.id,
+            },
+          });
+
+          if (response.error) throw response.error;
+
+          // Criar canal
+          const credentials = {
+            email: response.data.email,
+            connected_at: new Date().toISOString(),
+          };
+
+          createChannel.mutate({
+            type: 'email',
+            name: `Gmail - ${response.data.email}`,
+            credentials,
+          });
+
+          toast.success('Gmail conectado com sucesso!');
+          setShowAddDialog(false);
+          setSelectedType(null);
+        } catch (error: any) {
+          console.error('Error exchanging OAuth code:', error);
+          toast.error(error.message || 'Erro ao conectar Gmail');
+        }
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+
+    toast.info('Complete a autenticação na janela que abriu', {
+      description: 'Após autorizar, o Gmail será conectado automaticamente.',
+    });
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -764,15 +944,31 @@ export default function Channels() {
                         Configurar
                       </Button>
                       {channel.type === 'whatsapp' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => checkAndUpdateChannelStatus(true)}
-                          disabled={checkingStatus}
-                          title="Atualizar status"
-                        >
-                          <RefreshCw className={`h-4 w-4 ${checkingStatus ? 'animate-spin' : ''}`} />
-                        </Button>
+                        <>
+                          {channel.status === 'disconnected' ? (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={handleReconnectWhatsApp}
+                              disabled={connecting}
+                              className="flex-1"
+                            >
+                              <QrCode className={`h-4 w-4 mr-1 ${connecting ? 'animate-pulse' : ''}`} />
+                              {connecting ? 'Gerando...' : 'Reconectar'}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => checkAndUpdateChannelStatus(true)}
+                              disabled={checkingStatus}
+                              className="flex-1"
+                            >
+                              <RefreshCw className={`h-4 w-4 mr-1 ${checkingStatus ? 'animate-spin' : ''}`} />
+                              {checkingStatus ? 'Atualizando...' : 'Atualizar'}
+                            </Button>
+                          )}
+                        </>
                       )}
                       <Button
                         variant="ghost"
@@ -1036,12 +1232,45 @@ export default function Channels() {
               )}
 
               {selectedType === 'email' && (
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <p className="text-sm text-orange-800">
-                    Integração de email em breve! Configure IMAP/SMTP para receber emails como
-                    conversas.
-                  </p>
-                </div>
+                <>
+                  <div className="p-6 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-center justify-center mb-4">
+                      <Mail className="h-16 w-16 text-orange-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-orange-900 text-center mb-2">
+                      Conecte seu Gmail
+                    </h3>
+                    <p className="text-sm text-orange-800 text-center mb-4">
+                      Integre sua conta Gmail para receber e responder emails como conversas no chat
+                    </p>
+                    <div className="bg-white rounded-lg p-4 border border-orange-300 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5" />
+                        <span className="text-sm text-gray-700">Receba emails como mensagens</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5" />
+                        <span className="text-sm text-gray-700">Responda diretamente pelo chat</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-orange-600 mt-0.5" />
+                        <span className="text-sm text-gray-700">Sincronização automática</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 text-center">
+                      <Button
+                        onClick={() => handleGmailOAuth()}
+                        className="w-full bg-orange-600 hover:bg-orange-700"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Conectar com Google
+                      </Button>
+                    </div>
+                    <p className="text-xs text-orange-700 text-center mt-3">
+                      Você será redirecionado para fazer login com sua conta Google
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           )}
