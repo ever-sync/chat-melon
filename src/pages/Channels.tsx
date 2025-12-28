@@ -106,6 +106,9 @@ export default function Channels() {
   const [qrCodeData, setQRCodeData] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const [showWebhookConfig, setShowWebhookConfig] = useState(false);
+  const [configuringWebhook, setConfiguringWebhook] = useState(false);
+  const [webhookStatus, setWebhookStatus] = useState<any>(null);
 
   // Função para verificar status na Evolution API e atualizar o canal
   const checkAndUpdateChannelStatus = useCallback(async (showToast = false) => {
@@ -352,6 +355,160 @@ export default function Channels() {
       toast.error(error.message || 'Erro ao reconectar WhatsApp');
     } finally {
       setConnecting(false);
+    }
+  };
+
+  // Função para verificar webhook atual
+  const handleCheckWebhook = async () => {
+    if (!currentCompany?.cnpj) {
+      toast.error('CNPJ da empresa não configurado');
+      return;
+    }
+
+    const evolutionApiUrl = import.meta.env.VITE_EVOLUTION_API_URL || import.meta.env.VITE_WHATSAPP_API_URL;
+    const evolutionApiKey = import.meta.env.VITE_EVOLUTION_API_KEY || import.meta.env.VITE_WHATSAPP_API_KEY;
+
+    if (!evolutionApiUrl || !evolutionApiKey) {
+      toast.error('Configuração da Evolution API não encontrada');
+      return;
+    }
+
+    try {
+      const instanceName = currentCompany.cnpj.replace(/\D/g, '');
+      console.log('🔍 Verificando webhook atual...');
+
+      const response = await fetch(`${evolutionApiUrl}/webhook/find/${instanceName}`, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Webhook não configurado');
+      }
+
+      const data = await response.json();
+      console.log('📦 Webhook atual:', data);
+      setWebhookStatus(data);
+      toast.success('Webhook verificado com sucesso!');
+
+    } catch (error: any) {
+      console.error('❌ Erro ao verificar webhook:', error);
+      setWebhookStatus(null);
+      toast.warning('Webhook não configurado. Configure agora!');
+    }
+  };
+
+  // Função para configurar webhook manualmente
+  const handleConfigureWebhook = async () => {
+    if (!currentCompany?.cnpj) {
+      toast.error('CNPJ da empresa não configurado');
+      return;
+    }
+
+    const evolutionApiUrl = import.meta.env.VITE_EVOLUTION_API_URL || import.meta.env.VITE_WHATSAPP_API_URL;
+    const evolutionApiKey = import.meta.env.VITE_EVOLUTION_API_KEY || import.meta.env.VITE_WHATSAPP_API_KEY;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+    if (!evolutionApiUrl || !evolutionApiKey || !supabaseUrl) {
+      toast.error('Configurações necessárias não encontradas');
+      return;
+    }
+
+    setConfiguringWebhook(true);
+
+    try {
+      const instanceName = currentCompany.cnpj.replace(/\D/g, '');
+      const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`;
+
+      console.log('🔧 Configurando webhook...');
+      console.log('📍 URL:', webhookUrl);
+      console.log('📱 Instância:', instanceName);
+
+      // 1. Configurar WEBHOOK
+      const webhookResponse = await fetch(`${evolutionApiUrl}/webhook/set/${instanceName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': evolutionApiKey,
+        },
+        body: JSON.stringify({
+          url: webhookUrl,
+          webhook_by_events: true,
+          webhook_base64: true,
+          events: [
+            'APPLICATION_STARTUP',
+            'QRCODE_UPDATED',
+            'MESSAGES_SET',
+            'MESSAGES_UPSERT',
+            'MESSAGES_UPDATE',
+            'MESSAGES_DELETE',
+            'SEND_MESSAGE',
+            'CONTACTS_SET',
+            'CONTACTS_UPSERT',
+            'CONTACTS_UPDATE',
+            'PRESENCE_UPDATE',
+            'CHATS_SET',
+            'CHATS_UPSERT',
+            'CHATS_UPDATE',
+            'CHATS_DELETE',
+            'CONNECTION_UPDATE',
+            'GROUPS_UPSERT',
+            'GROUP_UPDATE',
+            'GROUP_PARTICIPANTS_UPDATE',
+            'CALL',
+            'NEW_JWT_TOKEN',
+          ],
+        }),
+      });
+
+      if (!webhookResponse.ok) {
+        const errorText = await webhookResponse.text();
+        console.error('❌ Erro na resposta do webhook:', errorText);
+        throw new Error('Erro ao configurar webhook');
+      }
+
+      console.log('✅ Webhook configurado com sucesso!');
+
+      // 2. Configurar SETTINGS da instância
+      const settingsResponse = await fetch(`${evolutionApiUrl}/settings/set/${instanceName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': evolutionApiKey,
+        },
+        body: JSON.stringify({
+          reject_call: false,
+          msg_call: 'Desculpe, não posso atender chamadas no momento.',
+          groups_ignore: true,
+          always_online: true,
+          read_messages: true,
+          read_status: false,
+          sync_full_history: false,
+        }),
+      });
+
+      if (!settingsResponse.ok) {
+        console.warn('⚠️ Erro ao configurar settings (não crítico)');
+      } else {
+        console.log('✅ Settings configurados com sucesso!');
+      }
+
+      // Verificar webhook configurado
+      await handleCheckWebhook();
+
+      toast.success('✅ Webhook e configurações aplicados com sucesso!', {
+        description: 'Mensagens serão recebidas em tempo real',
+      });
+
+      setShowWebhookConfig(false);
+
+    } catch (error: any) {
+      console.error('❌ Erro ao configurar webhook:', error);
+      toast.error(error.message || 'Erro ao configurar webhook');
+    } finally {
+      setConfiguringWebhook(false);
     }
   };
 
@@ -938,49 +1095,60 @@ export default function Channels() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Settings className="h-4 w-4 mr-1" />
-                        Configurar
-                      </Button>
-                      {channel.type === 'whatsapp' && (
-                        <>
-                          {channel.status === 'disconnected' ? (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={handleReconnectWhatsApp}
-                              disabled={connecting}
-                              className="flex-1"
-                            >
-                              <QrCode className={`h-4 w-4 mr-1 ${connecting ? 'animate-pulse' : ''}`} />
-                              {connecting ? 'Gerando...' : 'Reconectar'}
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => checkAndUpdateChannelStatus(true)}
-                              disabled={checkingStatus}
-                              className="flex-1"
-                            >
-                              <RefreshCw className={`h-4 w-4 mr-1 ${checkingStatus ? 'animate-spin' : ''}`} />
-                              {checkingStatus ? 'Atualizando...' : 'Atualizar'}
-                            </Button>
-                          )}
-                        </>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (confirm('Remover este canal?')) {
-                            deleteChannel.mutate(channel.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            if (channel.type === 'whatsapp') {
+                              setShowWebhookConfig(true);
+                            }
+                          }}
+                        >
+                          <Settings className="h-4 w-4 mr-1" />
+                          Configurar
+                        </Button>
+                        {channel.type === 'whatsapp' && (
+                          <>
+                            {channel.status === 'disconnected' ? (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={handleReconnectWhatsApp}
+                                disabled={connecting}
+                                className="flex-1"
+                              >
+                                <QrCode className={`h-4 w-4 mr-1 ${connecting ? 'animate-pulse' : ''}`} />
+                                {connecting ? 'Gerando...' : 'Reconectar'}
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => checkAndUpdateChannelStatus(true)}
+                                disabled={checkingStatus}
+                                className="flex-1"
+                              >
+                                <RefreshCw className={`h-4 w-4 mr-1 ${checkingStatus ? 'animate-spin' : ''}`} />
+                                {checkingStatus ? 'Atualizando...' : 'Atualizar'}
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm('Remover este canal?')) {
+                              deleteChannel.mutate(channel.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1343,6 +1511,162 @@ export default function Channels() {
               }}
             >
               Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Webhook Configuration Dialog */}
+      <Dialog open={showWebhookConfig} onOpenChange={setShowWebhookConfig}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>⚙️ Configurar Webhook e Evolution API</DialogTitle>
+            <DialogDescription>
+              Configure o webhook para receber mensagens em tempo real e ative as configurações da instância
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Status do Webhook Atual */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Status do Webhook
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {webhookStatus ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium">Webhook configurado</span>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg space-y-1">
+                      <p className="text-xs font-medium text-gray-700">URL:</p>
+                      <p className="text-xs text-gray-600 break-all">{webhookStatus.url}</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <Badge variant="secondary">
+                        {webhookStatus.events?.length || 0} eventos ativos
+                      </Badge>
+                      {webhookStatus.webhook_by_events && (
+                        <Badge variant="secondary">Por eventos</Badge>
+                      )}
+                      {webhookStatus.webhook_base64 && (
+                        <Badge variant="secondary">Base64</Badge>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-600">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-sm">Webhook não configurado ou não verificado</span>
+                  </div>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCheckWebhook}
+                  className="w-full"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Verificar Webhook Atual
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Informações sobre as Configurações */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">O que será configurado?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium mb-2">1. Webhook URL:</p>
+                    <code className="text-xs bg-gray-100 p-2 rounded block break-all">
+                      {import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-webhook
+                    </code>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-2">2. Eventos Monitorados (19):</p>
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <Badge variant="outline" className="text-[10px]">MESSAGES_UPSERT</Badge>
+                      <Badge variant="outline" className="text-[10px]">CONNECTION_UPDATE</Badge>
+                      <Badge variant="outline" className="text-[10px]">CONTACTS_UPDATE</Badge>
+                      <Badge variant="outline" className="text-[10px]">GROUPS_UPSERT</Badge>
+                      <Badge variant="outline" className="text-[10px]">+ 15 outros eventos</Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-2">3. Configurações da Instância:</p>
+                    <div className="space-y-1 text-xs text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span>Sempre online: Ativado</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span>Marcar mensagens como lidas: Ativado</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span>Ignorar grupos: Ativado</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-3 w-3 text-gray-400" />
+                        <span>Sincronizar histórico: Desativado</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Aviso */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-blue-900">
+                    Importante
+                  </p>
+                  <p className="text-xs text-blue-800">
+                    Esta configuração irá sobrescrever qualquer webhook existente na instância.
+                    Certifique-se de que o WhatsApp está conectado antes de configurar.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowWebhookConfig(false)}
+              disabled={configuringWebhook}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfigureWebhook}
+              disabled={configuringWebhook}
+            >
+              {configuringWebhook ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Configurando...
+                </>
+              ) : (
+                <>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configurar Webhook
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
