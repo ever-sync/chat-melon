@@ -130,7 +130,7 @@ export function CustomFieldsManager() {
         id: item.id,
         display_order: index,
       }));
-      reorderFields(updates);
+      reorderFields.mutate(updates);
     }
   };
 
@@ -140,7 +140,7 @@ export function CustomFieldsManager() {
   };
 
   const handleToggle = (id: string) => {
-    deleteField(id);
+    deleteField.mutate(id);
   };
 
   const handleCreate = () => {

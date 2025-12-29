@@ -14,7 +14,25 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Upload, Building2, Clock, Save, MapPin, Phone, Mail, FileText } from 'lucide-react';
+import {
+  Upload,
+  Building2,
+  Clock,
+  Save,
+  MapPin,
+  Phone,
+  Mail,
+  FileText,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Twitter,
+  MessageCircle,
+  Globe,
+  Music2,
+  Share2,
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import type { Json } from '@/integrations/supabase/types';
@@ -37,6 +55,28 @@ interface BusinessHours {
     enabled: boolean;
   };
 }
+
+interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  linkedin?: string;
+  youtube?: string;
+  twitter?: string;
+  whatsapp?: string;
+  tiktok?: string;
+  website?: string;
+}
+
+const SOCIAL_NETWORKS = [
+  { key: 'facebook', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/suaempresa', color: '#1877F2' },
+  { key: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/suaempresa', color: '#E4405F' },
+  { key: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/company/suaempresa', color: '#0A66C2' },
+  { key: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/c/suaempresa', color: '#FF0000' },
+  { key: 'twitter', label: 'Twitter / X', icon: Twitter, placeholder: 'https://twitter.com/suaempresa', color: '#1DA1F2' },
+  { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, placeholder: '5511999999999 (apenas números)', color: '#25D366' },
+  { key: 'tiktok', label: 'TikTok', icon: Music2, placeholder: 'https://tiktok.com/@suaempresa', color: '#000000' },
+  { key: 'website', label: 'Website', icon: Globe, placeholder: 'https://suaempresa.com.br', color: '#6366f1' },
+];
 
 const DAYS_OF_WEEK = [
   { key: 'monday', label: 'Segunda-feira' },
@@ -110,6 +150,7 @@ export function CompanyProfileSettings() {
     saturday: { open: '09:00', close: '13:00', enabled: false },
     sunday: { open: '09:00', close: '13:00', enabled: false },
   });
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
 
   useEffect(() => {
     if (currentCompany) {
@@ -120,12 +161,22 @@ export function CompanyProfileSettings() {
   const loadCompanyData = async () => {
     if (!currentCompany) return;
 
+    console.log('📥 [CompanyProfileSettings] Carregando dados da empresa:', currentCompany.id);
+
     // Buscar dados completos da empresa
     const { data, error } = await supabase
       .from('companies')
       .select('*')
       .eq('id', currentCompany.id)
       .single();
+
+    if (error) {
+      console.error('❌ [CompanyProfileSettings] Erro ao carregar:', error);
+      return;
+    }
+
+    console.log('✅ [CompanyProfileSettings] Dados carregados:', data);
+    console.log('📱 [CompanyProfileSettings] social_links carregados:', data?.social_links);
 
     if (data) {
       setCompanyData({
@@ -143,6 +194,12 @@ export function CompanyProfileSettings() {
 
       if (data.business_hours) {
         setBusinessHours(data.business_hours as BusinessHours);
+      }
+      if (data.social_links) {
+        console.log('📱 [CompanyProfileSettings] Aplicando social_links ao state');
+        setSocialLinks(data.social_links as SocialLinks);
+      } else {
+        console.log('⚠️ [CompanyProfileSettings] social_links está vazio ou null');
       }
     }
   };
@@ -240,25 +297,39 @@ export function CompanyProfileSettings() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('companies')
-        .update({
-          name: companyData.name,
-          cnpj: companyData.cnpj,
-          email: companyData.email,
-          phone: companyData.phone,
-          address: companyData.address,
-          city: companyData.city,
-          state: companyData.state,
-          postal_code: companyData.postal_code,
-          business_status: businessStatus,
-          logo_url: logoUrl,
-          business_hours: businessHours as Json,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', currentCompany.id);
+      console.log('💾 [CompanyProfileSettings] Salvando dados da empresa...');
+      console.log('📱 [CompanyProfileSettings] social_links a salvar:', socialLinks);
 
-      if (error) throw error;
+      const updateData = {
+        name: companyData.name,
+        cnpj: companyData.cnpj,
+        email: companyData.email,
+        phone: companyData.phone,
+        address: companyData.address,
+        city: companyData.city,
+        state: companyData.state,
+        postal_code: companyData.postal_code,
+        business_status: businessStatus,
+        logo_url: logoUrl,
+        business_hours: businessHours as Json,
+        social_links: socialLinks as Json,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log('📤 [CompanyProfileSettings] Dados completos:', updateData);
+
+      const { error, data } = await supabase
+        .from('companies')
+        .update(updateData)
+        .eq('id', currentCompany.id)
+        .select();
+
+      if (error) {
+        console.error('❌ [CompanyProfileSettings] Erro ao salvar:', error);
+        throw error;
+      }
+
+      console.log('✅ [CompanyProfileSettings] Dados salvos com sucesso:', data);
 
       await refreshCompanies();
       toast.success('Perfil corporativo atualizado!');
@@ -552,6 +623,48 @@ export function CompanyProfileSettings() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Redes Sociais */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Share2 className="h-5 w-5" />
+            Redes Sociais
+          </CardTitle>
+          <CardDescription>
+            Configure os links das redes sociais da sua empresa. Eles serão usados automaticamente nos templates de email.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {SOCIAL_NETWORKS.map((social) => {
+              const Icon = social.icon;
+              return (
+                <div key={social.key} className="space-y-2">
+                  <Label htmlFor={`social-${social.key}`} className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" style={{ color: social.color }} />
+                    {social.label}
+                  </Label>
+                  <Input
+                    id={`social-${social.key}`}
+                    value={socialLinks[social.key as keyof SocialLinks] || ''}
+                    onChange={(e) =>
+                      setSocialLinks((prev) => ({
+                        ...prev,
+                        [social.key]: e.target.value,
+                      }))
+                    }
+                    placeholder={social.placeholder}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">
+            Dica: Para WhatsApp, insira apenas números com código do país (ex: 5511999999999)
+          </p>
         </CardContent>
       </Card>
 

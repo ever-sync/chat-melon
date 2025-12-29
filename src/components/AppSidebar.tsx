@@ -30,6 +30,7 @@ import {
   Library,
   Calendar,
   Radio,
+  Sparkles,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import React from 'react';
@@ -93,17 +94,12 @@ export function AppSidebar() {
       title: 'Dashboard',
       url: '/dashboard',
       icon: LayoutDashboard,
+      comingSoon: false,
     },
     {
       title: 'Conversas',
       url: '/chat',
       icon: MessageSquare,
-      featureKey: 'chat',
-    },
-    {
-      title: 'Canais',
-      url: '/channels',
-      icon: Radio,
       featureKey: 'chat',
     },
     {
@@ -151,6 +147,17 @@ export function AppSidebar() {
       title: 'Biblioteca',
       url: '/biblioteca',
       icon: Library,
+    },
+    {
+      title: 'Canais',
+      url: '/channels',
+      icon: Radio,
+      featureKey: 'chat',
+    },
+    {
+      title: 'IA',
+      url: '/ia',
+      icon: Sparkles,
     },
   ];
 

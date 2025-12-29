@@ -15,6 +15,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger para sincronizar automaticamente quando o nome do contato for atualizado
+DROP TRIGGER IF EXISTS on_contact_name_updated ON contacts;
 CREATE TRIGGER on_contact_name_updated
   AFTER UPDATE ON contacts
   FOR EACH ROW

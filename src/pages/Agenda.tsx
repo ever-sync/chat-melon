@@ -211,7 +211,7 @@ export default function Agenda() {
           title: task.title,
           date: parseISO(task.due_date),
           description: task.description,
-          color: task.priority === 'urgent' ? '#EF4444' : task.priority === 'high' ? '#F59E0B' : '#10B981',
+          color: '#10B981', // Verde para todas as tarefas
           assignedTo: task.profiles
             ? {
                 name: task.profiles.full_name,

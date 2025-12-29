@@ -196,6 +196,7 @@ export const TaskModal = ({
               id="due_date"
               type="datetime-local"
               {...register('due_date', { required: true })}
+              min={new Date().toISOString().slice(0, 16)}
             />
           </div>
 

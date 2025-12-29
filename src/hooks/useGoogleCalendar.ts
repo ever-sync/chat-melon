@@ -241,23 +241,34 @@ export const useGoogleCalendar = () => {
     },
   });
 
-  // Listar eventos do mês
+  // Listar eventos do mês ISOLADO POR EMPRESA
   const { data: todayEvents, isLoading: isLoadingEvents } = useQuery({
-    queryKey: ['google-calendar-events'],
+    queryKey: ['google-calendar-events', currentCompany?.id],  // 👈 Adicionar companyId na key
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user || !currentCompany?.id) return [];
+
+      console.log('📅 Buscando eventos do Google Calendar:', {
+        userId: user.id,
+        companyId: currentCompany.id,
+      });
 
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
-        body: { action: 'list_month_events', userId: user.id },
+        body: {
+          action: 'list_month_events',
+          userId: user.id,
+          companyId: currentCompany.id,  // 👈 IMPORTANTE: Passar companyId
+        },
       });
 
       if (error) throw error;
+
+      console.log('✅ Eventos recebidos:', data.events?.length || 0);
       return data.events || [];
     },
-    enabled: connectionStatus?.connected,
+    enabled: connectionStatus?.connected && !!currentCompany?.id,
     refetchInterval: 5 * 60 * 1000, // Atualiza a cada 5 minutos
   });
 

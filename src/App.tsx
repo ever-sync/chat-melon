@@ -71,6 +71,7 @@ const Channels = lazy(() => import('./pages/Channels'));
 const AIInsights = lazy(() => import('./pages/AIInsights'));
 const Marketing = lazy(() => import('./pages/Marketing'));
 const Biblioteca = lazy(() => import('./pages/Biblioteca'));
+const IA = lazy(() => import('./pages/IA'));
 const Imobiliarias = lazy(() => import('./pages/Imobiliarias'));
 const Concessionarias = lazy(() => import('./pages/Concessionarias'));
 const Educacao = lazy(() => import('./pages/Educacao'));
@@ -78,6 +79,7 @@ const PoliticaPrivacidade = lazy(() => import('./pages/PoliticaPrivacidade'));
 const TermosUso = lazy(() => import('./pages/TermosUso'));
 const TestEmailConfig = lazy(() => import('./pages/TestEmailConfig'));
 const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
+const GmailCallback = lazy(() => import('./pages/oauth/GmailCallback'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,6 +116,7 @@ const App = () => {
                     <Route path="/termos-uso" element={<TermosUso />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route path="/oauth/gmail-callback" element={<GmailCallback />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/set-password" element={<SetPassword />} />
@@ -333,6 +336,7 @@ const App = () => {
                       }
                     />
                     <Route path="/biblioteca" element={<Biblioteca />} />
+                    <Route path="/ia" element={<IA />} />
                     <Route path="/settings" element={<NewSettings />} />
                     <Route path="/instance-setup" element={<InstanceSetup />} />
                     <Route path="/companies" element={<Companies />} />

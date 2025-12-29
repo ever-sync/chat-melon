@@ -20,7 +20,11 @@ export type CustomField = {
   | 'url'
   | 'email'
   | 'phone'
-  | 'currency';
+  | 'currency'
+  | 'cpf'
+  | 'cnpj'
+  | 'cep'
+  | 'textarea';
   options?: string[];
   is_required: boolean;
   default_value?: string;
@@ -126,28 +130,28 @@ export const useCustomFields = (entityType: 'contact' | 'deal' | 'company') => {
     mutationFn: async (fieldId: string) => {
       const { error } = await supabase
         .from('custom_fields')
-        .update({ is_active: false })
+        .delete()
         .eq('id', fieldId);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
-      toast.success('Campo desativado!');
+      toast.success('Campo excluído permanentemente!');
     },
     onError: (error) => {
-      console.error('Erro ao desativar campo:', error);
-      toast.error('Erro ao desativar campo');
+      console.error('Erro ao excluir campo:', error);
+      toast.error('Erro ao excluir campo');
     },
   });
 
   return {
     fields,
     isLoading,
-    createField: createField.mutate,
-    updateField: updateField.mutate,
-    reorderFields: reorderFields.mutate,
-    deleteField: deleteField.mutate,
+    createField,
+    updateField,
+    reorderFields,
+    deleteField,
   };
 };
 

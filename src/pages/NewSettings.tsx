@@ -380,39 +380,6 @@ export default function NewSettings() {
 
               <Separator className="my-3" />
 
-              {/* Automação & IA */}
-              <div className="w-full px-3 py-2">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  Automação & IA
-                </p>
-              </div>
-
-              <TabsTrigger
-                value="ai"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="font-medium">Assistente de IA</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="transcription"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <FileAudio className="h-4 w-4" />
-                <span className="font-medium">Transcrição</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="ai-monitoring"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <Gauge className="h-4 w-4" />
-                <span className="font-medium">Monitor de Atendimento</span>
-              </TabsTrigger>
-
-              <Separator className="my-3" />
-
               {/* Comunicação */}
               <div className="w-full px-3 py-2">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -832,14 +799,6 @@ export default function NewSettings() {
               <UsersPage />
             </TabsContent>
 
-            <TabsContent value="ai" className="m-0">
-              <AISettingsPage embedded={true} />
-            </TabsContent>
-
-            <TabsContent value="ai-monitoring" className="m-0">
-              {companyId && <AssistantSettings companyId={companyId} />}
-            </TabsContent>
-
             <TabsContent value="health" className="m-0">
               <InstanceHealthDashboard />
             </TabsContent>
@@ -874,10 +833,6 @@ export default function NewSettings() {
 
             <TabsContent value="pwa" className="m-0">
               <PWASettings />
-            </TabsContent>
-
-            <TabsContent value="transcription" className="m-0">
-              <TranscriptionSettings />
             </TabsContent>
 
             <TabsContent value="notifications" className="m-0">

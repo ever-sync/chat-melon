@@ -376,6 +376,7 @@ export default function Channels() {
     try {
       const instanceName = currentCompany.cnpj.replace(/\D/g, '');
       console.log('🔍 Verificando webhook atual...');
+      console.log('📍 URL:', `${evolutionApiUrl}/webhook/find/${instanceName}`);
 
       const response = await fetch(`${evolutionApiUrl}/webhook/find/${instanceName}`, {
         method: 'GET',
@@ -384,17 +385,42 @@ export default function Channels() {
         },
       });
 
+      console.log('📊 Status da resposta:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Webhook não configurado');
+        const errorText = await response.text();
+        console.error('❌ Erro na resposta:', errorText);
+        throw new Error(`Webhook não configurado (${response.status})`);
       }
 
       const data = await response.json();
-      console.log('📦 Webhook atual:', data);
-      setWebhookStatus(data);
-      toast.success('Webhook verificado com sucesso!');
+      console.log('📦 Webhook atual (dados brutos):', data);
+      console.log('📦 Tipo de dados:', typeof data, Array.isArray(data) ? 'Array' : 'Object');
+
+      // Verificar se data é null, undefined, ou objeto vazio
+      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+        console.warn('⚠️ Webhook retornou vazio ou null');
+        setWebhookStatus(null);
+        toast.warning('Webhook não configurado. Configure agora!');
+        return;
+      }
+
+      // Verificar se tem a propriedade url (indicando webhook configurado)
+      if (data.url) {
+        console.log('✅ Webhook encontrado!');
+        console.log('📍 URL do webhook:', data.url);
+        console.log('📋 Eventos:', data.events?.length || 0);
+        setWebhookStatus(data);
+        toast.success('Webhook verificado com sucesso!');
+      } else {
+        console.warn('⚠️ Webhook sem URL configurada');
+        setWebhookStatus(null);
+        toast.warning('Webhook não tem URL configurada. Configure agora!');
+      }
 
     } catch (error: any) {
       console.error('❌ Erro ao verificar webhook:', error);
+      console.error('📄 Detalhes do erro:', error.message);
       setWebhookStatus(null);
       toast.warning('Webhook não configurado. Configure agora!');
     }
@@ -434,32 +460,34 @@ export default function Channels() {
           'apikey': evolutionApiKey,
         },
         body: JSON.stringify({
-          url: webhookUrl,
-          webhook_by_events: true,
-          webhook_base64: true,
-          events: [
-            'APPLICATION_STARTUP',
-            'QRCODE_UPDATED',
-            'MESSAGES_SET',
-            'MESSAGES_UPSERT',
-            'MESSAGES_UPDATE',
-            'MESSAGES_DELETE',
-            'SEND_MESSAGE',
-            'CONTACTS_SET',
-            'CONTACTS_UPSERT',
-            'CONTACTS_UPDATE',
-            'PRESENCE_UPDATE',
-            'CHATS_SET',
-            'CHATS_UPSERT',
-            'CHATS_UPDATE',
-            'CHATS_DELETE',
-            'CONNECTION_UPDATE',
-            'GROUPS_UPSERT',
-            'GROUP_UPDATE',
-            'GROUP_PARTICIPANTS_UPDATE',
-            'CALL',
-            'NEW_JWT_TOKEN',
-          ],
+          webhook: {
+            url: webhookUrl,
+            enabled: true,
+            byEvents: true,
+            base64: true,
+            events: [
+              'APPLICATION_STARTUP',
+              'QRCODE_UPDATED',
+              'MESSAGES_SET',
+              'MESSAGES_UPSERT',
+              'MESSAGES_UPDATE',
+              'MESSAGES_DELETE',
+              'SEND_MESSAGE',
+              'CONTACTS_SET',
+              'CONTACTS_UPSERT',
+              'CONTACTS_UPDATE',
+              'PRESENCE_UPDATE',
+              'CHATS_SET',
+              'CHATS_UPSERT',
+              'CHATS_UPDATE',
+              'CHATS_DELETE',
+              'CONNECTION_UPDATE',
+              'GROUPS_UPSERT',
+              'GROUP_UPDATE',
+              'GROUP_PARTICIPANTS_UPDATE',
+              'CALL',
+            ],
+          },
         }),
       });
 
@@ -756,43 +784,7 @@ export default function Channels() {
 
       console.log('✅ Resposta da Evolution API:', data);
 
-      // Configurar webhook DEPOIS de criar a instância
-      try {
-        console.log('🔧 Configurando webhook para a instância...');
-        const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-webhook`;
-
-        const webhookResponse = await fetch(`${evolutionApiUrl}/webhook/set/${instanceName}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': evolutionApiKey,
-          },
-          body: JSON.stringify({
-            url: webhookUrl,
-            webhook_by_events: true,
-            webhook_base64: true,
-            events: [
-              'QRCODE_UPDATED',
-              'CONNECTION_UPDATE',
-              'MESSAGES_UPSERT',
-              'MESSAGES_UPDATE',
-              'SEND_MESSAGE',
-              'CONTACTS_UPDATE',
-              'PRESENCE_UPDATE',
-            ],
-          }),
-        });
-
-        if (webhookResponse.ok) {
-          console.log('✅ Webhook configurado com sucesso!');
-        } else {
-          console.warn('⚠️ Falha ao configurar webhook (não crítico):', await webhookResponse.text());
-        }
-      } catch (webhookError) {
-        console.warn('⚠️ Erro ao configurar webhook (não crítico):', webhookError);
-      }
-
-      // Exibir QR Code
+      // Exibir QR Code PRIMEIRO (para não bloquear a UI)
       if (data.qrcode?.base64) {
         setQRCodeData(data.qrcode.base64);
         setShowQRCode(true);
@@ -808,6 +800,85 @@ export default function Channels() {
         createChannel.mutate({ type: 'whatsapp', name, credentials });
 
         toast.success('✅ Instância criada! Escaneie o QR Code com seu WhatsApp!');
+
+        // Configurar webhook e settings em background (não bloqueia a UI)
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        if (supabaseUrl) {
+          const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`;
+
+          // Configurar webhook em background
+          fetch(`${evolutionApiUrl}/webhook/set/${instanceName}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionApiKey,
+            },
+            body: JSON.stringify({
+              webhook: {
+                url: webhookUrl,
+                enabled: true,
+                byEvents: true,
+                base64: true,
+                events: [
+                  'APPLICATION_STARTUP',
+                  'QRCODE_UPDATED',
+                  'MESSAGES_SET',
+                  'MESSAGES_UPSERT',
+                  'MESSAGES_UPDATE',
+                  'MESSAGES_DELETE',
+                  'SEND_MESSAGE',
+                  'CONTACTS_SET',
+                  'CONTACTS_UPSERT',
+                  'CONTACTS_UPDATE',
+                  'PRESENCE_UPDATE',
+                  'CHATS_SET',
+                  'CHATS_UPSERT',
+                  'CHATS_UPDATE',
+                  'CHATS_DELETE',
+                  'CONNECTION_UPDATE',
+                  'GROUPS_UPSERT',
+                  'GROUP_UPDATE',
+                  'GROUP_PARTICIPANTS_UPDATE',
+                  'CALL',
+                ],
+              },
+            }),
+          })
+            .then(res => {
+              if (res.ok) {
+                console.log('✅ Webhook configurado com sucesso!');
+              } else {
+                res.text().then(text => console.warn('⚠️ Falha ao configurar webhook:', text));
+              }
+            })
+            .catch(err => console.warn('⚠️ Erro ao configurar webhook:', err));
+
+          // Configurar settings em background
+          fetch(`${evolutionApiUrl}/settings/set/${instanceName}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionApiKey,
+            },
+            body: JSON.stringify({
+              rejectCall: false,
+              msgCall: 'Desculpe, não posso atender chamadas no momento.',
+              groupsIgnore: true,
+              alwaysOnline: true,
+              readMessages: true,
+              readStatus: false,
+              syncFullHistory: false,
+            }),
+          })
+            .then(res => {
+              if (res.ok) {
+                console.log('✅ Settings configurados com sucesso!');
+              } else {
+                res.text().then(text => console.warn('⚠️ Falha ao configurar settings:', text));
+              }
+            })
+            .catch(err => console.warn('⚠️ Erro ao configurar settings:', err));
+        }
       } else {
         toast.info('Instância já conectada ou aguardando conexão');
       }

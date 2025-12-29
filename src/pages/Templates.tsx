@@ -2,6 +2,7 @@ import { MainLayout } from '@/components/MainLayout';
 import { TemplatesManager } from '@/components/chat/TemplatesManager';
 import { ProposalTemplatesManager } from '@/components/chat/ProposalTemplatesManager';
 import { VariablesManager } from '@/components/settings/VariablesManager';
+import { EmailTemplatesManager } from '@/components/email/EmailTemplatesManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -10,7 +11,8 @@ import {
   Sliders,
   Sparkles,
   Type,
-  Layout
+  Layout,
+  Mail
 } from 'lucide-react';
 
 export default function Templates() {
@@ -66,6 +68,16 @@ export default function Templates() {
                 <span className="font-semibold text-sm">Propostas PDF/Web</span>
               </TabsTrigger>
 
+              <TabsTrigger
+                value="emails"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50 flex items-center"
+              >
+                <div className="p-1 rounded-lg bg-rose-50/50 group-data-[state=active]:bg-white/20">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <span className="font-semibold text-sm">Templates de Email</span>
+              </TabsTrigger>
+
               <Separator className="my-2 bg-gray-50" />
 
               <div className="w-full px-3 py-2 text-left">
@@ -102,6 +114,10 @@ export default function Templates() {
 
             <TabsContent value="proposals" className="m-0 focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
               <ProposalTemplatesManager />
+            </TabsContent>
+
+            <TabsContent value="emails" className="m-0 focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <EmailTemplatesManager />
             </TabsContent>
 
             <TabsContent value="variables" className="m-0 focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">

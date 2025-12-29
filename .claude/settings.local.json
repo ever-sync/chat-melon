@@ -44,7 +44,14 @@
       "Bash(curl:*)",
       "Bash(then grep -E \"POOLER|REDIS|CACHE\" .env)",
       "Bash(then grep -E \"VITE_SUPABASE_POOLER_URL\" .env)",
-      "Bash(else echo \"Variável não encontrada no .env\")"
+      "Bash(else echo \"Variável não encontrada no .env\")",
+      "Bash(then grep -E \"DATABASE_URL|SUPABASE\" .env)",
+      "Bash(supabase db push:*)",
+      "Bash(cat:*)",
+      "Bash(for m in 20251226000002 20251226000003 20251226000004 20251226020000 20251226021500 20251226030000 20251227000001 20251227025716 20251227025717 20251227025718 20251227160000 20251227170000 20251228000001 20251228000002 20251228230500 20251228232200)",
+      "Bash(do npx supabase migration repair --status applied $m)",
+      "Bash(done)",
+      "Bash(for:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ import { useCustomFields } from '@/hooks/useCustomFields';
 import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useContactSettings } from '@/hooks/useContactSettings';
 
 interface ImportContact {
   rowIndex: number;
@@ -48,7 +49,10 @@ export const ContactImportDialog = ({
   onImportComplete,
 }: ContactImportDialogProps) => {
   const { companyId } = useCompanyQuery();
+  const { settings } = useContactSettings();
   const { fields: customFields } = useCustomFields('contact');
+
+  const entityNamePlural = settings?.entity_name_plural || 'Contatos';
 
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
@@ -163,11 +167,11 @@ export const ContactImportDialog = ({
       Object.entries(mapping).forEach(([fileHeader, systemField]) => {
         const value = contactData[fileHeader];
 
-        if (systemField.startsWith('custom_')) {
+        if ((systemField as string).startsWith('custom_')) {
           if (!mapped.customFields) mapped.customFields = {};
-          mapped.customFields[systemField.replace('custom_', '')] = value;
+          mapped.customFields[(systemField as string).replace('custom_', '')] = value;
         } else {
-          (mapped as any)[systemField] = value;
+          (mapped as any)[systemField as string] = value;
         }
       });
 
@@ -239,6 +243,8 @@ export const ContactImportDialog = ({
       setProgress(((i + 1) / contactsToProcess.length) * 100);
 
       try {
+        let contactId = contact.existingId;
+
         if (contact.isDuplicate && duplicateAction === 'update') {
           // Update existing
           const { error } = await supabase
@@ -253,14 +259,41 @@ export const ContactImportDialog = ({
           if (error) throw error;
         } else {
           // Create new
-          const { error } = await supabase.from('contacts').insert({
-            company_id: companyId!,
-            name: contact.mapped?.name,
-            phone_number: contact.mapped?.phone_number,
-            email: contact.mapped?.email || null,
-          });
+          const { data, error } = await supabase
+            .from('contacts')
+            .insert({
+              company_id: companyId!,
+              name: contact.mapped?.name,
+              phone_number: contact.mapped?.phone_number,
+              email: contact.mapped?.email || null,
+            })
+            .select('id')
+            .single();
 
           if (error) throw error;
+          contactId = data.id;
+        }
+
+        // Save Custom Fields
+        if (contactId && contact.mapped?.customFields) {
+          const customFieldsToInsert = Object.entries(contact.mapped.customFields)
+            .filter(([_, value]) => value && (value as string).trim() !== '')
+            .map(([fieldId, value]) => ({
+              custom_field_id: fieldId,
+              entity_id: contactId,
+              value: (value as string).trim()
+            }));
+
+          if (customFieldsToInsert.length > 0) {
+            // Use upsert to handle updates if they exist
+            const { error: cfError } = await supabase
+              .from('custom_field_values')
+              .upsert(customFieldsToInsert, { 
+                onConflict: 'custom_field_id,entity_id' 
+              });
+
+            if (cfError) console.error('Erro ao salvar campo personalizado:', cfError);
+          }
         }
 
         successCount++;
@@ -301,10 +334,15 @@ export const ContactImportDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Importar Contatos - Etapa {step} de 4</DialogTitle>
+      <DialogContent className="max-w-4xl w-[95vw] md:w-full max-h-[95vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle>Importação de {entityNamePlural}</DialogTitle>
+          <DialogDescription>
+            Siga os passos abaixo para importar seus contatos via arquivo CSV ou Excel.
+          </DialogDescription>
         </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto p-6 pt-0">
 
         {/* ETAPA 1: UPLOAD */}
         {step === 1 && (
@@ -340,26 +378,30 @@ export const ContactImportDialog = ({
 
             <div className="space-y-3">
               {headers.map((header) => (
-                <div key={header} className="flex items-center gap-4">
-                  <Label className="w-1/3 font-mono text-sm">{header}</Label>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                  <Select
-                    value={mapping[header] || ''}
-                    onValueChange={(value) => setMapping({ ...mapping, [header]: value })}
-                  >
-                    <SelectTrigger className="w-2/3">
-                      <SelectValue placeholder="Selecione um campo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Não importar</SelectItem>
-                      {systemFields.map((field) => (
-                        <SelectItem key={field.value} value={field.value}>
-                          {field.label}{' '}
-                          {field.required && <span className="text-destructive">*</span>}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div key={header} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg bg-muted/30 border">
+                  <div className="flex-1 min-w-0">
+                    <Label className="font-mono text-sm break-all">{header}</Label>
+                  </div>
+                  <div className="flex items-center gap-2 sm:w-2/3">
+                    <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" />
+                    <Select
+                      value={mapping[header] || ''}
+                      onValueChange={(value) => setMapping({ ...mapping, [header]: value })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione um campo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Não importar</SelectItem>
+                        {systemFields.map((field) => (
+                          <SelectItem key={field.value} value={field.value}>
+                            {field.label}{' '}
+                            {field.required && <span className="text-destructive">*</span>}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               ))}
             </div>
@@ -408,18 +450,18 @@ export const ContactImportDialog = ({
         {/* ETAPA 3: VALIDAÇÃO */}
         {step === 3 && (
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-900">
                 <div className="text-2xl font-bold text-green-600">{validContacts.length}</div>
-                <div className="text-sm text-muted-foreground">Contatos válidos</div>
+                <div className="text-sm text-muted-foreground font-medium">Contatos válidos</div>
               </div>
-              <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
+              <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-900">
                 <div className="text-2xl font-bold text-orange-600">{duplicateContacts.length}</div>
-                <div className="text-sm text-muted-foreground">Duplicados</div>
+                <div className="text-sm text-muted-foreground font-medium">Duplicados</div>
               </div>
-              <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+              <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-900">
                 <div className="text-2xl font-bold text-red-600">{errorContacts.length}</div>
-                <div className="text-sm text-muted-foreground">Com erros</div>
+                <div className="text-sm text-muted-foreground font-medium">Com erros</div>
               </div>
             </div>
 
@@ -495,6 +537,7 @@ export const ContactImportDialog = ({
             )}
           </div>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

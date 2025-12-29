@@ -19,27 +19,42 @@ serve(async (req) => {
 
     const { action, taskId, userId, companyId, event: eventData } = await req.json();
 
-    // Busca token do usuário
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('google_calendar_token, google_calendar_refresh_token, google_calendar_connected')
-      .eq('id', userId)
-      .single();
-
-    if (!profile?.google_calendar_connected) {
-      throw new Error('Google Calendar not connected');
+    // 🔥 IMPORTANTE: Busca token da nova tabela (isolado por empresa)
+    if (!companyId) {
+      throw new Error('companyId é obrigatório');
     }
 
+    console.log('🔍 Buscando token do Google Calendar:', { userId, companyId });
+
+    const { data: tokenData } = await supabase
+      .from('google_calendar_tokens')
+      .select('access_token, refresh_token, token_expiry, google_email')
+      .eq('user_id', userId)
+      .eq('company_id', companyId)  // 👈 Filtrar por empresa
+      .maybeSingle();
+
+    if (!tokenData) {
+      throw new Error('Google Calendar not connected for this company');
+    }
+
+    console.log('✅ Token encontrado para:', tokenData.google_email);
+
     // Verifica se token expirou
-    let accessToken = profile.google_calendar_token?.access_token;
-    const expiresAt = profile.google_calendar_token?.expires_at;
+    let accessToken = tokenData.access_token;
+    const expiresAt = tokenData.token_expiry ? new Date(tokenData.token_expiry).getTime() : 0;
 
     if (expiresAt && Date.now() > expiresAt) {
-      // Refresh token
+      console.log('🔄 Token expirado, renovando...');
+      // Refresh token COM companyId
       const refreshResponse = await supabase.functions.invoke('google-calendar-oauth', {
-        body: { action: 'refresh_token', userId },
+        body: {
+          action: 'refresh_token',
+          userId,
+          companyId,  // 👈 Passar companyId
+        },
       });
       accessToken = refreshResponse.data.access_token;
+      console.log('✅ Token renovado');
     }
 
     const headers = {

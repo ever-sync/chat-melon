@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import { useCustomFields, type CustomField } from '@/hooks/useCustomFields';
 
 type EntityType = 'contact' | 'deal' | 'company';
@@ -40,6 +41,10 @@ const fieldTypes = [
   { value: 'email', label: 'Email', description: 'Endereço de email' },
   { value: 'phone', label: 'Telefone', description: 'Número de telefone' },
   { value: 'currency', label: 'Moeda', description: 'Valor monetário' },
+  { value: 'cpf', label: 'CPF', description: 'Cadastro de Pessoa Física (Máscara)' },
+  { value: 'cnpj', label: 'CNPJ', description: 'Cadastro de Pessoa Jurídica (Máscara)' },
+  { value: 'cep', label: 'CEP', description: 'Código Postal (Busca automática)' },
+  { value: 'textarea', label: 'Área de Texto', description: 'Campo de texto longo' },
 ];
 
 export function CustomFieldModal({ open, onOpenChange, entityType, field }: CustomFieldModalProps) {
@@ -114,9 +119,30 @@ export function CustomFieldModal({ open, onOpenChange, entityType, field }: Cust
     } as any;
 
     if (field) {
-      updateField({ id: field.id, ...data });
+      updateField.mutate({ id: field.id, ...data });
     } else {
-      createField(data);
+      createField.mutateAsync(data).then(() => {
+        if (fieldType === 'cep') {
+          const addressFields = [
+            { name: `${fieldName}_rua`, label: `${fieldLabel}: Rua` },
+            { name: `${fieldName}_numero`, label: `${fieldLabel}: Número` },
+            { name: `${fieldName}_bairro`, label: `${fieldLabel}: Bairro` },
+            { name: `${fieldName}_cidade`, label: `${fieldLabel}: Cidade` },
+            { name: `${fieldName}_uf`, label: `${fieldLabel}: UF` },
+          ];
+
+          addressFields.forEach(async (addr) => {
+            await createField.mutateAsync({
+              ...data,
+              field_name: addr.name,
+              field_label: addr.label,
+              field_type: 'text',
+              is_required: false,
+            });
+          });
+          toast.success("Campos de endereço criados automaticamente!");
+        }
+      });
     }
 
     onOpenChange(false);

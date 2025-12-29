@@ -72,6 +72,8 @@ import { useScoringRules } from '@/hooks/useScoringRules';
 import { toast } from 'sonner';
 import { useSegments } from '@/hooks/useSegments';
 import { PaginationControls } from '@/components/ui/PaginationControls';
+import { EmailComposer } from '@/components/crm/EmailComposer';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -277,6 +279,8 @@ export default function Contacts() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'score'>('name');
+  const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [emailContact, setEmailContact] = useState<any>(null);
 
   // States related to Custom Fields & Categories Tabs
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -408,8 +412,16 @@ export default function Contacts() {
 
     let contactId: string;
 
+    const submissionData = {
+      ...formData,
+      category_id: formData.category_id || null,
+      email: formData.email || null,
+      name: formData.name || null,
+      company_cnpj: formData.company_cnpj || null,
+    };
+
     if (editingContact) {
-      updateContact({ id: editingContact.id, ...formData });
+      updateContact.mutate({ id: editingContact.id, ...submissionData });
       contactId = editingContact.id;
     } else {
       const { data: existingContact } = await supabase
@@ -423,11 +435,7 @@ export default function Contacts() {
         if (!confirm(`Já existe um contato com este telefone. Deseja criar mesmo assim?`)) return;
       }
 
-      const { data } = await supabase
-        .from('contacts')
-        .insert(formData as unknown as TablesInsert<'contacts'>)
-        .select()
-        .single();
+      const data = await createContact.mutateAsync(submissionData as any);
 
       if (data) contactId = data.id;
       else return;
@@ -441,7 +449,7 @@ export default function Contacts() {
 
   const handleDelete = (contactId: string) => {
     if (confirm('Tem certeza que deseja excluir este contato? Esta ação não pode ser desfeita.')) {
-      deleteContact(contactId);
+      deleteContact.mutate(contactId);
     }
   };
 
@@ -518,6 +526,17 @@ export default function Contacts() {
 
   // Field Handlers
   const handleFieldSubmit = async () => {
+    if (!fieldForm.name) {
+        toast.error("O nome interno é obrigatório");
+        return;
+    }
+
+    const isDuplicate = fields.some(f => f.field_name === fieldForm.name && f.id !== editingField?.id);
+    if (isDuplicate) {
+        toast.error("Este nome interno já está em uso");
+        return;
+    }
+
     const fieldData = {
       field_name: fieldForm.name,
       field_label: fieldForm.label,
@@ -530,9 +549,30 @@ export default function Contacts() {
     };
 
     if (editingField) {
-      updateField({ id: editingField.id, ...fieldData });
+      updateField.mutate({ id: editingField.id, ...fieldData });
     } else {
-      createField(fieldData);
+      createField.mutateAsync(fieldData).then((created) => {
+        if (fieldData.field_type === 'cep') {
+          const addressFields = [
+            { name: `${fieldData.field_name}_rua`, label: `${fieldData.field_label}: Rua` },
+            { name: `${fieldData.field_name}_numero`, label: `${fieldData.field_label}: Número` },
+            { name: `${fieldData.field_name}_bairro`, label: `${fieldData.field_label}: Bairro` },
+            { name: `${fieldData.field_name}_cidade`, label: `${fieldData.field_label}: Cidade` },
+            { name: `${fieldData.field_name}_uf`, label: `${fieldData.field_label}: UF` },
+          ];
+          
+          addressFields.forEach(async (addr) => {
+            await createField.mutateAsync({
+              ...fieldData,
+              field_name: addr.name,
+              field_label: addr.label,
+              field_type: 'text',
+              is_required: false, // Additional address fields usually not required by default
+            });
+          });
+          toast.success("Campos de endereço criados automaticamente!");
+        }
+      });
     }
     setShowFieldModal(false);
   };
@@ -826,12 +866,43 @@ export default function Contacts() {
                                 </CollapsibleTrigger>
 
                                 <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!contact.email) {
+                                      toast.error("Este contato não possui email cadastrado");
+                                      return;
+                                    }
+                                    setEmailContact(contact);
+                                    setIsEmailOpen(true);
+                                  }}
+                                  title="Enviar Email"
+                                >
+                                  <Mail className="h-4 w-4" />
+                                </Button>
+
+                                <Button
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8"
                                     onClick={() => handleOpenModal(contact)}
                                 >
                                     <Pencil className="h-4 w-4" />
+                                </Button>
+
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(contact.id);
+                                  }}
+                                  title="Excluir Contato"
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
@@ -851,9 +922,36 @@ export default function Contacts() {
                                     <p className="text-sm text-muted-foreground">{contact.phone_number}</p>
                                   </div>
                                 </div>
-                                <Button variant="ghost" size="icon" onClick={() => handleOpenModal(contact)}>
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (!contact.email) {
+                                        toast.error("Este contato não possui email cadastrado");
+                                        return;
+                                      }
+                                      setEmailContact(contact);
+                                      setIsEmailOpen(true);
+                                    }}
+                                  >
+                                    <Mail className="h-4 w-4 text-blue-500" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" onClick={() => handleOpenModal(contact)}>
+                                      <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(contact.id);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
                             </div>
                           </div>
                           
@@ -1034,7 +1132,9 @@ export default function Contacts() {
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                              if (confirm('Excluir este campo?')) deleteField(field.id);
+                              if (confirm('Tem certeza que deseja excluir este campo permanentemente? TODOS os valores já preenchidos nos contatos para este campo serão perdidos.')) {
+                                deleteField.mutate(field.id);
+                              }
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1188,6 +1288,8 @@ export default function Contacts() {
                                     field={field}
                                     value={customFieldsData[field.id] || ''}
                                     onChange={(val) => setCustomFieldsData(prev => ({...prev, [field.id]: val}))}
+                                    allFields={fields}
+                                    onUpdateFields={(updates) => setCustomFieldsData(prev => ({...prev, ...updates}))}
                                 />
                             ))}
                         </div>
@@ -1247,13 +1349,22 @@ export default function Contacts() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label>Nome Interno (sem espaços)</Label>
+                        <div className="flex justify-between items-center">
+                            <Label>Nome Interno (slug)</Label>
+                            {fieldForm.name && fields.some(f => f.field_name === fieldForm.name && f.id !== editingField?.id) && (
+                                <span className="text-[10px] text-destructive font-bold uppercase">Já existe</span>
+                            )}
+                        </div>
                         <Input 
                             value={fieldForm.name}
-                            onChange={e => setFieldForm({...fieldForm, name: e.target.value})}
+                            onChange={e => {
+                                const val = e.target.value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                                setFieldForm({...fieldForm, name: val});
+                            }}
                             placeholder="ex: cpf_cnpj"
                             disabled={!!editingField}
                         />
+                        <p className="text-[10px] text-muted-foreground">Apenas letras minúsculas, números e sublinhados (_)</p>
                     </div>
                     <div className="space-y-2">
                         <Label>Rótulo (Label visible)</Label>
@@ -1276,13 +1387,22 @@ export default function Contacts() {
                             <SelectContent>
                                 <SelectItem value="text">Texto</SelectItem>
                                 <SelectItem value="number">Número</SelectItem>
+                                <SelectItem value="currency">Moeda (BRL)</SelectItem>
                                 <SelectItem value="date">Data</SelectItem>
-                                <SelectItem value="select">Seleção</SelectItem>
+                                <SelectItem value="select">Seleção Única</SelectItem>
+                                <SelectItem value="multiselect">Seleção Múltipla</SelectItem>
                                 <SelectItem value="boolean">Sim/Não</SelectItem>
+                                <SelectItem value="url">Link / URL</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Telefone</SelectItem>
+                                <SelectItem value="cpf">CPF (Máscara)</SelectItem>
+                                <SelectItem value="cnpj">CNPJ (Máscara)</SelectItem>
+                                <SelectItem value="cep">CEP (Máscara + Busca)</SelectItem>
+                                <SelectItem value="textarea">Área de Texto (Longo)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                    {fieldForm.field_type === 'select' && (
+                    {(fieldForm.field_type === 'select' || fieldForm.field_type === 'multiselect') && (
                         <div className="space-y-2">
                             <Label>Opções (separadas por vírgula)</Label>
                             <Textarea 
@@ -1292,6 +1412,14 @@ export default function Contacts() {
                             />
                         </div>
                     )}
+                    <div className="flex items-center space-x-2 pt-2">
+                        <Switch 
+                            id="field-required"
+                            checked={fieldForm.is_required}
+                            onCheckedChange={v => setFieldForm({...fieldForm, is_required: v})}
+                        />
+                        <Label htmlFor="field-required">Campo Obrigatório</Label>
+                    </div>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setShowFieldModal(false)}>Cancelar</Button>
@@ -1313,6 +1441,14 @@ export default function Contacts() {
           open={isExportOpen} 
           onOpenChange={setIsExportOpen}
           contacts={filteredContacts}
+        />
+
+        <EmailComposer
+          open={isEmailOpen}
+          onOpenChange={setIsEmailOpen}
+          toEmail={emailContact?.email || ''}
+          contactId={emailContact?.id}
+          contactName={emailContact?.name || emailContact?.push_name}
         />
       </div>
     </MainLayout>

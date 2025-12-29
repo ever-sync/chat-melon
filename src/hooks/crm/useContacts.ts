@@ -185,9 +185,9 @@ export const useContacts = (segmentId?: string, options?: { page?: number; pageS
   return {
     contacts,
     isLoading,
-    createContact: createContact.mutate,
-    updateContact: updateContact.mutate,
-    deleteContact: deleteContact.mutate,
+    createContact,
+    updateContact,
+    deleteContact,
     // Paginação
     pagination: {
       page: contactsQuery.page,
