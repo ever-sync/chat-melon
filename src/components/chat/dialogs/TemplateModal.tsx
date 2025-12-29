@@ -93,7 +93,6 @@ export const TemplateModal = ({ open, onOpenChange, template, onSubmit }: Templa
             <div className="flex items-center justify-between mb-1">
               <Label htmlFor="content">Conteúdo da Mensagem *</Label>
               <VariablePicker
-                hideStandard={true}
                 onSelect={(v) => setValue('content', (watch('content') || '') + v)}
                 trigger={
                   <Button

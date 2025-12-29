@@ -16,6 +16,7 @@ export type Task = Tables<'tasks'> & {
 interface TaskFilters {
   status?: string;
   priority?: string;
+  taskType?: string;
   assignedTo?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -56,7 +57,11 @@ export const useTasks = (filters?: TaskFilters, options?: { page?: number; pageS
         query = query.eq('priority', filters.priority);
       }
 
-      if (filters?.assignedTo) {
+      if (filters?.taskType && filters.taskType !== 'all') {
+        query = query.eq('task_type', filters.taskType);
+      }
+
+      if (filters?.assignedTo && filters.assignedTo !== 'all') {
         query = query.eq('assigned_to', filters.assignedTo);
       }
 

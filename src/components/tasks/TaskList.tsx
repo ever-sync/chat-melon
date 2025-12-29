@@ -17,13 +17,28 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { TablesInsert } from '@/integrations/supabase/types';
 import { PaginationControls } from '@/components/ui/PaginationControls';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export const TaskList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>();
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('*');
+      return data || [];
+    },
+  });
+
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all',
+    taskType: 'all',
+    assignedTo: 'all',
+    dateFrom: '',
+    dateTo: '',
     search: '',
   });
 
@@ -31,6 +46,10 @@ export const TaskList = () => {
     useTasks({
       status: filters.status === 'all' ? undefined : filters.status || undefined,
       priority: filters.priority === 'all' ? undefined : filters.priority || undefined,
+      taskType: filters.taskType === 'all' ? undefined : filters.taskType || undefined,
+      assignedTo: filters.assignedTo === 'all' ? undefined : filters.assignedTo || undefined,
+      dateFrom: filters.dateFrom || undefined,
+      dateTo: filters.dateTo || undefined,
     });
 
   const filteredTasks = tasks.filter((task) => {
@@ -93,7 +112,7 @@ export const TaskList = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -109,10 +128,10 @@ export const TaskList = () => {
                 onValueChange={(value) => setFilters({ ...filters, status: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os Status</SelectItem>
                   <SelectItem value="pending">Pendentes</SelectItem>
                   <SelectItem value="completed">Concluídas</SelectItem>
                   <SelectItem value="cancelled">Canceladas</SelectItem>
@@ -124,16 +143,66 @@ export const TaskList = () => {
                 onValueChange={(value) => setFilters({ ...filters, priority: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todas as prioridades" />
+                  <SelectValue placeholder="Prioridade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as prioridades</SelectItem>
+                  <SelectItem value="all">Todas as Prioridades</SelectItem>
                   <SelectItem value="low">Baixa</SelectItem>
                   <SelectItem value="medium">Média</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
                   <SelectItem value="urgent">Urgente</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Select
+                value={filters.taskType}
+                onValueChange={(value) => setFilters({ ...filters, taskType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Tipos</SelectItem>
+                  <SelectItem value="call">Ligação</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="meeting">Reunião</SelectItem>
+                  <SelectItem value="follow_up">Follow-up</SelectItem>
+                  <SelectItem value="proposal">Proposta</SelectItem>
+                  <SelectItem value="other">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filters.assignedTo}
+                onValueChange={(value) => setFilters({ ...filters, assignedTo: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Responsáveis</SelectItem>
+                  {users.map((user: any) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.full_name || user.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Input
+                 type="date"
+                 placeholder="De"
+                 value={filters.dateFrom}
+                 onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+              />
+              
+              <Input
+                 type="date"
+                 placeholder="Até"
+                 value={filters.dateTo}
+                 onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+              />
+
             </div>
 
             <div className="space-y-6">

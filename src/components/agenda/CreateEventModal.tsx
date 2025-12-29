@@ -74,16 +74,17 @@ export const CreateEventModal = ({ open, onOpenChange, selectedDate }: CreateEve
         company_id: profile.company_id,
         priority,
         status: 'pending',
-        type: 'meeting',
+        task_type: 'meeting',
       }).select().single();
 
       if (error) throw error;
 
       // Se conectado ao Google Calendar e é uma reunião, criar evento
-      if (connectionStatus?.connected && eventType === 'google') {
+      if (connectionStatus?.connected) {
         await createCalendarEvent.mutateAsync({
           taskId: data.id,
           companyId: profile.company_id,
+          assignedTo: user.id,
         });
       }
 

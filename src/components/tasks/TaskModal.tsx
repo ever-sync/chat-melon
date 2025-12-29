@@ -108,14 +108,17 @@ export const TaskModal = ({
     // Cria a tarefa primeiro
     const taskData = await onSubmit(data);
 
-    // Se marcou para adicionar ao Calendar e é meeting/call
+    // Se marcou para adicionar ao Calendar
     if (
       addToCalendar &&
-      (data.task_type === 'meeting' || data.task_type === 'call') &&
       taskData?.id &&
       companyId
     ) {
-      createCalendarEvent.mutate({ taskId: taskData.id, companyId });
+      createCalendarEvent.mutate({ 
+        taskId: taskData.id, 
+        companyId,
+        assignedTo: taskData.assigned_to || undefined
+      });
     }
 
     reset();
@@ -260,8 +263,8 @@ export const TaskModal = ({
           </div>
 
           {/* Google Calendar Integration */}
-          {connectionStatus?.connected &&
-            (watch('task_type') === 'meeting' || watch('task_type') === 'call') && (
+          {/* Note: Logic to show checkbox if connected. Sync happens on form submit */}
+          {connectionStatus?.connected && (
               <div className="flex items-center space-x-2 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
                 <Checkbox
                   id="add-to-calendar"

@@ -160,17 +160,19 @@ export const useGoogleCalendar = () => {
 
   // Criar evento no Calendar
   const createCalendarEvent = useMutation({
-    mutationFn: async ({ taskId, companyId }: { taskId: string; companyId: string }) => {
+    mutationFn: async ({ taskId, companyId, assignedTo }: { taskId: string; companyId: string, assignedTo?: string }) => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      const targetUserId = assignedTo || user.id;
+
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
         body: {
           action: 'create_event',
           taskId,
-          userId: user.id,
+          userId: targetUserId, // Use targetUserId explicitly
           companyId,
         },
       });
@@ -180,7 +182,7 @@ export const useGoogleCalendar = () => {
     },
     onSuccess: (data) => {
       toast.success('Evento adicionado ao Google Calendar!');
-      queryClient.invalidateQueries({ queryKey: ['calendar-sync'] });
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
     },
     onError: (error) => {
       toast.error('Erro ao criar evento: ' + error.message);
@@ -193,16 +195,22 @@ export const useGoogleCalendar = () => {
       taskId,
       userId,
       companyId,
+      assignedTo
     }: {
       taskId: string;
-      userId: string;
+      userId?: string;
       companyId: string;
+      assignedTo?: string;
     }) => {
+      // Prioritize assignedTo if provided, otherwise fallback to userId (legacy) or throw
+      const targetUserId = assignedTo || userId;
+        if (!targetUserId) throw new Error('User ID or Assigned To is required');
+
       const { error } = await supabase.functions.invoke('google-calendar-sync', {
         body: {
           action: 'update_event',
           taskId,
-          userId,
+          userId: targetUserId,
           companyId,
         },
       });
@@ -210,7 +218,7 @@ export const useGoogleCalendar = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calendar-sync'] });
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
     },
   });
 
@@ -220,16 +228,22 @@ export const useGoogleCalendar = () => {
       taskId,
       userId,
       companyId,
+      assignedTo
     }: {
       taskId: string;
-      userId: string;
+      userId?: string;
       companyId: string;
+      assignedTo?: string;
     }) => {
+       // Prioritize assignedTo if provided, otherwise fallback to userId (legacy) or throw
+       const targetUserId = assignedTo || userId;
+       if (!targetUserId) throw new Error('User ID or Assigned To is required');
+
       const { error } = await supabase.functions.invoke('google-calendar-sync', {
         body: {
           action: 'delete_event',
           taskId,
-          userId,
+          userId: targetUserId,
           companyId,
         },
       });
@@ -237,7 +251,7 @@ export const useGoogleCalendar = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calendar-sync'] });
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
     },
   });
 
@@ -278,12 +292,13 @@ export const useGoogleCalendar = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user || !currentCompany?.id) throw new Error('Not authenticated or no company');
 
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
         body: {
           action: 'update_google_event',
           userId: user.id,
+          companyId: currentCompany.id,
           event: {
             eventId,
             ...event,
@@ -316,12 +331,13 @@ export const useGoogleCalendar = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user || !currentCompany?.id) throw new Error('Not authenticated or no company');
 
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
         body: {
           action: 'delete_google_event',
           userId: user.id,
+          companyId: currentCompany.id,
           event: { eventId },
         },
       });
@@ -343,12 +359,13 @@ export const useGoogleCalendar = () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user || !currentCompany?.id) throw new Error('Not authenticated or no company');
 
     const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
       body: {
         action: 'check_availability',
         userId: user.id,
+        companyId: currentCompany.id,
         event: { date: date.toISOString() },
       },
     });
