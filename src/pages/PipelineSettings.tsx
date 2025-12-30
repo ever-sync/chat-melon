@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Settings2, Trash2, Edit, ArrowLeft, Star } from 'lucide-react';
+import { Plus, Settings2, Trash2, Edit, ArrowLeft, Star, Cog } from 'lucide-react';
 import { usePipelines } from '@/hooks/crm/usePipelines';
 import { PipelineModal } from '@/components/settings/PipelineModal';
 import { StagesManager } from '@/components/settings/StagesManager';
+import { PipelineConfigModal } from '@/components/settings/PipelineConfigModal';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -31,8 +32,10 @@ export default function PipelineSettings() {
   const { companyId } = useCompanyQuery();
   const [modalOpen, setModalOpen] = useState(false);
   const [stagesManagerOpen, setStagesManagerOpen] = useState(false);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
   const [editingPipeline, setEditingPipeline] = useState<any>(null);
   const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
+  const [selectedPipelineName, setSelectedPipelineName] = useState<string>('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingPipelineId, setDeletingPipelineId] = useState<string | null>(null);
 
@@ -49,6 +52,12 @@ export default function PipelineSettings() {
   const handleManageStages = (pipelineId: string) => {
     setSelectedPipelineId(pipelineId);
     setStagesManagerOpen(true);
+  };
+
+  const handleOpenConfig = (pipeline: any) => {
+    setSelectedPipelineId(pipeline.id);
+    setSelectedPipelineName(pipeline.name);
+    setConfigModalOpen(true);
   };
 
   const handleSetDefault = async (pipelineId: string) => {
@@ -267,6 +276,16 @@ export default function PipelineSettings() {
                         <Edit className="h-4 w-4" />
                       </Button>
 
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenConfig(pipeline)}
+                        className="rounded-2xl h-11 w-11 bg-purple-50 text-purple-500 hover:bg-purple-500 hover:text-white transition-all border border-purple-100"
+                        title="Configurações Avançadas"
+                      >
+                        <Cog className="h-4 w-4" />
+                      </Button>
+
                       {pipelines.length > 1 && (
                         <Button
                           variant="ghost"
@@ -306,6 +325,13 @@ export default function PipelineSettings() {
           open={stagesManagerOpen}
           onOpenChange={setStagesManagerOpen}
           pipelineId={selectedPipelineId}
+        />
+
+        <PipelineConfigModal
+          open={configModalOpen}
+          onOpenChange={setConfigModalOpen}
+          pipelineId={selectedPipelineId}
+          pipelineName={selectedPipelineName}
         />
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

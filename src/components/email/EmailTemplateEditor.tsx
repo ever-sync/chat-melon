@@ -71,7 +71,9 @@ import {
   Upload,
   Loader2,
   X,
+  Variable,
 } from 'lucide-react';
+import { VariablePicker } from '@/components/chat/VariablePicker';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { EmailBlock, EmailBlockType, EmailTemplate } from './types';
@@ -799,13 +801,35 @@ export function EmailTemplateEditor({ template, onSave, onClose }: EmailTemplate
         {selectedBlock.type === 'text' && (
           <>
             <div className="space-y-2">
-              <Label>Conteúdo</Label>
+              <div className="flex items-center justify-between">
+                <Label>Conteúdo</Label>
+                <VariablePicker
+                  onSelect={(v) => {
+                    const currentText = selectedBlock.content.text?.replace(/<[^>]*>/g, '') || '';
+                    updateBlock(selectedBlock.id, {
+                      content: { ...selectedBlock.content, text: `<p>${currentText}${v}</p>` }
+                    });
+                  }}
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Variable className="h-3 w-3" />
+                      Variáveis
+                    </Button>
+                  }
+                />
+              </div>
               <Textarea
                 value={selectedBlock.content.text?.replace(/<[^>]*>/g, '') || ''}
                 onChange={(e) => updateBlock(selectedBlock.id, {
                   content: { ...selectedBlock.content, text: `<p>${e.target.value}</p>` }
                 })}
                 rows={4}
+                placeholder="Digite o texto... Use {{variavel}} para personalizar"
               />
             </div>
             <div className="space-y-2">
@@ -836,12 +860,34 @@ export function EmailTemplateEditor({ template, onSave, onClose }: EmailTemplate
         {selectedBlock.type === 'button' && (
           <>
             <div className="space-y-2">
-              <Label>Texto do Botão</Label>
+              <div className="flex items-center justify-between">
+                <Label>Texto do Botão</Label>
+                <VariablePicker
+                  onSelect={(v) => {
+                    const currentText = selectedBlock.content.text || '';
+                    updateBlock(selectedBlock.id, {
+                      content: { ...selectedBlock.content, text: currentText + v }
+                    });
+                  }}
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Variable className="h-3 w-3" />
+                      Variáveis
+                    </Button>
+                  }
+                />
+              </div>
               <Input
                 value={selectedBlock.content.text || ''}
                 onChange={(e) => updateBlock(selectedBlock.id, {
                   content: { ...selectedBlock.content, text: e.target.value }
                 })}
+                placeholder="Texto do botão..."
               />
             </div>
             <div className="space-y-2">
@@ -1751,11 +1797,27 @@ export function EmailTemplateEditor({ template, onSave, onClose }: EmailTemplate
             >
               {/* Subject Line */}
               <div className="mb-4 bg-white rounded-lg p-4 shadow-sm">
-                <Label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">Assunto do Email</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase">Assunto do Email</Label>
+                  <VariablePicker
+                    onSelect={(v) => setSubject(subject + v)}
+                    trigger={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs gap-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                      >
+                        <Variable className="h-3 w-3" />
+                        Variáveis
+                      </Button>
+                    }
+                  />
+                </div>
                 <Input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Digite o assunto do email..."
+                  placeholder="Digite o assunto do email... Use {{variavel}} para personalizar"
                   className="text-lg"
                 />
               </div>

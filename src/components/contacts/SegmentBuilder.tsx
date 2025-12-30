@@ -76,7 +76,11 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
 
   useEffect(() => {
     const loadPreview = async () => {
-      const validFilters = filters.filter((f) => f.field && f.operator && f.value !== '');
+      // Filtros válidos: campo e operador definidos, valor preenchido OU operador que não precisa de valor
+      const validFilters = filters.filter((f) =>
+        f.field && f.operator &&
+        (f.value !== '' || ['is_empty', 'is_not_empty'].includes(f.operator))
+      );
       if (validFilters.length > 0) {
         setIsLoadingPreview(true);
         const result = await previewSegment(validFilters);
@@ -120,7 +124,11 @@ export function SegmentBuilder({ open, onOpenChange, segment }: SegmentBuilderPr
   };
 
   const handleSave = () => {
-    const validFilters = filters.filter((f) => f.field && f.operator && f.value !== '');
+    // Filtros válidos: campo e operador definidos, valor preenchido OU operador que não precisa de valor
+    const validFilters = filters.filter((f) =>
+      f.field && f.operator &&
+      (f.value !== '' || ['is_empty', 'is_not_empty'].includes(f.operator))
+    );
 
     const segmentData: any = {
       name,

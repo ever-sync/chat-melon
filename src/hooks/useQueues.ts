@@ -34,26 +34,32 @@ export interface QueueMember {
 }
 
 export const useQueues = () => {
-  const { getCompanyId } = useCompanyQuery();
+  const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
   const { data: queues, isLoading } = useQuery({
-    queryKey: ['queues', getCompanyId()],
+    queryKey: ['queues', companyId],
     queryFn: async () => {
+      if (!companyId) {
+        return [];
+      }
       const { data, error } = await supabase
         .from('queues')
         .select('*')
-        .eq('company_id', getCompanyId())
+        .eq('company_id', companyId)
         .order('display_order');
 
       if (error) throw error;
       return data as Queue[];
     },
-    enabled: !!getCompanyId(),
+    enabled: !!companyId,
   });
 
   const createQueue = useMutation({
     mutationFn: async (queue: Partial<Queue> & { name: string }) => {
+      if (!companyId) {
+        throw new Error('Nenhuma empresa selecionada');
+      }
       const { data, error } = await supabase
         .from('queues')
         .insert([
@@ -67,7 +73,7 @@ export const useQueues = () => {
             working_hours: queue.working_hours,
             is_active: queue.is_active !== undefined ? queue.is_active : true,
             display_order: queue.display_order || 0,
-            company_id: getCompanyId(),
+            company_id: companyId,
           },
         ])
         .select()

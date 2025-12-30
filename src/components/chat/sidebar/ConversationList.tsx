@@ -100,7 +100,7 @@ const ConversationList = ({
   const [labels, setLabels] = useState<
     Array<{ id: string; name: string; color: string; icon?: string | null }>
   >([]);
-  const [quickFilterMode, setQuickFilterMode] = useState<'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia'>('all');
+  const [quickFilterMode, setQuickFilterMode] = useState<'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia' | 'groups'>('all');
 
   // Buscar contadores reais do banco de dados
   const { data: realCounts, isLoading: isLoadingCounts, error: countsError } = useConversationCounts();
@@ -261,6 +261,12 @@ const ConversationList = ({
   const filteredByQuickMode = conversations.filter((conv) => {
     if (quickFilterMode === 'all') return true;
 
+    // Grupos: conversas com sufixo @g.us no ID ou número (dependendo da implementação, conversation_id e contact_number)
+    if (quickFilterMode === 'groups') {
+      // Verificação robusta para grupos
+      return conv.contact_number?.endsWith('@g.us');
+    }
+
     // Atendimento: conversas com assigned_to (atribuídas a um atendente)
     if (quickFilterMode === 'atendimento') {
       return conv.assigned_to && conv.status !== 'chatbot' && !conv.ai_enabled;
@@ -291,9 +297,10 @@ const ConversationList = ({
     aguardando: conversations.filter(c => (c.status === 'waiting' || c.status === 're_entry') && !c.assigned_to).length,
     bot: conversations.filter(c => c.status === 'chatbot' && !c.ai_enabled).length,
     ia: conversations.filter(c => c.ai_enabled === true).length,
+    groups: conversations.filter(c => c.contact_number?.endsWith('@g.us')).length,
   };
 
-  const handleQuickModeChange = (mode: 'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia') => {
+  const handleQuickModeChange = (mode: 'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia' | 'groups') => {
     setQuickFilterMode(mode);
   };
 

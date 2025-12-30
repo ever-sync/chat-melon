@@ -24,6 +24,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import type { Deal } from '@/hooks/crm/useDeals';
+import type { PipelineSettings } from '@/hooks/crm/usePipelines';
 import { ProposalBuilder } from '@/components/proposals/ProposalBuilder';
 import { EmailComposer } from './EmailComposer';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +33,7 @@ import { DealTemperatureIcon } from './DealTemperatureIndicator';
 import { useDealNotes } from '@/hooks/crm/useDealNotes';
 import { useDealTasks } from '@/hooks/crm/useDealTasks';
 import { useDealFiles } from '@/hooks/crm/useDealFiles';
+import { Clock } from 'lucide-react';
 
 interface DealCardProps {
   deal: Deal;
@@ -40,6 +42,7 @@ interface DealCardProps {
   onView: (deal: Deal) => void;
   isSelected?: boolean;
   onSelect?: (dealId: string, selected: boolean) => void;
+  pipelineSettings?: PipelineSettings | null;
 }
 
 export const DealCard = ({
@@ -49,6 +52,7 @@ export const DealCard = ({
   onView,
   isSelected,
   onSelect,
+  pipelineSettings,
 }: DealCardProps) => {
   const [showProposal, setShowProposal] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
@@ -288,7 +292,8 @@ export const DealCard = ({
                 </Badge>
               );
             })()}
-            {deal.probability !== null && (
+            {/* Probabilidade - condicional baseado em settings */}
+            {deal.probability !== null && (pipelineSettings?.show_probability !== false) && (
               <Badge variant="outline" className="text-xs">
                 {deal.probability}%
               </Badge>
@@ -299,6 +304,26 @@ export const DealCard = ({
                 BANT {getBantProgress()}%
               </Badge>
             )}
+            {/* Idade do negócio - condicional baseado em settings */}
+            {(pipelineSettings?.show_deal_age !== false) && deal.created_at && (() => {
+              const createdDate = new Date(deal.created_at);
+              const now = new Date();
+              const diffDays = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (diffDays > 0) {
+                const isStale = pipelineSettings?.stale_days_threshold && diffDays >= pipelineSettings.stale_days_threshold;
+                return (
+                  <Badge
+                    variant="outline"
+                    className={`text-xs ${isStale ? 'border-amber-400 text-amber-600 bg-amber-50' : ''}`}
+                    title={`Criado há ${diffDays} dias`}
+                  >
+                    <Clock className="w-3 h-3 mr-1" />
+                    {diffDays}d
+                  </Badge>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           {/* Counters */}
@@ -326,7 +351,7 @@ export const DealCard = ({
             )}
           </div>
 
-          {deal.expected_close_date && (
+          {deal.expected_close_date && (pipelineSettings?.show_expected_close_date !== false) && (
             <div
               className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 p-1.5 rounded"
               title="Previsão de fechamento"

@@ -187,12 +187,28 @@ export function AIControlPanel({ conversationId, contactId, companyId }: AIContr
         },
         () => loadSuggestions()
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `id=eq.${conversationId}`,
+        },
+        (payload) => {
+          // Recarregar dados da conversa quando houver qualquer update
+          console.log('🔄 AIControlPanel: Conversa atualizada via realtime', payload.new);
+          loadConversation();
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 AIControlPanel realtime status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, contactId, loadData, loadInsights, loadSuggestions]);
+  }, [conversationId, contactId, loadData, loadInsights, loadSuggestions, loadConversation]);
 
   const toggleAI = async () => {
     setIsUpdating(true);

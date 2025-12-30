@@ -18,4 +18,5 @@ export type Conversation = {
   opted_in?: boolean;
   is_online?: boolean;
   channel_type?: 'whatsapp' | 'instagram' | 'messenger' | 'telegram' | 'widget' | 'email';
+  ai_enabled?: boolean;
 };

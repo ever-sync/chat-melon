@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, RefreshCw, Trash2, Power } from 'lucide-react';
+import { QrCode, RefreshCw, Trash2, Power, Webhook } from 'lucide-react';
 import { EvolutionStatusBadge } from './EvolutionStatusBadge';
 import { EvolutionQRCodeModal } from './EvolutionQRCodeModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +25,7 @@ export const EvolutionInstanceManager = ({
   const [showQRModal, setShowQRModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleAction = async (action: 'check-status' | 'restart' | 'delete' | 'get-qrcode') => {
+  const handleAction = async (action: 'check-status' | 'restart' | 'delete' | 'get-qrcode' | 'configure-webhook') => {
     try {
       setLoading(true);
       const {
@@ -44,11 +44,12 @@ export const EvolutionInstanceManager = ({
 
       if (response.error) throw response.error;
 
-      const messages = {
+      const messages: Record<string, string> = {
         'check-status': 'Status verificado',
-        restart: 'Instância reiniciada',
+        restart: 'Instância reiniciada e webhook reconfigurado',
         delete: 'Instância deletada',
         'get-qrcode': 'QR Code obtido',
+        'configure-webhook': 'Webhook configurado com sucesso! As mensagens devem chegar agora.',
       };
 
       toast.success(messages[action]);
@@ -113,6 +114,17 @@ export const EvolutionInstanceManager = ({
             >
               <Power className="h-4 w-4 mr-2" />
               Reiniciar
+            </Button>
+
+            <Button
+              onClick={() => handleAction('configure-webhook')}
+              disabled={loading || instanceStatus === 'not_created'}
+              variant="outline"
+              size="sm"
+              title="Reconfigura o webhook para receber mensagens"
+            >
+              <Webhook className="h-4 w-4 mr-2" />
+              Configurar Webhook
             </Button>
 
             <Button

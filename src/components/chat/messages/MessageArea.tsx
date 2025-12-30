@@ -88,6 +88,7 @@ type MessageAreaProps = {
   onToggleAIPanel?: () => void;
   showAIPanel?: boolean;
   showAIAssistant?: boolean;
+  onCopilotToggle?: (enabled: boolean) => void;
 };
 
 const MessageArea = ({
@@ -98,6 +99,7 @@ const MessageArea = ({
   onToggleAIPanel,
   showAIPanel = false,
   showAIAssistant = true,
+  onCopilotToggle,
 }: MessageAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
@@ -149,14 +151,22 @@ const MessageArea = ({
   const sendTextMessage = useSendTextMessage(currentCompany?.evolution_instance_name || '');
   // const startCall = useStartCall();
 
-  // Fechar painel AI quando copilot for desabilitado
+  // Exclusividade mútua: fechar painel Elisa quando Copiloto é ativado
   useEffect(() => {
-    if (!copilotEnabled && showAIPanel && onToggleAIPanel) {
-      onToggleAIPanel();
+    if (copilotEnabled && showAIPanel && onToggleAIPanel) {
+      onToggleAIPanel(); // Fecha o painel Elisa
     }
   }, [copilotEnabled]);
 
-  // Carregar status da IA
+  // Exclusividade mútua: fechar Copiloto quando painel Elisa é ativado
+  useEffect(() => {
+    if (showAIPanel && copilotEnabled) {
+      setCopilotEnabled(false);
+      onCopilotToggle?.(false);
+    }
+  }, [showAIPanel]);
+
+  // Carregar status da IA e escutar mudanças em tempo real (sincroniza com AIControlPanel)
   useEffect(() => {
     const loadAIStatus = async () => {
       if (!conversation?.id) return;
@@ -189,6 +199,35 @@ const MessageArea = ({
       }
     };
     fetchUserProfile();
+
+    // Escutar mudanças em tempo real no ai_enabled (sincroniza com AIControlPanel)
+    if (!conversation?.id) return;
+
+    const aiChannel = supabase
+      .channel(`ai-sync-${conversation.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `id=eq.${conversation.id}`,
+        },
+        (payload) => {
+          console.log('🔄 MessageArea: ai_enabled atualizado via realtime', payload.new);
+          const newAiEnabled = (payload.new as any).ai_enabled;
+          if (typeof newAiEnabled === 'boolean') {
+            setAiEnabled(newAiEnabled);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 MessageArea AI sync status:', status);
+      });
+
+    return () => {
+      supabase.removeChannel(aiChannel);
+    };
   }, [conversation?.id]);
 
   // Toggle IA
@@ -816,6 +855,7 @@ const MessageArea = ({
                 isActive={copilotEnabled}
                 onToggle={(enabled) => {
                   setCopilotEnabled(enabled);
+                  onCopilotToggle?.(enabled);
                 }}
               />
             </>
@@ -1030,6 +1070,13 @@ const MessageArea = ({
                       } else if (e.key === 'Escape') {
                         resetShortcutMode();
                         resetSelection();
+                      }
+                    } else if (e.key === 'Enter' && !e.shiftKey) {
+                      // Submeter formulário ao pressionar Enter (sem Shift)
+                      e.preventDefault();
+                      const form = e.currentTarget.closest('form');
+                      if (form) {
+                        form.requestSubmit();
                       }
                     }
                   }}

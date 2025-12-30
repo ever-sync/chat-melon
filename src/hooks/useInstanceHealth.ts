@@ -6,6 +6,7 @@ export interface InstanceHealth {
   id: string;
   instance_name: string;
   is_connected: boolean;
+  instance_status: string | null;
   messages_sent_today: number;
   daily_message_limit: number;
   delivery_rate: number;
@@ -17,7 +18,7 @@ export interface InstanceHealth {
 export function useInstanceHealth() {
   const { companyId } = useCompanyQuery();
 
-  const { data: instances, isLoading } = useQuery({
+  const { data: instances, isLoading, refetch } = useQuery({
     queryKey: ['instance-health', companyId],
     queryFn: async () => {
       if (!companyId) return [];
@@ -28,7 +29,16 @@ export function useInstanceHealth() {
         .eq('company_id', companyId);
 
       if (error) throw error;
-      return data as InstanceHealth[];
+
+      // Mapear dados e verificar conexão baseado em is_connected OU instance_status
+      return (data || []).map((instance: any) => ({
+        ...instance,
+        // Considera conectado se is_connected=true OU instance_status='open'/'connected'
+        is_connected:
+          instance.is_connected === true ||
+          instance.instance_status === 'open' ||
+          instance.instance_status === 'connected',
+      })) as InstanceHealth[];
     },
     enabled: !!companyId,
   });
@@ -36,5 +46,6 @@ export function useInstanceHealth() {
   return {
     instances: instances || [],
     isLoading,
+    refetch,
   };
 }

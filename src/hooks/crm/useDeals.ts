@@ -7,6 +7,7 @@ import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase
 import { executeAutomations, type AutomationRule } from '@/lib/automations';
 import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
 import { PAGINATION } from '@/config/constants';
+import type { PipelineSettings } from './usePipelines';
 
 export type Deal = Tables<'deals'> & {
   contacts: Tables<'contacts'> | null;
@@ -25,13 +26,14 @@ export const useDeals = (
   pipelineId?: string,
   contactId?: string,
   filters?: DealFilters,
-  options?: { page?: number; pageSize?: number }
+  options?: { page?: number; pageSize?: number },
+  pipelineSettings?: PipelineSettings | null
 ) => {
   const { companyId } = useCompanyQuery();
   const queryClient = useQueryClient();
 
   const dealsQuery = usePaginatedQuery<Deal>({
-    queryKey: ['deals', companyId, pipelineId, contactId, filters],
+    queryKey: ['deals', companyId, pipelineId, contactId, filters, pipelineSettings?.hide_archived_deals],
     queryFn: async ({ page, limit, offset }) => {
       if (!companyId) {
         return { data: [], count: 0 };
@@ -90,6 +92,33 @@ export const useDeals = (
         );
       }
 
+      // Filtrar negócios arquivados se a configuração estiver ativa
+      if (pipelineSettings?.hide_archived_deals) {
+        const now = new Date();
+
+        filteredData = filteredData.filter((deal) => {
+          // Se deal é ganho e temos configuração para ocultar após X dias
+          if (deal.status === 'won' && deal.won_at && pipelineSettings.auto_archive_won_days) {
+            const wonDate = new Date(deal.won_at);
+            const daysSinceWon = Math.floor((now.getTime() - wonDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysSinceWon >= pipelineSettings.auto_archive_won_days) {
+              return false; // Ocultar
+            }
+          }
+
+          // Se deal é perdido e temos configuração para ocultar após X dias
+          if (deal.status === 'lost' && deal.lost_at && pipelineSettings.auto_archive_lost_days) {
+            const lostDate = new Date(deal.lost_at);
+            const daysSinceLost = Math.floor((now.getTime() - lostDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysSinceLost >= pipelineSettings.auto_archive_lost_days) {
+              return false; // Ocultar
+            }
+          }
+
+          return true;
+        });
+      }
+
       return { data: filteredData, count: count || 0 };
     },
     enabled: !!companyId,
@@ -139,7 +168,11 @@ export const useDeals = (
   });
 
   const updateDeal = useMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<'deals'> & { id: string }) => {
+    mutationFn: async ({
+      id,
+      settings,
+      ...updates
+    }: TablesUpdate<'deals'> & { id: string; settings?: PipelineSettings | null }) => {
       const { data, error } = await supabase
         .from('deals')
         .update(updates)
@@ -155,6 +188,82 @@ export const useDeals = (
         .single();
 
       if (error) throw error;
+
+      // Verificar se é uma atualização de status (won/lost)
+      if (settings) {
+        const isWon = updates.status === 'won';
+        const isLost = updates.status === 'lost';
+
+        // Enviar notificação do sistema para negócio ganho
+        if (isWon && settings.notify_deal_won) {
+          toast.success(`🎉 Negócio "${data.title}" foi GANHO!`, {
+            duration: 5000,
+            description: `Valor: R$ ${data.value?.toLocaleString('pt-BR') || 0}`,
+          });
+        }
+
+        // Enviar notificação do sistema para negócio perdido
+        if (isLost && settings.notify_deal_lost) {
+          toast.error(`😢 Negócio "${data.title}" foi perdido`, {
+            duration: 5000,
+            description: `Valor: R$ ${data.value?.toLocaleString('pt-BR') || 0}`,
+          });
+        }
+
+        // Enviar webhook para negócio ganho
+        if (isWon && settings.webhook_url && settings.webhook_events?.includes('won')) {
+          try {
+            await fetch(settings.webhook_url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                event: 'deal.won',
+                timestamp: new Date().toISOString(),
+                data: {
+                  deal_id: data.id,
+                  deal_title: data.title,
+                  deal_value: data.value,
+                  contact_name: data.contacts?.name,
+                  assigned_to: data.profiles?.full_name,
+                  win_reason: data.win_reason,
+                  won_at: data.won_at,
+                },
+              }),
+            });
+            console.log('📤 Webhook (deal.won) enviado para:', settings.webhook_url);
+          } catch (webhookError) {
+            console.error('Erro ao enviar webhook:', webhookError);
+          }
+        }
+
+        // Enviar webhook para negócio perdido
+        if (isLost && settings.webhook_url && settings.webhook_events?.includes('lost')) {
+          try {
+            await fetch(settings.webhook_url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                event: 'deal.lost',
+                timestamp: new Date().toISOString(),
+                data: {
+                  deal_id: data.id,
+                  deal_title: data.title,
+                  deal_value: data.value,
+                  contact_name: data.contacts?.name,
+                  assigned_to: data.profiles?.full_name,
+                  loss_reason: data.loss_reason,
+                  loss_reason_detail: data.loss_reason_detail,
+                  lost_at: data.lost_at,
+                },
+              }),
+            });
+            console.log('📤 Webhook (deal.lost) enviado para:', settings.webhook_url);
+          } catch (webhookError) {
+            console.error('Erro ao enviar webhook:', webhookError);
+          }
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -167,7 +276,15 @@ export const useDeals = (
   });
 
   const moveDeal = useMutation({
-    mutationFn: async ({ dealId, targetStageId }: { dealId: string; targetStageId: string }) => {
+    mutationFn: async ({
+      dealId,
+      targetStageId,
+      settings
+    }: {
+      dealId: string;
+      targetStageId: string;
+      settings?: PipelineSettings | null;
+    }) => {
       const { data, error } = await supabase
         .from('deals')
         .update({
@@ -190,7 +307,7 @@ export const useDeals = (
       // Get stage info for activity log and automation rules
       const { data: newStage } = await supabase
         .from('pipeline_stages')
-        .select('name, automation_rules')
+        .select('name, automation_rules, pipeline_id')
         .eq('id', targetStageId)
         .single();
 
@@ -206,6 +323,57 @@ export const useDeals = (
         executeAutomations(dealId, newStage.automation_rules as unknown as AutomationRule[]).catch((err) => {
           console.error('Erro ao executar automações:', err);
         });
+      }
+
+      // Criar tarefa automática se configurado nas settings do pipeline
+      if (settings?.auto_create_task_on_stage_change) {
+        try {
+          const taskTitle = settings.default_task_template || `Acompanhar negócio - ${newStage?.name}`;
+          const dueDate = new Date();
+          dueDate.setDate(dueDate.getDate() + 1); // Vencimento: amanhã
+
+          await supabase.from('tasks').insert({
+            company_id: data.company_id,
+            title: taskTitle,
+            description: `Tarefa automática criada ao mover negócio para etapa "${newStage?.name}"`,
+            due_date: dueDate.toISOString(),
+            priority: 'medium',
+            status: 'pending',
+            deal_id: dealId,
+            contact_id: data.contact_id,
+            assigned_to: data.assigned_to,
+          });
+
+          console.log('✅ Tarefa automática criada para o deal:', dealId);
+        } catch (taskError) {
+          console.error('Erro ao criar tarefa automática:', taskError);
+        }
+      }
+
+      // Enviar webhook se configurado
+      if (settings?.webhook_url && settings?.webhook_events?.includes('stage_changed')) {
+        try {
+          await fetch(settings.webhook_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'deal.stage_changed',
+              timestamp: new Date().toISOString(),
+              data: {
+                deal_id: dealId,
+                deal_title: data.title,
+                deal_value: data.value,
+                new_stage: newStage?.name,
+                stage_id: targetStageId,
+                contact_name: data.contacts?.name,
+                assigned_to: data.profiles?.full_name,
+              },
+            }),
+          });
+          console.log('📤 Webhook enviado para:', settings.webhook_url);
+        } catch (webhookError) {
+          console.error('Erro ao enviar webhook:', webhookError);
+        }
       }
 
       return data;

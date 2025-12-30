@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { OnboardingGuide } from './onboarding/OnboardingGuide';
@@ -36,21 +36,29 @@ export function RequireCompany({ children }: RequireCompanyProps) {
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const hasCheckedAuth = useRef(false);
 
-  const checkCompany = useCallback(async () => {
+  const checkCompany = useCallback(async (forceCheck = false) => {
+    // Se já verificou e não é forceCheck, não verificar novamente
+    if (hasCheckedAuth.current && !forceCheck) {
+      return;
+    }
+
     const currentPath = location.pathname;
     const isPublicPath = isPathPublic(currentPath);
-    
+
     try {
       // Check if user is authenticated
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
+      hasCheckedAuth.current = true;
+
       if (!user) {
         setIsAuthenticated(false);
         setLoading(false);
-        
+
         // If trying to access protected route without auth, redirect to login
         if (!isPublicPath) {
           console.log('🔒 Acesso negado - redirecionando para login:', currentPath);
@@ -60,23 +68,53 @@ export function RequireCompany({ children }: RequireCompanyProps) {
       }
 
       setIsAuthenticated(true);
-      console.log('✅ Usuário autenticado:', user.email);
       setShowOnboarding(false);
       setLoading(false);
     } catch (error) {
       console.error('Error checking company:', error);
       setLoading(false);
-      
+      hasCheckedAuth.current = true;
+
       // On error, if not public path, redirect to login
       if (!isPublicPath) {
         navigate('/auth', { replace: true });
       }
     }
-  }, [location.pathname, navigate]);
+  }, [navigate, location.pathname]);
 
+  // Verificar autenticação apenas uma vez na montagem inicial
   useEffect(() => {
     checkCompany();
-  }, [checkCompany]);
+  }, []);
+
+  // Verificar redirecionamento quando a rota muda (mas sem loading)
+  useEffect(() => {
+    if (!hasCheckedAuth.current) return;
+
+    const currentPath = location.pathname;
+    const isPublicPath = isPathPublic(currentPath);
+
+    // Se não está autenticado e tenta acessar rota protegida
+    if (!isAuthenticated && !isPublicPath) {
+      navigate('/auth', { replace: true, state: { from: currentPath } });
+    }
+  }, [location.pathname, isAuthenticated, navigate]);
+
+  // Escutar mudanças de autenticação
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        hasCheckedAuth.current = false;
+        checkCompany(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        hasCheckedAuth.current = true;
+        navigate('/auth', { replace: true });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [checkCompany, navigate]);
 
   const handleOnboardingComplete = async () => {
     console.log('🎉 Onboarding completado!');

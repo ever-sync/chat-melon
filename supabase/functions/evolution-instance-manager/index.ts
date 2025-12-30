@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface InstanceManagerRequest {
-  action: 'create' | 'delete' | 'get-qrcode' | 'check-status' | 'restart';
+  action: 'create' | 'delete' | 'get-qrcode' | 'check-status' | 'restart' | 'configure-webhook';
   companyId: string;
   instanceName?: string;
 }
@@ -113,7 +113,7 @@ serve(async (req) => {
         // URL do webhook para receber eventos da Evolution API
         const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`;
         
-        // Criar instância na Evolution API com webhook configurado
+        // Criar instância na Evolution API
         const createResponse = await fetch(`${apiUrl}/instance/create`, {
           method: 'POST',
           headers: {
@@ -125,18 +125,59 @@ serve(async (req) => {
             token: apiKey,
             qrcode: true,
             integration: 'WHATSAPP-BAILEYS',
-            webhook: {
-              url: webhookUrl,
-              byEvents: true,
-              base64: false,
-              events: [
-                'MESSAGES_UPSERT',
-                'CONNECTION_UPDATE',
-                'QRCODE_UPDATED',
-              ],
-            },
           }),
         });
+
+        // Configurar webhook separadamente após criar a instância
+        if (createResponse.ok) {
+          console.log('Configurando webhook para:', instance);
+
+          try {
+            const webhookResponse = await fetch(`${apiUrl}/webhook/set/${instance}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': apiKey,
+              },
+              body: JSON.stringify({
+                url: webhookUrl,
+                webhook_by_events: true,
+                webhook_base64: true,
+                events: [
+                  'APPLICATION_STARTUP',
+                  'QRCODE_UPDATED',
+                  'MESSAGES_SET',
+                  'MESSAGES_UPSERT',
+                  'MESSAGES_UPDATE',
+                  'MESSAGES_DELETE',
+                  'SEND_MESSAGE',
+                  'CONTACTS_SET',
+                  'CONTACTS_UPSERT',
+                  'CONTACTS_UPDATE',
+                  'PRESENCE_UPDATE',
+                  'CHATS_SET',
+                  'CHATS_UPSERT',
+                  'CHATS_UPDATE',
+                  'CHATS_DELETE',
+                  'CONNECTION_UPDATE',
+                  'GROUPS_UPSERT',
+                  'GROUP_UPDATE',
+                  'GROUP_PARTICIPANTS_UPDATE',
+                  'CALL',
+                  'NEW_JWT_TOKEN',
+                ],
+              }),
+            });
+
+            if (webhookResponse.ok) {
+              console.log('✅ Webhook configurado com sucesso!');
+            } else {
+              console.error('⚠️ Erro ao configurar webhook:', await webhookResponse.text());
+            }
+          } catch (webhookError) {
+            console.error('⚠️ Erro ao configurar webhook:', webhookError);
+          }
+        }
 
         if (!createResponse.ok) {
           const errorText = await createResponse.text();
@@ -302,7 +343,7 @@ serve(async (req) => {
 
       case 'restart': {
         console.log(`Reiniciando instância: ${instance}`);
-        
+
         const restartResponse = await fetch(`${apiUrl}/instance/restart/${instance}`, {
           method: 'PUT',
           headers: {
@@ -314,6 +355,54 @@ serve(async (req) => {
           throw new Error('Erro ao reiniciar instância');
         }
 
+        // Reconfigurar webhook ao reiniciar
+        const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`;
+        try {
+          const webhookResponse = await fetch(`${apiUrl}/webhook/set/${instance}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': apiKey,
+            },
+            body: JSON.stringify({
+              url: webhookUrl,
+              webhook_by_events: true,
+              webhook_base64: true,
+              events: [
+                'APPLICATION_STARTUP',
+                'QRCODE_UPDATED',
+                'MESSAGES_SET',
+                'MESSAGES_UPSERT',
+                'MESSAGES_UPDATE',
+                'MESSAGES_DELETE',
+                'SEND_MESSAGE',
+                'CONTACTS_SET',
+                'CONTACTS_UPSERT',
+                'CONTACTS_UPDATE',
+                'PRESENCE_UPDATE',
+                'CHATS_SET',
+                'CHATS_UPSERT',
+                'CHATS_UPDATE',
+                'CHATS_DELETE',
+                'CONNECTION_UPDATE',
+                'GROUPS_UPSERT',
+                'GROUP_UPDATE',
+                'GROUP_PARTICIPANTS_UPDATE',
+                'CALL',
+                'NEW_JWT_TOKEN',
+              ],
+            }),
+          });
+
+          if (webhookResponse.ok) {
+            console.log('✅ Webhook reconfigurado após restart!');
+          } else {
+            console.error('⚠️ Erro ao reconfigurar webhook:', await webhookResponse.text());
+          }
+        } catch (webhookError) {
+          console.error('⚠️ Erro ao reconfigurar webhook:', webhookError);
+        }
+
         await supabase
           .from('evolution_settings')
           .update({
@@ -323,7 +412,68 @@ serve(async (req) => {
           .eq('id', settings.id);
 
         return new Response(
-          JSON.stringify({ success: true, message: 'Instância reiniciada' }),
+          JSON.stringify({ success: true, message: 'Instância reiniciada e webhook reconfigurado' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'configure-webhook': {
+        console.log(`Configurando webhook para: ${instance}`);
+
+        const webhookUrl = `${supabaseUrl}/functions/v1/evolution-webhook`;
+
+        const webhookResponse = await fetch(`${apiUrl}/webhook/set/${instance}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': apiKey,
+          },
+          body: JSON.stringify({
+            url: webhookUrl,
+            webhook_by_events: true,
+            webhook_base64: true,
+            events: [
+              'APPLICATION_STARTUP',
+              'QRCODE_UPDATED',
+              'MESSAGES_SET',
+              'MESSAGES_UPSERT',
+              'MESSAGES_UPDATE',
+              'MESSAGES_DELETE',
+              'SEND_MESSAGE',
+              'CONTACTS_SET',
+              'CONTACTS_UPSERT',
+              'CONTACTS_UPDATE',
+              'PRESENCE_UPDATE',
+              'CHATS_SET',
+              'CHATS_UPSERT',
+              'CHATS_UPDATE',
+              'CHATS_DELETE',
+              'CONNECTION_UPDATE',
+              'GROUPS_UPSERT',
+              'GROUP_UPDATE',
+              'GROUP_PARTICIPANTS_UPDATE',
+              'CALL',
+              'NEW_JWT_TOKEN',
+            ],
+          }),
+        });
+
+        if (!webhookResponse.ok) {
+          const errorText = await webhookResponse.text();
+          console.error('Erro ao configurar webhook:', errorText);
+          throw new Error('Erro ao configurar webhook');
+        }
+
+        const webhookData = await webhookResponse.json();
+        console.log('✅ Webhook configurado:', webhookData);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Webhook configurado com sucesso',
+            webhookUrl,
+            data: webhookData
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

@@ -254,6 +254,7 @@ export function ProductSelector({ onProductSelect }: ProductSelectorProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               onClick={() => setOpen(true)}

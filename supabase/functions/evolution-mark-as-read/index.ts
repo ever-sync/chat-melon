@@ -42,16 +42,19 @@ serve(async (req) => {
       .from("evolution_settings")
       .select("*")
       .eq("company_id", conversation.company_id)
-      .single();
+      .maybeSingle();
 
-    if (!settings || !settings.is_connected) {
-      throw new Error("Instância não conectada");
+    // Se não houver settings, ainda assim atualiza o banco local
+    const canCallEvolutionApi = settings && settings.is_connected && settings.instance_name;
+
+    if (!canCallEvolutionApi) {
+      console.log("⚠️ Instância não conectada ou não configurada, apenas atualizando banco local");
     }
 
     // Buscar mensagens não lidas
     let query = supabaseClient
       .from("messages")
-      .select("id, is_from_me")
+      .select("id, external_id, is_from_me")
       .eq("conversation_id", conversationId)
       .eq("is_from_me", false)
       .neq("status", "read");
@@ -63,6 +66,12 @@ serve(async (req) => {
     const { data: messages } = await query;
 
     if (!messages || messages.length === 0) {
+      // Mesmo sem mensagens para marcar, zerar o contador
+      await supabaseClient
+        .from("conversations")
+        .update({ unread_count: 0 })
+        .eq("id", conversationId);
+
       return new Response(JSON.stringify({ success: true, marked: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -71,42 +80,65 @@ serve(async (req) => {
     const phone = conversation.contact_number.replace(/\D/g, "");
     const remoteJid = `${phone}@s.whatsapp.net`;
 
-    // Preparar mensagens para marcar como lidas
-    const readMessages = messages.map(msg => ({
-      remoteJid,
-      fromMe: false,
-      id: msg.id
-    }));
+    // Preparar mensagens para marcar como lidas (usar external_id para Evolution API)
+    const readMessages = messages
+      .filter(msg => msg.external_id) // Só mensagens com external_id
+      .map(msg => ({
+        remoteJid,
+        fromMe: false,
+        id: msg.external_id
+      }));
 
-    // Enviar para Evolution API
-    const response = await fetch(
-      `${apiUrl}/chat/markMessageAsRead/${settings.instance_name}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": apiKey,
-        },
-        body: JSON.stringify({ read_messages: readMessages }),
+    // Enviar para Evolution API (apenas se houver mensagens com external_id E instância conectada)
+    if (readMessages.length > 0 && canCallEvolutionApi) {
+      try {
+        const response = await fetch(
+          `${apiUrl}/chat/markMessageAsRead/${settings!.instance_name}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": apiKey,
+            },
+            body: JSON.stringify({ read_messages: readMessages }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("⚠️ Erro ao marcar como lido na Evolution API:", error);
+        } else {
+          console.log(`✅ ${readMessages.length} mensagens marcadas como lidas na Evolution API`);
+        }
+      } catch (evolutionError) {
+        console.error("⚠️ Erro ao chamar Evolution API:", evolutionError);
+        // Continua para atualizar o banco local mesmo se Evolution falhar
       }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Erro ao marcar como lido:", error);
     }
 
     // Atualizar status no banco local
-    await supabaseClient
+    const { error: updateMessagesError } = await supabaseClient
       .from("messages")
       .update({ status: "read" })
       .in("id", messages.map(m => m.id));
 
+    if (updateMessagesError) {
+      console.error("❌ Erro ao atualizar mensagens:", updateMessagesError);
+    } else {
+      console.log(`✅ ${messages.length} mensagens atualizadas para 'read' no banco`);
+    }
+
     // Atualizar contador de não lidas na conversa
-    await supabaseClient
+    const { error: updateConvError } = await supabaseClient
       .from("conversations")
       .update({ unread_count: 0 })
       .eq("id", conversationId);
+
+    if (updateConvError) {
+      console.error("❌ Erro ao zerar unread_count:", updateConvError);
+    } else {
+      console.log(`✅ unread_count zerado para conversa ${conversationId}`);
+    }
 
     return new Response(JSON.stringify({ success: true, marked: messages.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

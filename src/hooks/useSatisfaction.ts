@@ -26,9 +26,31 @@ export interface SatisfactionMetrics {
 }
 
 export const useSatisfaction = () => {
-  const { getCompanyId } = useCompanyQuery();
+  const { companyId } = useCompanyQuery();
   const [surveys, setSurveys] = useState<SatisfactionSurvey[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const loadSurveys = async () => {
+    if (!companyId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('satisfaction_surveys')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('sent_at', { ascending: false });
+
+      if (error) throw error;
+      setSurveys((data as SatisfactionSurvey[]) || []);
+    } catch (error) {
+      console.error('Erro ao carregar pesquisas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadSurveys();
@@ -51,26 +73,7 @@ export const useSatisfaction = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
-
-  const loadSurveys = async () => {
-    try {
-      const companyId = getCompanyId();
-
-      const { data, error } = await supabase
-        .from('satisfaction_surveys')
-        .select('*')
-        .eq('company_id', companyId)
-        .order('sent_at', { ascending: false });
-
-      if (error) throw error;
-      setSurveys((data as SatisfactionSurvey[]) || []);
-    } catch (error) {
-      console.error('Erro ao carregar pesquisas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [companyId]);
 
   const getMetrics = (period: 'week' | 'month' | 'quarter' = 'month'): SatisfactionMetrics => {
     const now = new Date();

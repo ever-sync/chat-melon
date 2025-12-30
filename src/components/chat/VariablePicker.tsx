@@ -10,6 +10,8 @@ import {
     Check,
     ChevronRight,
     Code,
+    FileText,
+    Briefcase,
 } from 'lucide-react';
 import {
     Command,
@@ -23,6 +25,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { useVariables } from '@/hooks/useVariables';
+import { useAllCustomFields } from '@/hooks/useAllCustomFields';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,11 +41,12 @@ interface VariablePickerProps {
 export const VariablePicker = ({ onSelect, trigger, hideStandard = false }: VariablePickerProps) => {
     const [open, setOpen] = useState(false);
     const { variables: customVariables, isLoading } = useVariables();
+    const { contactFields, dealFields, companyFields, isLoading: isLoadingFields } = useAllCustomFields();
 
     const categories = useMemo(() => {
         const all: any[] = [];
 
-        // 1. Prioritize Custom Variables
+        // 1. Prioritize Custom Variables (company_variables table)
         if (customVariables && customVariables.length > 0) {
             all.push({
                 id: 'personalizadas',
@@ -61,8 +65,48 @@ export const VariablePicker = ({ onSelect, trigger, hideStandard = false }: Vari
             all.push(...STANDARD_VARIABLE_CATEGORIES);
         }
 
+        // 3. Add Custom Fields as variables (contact, deal, company)
+        if (contactFields && contactFields.length > 0) {
+            all.push({
+                id: 'campos_contato',
+                label: 'Campos do Contato',
+                icon: Users,
+                variables: contactFields.map((f) => ({
+                    key: `contato_${f.field_name}`,
+                    label: f.field_label,
+                    description: `Campo personalizado do contato`,
+                })),
+            });
+        }
+
+        if (dealFields && dealFields.length > 0) {
+            all.push({
+                id: 'campos_negocio',
+                label: 'Campos do Negócio',
+                icon: Briefcase,
+                variables: dealFields.map((f) => ({
+                    key: `negocio_${f.field_name}`,
+                    label: f.field_label,
+                    description: `Campo personalizado do negócio`,
+                })),
+            });
+        }
+
+        if (companyFields && companyFields.length > 0) {
+            all.push({
+                id: 'campos_empresa',
+                label: 'Campos da Empresa',
+                icon: Building2,
+                variables: companyFields.map((f) => ({
+                    key: `empresa_campo_${f.field_name}`,
+                    label: f.field_label,
+                    description: `Campo personalizado da empresa`,
+                })),
+            });
+        }
+
         return all;
-    }, [customVariables, hideStandard]);
+    }, [customVariables, hideStandard, contactFields, dealFields, companyFields]);
 
     const handleSelect = (key: string) => {
         onSelect(`{{${key}}}`);

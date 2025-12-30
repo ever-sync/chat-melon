@@ -41,9 +41,9 @@ serve(async (req) => {
       throw new Error('Campanha não encontrada');
     }
 
-    // Buscar contatos do segmento
+    // Buscar contatos do segmento aplicando os filtros
     let contactIds: string[] = [];
-    
+
     if (campaign.segment_id) {
       const { data: segment } = await supabase
         .from('segments')
@@ -51,50 +51,108 @@ serve(async (req) => {
         .eq('id', campaign.segment_id)
         .single();
 
-      if (segment) {
-        // Buscar contatos que correspondem aos filtros
-        const { data: contacts } = await supabase
+      if (segment && segment.filters) {
+        // Aplicar filtros do segmento para buscar contatos
+        const filters = segment.filters as Array<{field: string; operator: string; value: any; logic?: string}>;
+
+        // Construir query base
+        let query = supabase
           .from('contacts')
           .select('id, phone_number')
-          .eq('company_id', campaign.company_id);
-        
-        if (contacts) {
+          .eq('company_id', campaign.company_id)
+          .is('deleted_at', null);
+
+        // Aplicar cada filtro
+        for (const filter of filters) {
+          const { field, operator, value } = filter;
+
+          switch (operator) {
+            case 'equals':
+              query = query.eq(field, value);
+              break;
+            case 'not_equals':
+              query = query.neq(field, value);
+              break;
+            case 'contains':
+              query = query.ilike(field, `%${value}%`);
+              break;
+            case 'starts_with':
+              query = query.ilike(field, `${value}%`);
+              break;
+            case 'ends_with':
+              query = query.ilike(field, `%${value}`);
+              break;
+            case 'is_empty':
+              query = query.is(field, null);
+              break;
+            case 'is_not_empty':
+              query = query.not(field, 'is', null);
+              break;
+            case 'greater_than':
+              query = query.gt(field, value);
+              break;
+            case 'less_than':
+              query = query.lt(field, value);
+              break;
+            case 'before':
+              query = query.lt(field, value);
+              break;
+            case 'after':
+              query = query.gt(field, value);
+              break;
+          }
+        }
+
+        const { data: filteredContacts, error: filterError } = await query;
+
+        if (filterError) {
+          console.error('Error filtering contacts:', filterError);
+          throw new Error('Erro ao filtrar contatos do segmento');
+        }
+
+        if (filteredContacts && filteredContacts.length > 0) {
           // Remove duplicates by phone number
           const uniquePhones = new Set<string>();
           const uniqueContacts: string[] = [];
-          
-          for (const contact of contacts) {
-            if (!uniquePhones.has(contact.phone_number)) {
+
+          for (const contact of filteredContacts) {
+            if (contact.phone_number && !uniquePhones.has(contact.phone_number)) {
               uniquePhones.add(contact.phone_number);
               uniqueContacts.push(contact.id);
             }
           }
-          
-          contactIds = uniqueContacts;
-          
+
           // Check for blocked contacts
           const { data: blockedContacts } = await supabase
             .from('blocked_contacts')
             .select('blocked_number')
             .eq('company_id', campaign.company_id);
-          
+
           const blockedNumbers = new Set(
             blockedContacts?.map(b => b.blocked_number) || []
           );
-          
+
           // Filter out blocked contacts
-          const { data: validContacts } = await supabase
-            .from('contacts')
-            .select('id, phone_number')
-            .in('id', contactIds);
-          
-          contactIds = validContacts
-            ?.filter(c => !blockedNumbers.has(c.phone_number))
-            .map(c => c.id) || [];
-          
-          console.log(`Filtered contacts: ${contacts.length} total, ${contactIds.length} valid (removed ${contacts.length - contactIds.length} blocked/duplicates)`);
+          contactIds = [];
+          for (const contact of filteredContacts) {
+            if (uniqueContacts.includes(contact.id) && !blockedNumbers.has(contact.phone_number)) {
+              contactIds.push(contact.id);
+            }
+          }
+
+          console.log(`Segment filters applied: ${filteredContacts.length} matched, ${contactIds.length} valid after dedup/blocked removal`);
+        } else {
+          console.log('No contacts matched the segment filters');
         }
+      } else {
+        console.log('Segment has no filters defined');
       }
+    } else {
+      console.log('No segment_id specified for campaign');
+    }
+
+    if (contactIds.length === 0) {
+      throw new Error('Nenhum contato encontrado para este segmento. Verifique os filtros do segmento.');
     }
 
     // Criar registros de campaign_contacts se não existirem
@@ -126,16 +184,60 @@ serve(async (req) => {
         .eq('id', campaignId);
     }
 
-    // Buscar instância WhatsApp
-    const { data: instance } = await supabase
-      .from('evolution_settings')
-      .select('*')
-      .eq('id', campaign.instance_id)
-      .single();
+    // Buscar instância WhatsApp conectada da empresa
+    // Primeiro tenta buscar pelo instance_id se existir, senão busca qualquer instância conectada da empresa
+    let instance: any = null;
 
-    if (!instance || !instance.is_connected) {
-      throw new Error('Instância WhatsApp não conectada');
+    if (campaign.instance_id) {
+      const { data } = await supabase
+        .from('evolution_settings')
+        .select('*')
+        .eq('id', campaign.instance_id)
+        .maybeSingle();
+      instance = data;
     }
+
+    // Se não encontrou por instance_id ou não está conectada, busca qualquer instância conectada da empresa
+    if (!instance || (!instance.is_connected && instance.instance_status !== 'open' && instance.instance_status !== 'connected')) {
+      const { data } = await supabase
+        .from('evolution_settings')
+        .select('*')
+        .eq('company_id', campaign.company_id)
+        .or('is_connected.eq.true,instance_status.eq.open,instance_status.eq.connected')
+        .limit(1)
+        .maybeSingle();
+      instance = data;
+    }
+
+    if (!instance) {
+      throw new Error('Nenhuma instância WhatsApp encontrada para esta empresa');
+    }
+
+    // Verificar se está conectada
+    const isConnected = instance.is_connected === true ||
+                        instance.instance_status === 'open' ||
+                        instance.instance_status === 'connected';
+
+    if (!isConnected) {
+      throw new Error('Instância WhatsApp não conectada. Verifique a conexão em Configurações.');
+    }
+
+    // Buscar configuração global da Evolution API para obter api_url e api_key
+    const { data: globalConfig } = await supabase
+      .from('evolution_global_config')
+      .select('api_url, api_key')
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (!globalConfig) {
+      throw new Error('Evolution API não configurada. Configure em Configurações > Evolution API');
+    }
+
+    // Adicionar api_url e api_key da config global na instância
+    instance.api_url = globalConfig.api_url;
+    instance.api_key = globalConfig.api_key;
+
+    console.log(`Using instance: ${instance.instance_name}, is_connected: ${instance.is_connected}, status: ${instance.instance_status}`);
 
     // Processar envios em background
     processQueue(supabase, campaign, instance);
@@ -164,10 +266,16 @@ serve(async (req) => {
 
 async function processQueue(supabase: any, campaign: any, instance: any) {
   console.log('Processing campaign queue:', campaign.id);
-  
-  const delayMs = (60 / campaign.sending_rate) * 1000;
+
+  // Calcular delay entre mensagens baseado na taxa de envio
+  // sending_rate = mensagens por minuto
+  // delayMs = (60 segundos / taxa) * 1000 = milissegundos entre cada mensagem
+  const delayMs = Math.max((60 / (campaign.sending_rate || 10)) * 1000, 1000); // Mínimo 1 segundo
+  console.log(`Delay between messages: ${delayMs}ms (${campaign.sending_rate || 10} msgs/min)`);
+
   let consecutiveErrors = 0;
   let totalSent = 0;
+  let isFirstMessage = true;
 
   while (true) {
     // Check if campaign is still running
@@ -240,6 +348,13 @@ async function processQueue(supabase: any, campaign: any, instance: any) {
       break;
     }
 
+    // Aplicar delay ANTES de enviar a próxima mensagem (exceto na primeira)
+    if (!isFirstMessage) {
+      console.log(`Waiting ${delayMs}ms before next message...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+    isFirstMessage = false;
+
     // Get next pending contact
     const { data: campaignContacts } = await supabase
       .from('campaign_contacts')
@@ -256,7 +371,7 @@ async function processQueue(supabase: any, campaign: any, instance: any) {
           completed_at: new Date().toISOString(),
         })
         .eq('id', campaign.id);
-      
+
       console.log('Campaign completed');
       break;
     }
@@ -387,6 +502,8 @@ async function processQueue(supabase: any, campaign: any, instance: any) {
         .eq('id', instance.id);
     }
 
-    await new Promise(resolve => setTimeout(resolve, delayMs));
+    // O delay agora é aplicado no início do loop (antes de cada mensagem)
   }
+
+  console.log(`Campaign ${campaign.id} finished processing. Total sent: ${totalSent}`);
 }

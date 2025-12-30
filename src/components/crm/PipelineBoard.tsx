@@ -35,7 +35,7 @@ interface PipelineBoardProps {
 }
 
 export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProps) => {
-  const { pipelines, defaultPipeline, isLoading: isPipelinesLoading } = usePipelines();
+  const { pipelines, defaultPipeline, pipelineSettings, isLoading: isPipelinesLoading } = usePipelines(selectedPipelineId);
   const activePipelineId = selectedPipelineId || defaultPipeline?.id;
 
   // Get stages for active pipeline
@@ -52,7 +52,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
     moveDeal,
     deleteDeal,
     pagination,
-  } = useDeals(activePipelineId, undefined, filters);
+  } = useDeals(activePipelineId, undefined, filters, undefined, pipelineSettings);
 
   // Filtros já são aplicados no useDeals, então apenas usar deals diretamente
   const filteredDeals = deals || [];
@@ -133,7 +133,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
       }
 
       // Move normal para outros stages
-      moveDeal.mutate({ dealId, targetStageId });
+      moveDeal.mutate({ dealId, targetStageId, settings: pipelineSettings });
     }
   };
 
@@ -184,7 +184,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
 
   const handleBulkMove = (stageId: string) => {
     selectedDeals.forEach((dealId) => {
-      moveDeal.mutate({ dealId, targetStageId: stageId });
+      moveDeal.mutate({ dealId, targetStageId: stageId, settings: pipelineSettings });
     });
     toast.success(`${selectedDeals.size} negócio(s) movido(s) com sucesso!`);
     setSelectedDeals(new Set());
@@ -240,7 +240,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
       updateData.lost_at = new Date().toISOString();
     }
 
-    updateDeal.mutate(updateData);
+    updateDeal.mutate({ ...updateData, settings: pipelineSettings });
 
     // Celebração se ganhou
     if (winLossModal.type === 'won') {
@@ -331,6 +331,7 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
                 onView={handleViewDeal}
                 isSelected={selectedDeals.has(deal.id)}
                 onSelect={handleSelectDeal}
+                pipelineSettings={pipelineSettings}
               />
             ))}
 
@@ -378,9 +379,10 @@ export const PipelineBoard = ({ selectedPipelineId, filters }: PipelineBoardProp
           {activeDeal ? (
             <DealCard
               deal={activeDeal}
-              onEdit={(deal) => {}}
+              onEdit={() => {}}
               onDelete={() => {}}
               onView={() => {}}
+              pipelineSettings={pipelineSettings}
             />
           ) : null}
         </DragOverlay>

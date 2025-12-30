@@ -19,21 +19,18 @@ serve(async (req) => {
     const webhookData = await req.json();
     console.log('Webhook sem tratamento (raw):', JSON.stringify(webhookData).substring(0, 200));
 
-    // LOGGING SYSTEM (NOVO)
-    try {
-      await supabase.from('webhook_logs').insert({
-        event_type: webhookData.event || 'unknown',
-        payload: webhookData,
-        status: 'received'
-      });
-    } catch (logError) {
-      console.error('Falha ao salvar log:', logError);
-    }
+    // Log do evento recebido (apenas console para debug)
+    console.log(`🔔 Webhook Evolution - Evento: ${webhookData.event}, Instância: ${webhookData.instance}`);
 
     console.log('Webhook recebido:', JSON.stringify(webhookData, null, 2));
 
-    const event = webhookData.event;
+    // Normalizar o nome do evento para minúsculas com ponto
+    // Evolution API pode enviar como "CONNECTION_UPDATE" ou "connection.update"
+    const rawEvent = webhookData.event || '';
+    const event = rawEvent.toLowerCase().replace(/_/g, '.');
     const instanceName = webhookData.instance;
+
+    console.log(`📩 Evento normalizado: "${rawEvent}" -> "${event}" | Instância: ${instanceName}`);
 
     // ============= QRCODE UPDATED =============
     if (event === 'qrcode.updated') {
@@ -984,12 +981,12 @@ serve(async (req) => {
 
       // Só chama N8N se:
       // 1. IA está habilitada globalmente (ai_settings.is_enabled)
-      // 2. IA está habilitada na conversa (ai_enabled = true ou null)
+      // 2. IA está EXPLICITAMENTE habilitada na conversa (ai_enabled = true)
       // 3. Tem URL do N8N configurada
       // 4. NÃO é mensagem enviada por mim (isFromMe = false)
       const aiEnabled = !isFromMe &&
         aiSettings?.is_enabled &&
-        (conversationAI?.ai_enabled !== false) &&
+        (conversationAI?.ai_enabled === true) &&
         aiSettings?.n8n_webhook_url;
 
       if (aiEnabled) {

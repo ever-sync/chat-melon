@@ -71,6 +71,29 @@ serve(async (req) => {
     const k = topK || config.top_k || 5;
     const threshold = similarityThreshold || config.similarity_threshold || 0.7;
 
+    // Get OpenAI API key from ai_settings table
+    const { data: aiSettings } = await supabase
+      .from("ai_settings")
+      .select("openai_api_key")
+      .eq("company_id", companyId)
+      .single();
+
+    // Fallback to environment variable if not in database
+    const openaiApiKey = aiSettings?.openai_api_key || Deno.env.get("OPENAI_API_KEY");
+
+    if (!openaiApiKey) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "OPENAI_API_KEY não configurada. Vá em Configurações > IA e configure sua chave da OpenAI.",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
     // Check cache first
     if (useCache && config.use_cache) {
       // Use SHA-256 for caching
@@ -105,7 +128,8 @@ serve(async (req) => {
     // Generate embedding for the query
     const queryEmbedding = await generateQueryEmbedding(
       query,
-      config.embedding_provider || 'openai'
+      config.embedding_provider || 'openai',
+      openaiApiKey
     );
 
     // Perform semantic search using the database function
@@ -159,25 +183,23 @@ serve(async (req) => {
   }
 });
 
-async function generateQueryEmbedding(query: string, provider: string): Promise<number[]> {
+async function generateQueryEmbedding(query: string, provider: string, apiKey: string): Promise<number[]> {
   if (provider === 'openai') {
-    return await generateOpenAIEmbedding(query);
+    return await generateOpenAIEmbedding(query, apiKey);
   }
   throw new Error(`Unsupported embedding provider: ${provider}`);
 }
 
-async function generateOpenAIEmbedding(text: string): Promise<number[]> {
-  const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-
-  if (!OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY not configured");
+async function generateOpenAIEmbedding(text: string, apiKey: string): Promise<number[]> {
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY não configurada. Configure na página de IA.");
   }
 
   const response = await fetch("https://api.openai.com/v1/embeddings", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_API_KEY}`,
+      "Authorization": `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       input: text,

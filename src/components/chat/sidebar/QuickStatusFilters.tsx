@@ -1,8 +1,8 @@
-import { MessageCircle, Clock, Bot, Sparkles } from 'lucide-react';
+import { MessageCircle, Clock, Bot, Sparkles, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type FilterMode = 'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia';
+type FilterMode = 'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia' | 'groups';
 
 interface QuickStatusFiltersProps {
   selectedMode: FilterMode;
@@ -13,6 +13,7 @@ interface QuickStatusFiltersProps {
     aguardando: number;
     bot: number;
     ia: number;
+    groups: number;
   };
 }
 
@@ -62,6 +63,15 @@ export function QuickStatusFilters({ selectedMode, onModeChange, counts }: Quick
       bgColor: 'bg-pink-50',
       borderColor: 'border-pink-200',
       activeColor: 'bg-pink-100',
+    },
+    {
+      mode: 'groups' as FilterMode,
+      label: 'Grupos',
+      icon: Users,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      borderColor: 'border-indigo-200',
+      activeColor: 'bg-indigo-100',
     },
   ];
 

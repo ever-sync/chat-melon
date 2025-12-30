@@ -556,6 +556,13 @@ const Chat = () => {
               onToggleDetailPanel={() => setShowDetailPanel(!showDetailPanel)}
               onToggleAIPanel={() => setShowAIPanel(!showAIPanel)}
               showAIPanel={showAIPanel}
+              onCopilotToggle={(enabled) => {
+                // Exclusividade mútua: fechar painel Elisa quando Copiloto é ativado
+                if (enabled && showAIPanel) {
+                  setShowAIPanel(false);
+                }
+                setShowCopilotPanel(enabled);
+              }}
             />
           </main>
 
@@ -579,7 +586,7 @@ const Chat = () => {
                 <ContactDetailPanel
                   conversation={selectedConversation}
                   onClose={() => setShowDetailPanel(false)}
-                  onConversationUpdated={loadConversations}
+                  onConversationUpdated={() => conversationsQuery.refetch()}
                 />
               </div>
             </aside>

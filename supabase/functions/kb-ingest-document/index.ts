@@ -52,6 +52,29 @@ serve(async (req) => {
     const chunkSize = config?.chunk_size || 1000;
     const chunkOverlap = config?.chunk_overlap || 200;
 
+    // Get OpenAI API key from ai_settings table
+    const { data: aiSettings } = await supabase
+      .from("ai_settings")
+      .select("openai_api_key")
+      .eq("company_id", companyId)
+      .single();
+
+    // Fallback to environment variable if not in database
+    const openaiApiKey = aiSettings?.openai_api_key || Deno.env.get("OPENAI_API_KEY");
+
+    if (!openaiApiKey) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "OPENAI_API_KEY não configurada. Vá em Configurações > IA e configure sua chave da OpenAI.",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
     // Create or update document
     let docId = documentId;
 
@@ -101,7 +124,7 @@ serve(async (req) => {
     console.log(`Created ${chunks.length} chunks`);
 
     // Generate embeddings for each chunk
-    const embeddings = await generateEmbeddings(chunks, config?.embedding_provider || 'openai');
+    const embeddings = await generateEmbeddings(chunks, config?.embedding_provider || 'openai', openaiApiKey);
 
     // Insert chunks with embeddings
     const chunksToInsert = chunks.map((chunk, index) => ({
@@ -178,19 +201,17 @@ function chunkText(text: string, chunkSize: number, overlap: number): string[] {
   return chunks.filter(chunk => chunk.length >= 10);
 }
 
-async function generateEmbeddings(chunks: string[], provider: string = 'openai'): Promise<number[][]> {
+async function generateEmbeddings(chunks: string[], provider: string = 'openai', apiKey: string): Promise<number[][]> {
   if (provider === 'openai') {
-    return await generateOpenAIEmbeddings(chunks);
+    return await generateOpenAIEmbeddings(chunks, apiKey);
   }
   // Add other providers here (Cohere, HuggingFace)
   throw new Error(`Unsupported embedding provider: ${provider}`);
 }
 
-async function generateOpenAIEmbeddings(chunks: string[]): Promise<number[][]> {
-  const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-
-  if (!OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY not configured");
+async function generateOpenAIEmbeddings(chunks: string[], apiKey: string): Promise<number[][]> {
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY não configurada. Configure na página de IA.");
   }
 
   // OpenAI allows batching up to 2048 inputs
@@ -204,7 +225,7 @@ async function generateOpenAIEmbeddings(chunks: string[]): Promise<number[][]> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         input: batch,

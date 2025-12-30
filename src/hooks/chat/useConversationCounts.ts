@@ -8,6 +8,7 @@ interface ConversationCounts {
   aguardando: number;
   bot: number;
   ia: number;
+  groups: number;
 }
 
 /**
@@ -30,6 +31,7 @@ export function useConversationCounts(currentUserId?: string | null) {
           aguardando: 0,
           bot: 0,
           ia: 0,
+          groups: 0,
         };
       }
 
@@ -37,7 +39,7 @@ export function useConversationCounts(currentUserId?: string | null) {
         // Buscar todas as conversas de uma vez e contar no JavaScript
         const { data: allConversations, error } = await supabase
           .from('conversations')
-          .select('id, status, assigned_to, ai_enabled')
+          .select('id, status, assigned_to, ai_enabled, contact_number')
           .eq('company_id', currentCompany.id)
           .neq('status', 'closed');
 
@@ -69,6 +71,9 @@ export function useConversationCounts(currentUserId?: string | null) {
           ia: conversations.filter(c =>
             c.ai_enabled === true
           ).length,
+          groups: conversations.filter(c => 
+            c.contact_number?.endsWith('@g.us')
+          ).length,
         };
 
         console.log('✅ Contadores calculados:', counts);
@@ -82,6 +87,7 @@ export function useConversationCounts(currentUserId?: string | null) {
           aguardando: 0,
           bot: 0,
           ia: 0,
+          groups: 0,
         };
       }
     },

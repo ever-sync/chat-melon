@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,14 @@ import { ChevronLeft, ChevronRight, Send, Calendar } from 'lucide-react';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useSegments } from '@/hooks/useSegments';
 import { useInstanceHealth } from '@/hooks/useInstanceHealth';
+import { useVariables } from '@/hooks/useVariables';
+import { useCustomFields } from '@/hooks/useCustomFields';
+import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Info, RefreshCw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CampaignValidation } from './CampaignValidation';
 
 interface CampaignBuilderProps {
@@ -43,9 +49,95 @@ export function CampaignBuilder({ open, onOpenChange }: CampaignBuilderProps) {
 
   const { createCampaign, startCampaign } = useCampaigns();
   const { segments } = useSegments();
-  const { instances } = useInstanceHealth();
+  const { instances, refetch: refetchInstances } = useInstanceHealth();
+  const { companyId } = useCompanyQuery();
+  const [checkingStatus, setCheckingStatus] = useState(false);
+
+  // Verificar status real da instância chamando a Evolution API
+  const checkInstanceStatus = async () => {
+    if (!companyId) return;
+
+    setCheckingStatus(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await supabase.functions.invoke('evolution-instance-manager', {
+        body: {
+          action: 'check-status',
+          companyId,
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        toast.error('Erro ao verificar status');
+      } else if (response.data?.isConnected) {
+        toast.success('Instância conectada!');
+      } else {
+        toast.info(`Status: ${response.data?.status || 'desconhecido'}`);
+      }
+
+      // Atualizar cache local
+      await refetchInstances();
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+      toast.error('Erro ao verificar status');
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
+
+  // Atualizar status das instâncias quando o modal abrir
+  useEffect(() => {
+    if (open) {
+      refetchInstances();
+    }
+  }, [open, refetchInstances]);
+
+  const { variables: companyVariables } = useVariables();
+  const { fields: customFields } = useCustomFields('contact');
 
   const selectedSegment = segments.find((s) => s.id === formData.segment_id);
+
+  // Variáveis padrão do sistema (campos do contato)
+  const defaultVariables = [
+    { key: 'nome', label: 'Nome do Contato', description: 'Nome completo do contato' },
+    { key: 'primeiro_nome', label: 'Primeiro Nome', description: 'Primeiro nome do contato' },
+    { key: 'telefone', label: 'Telefone', description: 'Número de telefone' },
+    { key: 'email', label: 'Email', description: 'Email do contato' },
+    { key: 'empresa', label: 'Empresa', description: 'Nome da empresa (se for contato PJ)' },
+  ];
+
+  // Inserir variável no texto
+  const insertVariable = (key: string) => {
+    const variable = `{{${key}}}`;
+    setFormData({ ...formData, message_content: formData.message_content + variable });
+  };
+
+  // Renderizar preview com variáveis substituídas
+  const renderPreview = (text: string) => {
+    let preview = text;
+    // Substituir variáveis padrão com exemplos
+    preview = preview.replace(/\{\{nome\}\}/g, 'João Silva');
+    preview = preview.replace(/\{\{primeiro_nome\}\}/g, 'João');
+    preview = preview.replace(/\{\{telefone\}\}/g, '(11) 99999-9999');
+    preview = preview.replace(/\{\{email\}\}/g, 'joao@email.com');
+    preview = preview.replace(/\{\{empresa\}\}/g, 'Empresa ABC');
+
+    // Substituir variáveis da empresa
+    companyVariables.forEach(v => {
+      preview = preview.replace(new RegExp(`\\{\\{${v.key}\\}\\}`, 'g'), v.value);
+    });
+
+    // Substituir campos personalizados com placeholder
+    customFields.forEach(cf => {
+      preview = preview.replace(new RegExp(`\\{\\{${cf.field_name}\\}\\}`, 'g'), `[${cf.field_label}]`);
+    });
+
+    return preview || 'Sua mensagem aparecerá aqui...';
+  };
 
   const handleSubmit = async (startNow: boolean) => {
     // Validate instance connection
@@ -157,7 +249,88 @@ export function CampaignBuilder({ open, onOpenChange }: CampaignBuilderProps) {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="message_content">Conteúdo da Mensagem *</Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="message_content">Conteúdo da Mensagem *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Info className="h-4 w-4 mr-2" />
+                          Inserir Variável
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" align="end">
+                        <div className="p-3 border-b">
+                          <h4 className="font-medium text-sm">Variáveis Disponíveis</h4>
+                          <p className="text-xs text-muted-foreground">Clique para inserir</p>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {/* Variáveis Padrão */}
+                          <div className="p-2">
+                            <div className="text-xs font-medium text-muted-foreground px-2 py-1">
+                              Dados do Contato
+                            </div>
+                            {defaultVariables.map((v) => (
+                              <button
+                                key={v.key}
+                                onClick={() => insertVariable(v.key)}
+                                className="w-full flex items-center justify-between px-2 py-1.5 text-sm rounded hover:bg-muted text-left"
+                              >
+                                <span>{v.label}</span>
+                                <Badge variant="secondary" className="text-xs font-mono">
+                                  {`{{${v.key}}}`}
+                                </Badge>
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Variáveis da Empresa */}
+                          {companyVariables.length > 0 && (
+                            <div className="p-2 border-t">
+                              <div className="text-xs font-medium text-muted-foreground px-2 py-1">
+                                Variáveis da Empresa
+                              </div>
+                              {companyVariables.map((v) => (
+                                <button
+                                  key={v.key}
+                                  onClick={() => insertVariable(v.key)}
+                                  className="w-full flex items-center justify-between px-2 py-1.5 text-sm rounded hover:bg-muted text-left"
+                                >
+                                  <div>
+                                    <span>{v.label}</span>
+                                    <span className="text-xs text-muted-foreground ml-2">= {v.value}</span>
+                                  </div>
+                                  <Badge variant="secondary" className="text-xs font-mono">
+                                    {`{{${v.key}}}`}
+                                  </Badge>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Campos Personalizados */}
+                          {customFields.length > 0 && (
+                            <div className="p-2 border-t">
+                              <div className="text-xs font-medium text-muted-foreground px-2 py-1">
+                                Campos Personalizados
+                              </div>
+                              {customFields.map((cf) => (
+                                <button
+                                  key={cf.id}
+                                  onClick={() => insertVariable(cf.field_name)}
+                                  className="w-full flex items-center justify-between px-2 py-1.5 text-sm rounded hover:bg-muted text-left"
+                                >
+                                  <span>{cf.field_label}</span>
+                                  <Badge variant="outline" className="text-xs font-mono">
+                                    {`{{${cf.field_name}}}`}
+                                  </Badge>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <Textarea
                     id="message_content"
                     value={formData.message_content}
@@ -165,17 +338,35 @@ export function CampaignBuilder({ open, onOpenChange }: CampaignBuilderProps) {
                     placeholder="Olá {{nome}}, tudo bem?&#10;&#10;Temos uma promoção especial para você..."
                     rows={8}
                   />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Use variáveis: {`{{nome}}, {{empresa}}, {{telefone}}`}
-                  </p>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {defaultVariables.slice(0, 3).map((v) => (
+                      <Badge
+                        key={v.key}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-secondary/80 text-xs"
+                        onClick={() => insertVariable(v.key)}
+                      >
+                        {`{{${v.key}}}`}
+                      </Badge>
+                    ))}
+                    {companyVariables.slice(0, 2).map((v) => (
+                      <Badge
+                        key={v.key}
+                        variant="outline"
+                        className="cursor-pointer hover:bg-muted text-xs"
+                        onClick={() => insertVariable(v.key)}
+                      >
+                        {`{{${v.key}}}`}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Preview */}
                 <div className="border rounded-lg p-4 bg-muted/50">
                   <div className="text-sm font-medium mb-2">Preview:</div>
                   <div className="bg-background rounded-lg p-3 whitespace-pre-wrap">
-                    {formData.message_content.replace(/\{\{nome\}\}/g, 'João Silva') ||
-                      'Sua mensagem aparecerá aqui...'}
+                    {renderPreview(formData.message_content)}
                   </div>
                 </div>
               </CardContent>
@@ -424,17 +615,46 @@ export function CampaignBuilder({ open, onOpenChange }: CampaignBuilderProps) {
                 {/* Instance Connection Warning */}
                 {instances.filter((i) => i.is_connected).length === 0 && (
                   <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-red-500">
-                          Instância WhatsApp Desconectada
-                        </p>
-                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                          Nenhuma instância WhatsApp está conectada. Conecte uma instância em
-                          Configurações antes de iniciar a campanha.
-                        </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-red-500">
+                            Instância WhatsApp Desconectada
+                          </p>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                            Nenhuma instância WhatsApp está conectada. Conecte uma instância em
+                            Configurações antes de iniciar a campanha.
+                          </p>
+                          {instances.length > 0 && instances[0].instance_status && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Status atual: {instances[0].instance_status}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={checkInstanceStatus}
+                        disabled={checkingStatus}
+                        className="shrink-0"
+                      >
+                        <RefreshCw className={`h-4 w-4 mr-1 ${checkingStatus ? 'animate-spin' : ''}`} />
+                        {checkingStatus ? 'Verificando...' : 'Verificar'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Instance Connected - Show status */}
+                {instances.filter((i) => i.is_connected).length > 0 && (
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        Instância WhatsApp Conectada: {instances.find((i) => i.is_connected)?.instance_name}
+                      </span>
                     </div>
                   </div>
                 )}

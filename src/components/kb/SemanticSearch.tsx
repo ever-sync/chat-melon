@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Search, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCompany } from '@/contexts/CompanyContext';
 
 interface SearchResult {
   id: string;
@@ -15,6 +16,7 @@ interface SearchResult {
 }
 
 export function SemanticSearch() {
+  const { currentCompany } = useCompany();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [answer, setAnswer] = useState('');
@@ -23,16 +25,29 @@ export function SemanticSearch() {
   const handleSearch = async () => {
     if (!query.trim()) return;
 
+    if (!currentCompany?.id) {
+      toast.error('Nenhuma empresa selecionada');
+      return;
+    }
+
     setIsSearching(true);
     setAnswer('');
     setResults([]);
 
     try {
       const { data, error } = await supabase.functions.invoke('kb-semantic-search', {
-        body: { query },
+        body: {
+          query,
+          companyId: currentCompany.id,
+        },
       });
 
       if (error) throw error;
+
+      if (!data?.success && data?.error) {
+        toast.error(data.error);
+        return;
+      }
 
       setResults(data?.results || []);
       setAnswer(data?.answer || '');
