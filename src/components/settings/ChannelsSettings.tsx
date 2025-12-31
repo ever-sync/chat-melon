@@ -532,34 +532,111 @@ const AddChannelDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {channelType && <ChannelIcon type={channelType} size="md" showBackground />}
-            Adicionar {channelType && getChannelLabel(channelType)}
+            Conectar {channelType && getChannelLabel(channelType)}
           </DialogTitle>
-          <DialogDescription>Configure as credenciais para conectar este canal.</DialogDescription>
+          <DialogDescription>
+            {channelType === 'instagram' || channelType === 'messenger'
+              ? 'Clique no botão abaixo para conectar sua conta.'
+              : 'Configure as credenciais para conectar este canal.'}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome do Canal</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={`Meu ${channelType && getChannelLabel(channelType)}`}
-            />
+        {/* Instagram/Messenger - Apenas botão OAuth */}
+        {(channelType === 'instagram' || channelType === 'messenger') && (
+          <div className="py-6">
+            <Button
+              className="w-full h-12 text-base"
+              onClick={async () => {
+                try {
+                  const { data, error } = await supabase.functions.invoke('meta-oauth', {
+                    body: { action: 'get_auth_url', companyId: currentCompany?.id },
+                  });
+
+                  if (error) throw error;
+                  if (data?.authUrl) {
+                    const width = 600;
+                    const height = 700;
+                    const left = window.screen.width / 2 - width / 2;
+                    const top = window.screen.height / 2 - height / 2;
+
+                    const popup = window.open(
+                      data.authUrl,
+                      'Connect With Meta',
+                      `width=${width},height=${height},left=${left},top=${top}`
+                    );
+
+                    const handleMessage = (event: MessageEvent) => {
+                      if (event.data?.type === 'oauth-success' && event.data?.provider === 'meta') {
+                        toast.success('Conectado com sucesso!');
+                        popup?.close();
+                        window.removeEventListener('message', handleMessage);
+                        onChannelConnected();
+                      }
+                    };
+
+                    window.addEventListener('message', handleMessage);
+                  }
+                } catch (error) {
+                  console.error('Meta OAuth Error:', error);
+                  toast.error('Erro ao iniciar conexão');
+                }
+              }}
+            >
+              <ExternalLink className="h-5 w-5 mr-2" />
+              Conectar com Facebook
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              Ao conectar, você autoriza o acesso às mensagens da sua conta {channelType === 'instagram' ? 'Instagram' : 'Messenger'}.
+            </p>
           </div>
+        )}
 
-          {renderCredentialsForm()}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSubmit} disabled={isLoading || !name}>
-            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Adicionar
-          </Button>
-        </DialogFooter>
+        {/* Telegram - Campos manuais */}
+        {channelType === 'telegram' && (
+          <>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome do Canal</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Meu Bot Telegram"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bot_token">Token do Bot</Label>
+                <Input
+                  id="bot_token"
+                  value={credentials.bot_token || ''}
+                  onChange={(e) => setCredentials({ ...credentials, bot_token: e.target.value })}
+                  placeholder="123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Obtenha o token criando um bot com @BotFather no Telegram
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bot_username">Username do Bot</Label>
+                <Input
+                  id="bot_username"
+                  value={credentials.bot_username || ''}
+                  onChange={(e) => setCredentials({ ...credentials, bot_username: e.target.value })}
+                  placeholder="@meu_bot"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSubmit} disabled={isLoading || !name}>
+                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Adicionar
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

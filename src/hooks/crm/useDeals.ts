@@ -51,7 +51,7 @@ export const useDeals = (
           { count: 'exact' }
         )
         .eq('company_id', companyId)
-        .eq('status', 'open')
+        // Removido filtro .eq('status', 'open') para mostrar deals ganhos/perdidos nas colunas corretas
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 

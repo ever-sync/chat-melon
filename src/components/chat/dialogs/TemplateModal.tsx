@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,6 +56,9 @@ export const TemplateModal = ({ open, onOpenChange, template, onSubmit }: Templa
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{template ? 'Editar Template' : 'Novo Template'}</DialogTitle>
+          <DialogDescription>
+            {template ? 'Atualize as informações do template.' : 'Crie um novo template de mensagem para usar em suas conversas.'}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">

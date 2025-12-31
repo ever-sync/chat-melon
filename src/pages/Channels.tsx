@@ -954,22 +954,43 @@ export default function Channels() {
     }
   };
 
-  const handleOAuthConnect = (type: string) => {
-    // Meta OAuth flow
-    const clientId = process.env.REACT_APP_META_APP_ID || 'YOUR_META_APP_ID';
-    const redirectUri = `${window.location.origin}/oauth/callback`;
-    const scope =
-      type === 'instagram'
-        ? 'instagram_basic,instagram_manage_messages,pages_show_list,pages_messaging'
-        : 'pages_show_list,pages_messaging,pages_read_engagement';
+  const handleOAuthConnect = async (type: string) => {
+    // Meta OAuth flow via Edge Function
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-oauth', {
+        body: { action: 'get_auth_url', companyId: currentCompany?.id },
+      });
 
-    const oauthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${type}`;
+      if (error) throw error;
+      if (data?.authUrl) {
+        const width = 600;
+        const height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
 
-    window.open(oauthUrl, '_blank', 'width=600,height=700');
+        const popup = window.open(
+          data.authUrl,
+          'Connect With Meta',
+          `width=${width},height=${height},left=${left},top=${top}`
+        );
 
-    toast.info('Complete a autenticação na janela que abriu', {
-      description: 'Após autorizar, volte aqui e insira os dados.',
-    });
+        const handleMessage = (event: MessageEvent) => {
+          if (event.data?.type === 'oauth-success' && event.data?.provider === 'meta') {
+            toast.success('Conectado com sucesso!');
+            popup?.close();
+            window.removeEventListener('message', handleMessage);
+            queryClient.invalidateQueries({ queryKey: ['channels'] });
+            setShowAddDialog(false);
+            setSelectedType(null);
+          }
+        };
+
+        window.addEventListener('message', handleMessage);
+      }
+    } catch (error: any) {
+      console.error('Meta OAuth Error:', error);
+      toast.error('Erro ao iniciar conexão: ' + (error.message || 'Erro desconhecido'));
+    }
   };
 
   const handleGmailOAuth = () => {
