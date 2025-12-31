@@ -430,7 +430,7 @@ export default function Reports() {
                       <div className="relative">
                         <Avatar className="h-12 w-12 border-2 border-[#111111] ring-2 ring-emerald-500/20 group-hover:ring-emerald-500 transition-all">
                           <AvatarFallback className="bg-gradient-to-br from-gray-800 to-gray-900 text-white font-bold">
-                            {agent.name.charAt(0)}
+                            {agent?.user_name?.charAt(0) || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-[10px] font-bold text-black px-1.5 py-0.5 rounded-full border-2 border-[#111111]">
@@ -439,15 +439,15 @@ export default function Reports() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
-                          {agent.name}
+                          {agent?.user_name || 'Sem nome'}
                         </p>
                         <p className="text-sm text-gray-500 truncate">
-                          {agent.dealsCount} negócios fechados
+                          {agent?.deals_count || 0} negócios fechados
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-emerald-400">
-                          {formatCurrency(agent.totalValue)}
+                          {formatCurrency(agent?.total_value || 0)}
                         </p>
                       </div>
                     </div>

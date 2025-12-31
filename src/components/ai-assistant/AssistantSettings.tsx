@@ -101,7 +101,7 @@ export function AssistantSettings({ companyId }: AssistantSettingsProps) {
             <Bot className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Assistente IA</h3>
+            <h3 className="text-lg font-semibold">Monitor de Atendimento</h3>
             <p className="text-sm text-muted-foreground">
               Configure o comportamento do assistente
             </p>

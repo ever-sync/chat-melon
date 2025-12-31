@@ -64,7 +64,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Widget API Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ error: (error as any).message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
@@ -151,6 +151,9 @@ function checkBusinessHours(businessHours: any, timezone: string): boolean {
 
     const parts = formatter.formatToParts(now);
     const weekday = parts.find(p => p.type === 'weekday')?.value?.toLowerCase();
+    
+    if (!weekday) return true;
+
     const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
     const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
     const currentTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;

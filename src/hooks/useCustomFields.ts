@@ -79,10 +79,24 @@ export const useCustomFields = (entityType: 'contact' | 'deal' | 'company') => {
         .single();
 
       if (error) throw error;
+
+      // Se for campo de contato, cria automaticamente uma variável da empresa para fácil acesso
+      if (entityType === 'contact') {
+        const varKey = `contato_${field.field_name}`;
+        await supabase.from('company_variables' as any).insert({
+          company_id: companyId!,
+          key: varKey,
+          label: field.field_label,
+          value: `{{${varKey}}}`, // Valor padrão para substituição dinâmica
+          description: `Campo customizado: ${field.field_label}`,
+        });
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
+      queryClient.invalidateQueries({ queryKey: ['company_variables'] });
       toast.success('Campo criado com sucesso!');
     },
     onError: (error) => {
@@ -101,10 +115,21 @@ export const useCustomFields = (entityType: 'contact' | 'deal' | 'company') => {
         .single();
 
       if (error) throw error;
+
+      // Sincroniza label se houver mudança
+      if (entityType === 'contact' && field.field_label) {
+        const varKey = `contato_${data.field_name}`;
+        await supabase.from('company_variables' as any)
+          .update({ label: field.field_label })
+          .eq('company_id', companyId!)
+          .eq('key', varKey);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
+      queryClient.invalidateQueries({ queryKey: ['company_variables'] });
       toast.success('Campo atualizado!');
     },
     onError: (error) => {
@@ -128,15 +153,32 @@ export const useCustomFields = (entityType: 'contact' | 'deal' | 'company') => {
 
   const deleteField = useMutation({
     mutationFn: async (fieldId: string) => {
+      // Busca o campo antes de deletar para saber o nome
+      const { data: field } = await supabase
+        .from('custom_fields')
+        .select('field_name')
+        .eq('id', fieldId)
+        .single();
+
       const { error } = await supabase
         .from('custom_fields')
         .delete()
         .eq('id', fieldId);
 
       if (error) throw error;
+
+      // Remove a variável correspondente
+      if (entityType === 'contact' && field) {
+        const varKey = `contato_${field.field_name}`;
+        await supabase.from('company_variables' as any)
+          .delete()
+          .eq('company_id', companyId!)
+          .eq('key', varKey);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom_fields'] });
+      queryClient.invalidateQueries({ queryKey: ['company_variables'] });
       toast.success('Campo excluído permanentemente!');
     },
     onError: (error) => {

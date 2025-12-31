@@ -47,12 +47,15 @@ export const VariablePicker = ({ onSelect, trigger, hideStandard = false }: Vari
         const all: any[] = [];
 
         // 1. Prioritize Custom Variables (company_variables table)
-        if (customVariables && customVariables.length > 0) {
+        // Filter out variables that start with 'contato_' as they are handled below in 'campos_contato'
+        const genericVariables = customVariables?.filter(v => !v.key.startsWith('contato_')) || [];
+        
+        if (genericVariables.length > 0) {
             all.push({
                 id: 'personalizadas',
                 label: 'Suas Variáveis',
                 icon: Variable,
-                variables: customVariables.map((v) => ({
+                variables: genericVariables.map((v) => ({
                     key: v.key,
                     label: v.label,
                     description: v.description,

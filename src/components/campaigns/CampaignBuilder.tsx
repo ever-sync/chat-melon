@@ -26,6 +26,8 @@ import { AlertTriangle, Info, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CampaignValidation } from './CampaignValidation';
+import { VariablePicker } from '../chat/VariablePicker';
+import { renderContactVariablesPreview } from '@/hooks/useContactVariables';
 
 interface CampaignBuilderProps {
   open: boolean;
@@ -97,45 +99,16 @@ export function CampaignBuilder({ open, onOpenChange }: CampaignBuilderProps) {
   }, [open, refetchInstances]);
 
   const { variables: companyVariables } = useVariables();
-  const { fields: customFields } = useCustomFields('contact');
-
   const selectedSegment = segments.find((s) => s.id === formData.segment_id);
 
-  // Variáveis padrão do sistema (campos do contato)
-  const defaultVariables = [
-    { key: 'nome', label: 'Nome do Contato', description: 'Nome completo do contato' },
-    { key: 'primeiro_nome', label: 'Primeiro Nome', description: 'Primeiro nome do contato' },
-    { key: 'telefone', label: 'Telefone', description: 'Número de telefone' },
-    { key: 'email', label: 'Email', description: 'Email do contato' },
-    { key: 'empresa', label: 'Empresa', description: 'Nome da empresa (se for contato PJ)' },
-  ];
-
   // Inserir variável no texto
-  const insertVariable = (key: string) => {
-    const variable = `{{${key}}}`;
-    setFormData({ ...formData, message_content: formData.message_content + variable });
+  const insertVariable = (variable: string) => {
+    setFormData({ ...formData, message_content: (formData.message_content || '') + variable });
   };
 
   // Renderizar preview com variáveis substituídas
   const renderPreview = (text: string) => {
-    let preview = text;
-    // Substituir variáveis padrão com exemplos
-    preview = preview.replace(/\{\{nome\}\}/g, 'João Silva');
-    preview = preview.replace(/\{\{primeiro_nome\}\}/g, 'João');
-    preview = preview.replace(/\{\{telefone\}\}/g, '(11) 99999-9999');
-    preview = preview.replace(/\{\{email\}\}/g, 'joao@email.com');
-    preview = preview.replace(/\{\{empresa\}\}/g, 'Empresa ABC');
-
-    // Substituir variáveis da empresa
-    companyVariables.forEach(v => {
-      preview = preview.replace(new RegExp(`\\{\\{${v.key}\\}\\}`, 'g'), v.value);
-    });
-
-    // Substituir campos personalizados com placeholder
-    customFields.forEach(cf => {
-      preview = preview.replace(new RegExp(`\\{\\{${cf.field_name}\\}\\}`, 'g'), `[${cf.field_label}]`);
-    });
-
+    const preview = renderContactVariablesPreview(text, companyVariables);
     return preview || 'Sua mensagem aparecerá aqui...';
   };
 
@@ -251,85 +224,15 @@ export function CampaignBuilder({ open, onOpenChange }: CampaignBuilderProps) {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <Label htmlFor="message_content">Conteúdo da Mensagem *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
+                    <VariablePicker
+                      onSelect={insertVariable}
+                      trigger={
                         <Button variant="outline" size="sm">
                           <Info className="h-4 w-4 mr-2" />
                           Inserir Variável
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0" align="end">
-                        <div className="p-3 border-b">
-                          <h4 className="font-medium text-sm">Variáveis Disponíveis</h4>
-                          <p className="text-xs text-muted-foreground">Clique para inserir</p>
-                        </div>
-                        <div className="max-h-80 overflow-y-auto">
-                          {/* Variáveis Padrão */}
-                          <div className="p-2">
-                            <div className="text-xs font-medium text-muted-foreground px-2 py-1">
-                              Dados do Contato
-                            </div>
-                            {defaultVariables.map((v) => (
-                              <button
-                                key={v.key}
-                                onClick={() => insertVariable(v.key)}
-                                className="w-full flex items-center justify-between px-2 py-1.5 text-sm rounded hover:bg-muted text-left"
-                              >
-                                <span>{v.label}</span>
-                                <Badge variant="secondary" className="text-xs font-mono">
-                                  {`{{${v.key}}}`}
-                                </Badge>
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Variáveis da Empresa */}
-                          {companyVariables.length > 0 && (
-                            <div className="p-2 border-t">
-                              <div className="text-xs font-medium text-muted-foreground px-2 py-1">
-                                Variáveis da Empresa
-                              </div>
-                              {companyVariables.map((v) => (
-                                <button
-                                  key={v.key}
-                                  onClick={() => insertVariable(v.key)}
-                                  className="w-full flex items-center justify-between px-2 py-1.5 text-sm rounded hover:bg-muted text-left"
-                                >
-                                  <div>
-                                    <span>{v.label}</span>
-                                    <span className="text-xs text-muted-foreground ml-2">= {v.value}</span>
-                                  </div>
-                                  <Badge variant="secondary" className="text-xs font-mono">
-                                    {`{{${v.key}}}`}
-                                  </Badge>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Campos Personalizados */}
-                          {customFields.length > 0 && (
-                            <div className="p-2 border-t">
-                              <div className="text-xs font-medium text-muted-foreground px-2 py-1">
-                                Campos Personalizados
-                              </div>
-                              {customFields.map((cf) => (
-                                <button
-                                  key={cf.id}
-                                  onClick={() => insertVariable(cf.field_name)}
-                                  className="w-full flex items-center justify-between px-2 py-1.5 text-sm rounded hover:bg-muted text-left"
-                                >
-                                  <span>{cf.field_label}</span>
-                                  <Badge variant="outline" className="text-xs font-mono">
-                                    {`{{${cf.field_name}}}`}
-                                  </Badge>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                      }
+                    />
                   </div>
                   <Textarea
                     id="message_content"
@@ -339,24 +242,14 @@ export function CampaignBuilder({ open, onOpenChange }: CampaignBuilderProps) {
                     rows={8}
                   />
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {defaultVariables.slice(0, 3).map((v) => (
+                    {['nome', 'primeiro_nome', 'telefone'].map((key) => (
                       <Badge
-                        key={v.key}
+                        key={key}
                         variant="secondary"
                         className="cursor-pointer hover:bg-secondary/80 text-xs"
-                        onClick={() => insertVariable(v.key)}
+                        onClick={() => insertVariable(`{{${key}}}`)}
                       >
-                        {`{{${v.key}}}`}
-                      </Badge>
-                    ))}
-                    {companyVariables.slice(0, 2).map((v) => (
-                      <Badge
-                        key={v.key}
-                        variant="outline"
-                        className="cursor-pointer hover:bg-muted text-xs"
-                        onClick={() => insertVariable(v.key)}
-                      >
-                        {`{{${v.key}}}`}
+                        {`{{${key}}}`}
                       </Badge>
                     ))}
                   </div>

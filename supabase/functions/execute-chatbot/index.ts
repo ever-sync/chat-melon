@@ -79,7 +79,12 @@ interface ChatbotExecution {
 }
 
 // Interpolate variables in content
-function interpolateVariables(content: string, variables: Record<string, any>, contact: any): string {
+function interpolateVariables(
+  content: string, 
+  variables: Record<string, any>, 
+  contact: any, 
+  customFields: Record<string, any> = {}
+): string {
   let result = content;
 
   // Session variables
@@ -88,13 +93,22 @@ function interpolateVariables(content: string, variables: Record<string, any>, c
     result = result.replace(regex, String(value || ""));
   }
 
-  // Contact variables
+  // Contact variables (standard)
   if (contact) {
     result = result.replace(/\{\{nome\}\}/gi, contact.name || "");
     result = result.replace(/\{\{name\}\}/gi, contact.name || "");
     result = result.replace(/\{\{email\}\}/gi, contact.email || "");
     result = result.replace(/\{\{telefone\}\}/gi, contact.phone_number || "");
     result = result.replace(/\{\{phone\}\}/gi, contact.phone_number || "");
+    result = result.replace(/\{\{primeiro_nome\}\}/gi, (contact.name || "").split(" ")[0]);
+  }
+
+  // Custom Fields (including contato_ prefix)
+  for (const [key, value] of Object.entries(customFields)) {
+    const regex1 = new RegExp(`\\{\\{${key}\\}\\}`, "gi");
+    const regex2 = new RegExp(`\\{\\{contato_${key}\\}\\}`, "gi");
+    result = result.replace(regex1, String(value || ""));
+    result = result.replace(regex2, String(value || ""));
   }
 
   // Clean up any remaining unmatched variables
@@ -210,7 +224,8 @@ async function processNode(
   node: ChatbotNode,
   execution: ChatbotExecution,
   userMessage: string | null,
-  supabase: any
+  supabase: any,
+  customFields: Record<string, any> = {}
 ): Promise<{
   nextNodeId: string | null;
   waitForInput: boolean;
@@ -244,7 +259,8 @@ async function processNode(
       const messageContent = interpolateVariables(
         node.data.content || "",
         variables,
-        contact
+        contact,
+        customFields
       );
 
       // Simulate typing delay
@@ -269,7 +285,8 @@ async function processNode(
         const questionText = interpolateVariables(
           node.data.question || "",
           variables,
-          contact
+          contact,
+          customFields
         );
 
         await new Promise(resolve => setTimeout(resolve, typingDelay));
@@ -331,7 +348,8 @@ async function processNode(
         const menuTitle = interpolateVariables(
           node.data.title || "Escolha uma opção:",
           variables,
-          contact
+          contact,
+          customFields
         );
 
         const options = node.data.options || [];
@@ -439,13 +457,13 @@ async function processNode(
     case "api_call":
       // Make API call
       try {
-        const url = interpolateVariables(node.data.url || "", variables, contact);
+        const url = interpolateVariables(node.data.url || "", variables, contact, customFields);
         const method = node.data.method || "GET";
         const headers = node.data.headers || {};
         let body = node.data.body;
 
         if (body) {
-          body = interpolateVariables(body, variables, contact);
+          body = interpolateVariables(body, variables, contact, customFields);
         }
 
         const apiResponse = await fetch(url, {
@@ -526,7 +544,8 @@ async function processNode(
         const webhookUrl = interpolateVariables(
           node.data.url || "",
           variables,
-          contact
+          contact,
+          customFields
         );
 
         const webhookBody = {
@@ -562,7 +581,8 @@ async function processNode(
       const handoffMessage = interpolateVariables(
         node.data.message || "Transferindo para um atendente...",
         variables,
-        contact
+        contact,
+        customFields
       );
 
       await sendWhatsAppMessage(
@@ -689,8 +709,8 @@ async function processNode(
     case "sticker":
       // Enviar mídia via Evolution API
       try {
-        const mediaUrl = interpolateVariables(node.data.url || node.data.mediaUrl || "", variables, contact);
-        const caption = interpolateVariables(node.data.caption || "", variables, contact);
+        const mediaUrl = interpolateVariables(node.data.url || node.data.mediaUrl || "", variables, contact, customFields);
+        const caption = interpolateVariables(node.data.caption || "", variables, contact, customFields);
 
         const apiUrl = Deno.env.get("EVOLUTION_API_URL");
         const apiKey = Deno.env.get("EVOLUTION_API_KEY");
@@ -780,7 +800,7 @@ async function processNode(
     case "quick_reply":
       if (!userMessage) {
         // Enviar mensagem com botões de resposta rápida
-        const qrMessage = interpolateVariables(node.data.message || "", variables, contact);
+        const qrMessage = interpolateVariables(node.data.message || "", variables, contact, customFields);
         const replies = node.data.replies || [];
 
         const apiUrl = Deno.env.get("EVOLUTION_API_URL");
@@ -1212,7 +1232,8 @@ async function processNode(
         const npsQuestion = interpolateVariables(
           node.data.question || "De 0 a 10, qual a probabilidade de você nos recomendar?",
           variables,
-          contact
+          contact,
+          customFields
         );
 
         await sendWhatsAppMessage(
@@ -1268,7 +1289,7 @@ async function processNode(
           if (followUpMsg) {
             await sendWhatsAppMessage(
               conversation.contact_number,
-              interpolateVariables(followUpMsg, variables, contact),
+              interpolateVariables(followUpMsg, variables, contact, customFields),
               execution.chatbot.company_id,
               conversation.id,
               supabase
@@ -1302,7 +1323,8 @@ async function processNode(
         const calendarPrompt = interpolateVariables(
           node.data.prompt || "Escolha uma data e horário para o agendamento",
           variables,
-          contact
+          contact,
+          customFields
         );
 
         // Aqui poderia integrar com APIs de calendário
@@ -1415,7 +1437,7 @@ async function processNode(
     case "ai_response":
       // Gerar resposta com IA
       try {
-        const aiPrompt = interpolateVariables(node.data.userPromptTemplate || node.data.prompt || "", variables, contact);
+        const aiPrompt = interpolateVariables(node.data.userPromptTemplate || node.data.prompt || "", variables, contact, customFields);
         const systemPrompt = node.data.systemPrompt || "Você é um assistente útil e amigável.";
         const model = node.data.model || "gpt-3.5-turbo";
 
@@ -1874,6 +1896,22 @@ serve(async (req) => {
       );
     }
 
+    // Fetch custom fields separately for better reliability
+    const { data: customValues } = await supabase
+      .from("custom_field_values")
+      .select("value, custom_fields(field_name)")
+      .eq("entity_id", execution.contact_id);
+
+    const customFields: Record<string, any> = {};
+    if (customValues) {
+      customValues.forEach((cv: any) => {
+        const fieldName = cv.custom_fields?.field_name;
+        if (fieldName) {
+          customFields[fieldName] = cv.value;
+        }
+      });
+    }
+
     const typedExecution = execution as unknown as ChatbotExecution;
 
     // Check if execution is in valid state
@@ -1947,7 +1985,8 @@ serve(async (req) => {
         node,
         { ...typedExecution, session_variables: variables },
         inputForNode,
-        supabase
+        supabase,
+        customFields
       );
 
       // Update state

@@ -21,6 +21,10 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, Save, RefreshCw, Copy, Eye, EyeOff } from 'lucide-react';
+import KnowledgeBaseTab from './KnowledgeBaseTab';
+import SkillsTab from './SkillsTab';
+import InstructionsTab from './InstructionsTab';
+import { AIPlayground } from '@/components/ai-assistant/AIPlayground';
 
 interface AISettings {
   is_enabled: boolean;
@@ -49,6 +53,7 @@ interface AISettings {
   openai_api_key: string;
   groq_api_key: string;
   agent_name: string;
+  restricted_mode: boolean;
 }
 
 export default function AISettingsPage({ embedded = false }: { embedded?: boolean }) {
@@ -317,7 +322,7 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
         <div className={embedded ? 'p-4' : 'p-6'}>Carregando...</div>
       ) : !companyId ? (
         <div className={embedded ? 'p-4' : 'p-6'}>
-          Selecione uma empresa para configurar o Assistente de IA
+          Selecione uma empresa para configurar o Agente de atendimento
         </div>
       ) : !settings ? (
         <div className={embedded ? 'p-4' : 'p-6'}>
@@ -335,9 +340,9 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
                 }
               >
                 <Bot className="h-6 w-6 text-violet-600" />
-                Configurações da IA
+                Configurações do Agente
               </h1>
-              <p className="text-muted-foreground">Configure o comportamento do assistente de IA</p>
+              <p className="text-muted-foreground">Configure o comportamento do agente de atendimento</p>
             </div>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? (
@@ -352,13 +357,34 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
           <Tabs defaultValue="general">
             <TabsList>
               <TabsTrigger value="general">Geral</TabsTrigger>
+              <TabsTrigger value="instructions">Instruções</TabsTrigger>
+              <TabsTrigger value="knowledge">Base de Conhecimento</TabsTrigger>
+              <TabsTrigger value="skills">Habilidades</TabsTrigger>
               <TabsTrigger value="behavior">Comportamento</TabsTrigger>
               <TabsTrigger value="handoff">Transferência</TabsTrigger>
               <TabsTrigger value="messages">Mensagens</TabsTrigger>
-              <TabsTrigger value="copilot">Copiloto</TabsTrigger>
-              <TabsTrigger value="ai-providers">Chaves IA</TabsTrigger>
-              <TabsTrigger value="integration">Integração N8N</TabsTrigger>
+              <TabsTrigger value="playground" className="ml-auto bg-purple-100 data-[state=active]:bg-purple-600 data-[state=active]:text-white text-purple-700">Testar Agente</TabsTrigger>
             </TabsList>
+
+             {/* Tab Instruções */}
+            <TabsContent value="instructions" className="space-y-4">
+               <InstructionsTab />
+            </TabsContent>
+
+            {/* Tab Base de Conhecimento */}
+            <TabsContent value="knowledge" className="space-y-4">
+               <KnowledgeBaseTab />
+            </TabsContent>
+
+             {/* Tab Habilidades */}
+            <TabsContent value="skills" className="space-y-4">
+               <SkillsTab />
+            </TabsContent>
+            
+             {/* Tab Playground */}
+            <TabsContent value="playground" className="space-y-4 h-[calc(100vh-250px)] min-h-[500px]">
+               <AIPlayground />
+            </TabsContent>
 
             {/* Tab Geral */}
             <TabsContent value="general" className="space-y-4">
@@ -722,202 +748,9 @@ export default function AISettingsPage({ embedded = false }: { embedded?: boolea
               </Card>
             </TabsContent>
 
-            {/* Tab Copiloto */}
-            <TabsContent value="copilot" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Script do Copiloto (Assistente Amarelo)</CardTitle>
-                  <CardDescription>
-                    Defina diretrizes, scripts de vendas ou instruções específicas para o assistente
-                    que sugere respostas.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Script de Vendas / Diretrizes</Label>
-                    <Textarea
-                      value={settings.copilot_script || ''}
-                      onChange={(e) => setSettings({ ...settings, copilot_script: e.target.value })}
-                      placeholder="Ex: Sempre ofereça 10% de desconto na primeira compra. Se o cliente perguntar sobre prazo, diga que é de 5 dias úteis. Seja sempre muito educado."
-                      rows={10}
-                      className="font-mono text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Essas instruções serão enviadas para a IA toda vez que ela analisar uma
-                      conversa.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
-            {/* Tab Chaves IA */}
-            <TabsContent value="ai-providers" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Chaves de API - IA</CardTitle>
-                  <CardDescription>
-                    Configure as chaves de API para análise de conversas. Gemini é gratuito
-                    (1500/dia), OpenAI é usado como backup.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Google Gemini API Key (Grátis - Prioridade)</Label>
-                    <Input
-                      type="password"
-                      value={settings.gemini_api_key || ''}
-                      onChange={(e) => setSettings({ ...settings, gemini_api_key: e.target.value })}
-                      placeholder="AIza..."
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Obtenha em:{' '}
-                      <a
-                        href="https://aistudio.google.com/app/apikey"
-                        target="_blank"
-                        className="underline"
-                      >
-                        Google AI Studio
-                      </a>
-                    </p>
-                  </div>
 
-                  <div>
-                    <Label>OpenAI API Key (Pago - Fallback)</Label>
-                    <Input
-                      type="password"
-                      value={settings.openai_api_key || ''}
-                      onChange={(e) => setSettings({ ...settings, openai_api_key: e.target.value })}
-                      placeholder="sk-..."
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Usada apenas se Gemini falhar. Obtenha em:{' '}
-                      <a
-                        href="https://platform.openai.com/api-keys"
-                        target="_blank"
-                        className="underline"
-                      >
-                        OpenAI Platform
-                      </a>
-                    </p>
-                  </div>
 
-                  <div>
-                    <Label>Groq API Key (Grátis - Fallback Rápido)</Label>
-                    <Input
-                      type="password"
-                      value={settings.groq_api_key || ''}
-                      onChange={(e) => setSettings({ ...settings, groq_api_key: e.target.value })}
-                      placeholder="gsk_..."
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Usa Llama 3.1 70B, muito rápido! Obtenha em:{' '}
-                      <a href="https://console.groq.com/keys" target="_blank" className="underline">
-                        Groq Console
-                      </a>
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab Integração */}
-            <TabsContent value="integration" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Integração com N8N</CardTitle>
-                  <CardDescription>
-                    Configure a conexão com seu workflow de IA no N8N
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>URL do Webhook (enviar para N8N)</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={`${window.location.origin}/functions/v1/ai-webhook`}
-                        readOnly
-                        className="bg-gray-50"
-                      />
-                      <Button variant="outline" onClick={copyWebhookUrl}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Use esta URL no N8N para enviar dados processados de volta
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label>API Key</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type={showApiKey ? 'text' : 'password'}
-                        value={settings.n8n_api_key}
-                        readOnly
-                        className="bg-gray-50 font-mono text-sm"
-                      />
-                      <Button variant="outline" onClick={() => setShowApiKey(!showApiKey)}>
-                        {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                      <Button variant="outline" onClick={copyApiKey}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Adicione esta key no header "x-ai-key" das requisições do N8N
-                    </p>
-                  </div>
-
-                  <Button variant="outline" onClick={regenerateApiKey}>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Gerar nova API Key
-                  </Button>
-
-                  <div>
-                    <Label>URL do Webhook N8N (opcional)</Label>
-                    <Input
-                      value={settings.n8n_webhook_url || ''}
-                      onChange={(e) =>
-                        setSettings({ ...settings, n8n_webhook_url: e.target.value })
-                      }
-                      placeholder="https://seu-n8n.com/webhook/..."
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      URL do N8N para enviar mensagens recebidas para processamento
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Fluxo de Integração</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono">
-                    <p className="text-muted-foreground mb-2">
-                      // No N8N, envie para nosso webhook:
-                    </p>
-                    <pre className="text-xs overflow-x-auto">{`POST /functions/v1/ai-webhook
-Headers:
-  Content-Type: application/json
-  x-ai-key: ${settings.n8n_api_key?.substring(0, 10)}...
-
-Body:
-{
-  "event_type": "message_sent" | "insight_detected" | etc,
-  "conversation_id": "uuid",
-  "contact_id": "uuid", 
-  "company_id": "uuid",
-  "message": { ... },
-  "insights": [ ... ],
-  "qualification": { ... }
-}`}</pre>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
         </div>
       )}

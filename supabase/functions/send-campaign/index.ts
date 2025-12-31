@@ -402,9 +402,26 @@ async function processQueue(supabase: any, campaign: any, instance: any) {
 
       // Validate message length
       let message = campaign.message_content;
+
+      // Substituir variáveis padrão do contato
       message = message.replace(/\{\{nome\}\}/g, contact.name || 'Cliente');
-      message = message.replace(/\{\{empresa\}\}/g, contact.company_data?.name || '');
+      message = message.replace(/\{\{primeiro_nome\}\}/g, contact.name ? contact.name.split(' ')[0] : 'Cliente');
       message = message.replace(/\{\{telefone\}\}/g, contact.phone_number || '');
+      message = message.replace(/\{\{email\}\}/g, contact.email || '');
+      message = message.replace(/\{\{empresa\}\}/g, contact.company_data?.name || '');
+      message = message.replace(/\{\{cpf\}\}/g, contact.cpf || '');
+      message = message.replace(/\{\{cnpj\}\}/g, contact.cnpj || '');
+
+      // Substituir variáveis de endereço (CEP)
+      message = message.replace(/\{\{cep\}\}/g, contact.cep || '');
+      message = message.replace(/\{\{cep_numero\}\}/g, contact.cep_numero || '');
+      message = message.replace(/\{\{cep_uf\}\}/g, contact.cep_uf || '');
+      message = message.replace(/\{\{cep_rua\}\}/g, contact.cep_rua || '');
+      message = message.replace(/\{\{cep_cidade\}\}/g, contact.cep_cidade || '');
+      message = message.replace(/\{\{cep_bairro\}\}/g, contact.cep_bairro || '');
+
+      // Substituir variável IRI (se existir)
+      message = message.replace(/\{\{iri\}\}/g, contact.iri || '');
 
       if (message.length > 1000) {
         console.log(`Message too long for ${contact.phone_number}, skipping`);

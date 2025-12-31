@@ -142,9 +142,9 @@ export default function IA() {
 
   return (
     <MainLayout>
-      <div className="space-y-6 h-full flex flex-col">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between flex-shrink-0">
+        <div className="flex items-start justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10 backdrop-blur-sm">
@@ -163,8 +163,8 @@ export default function IA() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-950 rounded-lg border shadow-sm overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <div className="bg-white dark:bg-gray-950 rounded-lg border shadow-sm">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col">
             <div className="border-b px-6 pt-4">
               <TabsList className="grid w-full max-w-5xl grid-cols-5 gap-4 bg-transparent">
                 <TabsTrigger
@@ -172,7 +172,7 @@ export default function IA() {
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-300"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span className="font-medium">Assistente de IA</span>
+                  <span className="font-medium">Agente de atendimento</span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -209,9 +209,9 @@ export default function IA() {
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="p-6">
               <TabsContent value="assistant" className="mt-0 space-y-6">
-                {companyId && <AssistantSettings companyId={companyId} />}
+                <AISettingsPage embedded={true} />
               </TabsContent>
 
               <TabsContent value="transcription" className="mt-0 space-y-6">
@@ -266,7 +266,7 @@ export default function IA() {
               </TabsContent>
 
               <TabsContent value="monitoring" className="mt-0 space-y-6">
-                <AISettingsPage embedded={true} />
+                {companyId && <AssistantSettings companyId={companyId} />}
               </TabsContent>
 
               <TabsContent value="integrations" className="mt-0 space-y-6">
