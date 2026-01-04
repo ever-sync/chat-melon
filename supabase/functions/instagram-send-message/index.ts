@@ -77,8 +77,9 @@ serve(async (req) => {
         }
 
         const channel = conversation.channel as any;
-        const accessToken = channel?.credentials?.access_token;
-        const instagramId = channel?.credentials?.instagram_id;
+        // Corrigido: usar as chaves corretas salvas pelo meta-oauth
+        const accessToken = channel?.credentials?.page_access_token;
+        const instagramId = channel?.credentials?.instagram_account_id;
         const recipientId = conversation.external_id;
 
         if (!accessToken || !instagramId) {

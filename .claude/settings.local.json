@@ -52,7 +52,16 @@
       "Bash(do npx supabase migration repair --status applied $m)",
       "Bash(done)",
       "Bash(for:*)",
-      "Bash(then grep -E \"SUPABASE_URL|DATABASE_URL\" .env)"
+      "Bash(then grep -E \"SUPABASE_URL|DATABASE_URL\" .env)",
+      "Bash(if [ -f \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\src\\hooks\\useContactVariables.ts\" ])",
+      "Bash(then echo \"exists\")",
+      "Bash(else echo \"not exists\")",
+      "Bash(if [ -f \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\.env\" ])",
+      "Bash(then grep -E \"FACEBOOK|META\" \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\.env\")",
+      "Bash(node test_instagram_webhook.js:*)",
+      "Bash(then grep -E \"SUPABASE_URL|DATABASE_URL\" \"C:\\Users\\Giuliano\\Documents\\empresa\\Desenvolviemnto\\MelonChat\\chat-melon\\.env\")",
+      "Bash(node:*)",
+      "Bash(del temp_check.txt)"
     ],
     "deny": [],
     "ask": []

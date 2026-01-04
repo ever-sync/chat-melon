@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,9 @@ import { useProposals, ProposalItem, Proposal } from '@/hooks/chat/useProposals'
 import { useProposalTemplates, ProposalTemplate } from '@/hooks/useProposalTemplates';
 import { ProposalTemplateGallery } from './ProposalTemplateGallery';
 import { ProposalVersionDialog } from './ProposalVersionDialog';
+import { VariablesPicker } from '@/components/variables/VariablesPicker';
+import { replaceContactVariables } from '@/hooks/useContactVariables';
+import { useVariables } from '@/hooks/useVariables';
 import { Search, Plus, Trash2, Send, Link as LinkIcon, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -38,6 +41,11 @@ export const ProposalBuilder = ({
   const { createProposal, generatePublicLink, updateProposal, createVersion, sendViaWhatsApp } =
     useProposals();
   const { incrementUsage } = useProposalTemplates();
+  const { variables: companyVariables } = useVariables();
+
+  const titleRef = useRef<HTMLInputElement>(null);
+  const paymentTermsRef = useRef<HTMLTextAreaElement>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
 
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const [showVersionDialog, setShowVersionDialog] = useState(false);
@@ -461,11 +469,35 @@ export const ProposalBuilder = ({
             </div>
 
             <div>
-              <Label>Condições de Pagamento</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Condições de Pagamento</Label>
+                <VariablesPicker
+                  onSelect={(key) => {
+                    const ref = paymentTermsRef.current;
+                    if (ref) {
+                      const start = ref.selectionStart || 0;
+                      const end = ref.selectionEnd || 0;
+                      const before = paymentTerms.substring(0, start);
+                      const after = paymentTerms.substring(end);
+                      const variable = `{{${key}}}`;
+                      setPaymentTerms(before + variable + after);
+
+                      setTimeout(() => {
+                        ref.focus();
+                        const newPos = start + variable.length;
+                        ref.setSelectionRange(newPos, newPos);
+                      }, 0);
+                    }
+                  }}
+                  buttonSize="sm"
+                  buttonVariant="ghost"
+                />
+              </div>
               <Textarea
+                ref={paymentTermsRef}
                 value={paymentTerms}
                 onChange={(e) => setPaymentTerms(e.target.value)}
-                placeholder="Ex: 50% na assinatura, 50% na entrega"
+                placeholder="Ex: 50% na assinatura, 50% na entrega. Use variáveis como {{nome}}, {{empresa}}"
                 rows={2}
               />
             </div>
@@ -481,11 +513,35 @@ export const ProposalBuilder = ({
             </div>
 
             <div>
-              <Label>Observações (opcional)</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Observações (opcional)</Label>
+                <VariablesPicker
+                  onSelect={(key) => {
+                    const ref = notesRef.current;
+                    if (ref) {
+                      const start = ref.selectionStart || 0;
+                      const end = ref.selectionEnd || 0;
+                      const before = notes.substring(0, start);
+                      const after = notes.substring(end);
+                      const variable = `{{${key}}}`;
+                      setNotes(before + variable + after);
+
+                      setTimeout(() => {
+                        ref.focus();
+                        const newPos = start + variable.length;
+                        ref.setSelectionRange(newPos, newPos);
+                      }, 0);
+                    }
+                  }}
+                  buttonSize="sm"
+                  buttonVariant="ghost"
+                />
+              </div>
               <Textarea
+                ref={notesRef}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notas internas sobre esta proposta..."
+                placeholder="Notas internas sobre esta proposta. Pode usar variáveis como {{nome}}, {{telefone}}"
                 rows={2}
               />
             </div>

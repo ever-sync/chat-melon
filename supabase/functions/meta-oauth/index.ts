@@ -54,10 +54,11 @@ serve(async (req) => {
                 const tokenData = await tokenRes.json();
 
                 if (tokenData.error) {
-                    console.error("Token Exchange Error:", tokenData.error);
+                    console.error("❌ Token Exchange Error:", JSON.stringify(tokenData.error));
                     return new Response(`Error exchanging token: ${JSON.stringify(tokenData.error)}`, { headers: { 'Content-Type': 'text/html' } });
                 }
 
+                console.log("✅ User Access Token received");
                 const userAccessToken = tokenData.access_token;
 
                 // 2. Fetch Pages and Insta Accounts
@@ -65,8 +66,15 @@ serve(async (req) => {
                 const pagesRes = await fetch(pagesUrl);
                 const pagesData = await pagesRes.json();
 
-                if (pagesData.data) {
+                console.log("📄 Pages fetch response:", JSON.stringify(pagesData));
+
+                let connectedCount = 0;
+                let message = "";
+
+                if (pagesData.data && pagesData.data.length > 0) {
                     for (const page of pagesData.data) {
+                        console.log(`Processing page: ${page.name} (${page.id})`);
+                        
                         // 3a. Add Messenger Channel (Page)
                         const pageAccessToken = page.access_token;
 
@@ -84,44 +92,97 @@ serve(async (req) => {
                             status: 'connected',
                             created_at: new Date().toISOString()
                         }, { onConflict: 'company_id,type,external_id' });
+                        
+                        connectedCount++;
+                        console.log(`✅ Messenger connected: ${page.name}`);
 
                         // Subscribe App to Page Webhooks
-                        await fetch(`https://graph.facebook.com/v18.0/${page.id}/subscribed_apps?subscribed_fields=messages,messaging_postbacks,message_reads&access_token=${pageAccessToken}`, { method: 'POST' });
+                        try {
+                            const subRes = await fetch(`https://graph.facebook.com/v18.0/${page.id}/subscribed_apps?subscribed_fields=messages,messaging_postbacks,message_reads&access_token=${pageAccessToken}`, { method: 'POST' });
+                            const subData = await subRes.json();
+                            console.log(`Webhook subscription for ${page.name}:`, subData);
+                        } catch (e) {
+                            console.error(`Failed to subscribe webhook for ${page.name}:`, e);
+                        }
 
                         // 3b. Add Instagram Channel (if linked)
                         if (page.instagram_business_account) {
                             const insta = page.instagram_business_account;
+                            console.log(`📸 Found Instagram: ${insta.username} (${insta.id})`);
 
-                            await supabase.from('channels').upsert({
-                                company_id: callbackState,
-                                type: 'instagram',
-                                name: insta.username || `Instagram - ${page.name}`,
-                                external_id: insta.id,
-                                credentials: {
-                                    page_access_token: pageAccessToken,
-                                    page_id: page.id,
-                                    instagram_account_id: insta.id
-                                },
-                                status: 'connected',
-                                created_at: new Date().toISOString()
-                            }, { onConflict: 'company_id,type,external_id' });
+                            const instaCredentials = {
+                                page_access_token: pageAccessToken,
+                                page_id: page.id,
+                                instagram_account_id: insta.id
+                            };
+                            console.log("🔒 Credentials to save:", JSON.stringify(instaCredentials));
+
+                            if (!pageAccessToken || !insta.id) {
+                                console.error("❌ CRITICAL: Missing token or ID for Instagram connection");
+                                message = "❌ ERRO CRÍTICO: O Facebook não retornou o Token da Página ou ID do Instagram. Verifique as permissões 'Gerenciar Páginas' e 'Acessar Conversas'.";
+                            } else {
+                                const { error: upsertError } = await supabase.from('channels').upsert({
+                                    company_id: callbackState,
+                                    type: 'instagram',
+                                    name: insta.username || `Instagram - ${page.name}`,
+                                    external_id: insta.id,
+                                    credentials: instaCredentials,
+                                    status: 'connected',
+                                    created_at: new Date().toISOString()
+                                }, { onConflict: 'company_id,type,external_id' });
+
+                                if (upsertError) {
+                                    console.error("❌ Stats Upsert Error:", upsertError);
+                                    message = "❌ Erro ao salvar no banco de dados: " + upsertError.message;
+                                } else {
+                                    connectedCount++;
+                                }
+                            }
+                        } else {
+                            console.log(`⚠️ No Instagram account linked to page ${page.name}`);
                         }
                     }
+                    message = `✅ Conectado com sucesso! (${connectedCount} canais adicionados)`;
+                } else {
+                    console.warn("⚠️ No pages found for user");
+                    message = "⚠️ Nenhuma página encontrada nesta conta do Facebook. Crie uma página ou verifique suas permissões.";
                 }
 
-                return new Response(
-                    `<html><body>
-              <script>
-                window.opener && window.opener.postMessage({type: 'oauth-success', provider: 'meta'}, '*');
-                setTimeout(() => window.close(), 1000);
-              </script>
-              <p style="text-align: center; margin-top: 50px; font-family: sans-serif;">
-                ✅ Facebook e Instagram conectados com sucesso!<br>
-                Você pode fechar esta janela.
-              </p>
-            </body></html>`,
-                    { headers: { 'Content-Type': 'text/html' } }
-                );
+                const htmlResponse = `
+                  <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <title>Conectado!</title>
+                    <style>
+                        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+                        .success { color: blue; font-size: 24px; margin-bottom: 20px; font-weight: bold; }
+                        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="success">${message} (v2)</div>
+                      <p>Você pode fechar esta janela agora.</p>
+                      <button onclick="window.close()">Fechar Janela</button>
+                      <script>
+                        try {
+                          if (window.opener) {
+                            window.opener.postMessage({type: 'oauth-success', provider: 'meta'}, '*');
+                          }
+                        } catch (e) { console.error(e); }
+                        
+                        // Tentar fechar automaticamente
+                        setTimeout(() => window.close(), 2000);
+                      </script>
+                    </body>
+                  </html>
+                `;
+
+                return new Response(htmlResponse, {
+                    headers: {
+                        'Content-Type': 'text/html',
+                        'Content-Security-Policy': "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'",
+                    }
+                });
             }
 
             // If GET but no code/error, it's invalid

@@ -30,7 +30,9 @@ import {
   ExternalLink,
   QrCode,
   Loader2,
+  Settings2,
 } from 'lucide-react';
+import { ChannelSettingsModal } from '@/components/channels/ChannelSettingsModal';
 import { useCompany } from '@/contexts/CompanyContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -109,6 +111,8 @@ export default function Channels() {
   const [showWebhookConfig, setShowWebhookConfig] = useState(false);
   const [configuringWebhook, setConfiguringWebhook] = useState(false);
   const [webhookStatus, setWebhookStatus] = useState<any>(null);
+  const [showChannelSettings, setShowChannelSettings] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
   // Função para verificar status na Evolution API e atualizar o canal
   const checkAndUpdateChannelStatus = useCallback(async (showToast = false) => {
@@ -986,6 +990,18 @@ export default function Channels() {
         };
 
         window.addEventListener('message', handleMessage);
+
+        // Fallback: Check if popup is closed manually or by script
+        const timer = setInterval(() => {
+          if (popup?.closed) {
+            clearInterval(timer);
+            window.removeEventListener('message', handleMessage);
+            // Refresh channels just in case
+            queryClient.invalidateQueries({ queryKey: ['channels'] });
+            // We don't close the dialog here automatically to avoid confusion if user just closed it without connecting
+            // But we can check if a new channel appeared
+          }
+        }, 1000);
       }
     } catch (error: any) {
       console.error('Meta OAuth Error:', error);
@@ -1194,12 +1210,11 @@ export default function Channels() {
                           size="sm"
                           className="flex-1"
                           onClick={() => {
-                            if (channel.type === 'whatsapp') {
-                              setShowWebhookConfig(true);
-                            }
+                            setSelectedChannel(channel);
+                            setShowChannelSettings(true);
                           }}
                         >
-                          <Settings className="h-4 w-4 mr-1" />
+                          <Settings2 className="h-4 w-4 mr-1" />
                           Configurar
                         </Button>
                         {channel.type === 'whatsapp' && (
@@ -1607,6 +1622,17 @@ export default function Channels() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Channel Settings Modal */}
+      {selectedChannel && (
+        <ChannelSettingsModal
+          open={showChannelSettings}
+          onOpenChange={setShowChannelSettings}
+          channelId={selectedChannel.id}
+          channelName={selectedChannel.name}
+          channelType={selectedChannel.type}
+        />
+      )}
 
       {/* Webhook Configuration Dialog */}
       <Dialog open={showWebhookConfig} onOpenChange={setShowWebhookConfig}>

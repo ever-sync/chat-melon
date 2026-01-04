@@ -148,25 +148,32 @@ export const useNotifications = () => {
     }
   }, [notificationSettings, isDoNotDisturbActive, playBeep]);
 
-  // Buscar notificações
+  // Buscar notificações filtradas por empresa
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ['notifications'],
+    queryKey: ['notifications', currentCompany?.id],
     queryFn: async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user || !currentCompany) return [];
+
+      console.log('🔔 Buscando notificações para empresa:', currentCompany.id);
 
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao buscar notificações:', error);
+        throw error;
+      }
       return data as Notification[];
     },
+    enabled: !!currentCompany?.id,
   });
 
   // Contagem de não lidas
@@ -186,7 +193,7 @@ export const useNotifications = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', currentCompany?.id] });
     },
   });
 
@@ -196,22 +203,39 @@ export const useNotifications = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user || !currentCompany) throw new Error('Not authenticated or no company selected');
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('notifications')
         .update({
           is_read: true,
           read_at: new Date().toISOString(),
         })
         .eq('user_id', user.id)
-        .eq('is_read', false);
+        .eq('company_id', currentCompany.id)
+        .eq('is_read', false)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao marcar todas como lidas:', error);
+        throw error;
+      }
+
+      console.log(`✅ Marcadas ${data?.length || 0} notificações como lidas`);
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Todas as notificações marcadas como lidas');
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', currentCompany?.id] });
+      const count = data?.length || 0;
+      if (count > 0) {
+        toast.success(`${count} notificação${count > 1 ? 'ões' : ''} marcada${count > 1 ? 's' : ''} como lida${count > 1 ? 's' : ''}`);
+      } else {
+        toast.info('Nenhuma notificação não lida');
+      }
+    },
+    onError: (error) => {
+      console.error('❌ Erro em markAllAsRead:', error);
+      toast.error('Erro ao marcar notificações como lidas');
     },
   });
 
@@ -223,7 +247,7 @@ export const useNotifications = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', currentCompany?.id] });
     },
   });
 
@@ -233,32 +257,61 @@ export const useNotifications = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user || !currentCompany) throw new Error('Not authenticated or no company selected');
+
+      // Primeiro, contar quantas serão deletadas
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id)
+        .eq('is_read', true);
+
+      console.log(`🗑️ Deletando ${count || 0} notificações lidas`);
 
       const { error } = await supabase
         .from('notifications')
         .delete()
         .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id)
         .eq('is_read', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao deletar notificações:', error);
+        throw error;
+      }
+
+      return count || 0;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Notificações limpas');
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', currentCompany?.id] });
+      if (count > 0) {
+        toast.success(`${count} notificação${count > 1 ? 'ões' : ''} removida${count > 1 ? 's' : ''}`);
+      } else {
+        toast.info('Nenhuma notificação lida para remover');
+      }
+    },
+    onError: (error) => {
+      console.error('❌ Erro em clearAllRead:', error);
+      toast.error('Erro ao limpar notificações');
     },
   });
 
-  // Realtime - escutar novas notificações
+  // Realtime - escutar novas notificações com filtro de empresa
   useEffect(() => {
+    if (!currentCompany?.id) return;
+
+    console.log('📡 Iniciando realtime de notificações para:', currentCompany.id);
+
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(`notifications-${currentCompany.id}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
+          filter: `company_id=eq.${currentCompany.id}`,
         },
         (payload) => {
           const newNotification = payload.new as Notification;
@@ -269,11 +322,12 @@ export const useNotifications = () => {
           // Verificar se está no modo não perturbe
           if (isDoNotDisturbActive()) return;
 
-          // Adicionar na lista
-          queryClient.setQueryData(['notifications'], (old: Notification[] = []) => [
-            newNotification,
-            ...old,
-          ]);
+          // Atualizar cache do React Query de forma imutável
+          queryClient.setQueryData(['notifications', currentCompany.id], (old: Notification[] = []) => {
+            // Evitar duplicatas
+            if (old.some(n => n.id === newNotification.id)) return old;
+            return [newNotification, ...old];
+          });
 
           // Mostrar toast
           toast(newNotification.title, {
@@ -295,9 +349,55 @@ export const useNotifications = () => {
       .subscribe();
 
     return () => {
+      console.log('🔌 Desconectando realtime de notificações:', currentCompany.id);
       supabase.removeChannel(channel);
     };
-  }, [queryClient, notificationSettings, isDoNotDisturbActive, playNotificationSound]);
+  }, [queryClient, currentCompany?.id, notificationSettings, isDoNotDisturbActive, playNotificationSound]);
+
+  // Deletar TODAS as notificações (independente se lidas ou não)
+  const clearAll = useMutation({
+    mutationFn: async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || !currentCompany) throw new Error('Not authenticated or no company selected');
+
+      // Contar todas as notificações
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id);
+
+      console.log(`🗑️ Deletando TODAS as ${count || 0} notificações`);
+
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('company_id', currentCompany.id);
+
+      if (error) {
+        console.error('❌ Erro ao deletar todas as notificações:', error);
+        throw error;
+      }
+
+      return count || 0;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', currentCompany?.id] });
+      if (count > 0) {
+        toast.success(`${count} notificação${count > 1 ? 'ões' : ''} removida${count > 1 ? 's' : ''}`);
+      } else {
+        toast.info('Nenhuma notificação para remover');
+      }
+    },
+    onError: (error) => {
+      console.error('❌ Erro em clearAll:', error);
+      toast.error('Erro ao limpar notificações');
+    },
+  });
+
 
   return {
     notifications,
@@ -307,6 +407,7 @@ export const useNotifications = () => {
     markAllAsRead: markAllAsRead.mutateAsync,
     deleteNotification: deleteNotification.mutateAsync,
     clearAllRead: clearAllRead.mutateAsync,
+    clearAll: clearAll.mutateAsync,
     playNotificationSound,
     notificationSettings,
   };

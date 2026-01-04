@@ -1,5 +1,5 @@
 // Instagram Webhook - Recebe mensagens do Instagram DM
-// Deploy: supabase functions deploy instagram-webhook
+// Deploy: supabase functions deploy instagram-webhook --no-verify-jwt
 // Docs: https://developers.facebook.com/docs/messenger-platform/instagram
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -43,6 +43,7 @@ serve(async (req) => {
 
             // Validate it's from Instagram
             if (body.object !== "instagram") {
+                console.log("⚠️ Not an Instagram webhook, object:", body.object);
                 return new Response("Not Instagram", { status: 200 });
             }
 
@@ -53,95 +54,202 @@ serve(async (req) => {
 
             // Process each entry
             for (const entry of body.entry || []) {
-                const igId = entry.id; // Instagram Business Account ID
+                const entryId = entry.id; // Instagram Account ID
+                console.log("🔍 Processing entry for Instagram ID:", entryId);
+                console.log("📦 Full entry:", JSON.stringify(entry, null, 2));
 
-                // Find company by Instagram ID
-                const { data: channel } = await supabase
+                // O webhook do Instagram envia o Instagram Account ID no entry.id
+                // Buscar pelo external_id OU pelo credentials.instagram_account_id
+                const { data: channels, error: channelError } = await supabase
                     .from("channels")
-                    .select("id, company_id, credentials")
-                    .eq("type", "instagram")
-                    .filter("credentials->instagram_id", "eq", igId)
-                    .single();
+                    .select("id, company_id, credentials, external_id")
+                    .eq("type", "instagram");
 
-                if (!channel) {
-                    console.log(`⚠️ No channel found for Instagram ID: ${igId}`);
+                if (channelError) {
+                    console.error("❌ Error fetching channels:", channelError);
                     continue;
                 }
 
+                console.log(`📋 Found ${channels?.length || 0} Instagram channels in database`);
+
+                // Buscar o canal que tem este Instagram Account ID
+                const channel = channels?.find(ch => {
+                    const igIdInCreds = ch.credentials?.instagram_account_id;
+                    const matchByExternalId = ch.external_id === entryId;
+                    const matchByCredentials = igIdInCreds === entryId;
+
+                    console.log(`  Checking channel ${ch.id}:`);
+                    console.log(`    external_id=${ch.external_id}, match=${matchByExternalId}`);
+                    console.log(`    credentials.instagram_account_id=${igIdInCreds}, match=${matchByCredentials}`);
+
+                    return matchByExternalId || matchByCredentials;
+                });
+
+                if (!channel) {
+                    console.log(`⚠️ No channel found for Instagram Account ID: ${entryId}`);
+                    console.log("💡 Available channels:", channels?.map(ch => ({
+                        id: ch.id,
+                        external_id: ch.external_id,
+                        instagram_account_id: ch.credentials?.instagram_account_id
+                    })));
+                    continue;
+                }
+
+                console.log("✅ Found channel:", channel.id, "for company:", channel.company_id);
+
+                // Get a default user for the company (for user_id field)
+                const { data: defaultUser } = await supabase
+                    .from("profiles")
+                    .select("id")
+                    .eq("company_id", channel.company_id)
+                    .limit(1)
+                    .single();
+
+                const defaultUserId = defaultUser?.id;
+                console.log("👤 Default user for company:", defaultUserId);
+
                 // Process messaging events
                 for (const messaging of entry.messaging || []) {
-                    const senderId = messaging.sender.id;
-                    const recipientId = messaging.recipient.id;
+                    const senderId = messaging.sender?.id;
+                    const recipientId = messaging.recipient?.id;
                     const timestamp = messaging.timestamp;
 
-                    // Skip if it's our own message
-                    if (senderId === igId) continue;
+                    console.log("📨 Processing message from:", senderId, "to:", recipientId);
+
+                    // Skip if missing sender
+                    if (!senderId) {
+                        console.log("⚠️ Missing sender ID, skipping");
+                        continue;
+                    }
+
+                    // Skip if it's our own message (sender is the Instagram account)
+                    const instagramAccountId = channel.credentials?.instagram_account_id || channel.external_id;
+                    if (senderId === instagramAccountId) {
+                        console.log("⏭️ Skipping own message from Instagram account:", senderId);
+                        continue;
+                    }
 
                     // Get or create contact
-                    let { data: contact } = await supabase
+                    let { data: contact, error: contactError } = await supabase
                         .from("contacts")
-                        .select("id")
+                        .select("id, name")
                         .eq("company_id", channel.company_id)
                         .eq("external_id", senderId)
                         .eq("channel_type", "instagram")
-                        .single();
+                        .maybeSingle();
+
+                    if (contactError) {
+                        console.error("❌ Error fetching contact:", contactError);
+                    }
 
                     if (!contact) {
-                        // Fetch Instagram user profile
-                        const accessToken = channel.credentials?.access_token;
-                        let userName = `Instagram User ${senderId.slice(-4)}`;
+                        console.log("👤 Creating new contact for sender:", senderId);
 
-                        try {
-                            const profileRes = await fetch(
-                                `https://graph.facebook.com/v18.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`
-                            );
-                            if (profileRes.ok) {
+                        // Fetch Instagram user profile
+                        const accessToken = channel.credentials?.page_access_token;
+                        let userName = `Instagram User ${senderId.slice(-4)}`;
+                        let profilePic = null;
+
+                        if (accessToken) {
+                            try {
+                                const profileRes = await fetch(
+                                    `https://graph.facebook.com/v18.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`
+                                );
+
                                 const profile = await profileRes.json();
-                                userName = profile.name || profile.username || userName;
+
+                                if (profileRes.ok) {
+                                    userName = profile.name || profile.username || userName;
+                                    profilePic = profile.profile_pic;
+                                    console.log("📸 Got profile:", userName);
+                                    if (profilePic) console.log("📷 Got profile pic:", profilePic.substring(0, 50) + "...");
+                                } else {
+                                    console.error("⚠️ Instagram API error:", {
+                                        status: profileRes.status,
+                                        error: profile.error,
+                                        senderId: senderId,
+                                        hasToken: !!accessToken
+                                    });
+                                }
+                            } catch (e) {
+                                console.error("⚠️ Error fetching Instagram profile:", e);
                             }
-                        } catch (e) {
-                            console.log("Could not fetch Instagram profile:", e);
+                        } else {
+                            console.log("⚠️ No access token available for profile fetch");
                         }
 
-                        const { data: newContact } = await supabase
+                        const { data: newContact, error: newContactError } = await supabase
                             .from("contacts")
                             .insert({
                                 company_id: channel.company_id,
                                 name: userName,
+                                phone_number: `ig_${senderId}`, // phone_number é obrigatório, usar ID do Instagram
                                 external_id: senderId,
                                 channel_type: "instagram",
-                                source: "instagram_dm",
+                                profile_picture_url: profilePic,
                             })
-                            .select()
+                            .select("id, name")
                             .single();
 
+                        if (newContactError) {
+                            console.error("❌ Error creating contact:", newContactError);
+                            continue;
+                        }
+
                         contact = newContact;
+                        console.log("✅ Created contact:", contact?.id);
+                    }
+
+                    if (!contact?.id) {
+                        console.error("❌ No contact ID available, skipping message");
+                        continue;
                     }
 
                     // Get or create conversation
-                    let { data: conversation } = await supabase
+                    let { data: conversation, error: convError } = await supabase
                         .from("conversations")
-                        .select("id")
+                        .select("id, unread_count")
                         .eq("channel_id", channel.id)
-                        .eq("contact_id", contact?.id)
-                        .eq("status", "open")
-                        .single();
+                        .eq("contact_id", contact.id)
+                        .in("status", ["waiting", "active", "open", "pending"])
+                        .maybeSingle();
+
+                    if (convError) {
+                        console.error("❌ Error fetching conversation:", convError);
+                    }
 
                     if (!conversation) {
-                        const { data: newConv } = await supabase
+                        console.log("💬 Creating new conversation for contact:", contact.name);
+
+                        const { data: newConv, error: newConvError } = await supabase
                             .from("conversations")
                             .insert({
                                 company_id: channel.company_id,
+                                user_id: defaultUserId, // obrigatório
                                 channel_id: channel.id,
                                 channel_type: "instagram",
-                                contact_id: contact?.id,
-                                external_id: senderId,
-                                status: "open",
+                                contact_id: contact.id,
+                                contact_name: contact.name || `Instagram User ${senderId.slice(-4)}`,
+                                contact_number: `ig_${senderId}`,
+                                external_conversation_id: senderId, // campo correto
+                                status: "waiting",
+                                unread_count: 0,
                             })
-                            .select()
+                            .select("id, unread_count")
                             .single();
 
+                        if (newConvError) {
+                            console.error("❌ Error creating conversation:", newConvError);
+                            continue;
+                        }
+
                         conversation = newConv;
+                        console.log("✅ Created conversation:", conversation?.id);
+                    }
+
+                    if (!conversation?.id) {
+                        console.error("❌ No conversation ID available, skipping message");
+                        continue;
                     }
 
                     // Process message
@@ -154,7 +262,7 @@ serve(async (req) => {
                         // Handle attachments
                         if (msg.attachments?.length > 0) {
                             const attachment = msg.attachments[0];
-                            messageType = attachment.type; // image, video, audio, file
+                            messageType = attachment.type || "file";
                             mediaUrl = attachment.payload?.url;
 
                             if (!content) {
@@ -167,37 +275,53 @@ serve(async (req) => {
                             content = `[Respondeu ao story] ${content}`;
                         }
 
-                        // Save message
-                        await supabase.from("messages").insert({
-                            conversation_id: conversation?.id,
-                            contact_id: contact?.id,
+                        console.log("💾 Saving message:", content.substring(0, 50));
+
+                        // Save message (usando campos corretos da tabela messages)
+                        const { error: msgError } = await supabase.from("messages").insert({
+                            conversation_id: conversation.id,
+                            company_id: channel.company_id,
+                            user_id: defaultUserId, // obrigatório
                             content,
                             message_type: messageType,
-                            direction: "incoming",
-                            channel_type: "instagram",
+                            is_from_me: false, // mensagem recebida do cliente
                             external_id: msg.mid,
                             media_url: mediaUrl,
+                            timestamp: new Date(timestamp).toISOString(),
                             metadata: {
-                                timestamp,
+                                channel_type: "instagram",
+                                sender_id: senderId,
                                 raw: msg,
                             },
                         });
 
+                        if (msgError) {
+                            console.error("❌ Error saving message:", msgError);
+                        } else {
+                            console.log("✅ Message saved");
+                        }
+
                         // Update conversation
-                        await supabase
+                        const newUnreadCount = (conversation.unread_count || 0) + 1;
+                        const { error: updateError } = await supabase
                             .from("conversations")
                             .update({
-                                last_message_at: new Date().toISOString(),
+                                last_message_time: new Date().toISOString(),
                                 last_message: content.substring(0, 255),
-                                unread_count: supabase.rpc("increment_unread", { conv_id: conversation?.id }),
+                                unread_count: newUnreadCount,
                             })
-                            .eq("id", conversation?.id);
+                            .eq("id", conversation.id);
+
+                        if (updateError) {
+                            console.error("❌ Error updating conversation:", updateError);
+                        } else {
+                            console.log("✅ Conversation updated, unread:", newUnreadCount);
+                        }
                     }
 
                     // Handle message reactions
                     if (messaging.reaction) {
                         console.log("📌 Instagram reaction:", messaging.reaction);
-                        // Could update message with reaction info
                     }
 
                     // Handle read receipts
@@ -207,6 +331,7 @@ serve(async (req) => {
                 }
             }
 
+            console.log("✅ Webhook processing complete");
             return new Response(JSON.stringify({ success: true }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
             });

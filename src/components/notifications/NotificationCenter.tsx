@@ -29,6 +29,7 @@ export const NotificationCenter = () => {
     markAllAsRead,
     deleteNotification,
     clearAllRead,
+    clearAll,
   } = useNotifications();
 
   const navigate = useNavigate();
@@ -96,10 +97,14 @@ export const NotificationCenter = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
+                    className="h-6 w-6 opacity-40 hover:opacity-100 transition-opacity"
+                    onClick={async (e) => {
                       e.stopPropagation();
-                      deleteNotification(notification.id);
+                      try {
+                        await deleteNotification(notification.id);
+                      } catch (error) {
+                        console.error('Error deleting notification:', error);
+                      }
                     }}
                   >
                     <X className="h-3 w-3" />
@@ -137,7 +142,7 @@ export const NotificationCenter = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/new-settings')}
+            onClick={() => navigate('/settings?tab=notifications')}
             className="text-xs"
           >
             <Settings className="h-3 w-3 mr-1" />
@@ -157,17 +162,43 @@ export const NotificationCenter = () => {
         </Tabs>
 
         <div className="flex gap-2">
-          {unreadCount > 0 && (
-            <Button variant="outline" size="sm" onClick={() => markAllAsRead()} className="text-xs">
+          {notifications.length > 0 && unreadCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await markAllAsRead();
+                } catch (error) {
+                  console.error('Error marking all as read:', error);
+                }
+              }}
+              className="text-xs"
+            >
               <CheckCheck className="h-3 w-3 mr-1" />
               Marcar todas como lidas
             </Button>
           )}
 
-          {notifications.filter((n) => n.is_read).length > 0 && (
-            <Button variant="outline" size="sm" onClick={() => clearAllRead()} className="text-xs">
+          {notifications.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  console.log('🗑️ Deletando TODAS as notificações...');
+
+                  // Deletar TODAS as notificações (independente se lidas ou não)
+                  await clearAll();
+                  console.log('✅ Cleanup complete!');
+                } catch (error) {
+                  console.error('❌ Error clearing notifications:', error);
+                }
+              }}
+              className="text-xs"
+            >
               <Trash2 className="h-3 w-3 mr-1" />
-              Limpar lidas
+              Limpar tudo
             </Button>
           )}
         </div>

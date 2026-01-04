@@ -69,6 +69,7 @@ export const VariablePicker = ({ onSelect, trigger, hideStandard = false }: Vari
         }
 
         // 3. Add Custom Fields as variables (contact, deal, company)
+        // These are auto-synced with company_variables via database triggers
         if (contactFields && contactFields.length > 0) {
             all.push({
                 id: 'campos_contato',
@@ -77,7 +78,7 @@ export const VariablePicker = ({ onSelect, trigger, hideStandard = false }: Vari
                 variables: contactFields.map((f) => ({
                     key: `contato_${f.field_name}`,
                     label: f.field_label,
-                    description: `Campo personalizado do contato`,
+                    description: `Campo personalizado (auto-sync)`,
                 })),
             });
         }

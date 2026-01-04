@@ -5,24 +5,36 @@ import { useState, useEffect } from 'react';
 import { AssistantSettings } from '@/components/ai-assistant/AssistantSettings';
 import { TranscriptionSettings } from '@/components/settings/TranscriptionSettings';
 import AISettingsPage from '@/pages/settings/AISettingsPage';
-import { Sparkles, FileAudio, Gauge, Bot, Settings2, Key, Webhook, Copy, Eye, EyeOff } from 'lucide-react';
+import { Sparkles, FileAudio, Gauge, Bot, Settings2, Key, Webhook, Copy, Eye, EyeOff, Cpu, Activity } from 'lucide-react';
 import { useCompany } from '@/contexts/CompanyContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Save, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { useAIAgents, useActiveAIAgentSessions } from '@/hooks/ai-agents';
 
 export default function IA() {
-  const [activeTab, setActiveTab] = useState('assistant');
+  const [activeTab, setActiveTab] = useState('agents');
   const { currentCompany } = useCompany();
+  const navigate = useNavigate();
   const companyId = currentCompany?.id;
   const [copilotScript, setCopilotScript] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
+
+  // AI Agents data
+  const { data: agents } = useAIAgents();
+  const { data: activeSessions } = useActiveAIAgentSessions();
+
+  const activeAgentsCount = agents?.filter(a => a.status === 'active').length || 0;
+  const totalAgentsCount = agents?.length || 0;
+  const activeSessionsCount = activeSessions?.length || 0;
 
   // Integrations state
   const [geminiApiKey, setGeminiApiKey] = useState('');
@@ -166,13 +178,26 @@ export default function IA() {
         <div className="bg-white dark:bg-gray-950 rounded-lg border shadow-sm">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col">
             <div className="border-b px-6 pt-4">
-              <TabsList className="grid w-full max-w-5xl grid-cols-5 gap-4 bg-transparent">
+              <TabsList className="grid w-full max-w-6xl grid-cols-6 gap-3 bg-transparent">
+                <TabsTrigger
+                  value="agents"
+                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-300 relative"
+                >
+                  <Cpu className="h-4 w-4" />
+                  <span className="font-medium">Agentes de IA</span>
+                  {activeSessionsCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-green-500 text-white text-xs">
+                      {activeSessionsCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+
                 <TabsTrigger
                   value="assistant"
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-300"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span className="font-medium">Agente de atendimento</span>
+                  <span className="font-medium">Sugestões</span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -196,7 +221,7 @@ export default function IA() {
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-300"
                 >
                   <Gauge className="h-4 w-4" />
-                  <span className="font-medium">Monitor de Atendimento</span>
+                  <span className="font-medium">Monitor</span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -204,12 +229,107 @@ export default function IA() {
                   className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-300"
                 >
                   <Settings2 className="h-4 w-4" />
-                  <span className="font-medium">Integrações e Config</span>
+                  <span className="font-medium">Integrações</span>
                 </TabsTrigger>
               </TabsList>
             </div>
 
             <div className="p-6">
+              <TabsContent value="agents" className="mt-0 space-y-6">
+                {/* Agents Overview Card */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total de Agentes</p>
+                          <p className="text-3xl font-bold text-purple-700">{totalAgentsCount}</p>
+                        </div>
+                        <div className="p-3 bg-purple-100 rounded-lg">
+                          <Cpu className="h-6 w-6 text-purple-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-100">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Agentes Ativos</p>
+                          <p className="text-3xl font-bold text-green-700">{activeAgentsCount}</p>
+                        </div>
+                        <div className="p-3 bg-green-100 rounded-lg">
+                          <Activity className="h-6 w-6 text-green-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Sessões em Andamento</p>
+                          <p className="text-3xl font-bold text-blue-700">{activeSessionsCount}</p>
+                        </div>
+                        <div className="p-3 bg-blue-100 rounded-lg">
+                          <Bot className="h-6 w-6 text-blue-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Main CTA */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Cpu className="h-5 w-5 text-purple-600" />
+                      Agentes de Atendimento por IA
+                    </CardTitle>
+                    <CardDescription>
+                      Crie agentes inteligentes para automatizar atendimentos nos seus canais de comunicação.
+                      Configure personalidade, comportamento, skills e regras de handoff de forma robusta.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col gap-4">
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div className="p-4 border rounded-lg">
+                          <h4 className="font-medium mb-2">Personalidade Configurável</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Defina tom, estilo e comportamento do agente com prompts avançados
+                          </p>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                          <h4 className="font-medium mb-2">Skills Inteligentes</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Crie habilidades específicas para cada tipo de situação
+                          </p>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                          <h4 className="font-medium mb-2">Handoff Automático</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Transferência inteligente para atendentes humanos quando necessário
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => navigate('/ia/agentes')}
+                          className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
+                        >
+                          <Cpu className="h-4 w-4 mr-2" />
+                          Gerenciar Agentes de IA
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               <TabsContent value="assistant" className="mt-0 space-y-6">
                 <AISettingsPage embedded={true} />
               </TabsContent>

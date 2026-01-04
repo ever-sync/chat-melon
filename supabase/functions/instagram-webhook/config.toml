@@ -1,0 +1,4 @@
+# Instagram Webhook Config
+# Desabilita verificação JWT para permitir chamadas do Facebook
+[function]
+verify_jwt = false

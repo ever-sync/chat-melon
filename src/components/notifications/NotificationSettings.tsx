@@ -144,6 +144,7 @@ export const NotificationSettings = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Buscar empresa padrão ou atual
       const { data: companyData } = await supabase
         .from('company_users')
         .select('company_id')
@@ -157,7 +158,15 @@ export const NotificationSettings = () => {
         {
           user_id: user.id,
           company_id: companyData.company_id,
-          ...settings,
+          volume: settings.volume,
+          enabled: settings.enabled,
+          sound_enabled: settings.sound_enabled,
+          badge_enabled: settings.badge_enabled,
+          muted_contacts: settings.muted_contacts,
+          do_not_disturb_enabled: settings.do_not_disturb_enabled,
+          do_not_disturb_start: settings.do_not_disturb_start,
+          do_not_disturb_end: settings.do_not_disturb_end,
+          updated_at: new Date().toISOString(),
         },
         {
           onConflict: 'user_id,company_id',
@@ -166,10 +175,14 @@ export const NotificationSettings = () => {
 
       if (error) throw error;
 
-      toast.success('Configurações salvas com sucesso');
-    } catch (error) {
+      toast.success('Configurações salvas', {
+        description: 'Suas preferências de notificação foram atualizadas.'
+      });
+    } catch (error: any) {
       console.error('Erro ao salvar configurações:', error);
-      toast.error('Erro ao salvar configurações');
+      toast.error('Erro ao salvar', {
+        description: error.message || 'Ocorreu um erro ao salvar suas preferências.'
+      });
     } finally {
       setIsSaving(false);
     }
@@ -196,194 +209,245 @@ export const NotificationSettings = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            <CardTitle>Notificações Gerais</CardTitle>
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Header com gradiente */}
+      <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 p-8 rounded-3xl border border-indigo-100/50 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-white rounded-2xl shadow-sm border border-indigo-50">
+            <Bell className="h-8 w-8 text-indigo-600" />
           </div>
-          <CardDescription>Configure como você deseja receber notificações</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="enabled">Ativar notificações</Label>
-              <p className="text-sm text-muted-foreground">
-                Receba alertas sobre novas mensagens e eventos
-              </p>
-            </div>
-            <Switch
-              id="enabled"
-              checked={settings.enabled}
-              onCheckedChange={(checked) => setSettings({ ...settings, enabled: checked })}
-            />
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">Notificações</h2>
+            <p className="text-gray-500">Gerencie como e quando você deseja ser notificado</p>
           </div>
+        </div>
+      </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="sound">Som de notificação</Label>
-              <p className="text-sm text-muted-foreground">Tocar som quando receber notificações</p>
-            </div>
-            <Switch
-              id="sound"
-              checked={settings.sound_enabled}
-              onCheckedChange={(checked) => setSettings({ ...settings, sound_enabled: checked })}
-              disabled={!settings.enabled}
-            />
-          </div>
-
-          {settings.sound_enabled && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="h-4 w-4" />
-                    <Label>Volume: {Math.round(settings.volume * 100)}%</Label>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={testSound}
-                    disabled={!settings.enabled || !settings.sound_enabled}
-                  >
-                    <Play className="h-4 w-4 mr-1" />
-                    Testar Som
-                  </Button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-8">
+          {/* Configurações Gerais */}
+          <Card className="border-0 shadow-xl shadow-indigo-500/5 rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md border-t border-white/20">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                  <Bell className="h-5 w-5" />
                 </div>
-                <Slider
-                  value={[settings.volume]}
-                  onValueChange={(value) => setSettings({ ...settings, volume: value[0] })}
-                  max={1}
-                  step={0.1}
-                  disabled={!settings.enabled || !settings.sound_enabled}
+                <CardTitle className="text-xl">Notificações Gerais</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-transparent transition-all hover:bg-white hover:border-indigo-100 hover:shadow-sm">
+                <div>
+                  <Label htmlFor="enabled" className="text-base font-semibold cursor-pointer">Ativar notificações</Label>
+                  <p className="text-sm text-gray-500">Alertas globais sobre o sistema</p>
+                </div>
+                <Switch
+                  id="enabled"
+                  checked={settings.enabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, enabled: checked })}
+                  className="data-[state=checked]:bg-indigo-600"
                 />
               </div>
-            </div>
-          )}
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="badge">Badge de contador</Label>
-              <p className="text-sm text-muted-foreground">
-                Mostrar número de notificações não lidas
-              </p>
-            </div>
-            <Switch
-              id="badge"
-              checked={settings.badge_enabled}
-              onCheckedChange={(checked) => setSettings({ ...settings, badge_enabled: checked })}
-              disabled={!settings.enabled}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Moon className="h-5 w-5" />
-            <CardTitle>Não Perturbe</CardTitle>
-          </div>
-          <CardDescription>Silencie notificações em horários específicos</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="dnd">Ativar Não Perturbe</Label>
-              <p className="text-sm text-muted-foreground">
-                Silenciar notificações durante o período definido
-              </p>
-            </div>
-            <Switch
-              id="dnd"
-              checked={settings.do_not_disturb_enabled}
-              onCheckedChange={(checked) =>
-                setSettings({ ...settings, do_not_disturb_enabled: checked })
-              }
-            />
-          </div>
-
-          {settings.do_not_disturb_enabled && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="dnd-start">Início</Label>
-                <Input
-                  id="dnd-start"
-                  type="time"
-                  value={settings.do_not_disturb_start}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      do_not_disturb_start: e.target.value,
-                    })
-                  }
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-transparent transition-all hover:bg-white hover:border-indigo-100 hover:shadow-sm">
+                <div>
+                  <Label htmlFor="sound" className="text-base font-semibold cursor-pointer">Som de notificação</Label>
+                  <p className="text-sm text-gray-500">Feedback sonoro para novos eventos</p>
+                </div>
+                <Switch
+                  id="sound"
+                  checked={settings.sound_enabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, sound_enabled: checked })}
+                  disabled={!settings.enabled}
+                  className="data-[state=checked]:bg-indigo-600"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dnd-end">Fim</Label>
-                <Input
-                  id="dnd-end"
-                  type="time"
-                  value={settings.do_not_disturb_end}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      do_not_disturb_end: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Contatos Silenciados</CardTitle>
-          <CardDescription>Contatos que não enviarão notificações</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Número do contato (ex: 5511999999999)"
-              value={newMutedContact}
-              onChange={(e) => setNewMutedContact(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  addMutedContact();
-                }
-              }}
-            />
-            <Button onClick={addMutedContact}>Adicionar</Button>
-          </div>
-
-          {settings.muted_contacts.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {settings.muted_contacts.map((contact) => (
-                <Badge key={contact} variant="secondary" className="gap-1">
-                  {contact}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => removeMutedContact(contact)}
+              {settings.sound_enabled && (
+                <div className="space-y-4 p-4 rounded-2xl bg-indigo-50/30 border border-indigo-100/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Volume2 className="h-4 w-4 text-indigo-600" />
+                      <Label className="text-sm font-medium">Volume: {Math.round(settings.volume * 100)}%</Label>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={testSound}
+                      disabled={!settings.enabled || !settings.sound_enabled}
+                      className="h-8 px-3 rounded-lg hover:bg-indigo-100 text-indigo-600 font-medium"
+                    >
+                      <Play className="h-3 w-3 mr-1" />
+                      Testar
+                    </Button>
+                  </div>
+                  <Slider
+                    value={[settings.volume]}
+                    onValueChange={(value) => setSettings({ ...settings, volume: value[0] })}
+                    max={1}
+                    step={0.01}
+                    disabled={!settings.enabled || !settings.sound_enabled}
+                    className="cursor-pointer py-2"
                   />
-                </Badge>
-              ))}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-transparent transition-all hover:bg-white hover:border-indigo-100 hover:shadow-sm">
+                <div>
+                  <Label htmlFor="badge" className="text-base font-semibold cursor-pointer">Badge de contador</Label>
+                  <p className="text-sm text-gray-500">Ícone no dock com total de não lidas</p>
+                </div>
+                <Switch
+                  id="badge"
+                  checked={settings.badge_enabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, badge_enabled: checked })}
+                  disabled={!settings.enabled}
+                  className="data-[state=checked]:bg-indigo-600"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-8">
+          {/* Não Perturbe */}
+          <Card className="border-0 shadow-xl shadow-purple-500/5 rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md border-t border-white/20">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
+                  <Moon className="h-5 w-5" />
+                </div>
+                <CardTitle className="text-xl">Não Perturbe</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/50 border border-transparent transition-all hover:bg-white hover:border-purple-100 hover:shadow-sm">
+                <div>
+                  <Label htmlFor="dnd" className="text-base font-semibold cursor-pointer">Ativar Não Perturbe</Label>
+                  <p className="text-sm text-gray-500">Silenciar durante horários específicos</p>
+                </div>
+                <Switch
+                  id="dnd"
+                  checked={settings.do_not_disturb_enabled}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, do_not_disturb_enabled: checked })
+                  }
+                  className="data-[state=checked]:bg-purple-600"
+                />
+              </div>
+
+              {settings.do_not_disturb_enabled && (
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-purple-50/30 border border-purple-100/50">
+                  <div className="space-y-2">
+                    <Label htmlFor="dnd-start" className="text-xs font-semibold text-purple-600 uppercase tracking-wider">Início</Label>
+                    <Input
+                      id="dnd-start"
+                      type="time"
+                      value={settings.do_not_disturb_start}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          do_not_disturb_start: e.target.value,
+                        })
+                      }
+                      className="bg-white border-purple-100 rounded-xl focus:ring-purple-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dnd-end" className="text-xs font-semibold text-purple-600 uppercase tracking-wider">Fim</Label>
+                    <Input
+                      id="dnd-end"
+                      type="time"
+                      value={settings.do_not_disturb_end}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          do_not_disturb_end: e.target.value,
+                        })
+                      }
+                      className="bg-white border-purple-100 rounded-xl focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Contatos Silenciados */}
+          <Card className="border-0 shadow-xl shadow-red-500/5 rounded-3xl overflow-hidden bg-white/80 backdrop-blur-md border-t border-white/20">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-50 text-red-600">
+                  <X className="h-5 w-5" />
+                </div>
+                <CardTitle className="text-xl">Contatos Silenciados</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Número (Ex: 5511999999999)"
+                  value={newMutedContact}
+                  onChange={(e) => setNewMutedContact(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      addMutedContact();
+                    }
+                  }}
+                  className="rounded-2xl border-gray-100 bg-gray-50 focus:bg-white transition-all h-11"
+                />
+                <Button 
+                  onClick={addMutedContact}
+                  className="rounded-2xl px-6 bg-gray-900 hover:bg-black text-white h-11 transition-all active:scale-95"
+                >
+                  Adicionar
+                </Button>
+              </div>
+
+              {settings.muted_contacts.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {settings.muted_contacts.map((contact) => (
+                    <Badge key={contact} variant="secondary" className="gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-100 shadow-sm transition-all hover:bg-red-50 hover:border-red-100 hover:text-red-700 group">
+                      <span className="font-medium">{contact}</span>
+                      <X
+                        className="h-3.5 w-3.5 cursor-pointer opacity-50 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeMutedContact(contact)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {settings.muted_contacts.length === 0 && (
+                <div className="text-center py-6 px-4 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50">
+                  <p className="text-sm text-gray-400">Nenhum contato silenciado</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4">
+        <Button 
+          onClick={saveSettings} 
+          disabled={isSaving} 
+          className="rounded-2xl h-14 px-10 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105 active:scale-95 font-bold text-lg"
+        >
+          {isSaving ? (
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Salvando...
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Save className="h-5 w-5" />
+              Salvar Configurações
             </div>
           )}
-
-          {settings.muted_contacts.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nenhum contato silenciado</p>
-          )}
-        </CardContent>
-      </Card>
-
-      <Button onClick={saveSettings} disabled={isSaving} className="w-full">
-        <Save className="h-4 w-4 mr-2" />
-        {isSaving ? 'Salvando...' : 'Salvar Configurações'}
-      </Button>
+        </Button>
+      </div>
     </div>
   );
 };

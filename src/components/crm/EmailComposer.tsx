@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { VariablesPicker } from '@/components/variables/VariablesPicker';
+import { replaceContactVariables } from '@/hooks/useContactVariables';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +48,9 @@ export const EmailComposer = ({
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+
+  const subjectRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const handleTemplateSelect = (templateId: string) => {
     const template = templates.find((t) => t.id === templateId);
@@ -114,24 +119,72 @@ export const EmailComposer = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Assunto *</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Assunto *</Label>
+                <VariablesPicker
+                  onSelect={(key) => {
+                    const ref = subjectRef.current;
+                    if (ref) {
+                      const start = ref.selectionStart || 0;
+                      const end = ref.selectionEnd || 0;
+                      const before = subject.substring(0, start);
+                      const after = subject.substring(end);
+                      const variable = `{{${key}}}`;
+                      setSubject(before + variable + after);
+
+                      setTimeout(() => {
+                        ref.focus();
+                        const newPos = start + variable.length;
+                        ref.setSelectionRange(newPos, newPos);
+                      }, 0);
+                    }
+                  }}
+                  buttonSize="sm"
+                  buttonVariant="ghost"
+                />
+              </div>
               <Input
+                ref={subjectRef}
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="Digite o assunto do email"
+                placeholder="Digite o assunto do email. Use variáveis como {{nome}}, {{empresa}}"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Mensagem (HTML) *</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label>Mensagem (HTML) *</Label>
+                <VariablesPicker
+                  onSelect={(key) => {
+                    const ref = bodyRef.current;
+                    if (ref) {
+                      const start = ref.selectionStart || 0;
+                      const end = ref.selectionEnd || 0;
+                      const before = body.substring(0, start);
+                      const after = body.substring(end);
+                      const variable = `{{${key}}}`;
+                      setBody(before + variable + after);
+
+                      setTimeout(() => {
+                        ref.focus();
+                        const newPos = start + variable.length;
+                        ref.setSelectionRange(newPos, newPos);
+                      }, 0);
+                    }
+                  }}
+                  buttonSize="sm"
+                  buttonVariant="ghost"
+                />
+              </div>
               <Textarea
+                ref={bodyRef}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="<p>Digite sua mensagem aqui...</p>"
                 rows={12}
               />
               <p className="text-xs text-muted-foreground">
-                Você pode usar HTML e variáveis como {`{{nome}}`}, {`{{empresa}}`}, {`{{negocio}}`}
+                Você pode usar HTML e variáveis personalizadas. Campos personalizados sincronizam automaticamente!
               </p>
             </div>
 

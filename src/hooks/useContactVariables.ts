@@ -48,16 +48,32 @@ export function useContactVariables() {
   , [companyVariables]);
 
   // Campos personalizados de contato
-  const customVars: ContactVariable[] = useMemo(() =>
-    customFields
+  // Agora sincronizados automaticamente com company_variables via triggers
+  const customVars: ContactVariable[] = useMemo(() => {
+    // Filtra apenas variáveis da categoria 'contact' que foram auto-criadas dos custom_fields
+    const contactCategoryVars = companyVariables
+      .filter(v => v.category === 'contact')
+      .map(v => ({
+        key: v.key,
+        label: v.label,
+        description: v.description || `Campo personalizado: ${v.label}`,
+        value: v.value,
+        category: 'custom' as const,
+      }));
+
+    // Também inclui custom_fields que ainda não foram sincronizados (fallback)
+    const customFieldsVars = customFields
       .filter(cf => cf.is_active)
+      .filter(cf => !contactCategoryVars.some(cv => cv.key === cf.field_name))
       .map(cf => ({
         key: cf.field_name,
         label: cf.field_label,
         description: `Campo personalizado: ${cf.field_label} (${cf.field_type})`,
         category: 'custom' as const,
-      }))
-  , [customFields]);
+      }));
+
+    return [...contactCategoryVars, ...customFieldsVars];
+  }, [customFields, companyVariables]);
 
   // Combinar todas as variáveis
   const allVariables = useMemo(() => [

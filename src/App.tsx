@@ -72,6 +72,7 @@ const AIInsights = lazy(() => import('./pages/AIInsights'));
 const Marketing = lazy(() => import('./pages/Marketing'));
 const Biblioteca = lazy(() => import('./pages/Biblioteca'));
 const IA = lazy(() => import('./pages/IA'));
+const AIAgentsPage = lazy(() => import('./pages/AIAgentsPage'));
 const Imobiliarias = lazy(() => import('./pages/Imobiliarias'));
 const Concessionarias = lazy(() => import('./pages/Concessionarias'));
 const Educacao = lazy(() => import('./pages/Educacao'));
@@ -337,6 +338,7 @@ const App = () => {
                     />
                     <Route path="/biblioteca" element={<Biblioteca />} />
                     <Route path="/ia" element={<IA />} />
+                    <Route path="/ia/agentes" element={<AIAgentsPage />} />
                     <Route path="/settings" element={<NewSettings />} />
                     <Route path="/instance-setup" element={<InstanceSetup />} />
                     <Route path="/companies" element={<Companies />} />
