@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { SecuritySettings } from '@/components/settings/SecuritySettings';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -103,6 +104,12 @@ export default function NewSettings() {
   const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'profile';
+
+  const setActiveTab = (value: string) => {
+    setSearchParams({ tab: value });
+  };
 
   useEffect(() => {
     fetchData();
@@ -343,7 +350,11 @@ export default function NewSettings() {
           </div>
         </div>
 
-        <Tabs defaultValue="profile" className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8"
+        >
           {/* Sidebar Navigation */}
           <div className="space-y-4">
             <TabsList className="flex flex-col h-auto bg-white rounded-3xl shadow-sm border border-gray-100 p-3 space-y-1.5">
@@ -405,36 +416,14 @@ export default function NewSettings() {
               </div>
 
               <TabsTrigger
-                value="health"
+                value="security"
                 className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <Activity className="h-4 w-4" />
-                <span className="font-medium">Saúde do Sistema</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="privacy"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <Shield className="h-4 w-4" />
-                <span className="font-medium">Privacidade</span>
-              </TabsTrigger>
-
-              <button
-                onClick={() => navigate('/security')}
-                className="w-full justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50 flex items-center text-gray-700"
               >
                 <Shield className="h-4 w-4" />
                 <span className="font-medium">Segurança</span>
-              </button>
-
-              <TabsTrigger
-                value="blocked"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <UserX className="h-4 w-4" />
-                <span className="font-medium">Bloqueados</span>
               </TabsTrigger>
+
+
 
               <TabsTrigger
                 value="pwa"
@@ -453,13 +442,6 @@ export default function NewSettings() {
                 </p>
               </div>
 
-              <TabsTrigger
-                value="custom-fields"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <Sliders className="h-4 w-4" />
-                <span className="font-medium">Campos Custom</span>
-              </TabsTrigger>
 
               <TabsTrigger
                 value="satisfaction"
@@ -485,6 +467,14 @@ export default function NewSettings() {
                 <span className="font-medium">Tabulação</span>
               </TabsTrigger>
 
+              <TabsTrigger
+                value="widget"
+                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="font-medium">Widget de Chat</span>
+              </TabsTrigger>
+
 
               <Separator className="my-3" />
 
@@ -503,21 +493,6 @@ export default function NewSettings() {
                 <span className="font-medium">Google Calendar</span>
               </TabsTrigger>
 
-              <TabsTrigger
-                value="email"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <Mail className="h-4 w-4" />
-                <span className="font-medium">Email</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="widget"
-                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span className="font-medium">Widget de Chat</span>
-              </TabsTrigger>
 
               <TabsTrigger
                 value="api-keys"
@@ -799,21 +774,6 @@ export default function NewSettings() {
               <UsersPage />
             </TabsContent>
 
-            <TabsContent value="health" className="m-0">
-              <InstanceHealthDashboard />
-            </TabsContent>
-
-            <TabsContent value="privacy" className="m-0">
-              <PrivacySettings />
-            </TabsContent>
-
-            <TabsContent value="blocked" className="m-0">
-              <BlockedContactsManager />
-            </TabsContent>
-
-            <TabsContent value="custom-fields" className="m-0">
-              <CustomFieldsManager />
-            </TabsContent>
 
             <TabsContent value="satisfaction" className="m-0">
               <SatisfactionSettings />
@@ -827,9 +787,6 @@ export default function NewSettings() {
               <GoogleCalendarSettings />
             </TabsContent>
 
-            <TabsContent value="email" className="m-0">
-              <EmailSettings />
-            </TabsContent>
 
             <TabsContent value="pwa" className="m-0">
               <PWASettings />
@@ -839,9 +796,6 @@ export default function NewSettings() {
               <NotificationSettings />
             </TabsContent>
 
-            <TabsContent value="widget" className="m-0">
-              <WidgetSettings />
-            </TabsContent>
 
             <TabsContent value="api-keys" className="m-0">
               <ApiKeyManager />
@@ -851,8 +805,16 @@ export default function NewSettings() {
               <WebhookManager />
             </TabsContent>
 
+            <TabsContent value="security" className="m-0">
+              <SecuritySettings />
+            </TabsContent>
+
             <TabsContent value="tabulations" className="m-0">
               <TabulationsManager />
+            </TabsContent>
+
+            <TabsContent value="widget" className="m-0">
+              <WidgetSettings />
             </TabsContent>
 
           </div>

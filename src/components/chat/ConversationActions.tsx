@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Check, UserPlus, RotateCcw } from 'lucide-react';
+import { Check, UserPlus, RotateCcw, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -167,18 +168,41 @@ export const ConversationActions = ({
         </div>
       )}
 
-      {/* Botão Resolvido - para atendente responsável ou admin */}
+      {/* Botões de Ação - para atendente responsável ou admin */}
       {(assignedTo === currentUserId || isAdmin) && (
-        <Button
-          onClick={handleResolve}
-          disabled={resolveConversation.isPending}
-          variant="default"
-          size="sm"
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Check className="h-4 w-4 mr-2" />
-          Marcar como Resolvido
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={async () => {
+              try {
+                const { data, error } = await supabase.functions.invoke('send-satisfaction-survey', {
+                  body: { conversation_id: conversationId },
+                });
+                if (error) throw error;
+                toast.success('Pesquisa de satisfação enviada!');
+              } catch (error) {
+                console.error('Erro ao enviar pesquisa:', error);
+                toast.error('Erro ao enviar pesquisa.');
+              }
+            }}
+            variant="outline"
+            size="sm"
+            className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+          >
+            <Star className="h-4 w-4 mr-2" />
+            Pedir Avaliação
+          </Button>
+
+          <Button
+            onClick={handleResolve}
+            disabled={resolveConversation.isPending}
+            variant="default"
+            size="sm"
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Check className="h-4 w-4 mr-2" />
+            Marcar como Resolvido
+          </Button>
+        </div>
       )}
     </div>
   );

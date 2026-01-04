@@ -10216,6 +10216,11 @@ export type Database = {
           total_messages: number | null
           triggers: Json | null
           updated_at: string | null
+          header_gradient: string | null
+          bubble_gradient: string | null
+          shadow_intensity: string | null
+          font_family: string | null
+          welcome_image_url: string | null
         }
         Insert: {
           allowed_domains?: string[] | null
@@ -11363,5 +11368,3 @@ export const Constants = {
     },
   },
 } as const
-A new version of Supabase CLI is available: v2.67.1 (currently installed v2.63.1)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

@@ -78,11 +78,16 @@ async function getWidgetConfig(supabase: any, companyId: string): Promise<Respon
       enabled,
       primary_color,
       secondary_color,
+      header_gradient,
+      bubble_gradient,
+      shadow_intensity,
+      font_family,
       position,
       button_size,
       border_radius,
       show_branding,
       logo_url,
+      welcome_image_url,
       company_name,
       greeting_title,
       greeting_message,
@@ -175,7 +180,7 @@ async function startConversation(
   sessionId: string | null
 ): Promise<Response> {
   const body = await req.json();
-  const { name, email, phone, metadata = {} } = body;
+  const { name, email, phone, custom_fields = {}, metadata = {} } = body;
 
   // Generate session ID if not provided
   const visitorSessionId = sessionId || crypto.randomUUID();
@@ -189,6 +194,7 @@ async function startConversation(
       name,
       email,
       phone,
+      custom_fields,
       metadata,
       last_seen_at: new Date().toISOString(),
       user_agent: req.headers.get('user-agent'),
@@ -279,6 +285,7 @@ async function startConversation(
         source: 'webchat',
         metadata: {
           ...metadata,
+          ...custom_fields,
           widget_session_id: visitorSessionId,
           widget_visitor_id: visitor.id
         }
@@ -288,6 +295,34 @@ async function startConversation(
 
     if (!contactError && newContact) {
       contactId = newContact.id;
+    }
+
+    // Save custom field values to custom_field_values table if we have a contactId
+    if (contactId && Object.keys(custom_fields).length > 0) {
+      for (const [fieldName, fieldValue] of Object.entries(custom_fields)) {
+        // Find the custom field ID first
+        const { data: fieldDef } = await supabase
+          .from('custom_fields')
+          .select('id')
+          .eq('company_id', companyId)
+          .eq('field_name', fieldName)
+          .eq('entity_type', 'contact')
+          .maybeSingle();
+
+        if (fieldDef) {
+          await supabase
+            .from('custom_field_values')
+            .upsert({
+              company_id: companyId,
+              entity_id: contactId,
+              entity_type: 'contact',
+              field_id: fieldDef.id,
+              field_value: String(fieldValue)
+            }, {
+              onConflict: 'entity_id,field_id'
+            });
+        }
+      }
     }
   }
 

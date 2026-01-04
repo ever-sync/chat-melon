@@ -27,16 +27,21 @@ export const useScoringRules = () => {
 
   const createRule = useMutation({
     mutationFn: async (rule: TablesInsert<'scoring_rules'>) => {
+      if (!companyId) throw new Error('Company ID is required to create a rule');
+
       const { data, error } = await supabase
         .from('scoring_rules')
         .insert({
           ...rule,
-          company_id: companyId!,
+          company_id: companyId,
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating scoring rule:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -58,7 +63,10 @@ export const useScoringRules = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating scoring rule:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -74,8 +82,10 @@ export const useScoringRules = () => {
   const deleteRule = useMutation({
     mutationFn: async (ruleId: string) => {
       const { error } = await supabase.from('scoring_rules').delete().eq('id', ruleId);
-
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting scoring rule:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scoring-rules'] });

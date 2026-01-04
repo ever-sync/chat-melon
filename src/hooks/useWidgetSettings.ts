@@ -11,6 +11,10 @@ export interface WidgetSettings {
   // Appearance
   primary_color: string;
   secondary_color: string;
+  header_gradient?: string;
+  bubble_gradient?: string;
+  shadow_intensity?: 'none' | 'low' | 'medium' | 'high';
+  font_family?: string;
   position: 'bottom-right' | 'bottom-left';
   button_size: 'small' | 'medium' | 'large';
   button_icon: string;
@@ -19,6 +23,7 @@ export interface WidgetSettings {
   // Branding
   show_branding: boolean;
   logo_url?: string;
+  welcome_image_url?: string;
   company_name?: string;
 
   // Texts

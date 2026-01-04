@@ -66,7 +66,6 @@ const ChatbotBuilder = lazy(() => import('./pages/ChatbotBuilder'));
 const Cadences = lazy(() => import('./pages/Cadences'));
 const Orders = lazy(() => import('./pages/Orders'));
 const Integrations = lazy(() => import('./pages/Integrations'));
-const Security = lazy(() => import('./pages/Security'));
 const Channels = lazy(() => import('./pages/Channels'));
 const AIInsights = lazy(() => import('./pages/AIInsights'));
 const Marketing = lazy(() => import('./pages/Marketing'));
@@ -430,11 +429,7 @@ const App = () => {
                     />
                     <Route
                       path="/security"
-                      element={
-                        <FeatureGate feature="security">
-                          <Security />
-                        </FeatureGate>
-                      }
+                      element={<Navigate to="/settings?tab=security" replace />}
                     />
                     <Route
                       path="/channels"
