@@ -617,38 +617,6 @@ export const NodeEditor = memo(function NodeEditor({
           </div>
         );
 
-      // ===== CONTROLE DE FLUXO =====
-      case 'delay':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Duração (ms)</Label>
-              <Input
-                type="number"
-                value={(localData.duration as number) || 1000}
-                onChange={(e) => handleChange('duration', parseInt(e.target.value))}
-                min={100}
-                max={10000}
-                step={100}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Tempo de espera em milissegundos
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Mostrar "Digitando..."</Label>
-                <p className="text-xs text-muted-foreground">Enviar status de digitação no WhatsApp</p>
-              </div>
-              <Switch
-                checked={(localData.showTyping as boolean) || false}
-                onCheckedChange={(v) => handleChange('showTyping', v)}
-              />
-            </div>
-          </div>
-        );
-
       case 'goto':
         return (
           <div className="space-y-4">
