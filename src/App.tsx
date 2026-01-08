@@ -69,6 +69,10 @@ const Integrations = lazy(() => import('./pages/Integrations'));
 const Channels = lazy(() => import('./pages/Channels'));
 const AIInsights = lazy(() => import('./pages/AIInsights'));
 const Marketing = lazy(() => import('./pages/Marketing'));
+const LandingPages = lazy(() => import('./pages/marketing/LandingPages'));
+const CreateLandingPage = lazy(() => import('./pages/marketing/CreateLandingPage'));
+const PreviewLandingPage = lazy(() => import('./pages/marketing/PreviewLandingPage'));
+const AIProviderSettings = lazy(() => import('./pages/marketing/AIProviderSettings'));
 const Biblioteca = lazy(() => import('./pages/Biblioteca'));
 const IA = lazy(() => import('./pages/IA'));
 const AIAgentsPage = lazy(() => import('./pages/AIAgentsPage'));
@@ -331,6 +335,46 @@ const App = () => {
                         <ErrorBoundary context="marketing">
                           <FeatureGate feature="marketing">
                             <Marketing />
+                          </FeatureGate>
+                        </ErrorBoundary>
+                      }
+                    />
+                    <Route
+                      path="/marketing/landing-pages"
+                      element={
+                        <ErrorBoundary context="landing-pages">
+                          <FeatureGate feature="marketing">
+                            <LandingPages />
+                          </FeatureGate>
+                        </ErrorBoundary>
+                      }
+                    />
+                    <Route
+                      path="/marketing/landing-pages/create"
+                      element={
+                        <ErrorBoundary context="landing-pages-create">
+                          <FeatureGate feature="marketing">
+                            <CreateLandingPage />
+                          </FeatureGate>
+                        </ErrorBoundary>
+                      }
+                    />
+                    <Route
+                      path="/marketing/landing-pages/ai-settings"
+                      element={
+                        <ErrorBoundary context="ai-settings">
+                          <FeatureGate feature="marketing">
+                            <AIProviderSettings />
+                          </FeatureGate>
+                        </ErrorBoundary>
+                      }
+                    />
+                    <Route
+                      path="/marketing/landing-pages/:id/preview"
+                      element={
+                        <ErrorBoundary context="landing-page-preview">
+                          <FeatureGate feature="marketing">
+                            <PreviewLandingPage />
                           </FeatureGate>
                         </ErrorBoundary>
                       }

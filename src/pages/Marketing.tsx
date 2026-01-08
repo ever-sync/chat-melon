@@ -210,9 +210,16 @@ export default function Marketing() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Landing Pages */}
-                  <button className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors text-left">
+                  <button
+                    onClick={() => navigate('/marketing/landing-pages')}
+                    className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-left relative"
+                  >
                     <Target className="h-5 w-5 text-blue-500 flex-shrink-0" />
                     <span className="font-medium text-gray-900">Landing Pages</span>
+                    <span className="ml-auto px-2 py-0.5 text-xs font-semibold text-purple-600 bg-purple-50 rounded flex items-center gap-1">
+                      <Zap className="h-3 w-3" />
+                      IA
+                    </span>
                   </button>
 
                   {/* Formulários */}
