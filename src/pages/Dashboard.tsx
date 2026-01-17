@@ -384,11 +384,25 @@ export default function Dashboard() {
 
     try {
       // Buscar todos os usuários da empresa
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, name, email, avatar_url')
-        .eq('company_id', companyId)
-        .order('name');
+      // Buscar todos os usuários da empresa via company_users
+      const { data: companyUsers, error: usersError } = await supabase
+        .from('company_users')
+        .select(`
+          user_id,
+          profiles (
+            id,
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
+        .eq('company_id', companyId);
+
+      if (usersError) throw usersError;
+
+      // Transformar para o formato esperado
+      const users = companyUsers?.map(cu => cu.profiles).filter(Boolean) || [];
+
 
       if (usersError) throw usersError;
 
@@ -403,8 +417,9 @@ export default function Dashboard() {
           .from('conversations')
           .select('*', { count: 'exact', head: true })
           .eq('company_id', companyId)
-          .eq('assigned_user_id', user.id)
+          .eq('assigned_to', user.id)
           .gte('last_message_time', startOfDay.toISOString());
+
 
         // Buscar deals fechados hoje
         const { data: dealsWon } = await supabase
@@ -415,8 +430,8 @@ export default function Dashboard() {
           .eq('status', 'won')
           .gte('updated_at', startOfDay.toISOString());
 
-        // Buscar tempo médio de resposta (simulado por enquanto)
-        const avgResponseTime = Math.floor(Math.random() * 5) + 1; // 1-5 minutos
+        // Buscar tempo médio de resposta (placeholder 0 por enquanto)
+        const avgResponseTime = 0;
 
         return {
           ...user,
@@ -469,10 +484,6 @@ export default function Dashboard() {
               <div className="p-3.5 rounded-2xl bg-indigo-600/10 transition-colors">
                 <MessageSquare className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-gray-50 px-2 py-1 rounded-lg">
-                <ArrowUpRight className="h-4 w-4" />
-                +12%
-              </div>
             </div>
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-gray-500">Total de Conversas</h3>
@@ -489,10 +500,6 @@ export default function Dashboard() {
             <div className="flex items-start justify-between mb-6">
               <div className="p-3.5 rounded-2xl bg-emerald-600/10 transition-colors">
                 <DollarSign className="h-6 w-6 text-emerald-600" />
-              </div>
-              <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-gray-50 px-2 py-1 rounded-lg">
-                <ArrowUpRight className="h-4 w-4" />
-                +8%
               </div>
             </div>
             <div className="space-y-1">
@@ -511,10 +518,6 @@ export default function Dashboard() {
               <div className="p-3.5 rounded-2xl bg-violet-500/10 transition-colors">
                 <TrendingUp className="h-6 w-6 text-violet-500" />
               </div>
-              <div className="flex items-center gap-1 text-sm font-medium text-rose-600 bg-gray-50 px-2 py-1 rounded-lg">
-                <ArrowDownRight className="h-4 w-4" />
-                -2%
-              </div>
             </div>
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-gray-500">Negócios Abertos</h3>
@@ -529,10 +532,6 @@ export default function Dashboard() {
             <div className="flex items-start justify-between mb-6">
               <div className="p-3.5 rounded-2xl bg-orange-500/10 transition-colors">
                 <CheckSquare className="h-6 w-6 text-orange-500" />
-              </div>
-              <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-gray-50 px-2 py-1 rounded-lg">
-                <ArrowUpRight className="h-4 w-4" />
-                +5%
               </div>
             </div>
             <div className="space-y-1">
@@ -685,14 +684,10 @@ export default function Dashboard() {
               <div className="p-3.5 rounded-2xl bg-green-600/10 transition-colors">
                 <Target className="h-6 w-6 text-green-600" />
               </div>
-              <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-gray-50 px-2 py-1 rounded-lg">
-                <ArrowUpRight className="h-4 w-4" />
-                +3%
-              </div>
             </div>
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-gray-500">Taxa de Conversão</h3>
-              <p className="text-3xl font-bold text-gray-900 tracking-tight">67%</p>
+              <p className="text-3xl font-bold text-gray-900 tracking-tight">0%</p>
             </div>
           </div>
         );
@@ -704,14 +699,10 @@ export default function Dashboard() {
               <div className="p-3.5 rounded-2xl bg-cyan-600/10 transition-colors">
                 <Clock className="h-6 w-6 text-cyan-600" />
               </div>
-              <div className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-gray-50 px-2 py-1 rounded-lg">
-                <ArrowDownRight className="h-4 w-4" />
-                -15%
-              </div>
             </div>
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-gray-500">Tempo de Resposta</h3>
-              <p className="text-3xl font-bold text-gray-900 tracking-tight">2.3min</p>
+              <p className="text-3xl font-bold text-gray-900 tracking-tight">0min</p>
             </div>
           </div>
         );
@@ -724,20 +715,10 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-8 pt-0">
               <div className="space-y-3">
-                {['João Silva', 'Maria Santos', 'Pedro Costa'].map((name, i) => (
-                  <div
-                    key={name}
-                    className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-pink-50 flex items-center justify-center text-pink-600 font-semibold">
-                      {name.charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-gray-900">{name}</p>
-                      <p className="text-sm text-gray-500">{(i + 1) * 15} interações</p>
-                    </div>
-                  </div>
-                ))}
+                {/* Dynamic Ranking or Empty State */}
+                <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                   <p className="text-gray-500">Sem dados de contatos ainda.</p>
+                </div>
               </div>
             </CardContent>
           </>
@@ -751,19 +732,9 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="p-8 pt-0">
               <div className="space-y-3">
-                {['Meta do Mês Atingida', 'Melhor Atendimento', 'Vendedor Destaque'].map(
-                  (achievement) => (
-                    <div
-                      key={achievement}
-                      className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50"
-                    >
-                      <div className="p-3 rounded-xl bg-yellow-100">
-                        <Award className="h-6 w-6 text-yellow-600" />
-                      </div>
-                      <p className="font-bold text-gray-900">{achievement}</p>
-                    </div>
-                  )
-                )}
+                <div className="flex flex-col items-center justify-center p-6 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                  <p className="text-gray-500">Nenhuma conquista ainda.</p>
+                </div>
               </div>
             </CardContent>
           </>

@@ -54,9 +54,10 @@ export function PaginationControls({
   showPageSizeSelector = true,
   showInfo = true,
   className,
-}: PaginationControlsProps) {
+  compact = false,
+}: PaginationControlsProps & { compact?: boolean }) {
   const getVisiblePages = () => {
-    const delta = 2; // Número de páginas a mostrar de cada lado
+    const delta = compact ? 1 : 2; // Menos páginas visíveis no modo compacto
     const range = [];
     const rangeWithDots = [];
 
@@ -89,18 +90,31 @@ export function PaginationControls({
   const startItem = (page - 1) * pageSize + 1;
   const endItem = Math.min(page * pageSize, total);
 
+  // Layout classes depend on compact mode
+  const containerClasses = compact
+    ? `flex flex-col gap-3 items-center w-full ${className || ''}`
+    : `flex flex-col gap-4 items-center sm:flex-row sm:justify-between ${className || ''}`;
+
+  const infoClasses = compact
+    ? "text-xs text-muted-foreground text-center w-full order-1"
+    : "text-sm text-muted-foreground whitespace-nowrap";
+    
+  const controlsClasses = compact
+    ? "flex flex-wrap items-center justify-between gap-2 w-full order-2"
+    : "flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto";
+
   return (
-    <div className={`flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ${className || ''}`}>
+    <div className={containerClasses}>
       {showInfo && (
-        <div className="text-sm text-muted-foreground">
-          Mostrando {startItem} a {endItem} de {total} resultados
+        <div className={infoClasses}>
+          Mostrando <span className="font-medium text-foreground">{startItem}</span> a <span className="font-medium text-foreground">{endItem}</span> de <span className="font-medium text-foreground">{total}</span>
         </div>
       )}
 
-      <div className="flex items-center gap-4">
+      <div className={controlsClasses}>
         {showPageSizeSelector && onPageSizeChange && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Por página:</span>
+            {!compact && <span className="text-sm text-muted-foreground">Por página:</span>}
             <Select
               value={pageSize.toString()}
               onValueChange={(value) => onPageSizeChange(Number(value))}
@@ -119,12 +133,13 @@ export function PaginationControls({
           </div>
         )}
 
-        <Pagination>
-          <PaginationContent>
+        <Pagination className={compact ? "flex-1 justify-end mx-0 w-auto" : ""}>
+          <PaginationContent className="flex-wrap justify-center gap-1">
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => hasPrev && onPageChange(page - 1)}
                 className={!hasPrev ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                compact={compact}
               />
             </PaginationItem>
 
@@ -146,6 +161,7 @@ export function PaginationControls({
                     onClick={() => onPageChange(pageNumber)}
                     isActive={isActive}
                     className={isActive ? '' : 'cursor-pointer'}
+                    size={compact ? "sm" : "icon"}
                   >
                     {pageNumber}
                   </PaginationLink>
@@ -157,6 +173,7 @@ export function PaginationControls({
               <PaginationNext
                 onClick={() => hasNext && onPageChange(page + 1)}
                 className={!hasNext ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                compact={compact}
               />
             </PaginationItem>
           </PaginationContent>

@@ -99,7 +99,32 @@ serve(async (req) => {
 
     if (!evolutionResponse.ok) {
       const errorText = await evolutionResponse.text();
-      throw new Error(`Erro ao enviar mensagem via Evolution API: ${errorText}`);
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch (e) {
+        // failed to parse
+      }
+
+      // Check for connection closed error
+      const isConnectionClosed = 
+        (errorJson?.response?.message && Array.isArray(errorJson.response.message) && errorJson.response.message.includes("Error: Connection Closed")) ||
+        (typeof errorText === 'string' && errorText.includes("Connection Closed"));
+
+      if (isConnectionClosed) {
+        console.log('Detectado erro de conexão fechada. Atualizando status do banco....');
+        await supabase
+          .from('evolution_settings')
+          .update({ 
+            is_connected: false, 
+            instance_status: 'disconnected' 
+          })
+          .eq('instance_name', settings.instance_name);
+          
+        throw new Error('A conexão com o WhatsApp foi perdida. Por favor, reconecte escaneando o QR Code novamente.');
+      }
+
+      throw new Error(`Erro na API Evolution: ${errorJson?.error || errorText}`);
     }
 
     const evolutionData = await evolutionResponse.json();

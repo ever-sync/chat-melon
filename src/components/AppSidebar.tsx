@@ -216,7 +216,7 @@ export function AppSidebar() {
       collapsible="icon"
       className="border-r border-white/5 bg-[#0A0A0A] text-gray-400 data-[state=collapsed]:w-[80px] transition-all duration-300"
     >
-      <div className="flex items-center justify-center h-20 mb-2">
+      <div className="flex items-center justify-center h-14 mb-1">
         {state === 'expanded' ? (
           <div className="flex items-center gap-3 px-4 w-full">
             <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">
@@ -231,13 +231,13 @@ export function AppSidebar() {
         )}
       </div>
 
-      <SidebarContent className="px-3 pb-4 gap-6 overflow-y-auto scrollbar-hide">
+      <SidebarContent className="px-3 pb-4 gap-4 overflow-y-auto scrollbar-hide">
         <SidebarGroup className="p-0">
-          <SidebarGroupLabel className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-2 group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-1 group-data-[collapsible=icon]:hidden">
             Menu Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1.5">
+            <SidebarMenu className="space-y-0.5">
               {visibleMenuItems.map((item) => {
                 const active = isActive(item.url);
                 return (
@@ -247,7 +247,7 @@ export function AppSidebar() {
                       isActive={active}
                       tooltip={state === 'collapsed' ? item.title : undefined}
                       className={`
-                        h-10 relative overflow-hidden group
+                        h-9 relative overflow-hidden group
                         transition-all duration-300 ease-out
                         hover:bg-white/5
                         ${
@@ -300,18 +300,18 @@ export function AppSidebar() {
 
         {isPlatformAdmin && (
           <SidebarGroup className="p-0">
-            <SidebarGroupLabel className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-2 group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-1 group-data-[collapsible=icon]:hidden">
               Sistema
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1.5">
+              <SidebarMenu className="space-y-0.5">
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
                     isActive={isActive('/super-admin')}
                     tooltip={state === 'collapsed' ? 'Painel Admin' : undefined}
                     className={`
-                      h-10 mx-1 rounded-lg transition-all duration-300
+                      h-9 mx-1 rounded-lg transition-all duration-300
                       ${
                         isActive('/super-admin')
                           ? 'bg-gradient-to-r from-purple-500/10 to-transparent text-white shadow-[inset_3px_0_0_0_#a855f7]'

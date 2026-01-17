@@ -1,4 +1,4 @@
-import { MessageSquarePlus, CheckSquare, Square, CheckCheck } from 'lucide-react';
+import { MessageSquarePlus, CheckSquare, Square, CheckCheck, AlarmClock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ContactAvatar } from '@/components/ContactAvatar';
 import { Button } from '@/components/ui/button';
@@ -28,10 +28,7 @@ type ConversationListProps = {
   onSelectConversation: (conversation: Conversation) => void;
   isLoading: boolean;
   searchQuery: string;
-  startDate: Date | null;
-  endDate: Date | null;
   onSearch: (query: string) => void;
-  onDateFilter: (startDate: Date | null, endDate: Date | null) => void;
   isSearching?: boolean;
   filters: ChatFilters;
   onFilterChange: (filters: Partial<ChatFilters>) => void;
@@ -45,6 +42,7 @@ type ConversationListProps = {
     chatbot: number;
     closed: number;
   };
+  userId?: string | null;
   onSelectConversationFromNotification?: (conversationId: string) => void;
   // Selection mode props
   isSelectionMode?: boolean;
@@ -71,15 +69,13 @@ const ConversationList = ({
   onSelectConversation,
   isLoading,
   searchQuery,
-  startDate,
-  endDate,
   onSearch,
-  onDateFilter,
   isSearching,
   filters,
   onFilterChange,
   onClearAllFilters,
   conversationCounts,
+  userId,
   onSelectConversationFromNotification,
   isSelectionMode = false,
   onToggleSelectionMode,
@@ -100,10 +96,9 @@ const ConversationList = ({
   const [labels, setLabels] = useState<
     Array<{ id: string; name: string; color: string; icon?: string | null }>
   >([]);
-  const [quickFilterMode, setQuickFilterMode] = useState<'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia' | 'groups'>('all');
 
-  // Buscar contadores reais do banco de dados
-  const { data: realCounts, isLoading: isLoadingCounts, error: countsError } = useConversationCounts();
+  // Buscar contadores reais do banco de dados (passando userId para contagem correta das 'minhas')
+  const { data: realCounts, isLoading: isLoadingCounts, error: countsError } = useConversationCounts(userId);
 
   // Debug: log dos contadores
   useEffect(() => {
@@ -227,7 +222,9 @@ const ConversationList = ({
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
-  const getStatusBadge = (status: string | null, unreadCount: number) => {
+  const getStatusBadge = (conversation: Conversation) => {
+    const { status, unread_count: unreadCount } = conversation;
+
     // Se tem mensagens não lidas, mostrar badge "Não Lido"
     if (unreadCount > 0) {
       return (
@@ -240,15 +237,27 @@ const ConversationList = ({
     // Caso contrário, mostrar badge de status normal
     if (!status) return null;
 
+    const isSnoozed = conversation.snoozed_until && new Date(conversation.snoozed_until) > new Date();
+
     const statusConfig = {
       re_entry: { label: 'Reentrada', variant: 'default' as const },
-      active: { label: 'Ativo', variant: 'default' as const },
       chatbot: { label: 'ChatBot', variant: 'outline' as const },
       closed: { label: 'Encerrado', variant: 'secondary' as const },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig];
-    if (!config) return null;
+    
+    // Prioridade para o badge de adiado se estiver ativo
+    if (isSnoozed) {
+      return (
+        <Badge variant="outline" className="text-xs border-amber-500 text-amber-600 bg-amber-50 gap-1">
+          <AlarmClock className="h-3 w-3" />
+          Adiada
+        </Badge>
+      );
+    }
+
+    if (!config || status === 'active') return null;
 
     return (
       <Badge variant={config.variant} className="text-xs">
@@ -257,51 +266,24 @@ const ConversationList = ({
     );
   };
 
-  // Filtrar conversas por modo rápido
-  const filteredByQuickMode = conversations.filter((conv) => {
-    if (quickFilterMode === 'all') return true;
-
-    // Grupos: conversas com sufixo @g.us no ID ou número (dependendo da implementação, conversation_id e contact_number)
-    if (quickFilterMode === 'groups') {
-      // Verificação robusta para grupos
-      return conv.contact_number?.endsWith('@g.us');
-    }
-
-    // Atendimento: conversas com assigned_to (atribuídas a um atendente)
-    if (quickFilterMode === 'atendimento') {
-      return conv.assigned_to && conv.status !== 'chatbot' && !conv.ai_enabled;
-    }
-
-    // Aguardando: conversas que saíram do bot/IA e estão esperando atendente (status waiting ou re_entry)
-    if (quickFilterMode === 'aguardando') {
-      return (conv.status === 'waiting' || conv.status === 're_entry') && !conv.assigned_to;
-    }
-
-    // Bot: conversas com status chatbot
-    if (quickFilterMode === 'bot') {
-      return conv.status === 'chatbot' && !conv.ai_enabled;
-    }
-
-    // IA: conversas com ai_enabled = true
-    if (quickFilterMode === 'ia') {
-      return conv.ai_enabled === true;
-    }
-
-    return true;
-  });
-
+  // Filtragem agora é feita no servidor via filters.view em Chat.tsx
+  // Mas mantemos a lógica de "minhas" e "não atribuídas" nos filtros avançados ou abas abaixo
+  
   // Usar contadores reais do banco ou fallback para contadores locais
   const quickModeCounts = realCounts || {
-    all: conversations.length,
+    inbox: conversations.filter(c => c.unread_count > 0 && c.status !== 'closed').length,
+    total: conversations.length,
     atendimento: conversations.filter(c => c.assigned_to && c.status !== 'chatbot' && !c.ai_enabled).length,
     aguardando: conversations.filter(c => (c.status === 'waiting' || c.status === 're_entry') && !c.assigned_to).length,
     bot: conversations.filter(c => c.status === 'chatbot' && !c.ai_enabled).length,
     ia: conversations.filter(c => c.ai_enabled === true).length,
     groups: conversations.filter(c => c.contact_number?.endsWith('@g.us')).length,
+    mine: conversations.filter(c => c.assigned_to === userId).length,
+    unassigned: conversations.filter(c => !c.assigned_to).length,
   };
 
-  const handleQuickModeChange = (mode: 'all' | 'atendimento' | 'aguardando' | 'bot' | 'ia' | 'groups') => {
-    setQuickFilterMode(mode);
+  const handleQuickModeChange = (mode: any) => {
+    onFilterChange({ view: mode });
   };
 
   return (
@@ -356,10 +338,7 @@ const ConversationList = ({
 
         <SearchBar
           onSearch={onSearch}
-          onDateFilter={onDateFilter}
           searchQuery={searchQuery}
-          startDate={startDate}
-          endDate={endDate}
           isSearching={isSearching}
           filters={filters}
           onFilterChange={onFilterChange}
@@ -369,10 +348,67 @@ const ConversationList = ({
         />
 
         <QuickStatusFilters
-          selectedMode={quickFilterMode}
+          selectedMode={filters.view as any}
           onModeChange={handleQuickModeChange}
           counts={quickModeCounts}
         />
+
+        {/* Abas de Atribuição (Minhas, Não atribuídas, Todos) */}
+        <div className="flex items-center gap-4 px-4 pt-3 border-b border-border bg-card/30 overflow-x-auto scrollbar-hide">
+          <button
+            onClick={() => onFilterChange({ assignedTo: 'me' })}
+            className={cn(
+              "relative pb-3 text-[13px] font-semibold transition-all hover:text-foreground whitespace-nowrap px-1 flex-shrink-0",
+              filters.assignedTo === 'me' 
+                ? "text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary" 
+                : "text-muted-foreground"
+            )}
+          >
+            Minhas 
+            <span className={cn(
+              "ml-1.5 px-1.5 py-0.5 rounded bg-muted text-[10px] font-bold transition-colors",
+              filters.assignedTo === 'me' ? "text-primary bg-primary/10" : "text-muted-foreground/50"
+            )}>
+              {quickModeCounts.mine}
+            </span>
+          </button>
+          
+          <button
+            onClick={() => onFilterChange({ assignedTo: 'unassigned' })}
+            className={cn(
+              "relative pb-3 text-[13px] font-semibold transition-all hover:text-foreground whitespace-nowrap px-1 flex-shrink-0",
+              filters.assignedTo === 'unassigned' 
+                ? "text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary" 
+                : "text-muted-foreground"
+            )}
+          >
+            Não atribuídas
+            <span className={cn(
+              "ml-1.5 px-1.5 py-0.5 rounded bg-muted text-[10px] font-bold transition-colors",
+              filters.assignedTo === 'unassigned' ? "text-primary bg-primary/10" : "text-muted-foreground/50"
+            )}>
+              {quickModeCounts.unassigned}
+            </span>
+          </button>
+
+          <button
+            onClick={() => onFilterChange({ assignedTo: 'all' })}
+            className={cn(
+              "relative pb-3 text-[13px] font-semibold transition-all hover:text-foreground whitespace-nowrap px-1 flex-shrink-0",
+              filters.assignedTo === 'all' 
+                ? "text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary" 
+                : "text-muted-foreground"
+            )}
+          >
+            Todos
+            <span className={cn(
+              "ml-1.5 px-1.5 py-0.5 rounded bg-muted text-[10px] font-bold transition-colors",
+              filters.assignedTo === 'all' ? "text-primary bg-primary/10" : "text-muted-foreground/50"
+            )}>
+              {quickModeCounts.total}
+            </span>
+          </button>
+        </div>
 
         <ChatFiltersBar
           filters={filters}
@@ -402,7 +438,7 @@ const ConversationList = ({
                 </div>
               ))}
             </div>
-          ) : filteredByQuickMode.length === 0 ? (
+          ) : conversations.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <MessageSquarePlus className="w-12 h-12 mx-auto mb-4 opacity-50" />
               {!currentCompany?.id ? (
@@ -414,7 +450,7 @@ const ConversationList = ({
                 <>
                   <p>Nenhuma conversa encontrada</p>
                   <p className="text-sm mt-2">
-                    {Object.values(filters).some(v => Array.isArray(v) ? v.length > 0 : !!v) || quickFilterMode !== 'all'
+                    {Object.values(filters).some(v => Array.isArray(v) ? v.length > 0 : !!v) || filters.view !== 'all'
                       ? "Tente limpar os filtros para ver mais resultados."
                       : "Clique em + para iniciar uma nova conversa"}
                   </p>
@@ -423,7 +459,7 @@ const ConversationList = ({
             </div>
           ) : (
             <div className="p-2">
-              {filteredByQuickMode.map((conversation) => (
+              {conversations.map((conversation) => (
                 <button
                   key={conversation.id}
                   onClick={() => {
@@ -484,7 +520,7 @@ const ConversationList = ({
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {getStatusBadge(conversation.status, conversation.unread_count)}
+                      {getStatusBadge(conversation)}
                       {conversationSatisfaction[conversation.id] && (
                         <SatisfactionBadge
                           score={conversationSatisfaction[conversation.id].score}
@@ -527,6 +563,7 @@ const ConversationList = ({
               onPageSizeChange={pagination.onPageSizeChange}
               showPageSizeSelector={true}
               showInfo={true}
+              compact={true}
             />
           </div>
         )}

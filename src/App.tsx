@@ -101,7 +101,7 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <ErrorBoundary context="app-root">
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <CompanyProvider>

@@ -17,17 +17,36 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
+    // 1. Fetch profile data
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('id, full_name, avatar_url, phone, company_id, message_color')
+      .select('id, full_name, avatar_url, phone')
       .eq('id', userId)
       .single();
 
-    if (error) {
-      console.error('Error fetching profile:', error);
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
       return null;
     }
-    return data as Profile;
+
+    // 2. Fetch company_id (default or first one)
+    const { data: companyData, error: companyError } = await supabase
+      .from('company_users')
+      .select('company_id')
+      .eq('user_id', userId)
+      .order('is_default', { ascending: false }) // Prioritize default company
+      .limit(1)
+      .maybeSingle();
+
+    if (companyError) {
+        console.error('Error fetching company:', companyError);
+    }
+
+    return {
+      ...profileData,
+      company_id: companyData?.company_id || null,
+      message_color: null // Placeholder or fetch if needed
+    } as Profile;
   };
 
   useEffect(() => {

@@ -153,15 +153,17 @@ export default function Channels() {
       const data = await response.json();
       console.log('📦 Dados recebidos da Evolution:', data);
 
-      // Verificar se state existe
-      if (!data.state) {
-        console.warn('⚠️ Estado não encontrado na resposta:', data);
+      // Verificar se state existe (pode estar na raiz ou dentro de instance)
+      const connectionState = data.state || data.instance?.state;
+
+      if (!connectionState) {
+        console.warn('⚠️ Estado não encontrado na resposta. Resposta completa:', JSON.stringify(data, null, 2));
       }
 
-      const isConnected = data.state === 'open';
+      const isConnected = connectionState === 'open';
       const newStatus = isConnected ? 'connected' : 'disconnected';
 
-      console.log('📊 Status da Evolution:', data.state, '-> novo status:', newStatus);
+      console.log('📊 Status da Evolution:', connectionState, '-> novo status:', newStatus);
 
       // Buscar o canal WhatsApp da empresa
       const { data: channelData } = await (supabase.from('channels' as any) as any)

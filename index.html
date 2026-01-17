@@ -1,12 +1,13 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="
+    <!-- Content Security Policy -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net https://vercel.live http://192.168.15.5:8080;
       worker-src 'self' blob: http://192.168.15.5:8080;
@@ -15,46 +16,62 @@
       font-src 'self' data: https://fonts.gstatic.com http://fonts.gstatic.com;
       img-src 'self' data: https: blob: https://*.supabase.co;
       media-src 'self' https: blob:;
-      connect-src 'self' http://localhost:54321 ws://localhost:54321 https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com https://viacep.com.br https://api.eversync.com.br https://pps.whatsapp.net https://mmg.whatsapp.net https://vercel.live http://192.168.15.5:* ws://192.168.15.5:*;
+      connect-src 'self' http://localhost:54321 ws://localhost:54321 https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com https://viacep.com.br https://api.eversync.com.br https://pps.whatsapp.net https://mmg.whatsapp.net https://vercel.live https://electric-grubworm-54945.upstash.io http://192.168.15.5:* ws://192.168.15.5:*;
       frame-src 'self' https://*.supabase.co https://vercel.live;
       form-action 'self';
-    ">
+    "
+    >
 
-  <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
 
-  <title>Nucleus - IA + CRM para operações que não podem perder lead</title>
-  <meta name="description"
-    content="O Nucleus une Chat + CRM + Automação + IA em um único fluxo. Cada conversa vira contato, negócio e histórico automaticamente — sem planilha, sem perder lead." />
-  <meta name="author" content="Nucleus" />
+    <title>Nucleus - IA + CRM para operações que não podem perder lead</title>
+    <meta
+      name="description"
+      content="O Nucleus une Chat + CRM + Automação + IA em um único fluxo. Cada conversa vira contato, negócio e histórico automaticamente — sem planilha, sem perder lead."
+    />
+    <meta name="author" content="Nucleus" />
 
-  <meta property="og:title" content="Nucleus - IA + CRM para operações que não podem perder lead" />
-  <meta property="og:description"
-    content="Do 'oi' no WhatsApp ao contrato assinado — com contexto, automação e IA em cada etapa." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta
+      property="og:title"
+      content="Nucleus - IA + CRM para operações que não podem perder lead"
+    />
+    <meta
+      property="og:description"
+      content="Do 'oi' no WhatsApp ao contrato assinado — com contexto, automação e IA em cada etapa."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content="https://lovable.dev/opengraph-image-p98pqg.png"
+    />
 
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:site" content="@Nucleus" />
-  <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Nucleus" />
+    <meta
+      name="twitter:image"
+      content="https://lovable.dev/opengraph-image-p98pqg.png"
+    />
 
-  <meta name="theme-color" content="#4f46e5" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Nucleus" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Nucleus" />
 
-  <!-- Inter Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" href="/favicon.svg" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
-</head>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+  </head>
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
-
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

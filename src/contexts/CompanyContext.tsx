@@ -61,30 +61,37 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
         return;
       }
 
+      // 1. Single Query using Join (Supabase foreign key)
+      // fetch companies AND their related evolution_settings in one go
       const { data, error } = await supabase
         .from('companies')
-        .select('*')
+        .select(`
+          *,
+          evolution_settings (
+            instance_name
+          )
+        `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Buscar evolution_settings para cada empresa e mesclar o instance_name
-      const companiesWithSettings = await Promise.all(
-        (data || []).map(async (company) => {
-          const { data: evolutionSettings } = await supabase
-            .from('evolution_settings')
-            .select('instance_name')
-            .eq('company_id', company.id)
-            .single();
+      // 2. Map the result to flatten the structure
+      // Supabase returns an array of settings if One-to-Many, or object if One-to-One.
+      // We need to handle both robustly, though it should be One-to-One per company.
+      const companiesWithSettings = (data || []).map((company: any) => {
+        // evolution_settings can be an object or array depending on relationship definition
+        // We handle it safely
+        const settings = Array.isArray(company.evolution_settings)
+          ? company.evolution_settings[0]
+          : company.evolution_settings;
 
-          return {
-            ...company,
-            evolution_instance_name:
-              evolutionSettings?.instance_name || company.evolution_instance_name,
-          };
-        })
-      );
+        return {
+          ...company,
+          evolution_instance_name:
+            settings?.instance_name || company.evolution_instance_name,
+        };
+      });
 
       setCompanies(companiesWithSettings);
 
@@ -98,7 +105,7 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
 
         // Tenta usar a empresa salva no localStorage
         if (savedCompanyId) {
-          selectedCompany = companiesWithSettings.find((c) => c.id === savedCompanyId);
+          selectedCompany = companiesWithSettings.find((c: Company) => c.id === savedCompanyId);
         }
 
         // Se não encontrou, seleciona a primeira empresa

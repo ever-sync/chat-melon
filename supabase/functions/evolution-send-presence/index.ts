@@ -74,8 +74,34 @@ serve(async (req) => {
     );
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("Erro ao enviar presença:", error);
+      const errorText = await response.text();
+      let errorJson;
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch (e) {
+        // failed to parse
+      }
+
+      // Check for connection closed error
+      const isConnectionClosed = 
+        (errorJson?.response?.message && Array.isArray(errorJson.response.message) && errorJson.response.message.includes("Error: Connection Closed")) ||
+        (typeof errorText === 'string' && errorText.includes("Connection Closed"));
+
+      if (isConnectionClosed) {
+        console.log('Detectado erro de conexão fechada em send-presence. Atualizando status do banco....');
+        await supabaseClient
+          .from('evolution_settings')
+          .update({ 
+            is_connected: false, 
+            instance_status: 'disconnected' 
+          })
+          .eq('instance_name', settings.instance_name);
+        
+        throw new Error('A conexão com o WhatsApp foi perdida. Por favor, reconecte escaneando o QR Code novamente.');
+      }
+
+      console.error("Erro ao enviar presença:", errorText);
+      throw new Error(`Erro na API Evolution: ${errorJson?.error || errorText}`);
     }
 
     return new Response(JSON.stringify({ success: true }), {

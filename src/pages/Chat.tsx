@@ -17,10 +17,12 @@ import { useNotifications } from '@/hooks/ui/useNotifications';
 import { useCompanyQuery } from '@/hooks/crm/useCompanyQuery';
 import { ChatFilters, getDefaultFilters } from '@/types/chatFilters';
 import { useBulkConversationActions } from '@/hooks/chat/useBulkConversationActions';
+import { useMyQueues } from '@/hooks/useQueues';
 import { usePaginatedQuery } from '@/hooks/ui/usePaginatedQuery';
 import { PAGINATION } from '@/config/constants';
 import { useCachedQuery } from '@/hooks/ui/useCachedQuery';
 import { CACHE_TAGS } from '@/lib/cache/cache-strategies';
+import { useConversationCounts } from '@/hooks/chat/useConversationCounts';
 
 import type { Conversation } from '@/types/chat';
 import { cn } from '@/lib/utils';
@@ -32,8 +34,6 @@ const Chat = () => {
   const { withCompanyFilter, companyId } = useCompanyQuery();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [showCopilotPanel, setShowCopilotPanel] = useState(false);
@@ -55,6 +55,13 @@ const Chat = () => {
     clearSelection,
     isSelected,
   } = useBulkConversationActions();
+
+  // Fetch counts
+  const { data: realCounts } = useConversationCounts(currentUserId);
+
+  // Fetch queues I am a member of
+  const { myQueueIds } = useMyQueues(currentUserId);
+
 
   // Salva filtros no localStorage quando mudam
   useEffect(() => {
@@ -96,14 +103,38 @@ const Chat = () => {
           `,
             { count: 'exact' }
           )
-      )
-        .neq('status', 'closed')
-        .order('last_message_time', { ascending: false })
+      );
+      
+      // Aplicar ordenação e paginação
+      query = query.order('last_message_time', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      // Aplicar filtros no servidor quando possível
-      if (filters.status.length > 0) {
-        query = query.in('status', filters.status);
+      // Aplicar filtros de VIEW (Abas principais)
+      if (filters.view === 'inbox') {
+        // Inbox: mensagens nao lidas
+        // NOTA: A definição de Inbox pode variar. Aqui estamos seguindo a definição do usuário:
+        // "são mensagens que acabaram de chegar e nao foram lidas e estao em atendimento"
+        query = query.gt('unread_count', 0).neq('status', 'closed');
+      } 
+      else if (filters.view === 'atendimento') {
+        // Atendimento: em andamento e atribuído
+        query = query.eq('status', 'active').not('assigned_to', 'is', null).eq('ai_enabled', false);
+      }
+      else if (filters.view === 'aguardando') {
+        // Aguardando: na fila (waiting ou re_entry) e sem atendente
+        query = query.in('status', ['waiting', 're_entry']).is('assigned_to', null);
+      }
+      else if (filters.view === 'bot') {
+        // No Bot: status chatbot e não IA
+        query = query.eq('status', 'chatbot').eq('ai_enabled', false);
+      }
+      else if (filters.view === 'ia') {
+        // IA: ai_enabled = true (clientes conversando com IA)
+        query = query.eq('ai_enabled', true);
+      }
+      else if (filters.view === 'groups') {
+        // Grupos: termina com @g.us
+        query = query.ilike('contact_number', '%@g.us');
       }
 
       if (filters.channelType && filters.channelType !== 'all') {
@@ -111,7 +142,12 @@ const Chat = () => {
       }
 
       if (filters.assignedTo === 'me' && currentUserId) {
-        query = query.eq('assigned_to', currentUserId);
+        // Show assigned to me, OR (unassigned AND in my queues)
+        if (myQueueIds.length > 0) {
+           query = query.or(`assigned_to.eq.${currentUserId},and(assigned_to.is.null,queue_id.in.(${myQueueIds.join(',')}))`);
+        } else {
+           query = query.eq('assigned_to', currentUserId);
+        }
       } else if (filters.assignedTo === 'unassigned') {
         query = query.is('assigned_to', null);
       }
@@ -159,6 +195,21 @@ const Chat = () => {
       }
     }
   }, [initialConversationId, conversations]);
+
+  // Sincroniza conversa selecionada com dados atualizados da lista (Realtime/Otimista)
+  useEffect(() => {
+    if (selectedConversation && conversations.length > 0) {
+      const updated = conversations.find(c => c.id === selectedConversation.id);
+      if (updated && (
+        updated.assigned_to !== selectedConversation.assigned_to || 
+        updated.status !== selectedConversation.status ||
+        updated.unread_count !== selectedConversation.unread_count ||
+        updated.ai_enabled !== selectedConversation.ai_enabled
+      )) {
+        setSelectedConversation(updated);
+      }
+    }
+  }, [conversations, selectedConversation]);
 
   // Realtime subscription for conversations
   // Com paginação, o realtime apenas invalida a query para recarregar
@@ -225,10 +276,25 @@ const Chat = () => {
     // Simular processamento de filtros
     const timer = setTimeout(() => setIsSearching(false), 100);
     return () => clearTimeout(timer);
-  }, [conversations, filters, searchQuery, startDate, endDate]);
+  }, [conversations, filters, searchQuery]);
 
   const filteredConversations = useMemo(() => {
     let filtered = [...conversations];
+
+    // Filtro por "view" (Abas principais) - Garante transição instantânea no client
+    if (filters.view === 'inbox') {
+      filtered = filtered.filter(c => c.unread_count > 0 && c.status !== 'closed');
+    } else if (filters.view === 'atendimento') {
+      filtered = filtered.filter(c => c.status === 'active' && c.assigned_to !== null && c.ai_enabled === false);
+    } else if (filters.view === 'aguardando') {
+      filtered = filtered.filter(c => (c.status === 'waiting' || c.status === 're_entry') && c.assigned_to === null);
+    } else if (filters.view === 'bot') {
+      filtered = filtered.filter(c => c.status === 'chatbot' && c.ai_enabled === false);
+    } else if (filters.view === 'ia') {
+      filtered = filtered.filter(c => c.ai_enabled === true);
+    } else if (filters.view === 'groups') {
+      filtered = filtered.filter(c => c.contact_number && c.contact_number.endsWith('@g.us'));
+    }
 
     // Filtro por status (múltiplos)
     if (filters.status.length > 0) {
@@ -315,14 +381,14 @@ const Chat = () => {
     }
 
     // Filtro por data customizada (se existir)
-    if (startDate || endDate) {
+    if (filters.dateRange) {
       filtered = filtered.filter((conv) => {
         if (!conv.last_message_time) return false;
         const messageDate = new Date(conv.last_message_time);
 
-        if (startDate && messageDate < startDate) return false;
-        if (endDate) {
-          const endOfDay = new Date(endDate);
+        if (filters.dateRange?.start && messageDate < filters.dateRange.start) return false;
+        if (filters.dateRange?.end) {
+          const endOfDay = new Date(filters.dateRange.end);
           endOfDay.setHours(23, 59, 59, 999);
           if (messageDate > endOfDay) return false;
         }
@@ -375,23 +441,46 @@ const Chat = () => {
       console.warn('Media type filtering is not implemented in client-side filtering');
     }
     return filtered;
-  }, [conversations, filters, searchQuery, startDate, endDate, currentUserId]);
+  }, [conversations, filters, searchQuery, currentUserId]);
 
-  // Buscar contagens totais (não apenas da página atual)
+  interface ConversationCounts {
+    inbox: number;
+    atendimento: number;
+    waiting: number;
+    reEntry: number;
+    active: number;
+    chatbot: number;
+    closed: number;
+    myAttendances: number;
+    unread: number;
+  }
+
+  // Usar contagens reais do hook useConversationCounts
   const conversationCounts = useMemo(() => {
-    // Com paginação, só temos os dados da página atual
-    // Para contagens precisas, precisaríamos de uma query separada
-    // Por enquanto, usamos os dados da página atual como aproximação
-    return {
-      myAttendances: conversations.filter((c) => c.assigned_to === currentUserId).length,
-      unread: conversations.filter((c) => c.unread_count > 0).length,
-      waiting: conversations.filter((c) => c.status === 'waiting').length,
-      reEntry: conversations.filter((c) => c.status === 're_entry').length,
-      active: conversations.filter((c) => c.status === 'active').length,
-      chatbot: conversations.filter((c) => c.status === 'chatbot').length,
-      closed: conversations.filter((c) => c.status === 'closed').length,
+    const counts = realCounts || {
+      inbox: 0,
+      total: 0,
+      atendimento: 0,
+      aguardando: 0,
+      bot: 0,
+      ia: 0,
+      groups: 0,
+      mine: 0,
+      unassigned: 0,
     };
-  }, [conversations, currentUserId]);
+
+    // Mapeamento para garantir compatibilidade com todos os componentes (ConversationList, QuickStatusFilters)
+    return {
+      ...counts,
+      myAttendances: counts.mine,
+      unread: counts.inbox,
+      waiting: counts.aguardando,
+      reEntry: 0, // Aguardando engloba os dois no hook
+      active: counts.atendimento,
+      chatbot: counts.bot,
+      closed: 0,
+    };
+  }, [realCounts]);
 
   const handleSearch = (query: string) => {
     setFilters((prev) => ({ ...prev, search: query }));
@@ -399,8 +488,10 @@ const Chat = () => {
   };
 
   const handleDateFilter = (start: Date | null, end: Date | null) => {
-    setStartDate(start);
-    setEndDate(end);
+    setFilters((prev) => ({
+      ...prev,
+      dateRange: start && end ? { start, end } : null,
+    }));
   };
 
   // Atualizar badge sempre que conversas mudarem
@@ -452,7 +543,7 @@ const Chat = () => {
         const { error } = await supabase
           .from('conversations')
           .update({
-            status: conversation.status === 'waiting' ? 'active' : conversation.status,
+            status: (conversation.status === 'waiting' ? 'active' : conversation.status) as any,
             unread_count: 0, // Zerar contador de não lidas
           })
           .eq('id', conversation.id);
@@ -504,7 +595,7 @@ const Chat = () => {
         <div className="flex flex-1 overflow-hidden min-h-0">
           {/* Sidebar de Conversas */}
           <aside className={cn(
-            "w-full md:w-80 flex-shrink-0 border-r border-border bg-card flex flex-col overflow-hidden",
+            "w-full md:w-96 flex-shrink-0 border-r border-border bg-card flex flex-col overflow-hidden",
             selectedConversation ? "hidden md:flex" : "flex"
           )}>
             <ConversationList
@@ -513,15 +604,13 @@ const Chat = () => {
               onSelectConversation={handleSelectConversation}
               isLoading={isLoading}
               searchQuery={searchQuery}
-              startDate={startDate}
-              endDate={endDate}
               onSearch={handleSearch}
-              onDateFilter={handleDateFilter}
               isSearching={isSearching}
               filters={filters}
               onFilterChange={handleFilterChange}
               onClearAllFilters={handleClearFilters}
               conversationCounts={conversationCounts}
+              userId={currentUserId}
               onSelectConversationFromNotification={handleSelectFromNotification}
               isSelectionMode={isSelectionMode}
               onToggleSelectionMode={toggleSelectionMode}
@@ -562,6 +651,9 @@ const Chat = () => {
                   setShowAIPanel(false);
                 }
                 setShowCopilotPanel(enabled);
+              }}
+              onConversationUpdated={(updates) => {
+                setSelectedConversation(prev => prev ? { ...prev, ...updates } : null);
               }}
             />
           </main>

@@ -11,7 +11,6 @@ export const usePlatformAdmin = () => {
       console.log('usePlatformAdmin - Verificando admin para user:', user?.id);
 
       if (!user?.id) {
-        console.log('usePlatformAdmin - Sem user ID, retornando false');
         return false;
       }
 
@@ -20,20 +19,12 @@ export const usePlatformAdmin = () => {
       });
 
       if (error) {
-        console.error('usePlatformAdmin - Error checking platform admin:', error);
         return false;
       }
 
-      console.log('usePlatformAdmin - Resultado da função RPC:', data);
       return data || false;
     },
     enabled: !!user?.id,
-  });
-
-  console.log('usePlatformAdmin - Estado atual:', {
-    isPlatformAdmin,
-    isLoading: authLoading || queryLoading,
-    userId: user?.id,
   });
 
   return {

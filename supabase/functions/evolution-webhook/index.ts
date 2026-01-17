@@ -962,6 +962,97 @@ serve(async (req) => {
       }
 
       // ========================================
+      // PROCESSAR COM AI AGENT (SE HOUVER ATIVO)
+      // ========================================
+      if (!isFromMe) {
+        try {
+          // Buscar canais da Evolution API para a empresa
+          const { data: evolutionSettings } = await supabase
+            .from('evolution_settings')
+            .select('id')
+            .eq('company_id', companyId)
+            .eq('instance_name', instanceName)
+            .maybeSingle();
+
+          if (evolutionSettings) {
+            // Verificar se há AI Agent ativo para este canal
+            const { data: agentChannels } = await supabase
+              .from('ai_agent_channels')
+              .select(`
+                id,
+                agent_id,
+                is_enabled,
+                trigger_type,
+                trigger_config,
+                welcome_message,
+                agent:ai_agents!inner(id, name, status)
+              `)
+              .eq('company_id', companyId)
+              .eq('is_enabled', true);
+
+            // Filtrar apenas agentes ativos
+            const activeAgentChannel = agentChannels?.find(
+              (ac: any) => ac.agent?.status === 'active'
+            );
+
+            if (activeAgentChannel) {
+              console.log(`🤖 AI Agent ativo encontrado: ${activeAgentChannel.agent.name}`);
+
+              // Chamar a função ai-agent-process
+              const supabaseUrl = Deno.env.get('SUPABASE_URL');
+              const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+              const aiAgentResponse = await fetch(
+                `${supabaseUrl}/functions/v1/ai-agent-process`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${supabaseKey}`,
+                  },
+                  body: JSON.stringify({
+                    event_type: 'new_message',
+                    conversation_id: conversationId,
+                    channel_id: activeAgentChannel.id,
+                    contact_id: contact?.id,
+                    company_id: companyId,
+                    message: {
+                      id: externalId,
+                      content: messageContent,
+                      message_type: messageType,
+                    },
+                  }),
+                }
+              );
+
+              if (aiAgentResponse.ok) {
+                const result = await aiAgentResponse.json();
+                console.log('✅ AI Agent processou:', result);
+
+                // Se o AI Agent respondeu, não precisa chamar N8N
+                if (result.processed && result.response_sent) {
+                  return new Response(
+                    JSON.stringify({ 
+                      success: true, 
+                      message: 'AI Agent processou a mensagem',
+                      ai_agent: activeAgentChannel.agent.name,
+                    }),
+                    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                  );
+                }
+              } else {
+                const errorText = await aiAgentResponse.text();
+                console.error('❌ AI Agent retornou erro:', aiAgentResponse.status, errorText);
+              }
+            }
+          }
+        } catch (aiAgentError) {
+          console.error('❌ Erro no processamento do AI Agent:', aiAgentError);
+          // Não falha o webhook, continua para N8N/humano
+        }
+      }
+
+      // ========================================
       // CHAMAR N8N PARA PROCESSAR COM IA
       // ========================================
 

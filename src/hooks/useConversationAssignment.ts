@@ -20,13 +20,70 @@ export const useConversationAssignment = (conversationId?: string) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onMutate: async (assignedTo) => {
+      // Cancelar refetches para não sobrescrever o estado otimista
+      await queryClient.cancelQueries({ queryKey: ['conversations'] });
+      await queryClient.cancelQueries({ queryKey: ['conversation', conversationId] });
+
+      // Snapshot do estado anterior
+      const previousConversations = queryClient.getQueryData(['conversations']);
+      const previousConversation = queryClient.getQueryData(['conversation', conversationId]);
+      const previousCounts = queryClient.getQueryData(['conversation-counts']);
+
+      // Atualizar otimisticamente a lista de conversas
+      queryClient.setQueriesData({ queryKey: ['conversations'] }, (old: any) => {
+        if (!old || !old.data) return old;
+        return {
+          ...old,
+          data: old.data.map((conv: any) =>
+            conv.id === conversationId
+              ? { ...conv, assigned_to: assignedTo, status: 'active' }
+              : conv
+          ),
+        };
+      });
+
+      // Atualizar otimisticamente os contadores
+      queryClient.setQueriesData({ queryKey: ['conversation-counts'] }, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          aguardando: Math.max(0, (old.aguardando || 0) - 1),
+          unassigned: Math.max(0, (old.unassigned || 0) - 1),
+          atendimento: (old.atendimento || 0) + 1,
+          mine: (old.mine || 0) + 1,
+        };
+      });
+
+      // Atualizar otimisticamente a conversa individual
+      queryClient.setQueryData(['conversation', conversationId], (old: any) => {
+        if (!old) return old;
+        return { ...old, assigned_to: assignedTo, status: 'active' };
+      });
+
+      return { previousConversations, previousConversation, previousCounts };
+    },
+    onError: (error: Error, _variables, context) => {
+      // Reverter se der erro
+      if (context?.previousConversations) {
+        queryClient.setQueriesData({ queryKey: ['conversations'] }, context.previousConversations);
+      }
+      if (context?.previousConversation) {
+        queryClient.setQueryData(['conversation', conversationId], context.previousConversation);
+      }
+      if (context?.previousCounts) {
+        queryClient.setQueriesData({ queryKey: ['conversation-counts'] }, context.previousCounts);
+      }
+      toast.error('Erro ao atribuir conversa: ' + error.message);
+    },
+    onSettled: () => {
+      // Invalidar para garantir sincronia com o banco
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
-      toast.success('Conversa atribuída com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['conversation-counts'] });
     },
-    onError: (error: Error) => {
-      toast.error('Erro ao atribuir conversa: ' + error.message);
+    onSuccess: () => {
+      toast.success('Conversa atribuída com sucesso!');
     },
   });
 

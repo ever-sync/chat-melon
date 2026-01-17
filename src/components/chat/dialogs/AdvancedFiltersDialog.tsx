@@ -21,7 +21,8 @@ import {
   FileVideo,
   FileAudio,
   FileText,
-  MessageCircle
+  MessageCircle,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,14 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -103,6 +112,8 @@ export const AdvancedFiltersDialog = ({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [filterName, setFilterName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
+  const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -227,6 +238,32 @@ export const AdvancedFiltersDialog = ({
       default:
         return 'bg-gray-500';
     }
+  };
+
+  const handleStartDateSelect = (date: Date | undefined) => {
+    onFiltersChange({
+      dateRange: date 
+        ? { start: date, end: filters.dateRange?.end || date }
+        : filters.dateRange?.end 
+          ? { start: filters.dateRange.end, end: filters.dateRange.end } 
+          : null
+    });
+    setShowStartCalendar(false);
+  };
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    onFiltersChange({
+      dateRange: date
+        ? { start: filters.dateRange?.start || date, end: date }
+        : filters.dateRange?.start
+          ? { start: filters.dateRange.start, end: filters.dateRange.start }
+          : null
+    });
+    setShowEndCalendar(false);
+  };
+
+  const handleClearDates = () => {
+    onFiltersChange({ dateRange: null });
   };
 
   const handleApply = () => {
@@ -426,6 +463,69 @@ export const AdvancedFiltersDialog = ({
                     <Filter className="h-4 w-4 text-violet-600" />
                   </div>
                   <h3 className="text-sm font-semibold text-foreground">Filtros Avançados</h3>
+                </div>
+
+                {/* Filtro de Data */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    Período
+                  </Label>
+                  <div className="flex gap-2">
+                    <Popover open={showStartCalendar} onOpenChange={setShowStartCalendar}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 justify-start text-left font-normal"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {filters.dateRange?.start
+                            ? format(filters.dateRange.start, 'dd/MM/yyyy', { locale: ptBR })
+                            : 'Data início'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={filters.dateRange?.start}
+                          onSelect={handleStartDateSelect}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    <Popover open={showEndCalendar} onOpenChange={setShowEndCalendar}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 justify-start text-left font-normal"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {filters.dateRange?.end 
+                            ? format(filters.dateRange.end, 'dd/MM/yyyy', { locale: ptBR }) 
+                            : 'Data fim'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={filters.dateRange?.end}
+                          onSelect={handleEndDateSelect}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    {filters.dateRange && (
+                      <Button variant="ghost" size="sm" onClick={handleClearDates} className="px-2">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Data da última mensagem */}

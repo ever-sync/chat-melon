@@ -10,8 +10,10 @@ interface AIAgent {
   id: string;
   company_id: string;
   name: string;
+  display_name?: string;
   status: string;
-  autonomy_level: string;
+  agent_type: string;
+  autonomy_level: 'full' | 'supervised' | 'assisted' | 'handoff_only';
   handoff_behavior: string;
   confidence_threshold: number;
   personality_style: string;
@@ -19,16 +21,25 @@ interface AIAgent {
   language: string;
   tone_formality: number;
   use_emojis: boolean;
+  max_emoji_per_message?: number;
   system_prompt: string;
   knowledge_base: any[];
   crm_context_enabled: boolean;
   conversation_history_limit: number;
   max_response_length: number;
+  min_response_length?: number;
   response_delay_ms: number;
+  typing_indicator: boolean;
   fallback_type: string;
   fallback_message?: string;
   max_messages_per_session: number;
   session_timeout_minutes: number;
+  daily_message_limit?: number;
+  rate_limit_per_minute?: number;
+  product_catalog_enabled?: boolean;
+  schedule_enabled?: boolean;
+  out_of_hours_message?: string;
+  schedule?: Record<string, { start: string; end: string }>;
 }
 
 interface AIAgentChannel {
@@ -59,8 +70,9 @@ interface ProcessRequest {
   message?: {
     id: string;
     content: string;
-    message_type: string;
+    type: string;
   };
+  metadata?: any;
 }
 
 interface AIResponse {
@@ -115,22 +127,121 @@ serve(async (req) => {
       );
     }
 
-    // Encontrar agente ativo
-    const activeAgentChannel = agentChannels.find(
-      (ac) => ac.agent?.status === 'active'
-    );
+    // 1.5. Validar gatilhos de ativação
+    const matchedAgentChannel = agentChannels.find((ac) => {
+      if (ac.agent?.status !== 'active') return false;
+      
+      const triggerType = ac.trigger_type;
+      const triggerConfig = ac.trigger_config || {};
+      
+      switch (triggerType) {
+        case 'always': {
+          return true;
+        }
+          
+        case 'keyword': {
+          if (!message?.content) return false;
+          const keywords = triggerConfig.keywords || [];
+          return keywords.some((kw: string) => 
+            message.content.toLowerCase().includes(kw.toLowerCase())
+          );
+        }
+          
+        case 'manual': {
+          // Requer que já exista uma sessão ativa manual
+          return false; // Implementação simplificada: manual não ativa via webhook novo
+        }
+          
+        case 'schedule': {
+          // Já verificado abaixo no agente, mas pode ser redundante
+          return true;
+        }
+          
+        case 'channel': {
+          return true; // Já filtrado por channel_id no query
+        }
+          
+        default: {
+          return true;
+        }
+      }
+    });
 
-    if (!activeAgentChannel) {
+    if (!matchedAgentChannel) {
       return new Response(
-        JSON.stringify({ processed: false, reason: 'No active agent found' }),
+        JSON.stringify({ processed: false, reason: 'No agent matched triggers' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const agent: AIAgent = activeAgentChannel.agent;
-    const agentChannel: AIAgentChannel = activeAgentChannel;
+    const agent: AIAgent = matchedAgentChannel.agent;
+    const agentChannel: AIAgentChannel = matchedAgentChannel;
 
-    // 2. Verificar ou criar sessão
+    // 2. Verificar horário de funcionamento
+    if (agent.schedule_enabled && agent.schedule) {
+      const now = new Date();
+      const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+      
+      const todaySchedule = agent.schedule[dayOfWeek];
+      if (todaySchedule) {
+        if (currentTime < todaySchedule.start || currentTime > todaySchedule.end) {
+          // Fora do horário de funcionamento
+          const outOfHoursResponse = agent.out_of_hours_message || 
+            'Nosso atendimento está fora do horário. Retornaremos em breve!';
+          
+          // Enviar mensagem de fora de horário
+          await sendAIAgentMessage(supabase, conversation_id, outOfHoursResponse, agent.display_name || agent.name);
+          
+          return new Response(
+            JSON.stringify({ 
+              processed: true, 
+              response: outOfHoursResponse,
+              response_sent: true,
+              reason: 'out_of_hours',
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+    }
+
+    // 3. Verificar limite diário de mensagens
+    if (agent.daily_message_limit) {
+      const today = new Date().toISOString().split('T')[0];
+      const { count } = await supabase
+        .from('ai_agent_sessions')
+        .select('messages_sent', { count: 'exact', head: true })
+        .eq('agent_id', agent.id)
+        .gte('started_at', today);
+      
+      if (count && count >= agent.daily_message_limit) {
+        return new Response(
+          JSON.stringify({ processed: false, reason: 'daily_limit_reached' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // 3.5. Verificar rate limit (mensagens por minuto)
+    if (agent.rate_limit_per_minute) {
+      const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
+      const { count: recentMessages } = await supabase
+        .from('ai_agent_action_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('agent_id', agent.id)
+        .eq('action_type', 'send_message')
+        .gte('created_at', oneMinuteAgo);
+
+      if (recentMessages && recentMessages >= agent.rate_limit_per_minute) {
+        return new Response(
+          JSON.stringify({ processed: false, reason: 'rate_limit_reached' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // 4. Verificar ou criar sessão
     let { data: session, error: sessionError } = await supabase
       .from('ai_agent_sessions')
       .select('*')
@@ -141,6 +252,24 @@ serve(async (req) => {
 
     if (sessionError && sessionError.code !== 'PGRST116') {
       console.error('Error fetching session:', sessionError);
+    }
+
+    // 4.1. Verificar expiração da sessão
+    if (session && agent.session_timeout_minutes) {
+      const lastActivity = new Date(session.updated_at || session.created_at);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - lastActivity.getTime()) / 60000;
+      
+      if (diffMinutes > agent.session_timeout_minutes) {
+        console.log(`[AI Agent] Sessão ${session.id} expirada por timeout (${diffMinutes} min)`);
+        // Marcar sessão como expirada
+        await supabase
+          .from('ai_agent_sessions')
+          .update({ status: 'failed', metadata: { ...session.metadata, reason: 'timeout' } })
+          .eq('id', session.id);
+        
+        session = null; // Forçar criação de nova sessão
+      }
     }
 
     const isNewSession = !session;
@@ -191,12 +320,25 @@ serve(async (req) => {
             success: true,
           });
 
+          // Enviar via WhatsApp
+          const responseSent = await sendAIAgentMessage(
+            supabase,
+            conversation_id,
+            welcomeResponse,
+            agent.display_name || agent.name,
+            {
+              typing_indicator: agent.typing_indicator,
+              response_delay_ms: agent.response_delay_ms,
+            }
+          );
+
           return new Response(
             JSON.stringify({
               processed: true,
               response: welcomeResponse,
+              response_sent: responseSent,
               session_id: session.id,
-              is_new_session: true,
+              is_welcome_message: true,
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
@@ -285,10 +427,24 @@ serve(async (req) => {
         success: true,
       });
 
+      // Enviar a resposta via WhatsApp
+      const responseText = handoffCheck.pre_message || handoffResponse.message;
+      const responseSent = await sendAIAgentMessage(
+        supabase,
+        conversation_id,
+        responseText,
+        agent.display_name || agent.name,
+        {
+          typing_indicator: agent.typing_indicator,
+          response_delay_ms: agent.response_delay_ms,
+        }
+      );
+
       return new Response(
         JSON.stringify({
           processed: true,
-          response: handoffCheck.pre_message || handoffResponse.message,
+          response: responseText,
+          response_sent: responseSent,
           should_handoff: true,
           handoff_reason: handoffCheck.reason,
           session_id: session.id,
@@ -329,10 +485,23 @@ serve(async (req) => {
         success: true,
       });
 
+      // Enviar a resposta via WhatsApp
+      const responseSent = await sendAIAgentMessage(
+        supabase,
+        conversation_id,
+        processedResponse,
+        agent.display_name || agent.name,
+        {
+          typing_indicator: agent.typing_indicator,
+          response_delay_ms: agent.response_delay_ms,
+        }
+      );
+
       return new Response(
         JSON.stringify({
           processed: true,
           response: processedResponse,
+          response_sent: responseSent,
           session_id: session.id,
           matched_skill: matchedSkill.skill_name,
         }),
@@ -368,10 +537,24 @@ serve(async (req) => {
           'Confiança baixa na resposta'
         );
 
+        // Enviar a resposta via WhatsApp
+        const responseText = fallbackResponse.message || handoffResponse.message;
+        const responseSent = await sendAIAgentMessage(
+          supabase,
+          conversation_id,
+          responseText,
+          agent.display_name || agent.name,
+          {
+            typing_indicator: agent.typing_indicator,
+            response_delay_ms: agent.response_delay_ms,
+          }
+        );
+
         return new Response(
           JSON.stringify({
             processed: true,
-            response: fallbackResponse.message || handoffResponse.message,
+            response: responseText,
+            response_sent: responseSent,
             should_handoff: true,
             handoff_reason: 'low_confidence',
             session_id: session.id,
@@ -381,10 +564,23 @@ serve(async (req) => {
         );
       }
 
+      // Enviar a resposta via WhatsApp
+      const responseSent = await sendAIAgentMessage(
+        supabase,
+        conversation_id,
+        fallbackResponse.message,
+        agent.display_name || agent.name,
+        {
+          typing_indicator: agent.typing_indicator,
+          response_delay_ms: agent.response_delay_ms,
+        }
+      );
+
       return new Response(
         JSON.stringify({
           processed: true,
           response: fallbackResponse.message,
+          response_sent: responseSent,
           session_id: session.id,
           confidence: aiResponse.confidence,
           is_fallback: true,
@@ -418,10 +614,23 @@ serve(async (req) => {
       success: true,
     });
 
+    // Enviar a resposta via WhatsApp
+    const responseSent = await sendAIAgentMessage(
+      supabase,
+      conversation_id,
+      aiResponse.response || '',
+      agent.display_name || agent.name,
+      {
+        typing_indicator: agent.typing_indicator,
+        response_delay_ms: agent.response_delay_ms,
+      }
+    );
+
     return new Response(
       JSON.stringify({
         processed: true,
         response: aiResponse.response,
+        response_sent: responseSent,
         session_id: session.id,
         confidence: aiResponse.confidence,
         detected_intent: aiResponse.detected_intent,
@@ -442,6 +651,76 @@ serve(async (req) => {
 // =====================================================
 // HELPER FUNCTIONS
 // =====================================================
+
+// Helper function to send AI Agent response via Evolution API
+async function sendAIAgentMessage(
+  _supabase: any,
+  conversationId: string,
+  message: string,
+  senderName: string,
+  agentConfig?: { typing_indicator?: boolean; response_delay_ms?: number }
+): Promise<boolean> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+    // Send typing indicator if enabled
+    if (agentConfig?.typing_indicator) {
+      try {
+        await fetch(
+          `${supabaseUrl}/functions/v1/evolution-send-presence`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({
+              conversationId,
+              presence: 'composing',
+            }),
+          }
+        );
+      } catch (e) {
+        console.log('[AI Agent] Typing indicator error (non-critical):', e);
+      }
+    }
+
+    // Apply response delay if configured
+    if (agentConfig?.response_delay_ms && agentConfig.response_delay_ms > 0) {
+      await new Promise(resolve => setTimeout(resolve, agentConfig.response_delay_ms));
+    }
+
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/evolution-send-message`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify({
+          conversationId,
+          message,
+          senderName,
+          isAIAgent: true,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      console.log(`[AI Agent] Mensagem enviada com sucesso para conversa ${conversationId}`);
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error(`[AI Agent] Erro ao enviar mensagem:`, response.status, errorText);
+      return false;
+    }
+  } catch (error) {
+    console.error('[AI Agent] Erro ao enviar mensagem:', error);
+    return false;
+  }
+}
 
 async function buildContext(
   supabase: any,
@@ -604,6 +883,15 @@ function buildSystemPrompt(
     prompt += `\n\n## Personalidade:\n${agent.custom_personality}`;
   }
 
+  // Nível de autonomia
+  const autonomyDescriptions = {
+    full: 'Você tem autonomia total para responder e resolver os problemas do cliente.',
+    supervised: 'Você responde ao cliente, mas deve notificar um humano se detectar situações críticas.',
+    assisted: 'Você deve sugerir respostas, mas saiba que um humano pode estar revisando seu trabalho.',
+    handoff_only: 'Seu objetivo é coletar informações básicas e passar para um humano o mais rápido possível.',
+  };
+  prompt += `\n\n## Nível de Autonomia:\n${autonomyDescriptions[agent.autonomy_level] || autonomyDescriptions.full}`;
+
   // Nível de formalidade
   const formalityLevel = agent.tone_formality;
   if (formalityLevel <= 3) {
@@ -614,7 +902,7 @@ function buildSystemPrompt(
 
   // Emojis
   if (agent.use_emojis) {
-    prompt += '\n- Você pode usar emojis moderadamente para expressar emoções.';
+    prompt += `\n- Você pode usar emojis moderadamente (máximo ${agent.max_emoji_per_message || 2} por mensagem) para expressar emoções.`;
   } else {
     prompt += '\n- NÃO use emojis nas respostas.';
   }
@@ -636,9 +924,26 @@ function buildSystemPrompt(
     });
   }
 
+  // Base de conhecimento
+  if (agent.knowledge_base && agent.knowledge_base.length > 0) {
+    prompt += `\n\n## Conhecimento adicional (Documentos/FAQ):\n`;
+    agent.knowledge_base.forEach((doc: any, index: number) => {
+      prompt += `Documento ${index + 1}:\n${JSON.stringify(doc)}\n`;
+    });
+  }
+
+  // Catálogo de produtos
+  if (agent.product_catalog_enabled) {
+    prompt += `\n\n## Catálogo de Produtos:\n`;
+    prompt += `- Você tem acesso ao catálogo de produtos da empresa. Se o cliente perguntar sobre produtos ou preços, seja prestativo e forneça as informações baseadas no contexto disponível.\n`;
+  }
+
   // Limites
   prompt += `\n\n## Limites:\n`;
   prompt += `- Mantenha respostas com no máximo ${agent.max_response_length} caracteres.\n`;
+  if (agent.min_response_length) {
+    prompt += `- Suas respostas devem ter pelo menos ${agent.min_response_length} caracteres.\n`;
+  }
   prompt += `- Se não souber algo com certeza, admita e ofereça alternativas.\n`;
   prompt += `- Idioma: ${agent.language}\n`;
 

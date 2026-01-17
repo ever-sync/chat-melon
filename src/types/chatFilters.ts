@@ -1,4 +1,7 @@
+export type ChatViewMode = 'inbox' | 'atendimento' | 'aguardando' | 'bot' | 'ia' | 'groups' | 'all';
+
 export interface ChatFilters {
+  view: ChatViewMode;
   status: string[];
   assignedTo: string; // 'me' | 'unassigned' | 'all' | userId
   labels: string[];
@@ -31,6 +34,7 @@ export interface SavedFilter {
 }
 
 export const getDefaultFilters = (): ChatFilters => ({
+  view: 'all',
   status: [],
   assignedTo: 'all',
   labels: [],

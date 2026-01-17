@@ -52,6 +52,8 @@ import { TabulationModal } from '../TabulationModal';
 import { VariablePicker } from '@/components/chat/VariablePicker';
 import { useVariables } from '@/hooks/useVariables';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TakeConversationBanner } from './TakeConversationBanner';
+import { useConversationAssignment } from '@/hooks/useConversationAssignment';
 
 type Message = {
   id: string;
@@ -89,6 +91,7 @@ type MessageAreaProps = {
   showAIPanel?: boolean;
   showAIAssistant?: boolean;
   onCopilotToggle?: (enabled: boolean) => void;
+  onConversationUpdated?: (updated: Partial<Conversation>) => void;
 };
 
 const MessageArea = ({
@@ -100,6 +103,7 @@ const MessageArea = ({
   showAIPanel = false,
   showAIAssistant = true,
   onCopilotToggle,
+  onConversationUpdated,
 }: MessageAreaProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
@@ -147,16 +151,36 @@ const MessageArea = ({
   const { markAsRead } = useMarkAsRead();
 
   const { variables: companyVariables } = useVariables();
+  const { assignConversation, resolveConversation, reopenConversation } =
+    useConversationAssignment(conversation?.id);
   const { currentCompany } = useCompany();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const sendTextMessage = useSendTextMessage(currentCompany?.evolution_instance_name || '');
-  // const startCall = useStartCall();
 
-  // Exclusividade mútua: fechar painel Elisa quando Copiloto é ativado
+  // Carregar usuário atual e verificar se é admin
   useEffect(() => {
-    if (copilotEnabled && showAIPanel && onToggleAIPanel) {
-      onToggleAIPanel(); // Fecha o painel Elisa
-    }
-  }, [copilotEnabled]);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setCurrentUserId(user.id);
+        
+        // Verificar role
+        if (currentCompany?.id) {
+          supabase
+            .from('company_members')
+            .select('role')
+            .eq('user_id', user.id)
+            .eq('company_id', currentCompany.id)
+            .maybeSingle()
+            .then(({ data }) => {
+              if (data) {
+                setIsAdmin(['owner', 'admin', 'manager', 'supervisor'].includes(data.role));
+              }
+            });
+        }
+      }
+    });
+  }, [currentCompany?.id]);
 
   // Exclusividade mútua: fechar Copiloto quando painel Elisa é ativado
   useEffect(() => {
@@ -766,7 +790,7 @@ const MessageArea = ({
 
   return (
     <div className="flex-1 flex flex-row h-full overflow-hidden">
-      <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 min-h-0 overflow-hidden relative">
         <div className="p-4 border-b border-border/50 flex items-center gap-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex-shrink-0">
           <Button
             variant="ghost"
@@ -866,7 +890,7 @@ const MessageArea = ({
         <ChatLegend />
 
         <div 
-          className="flex-1 min-h-0 overflow-y-auto px-4 py-6" 
+          className="flex-1 min-h-0 overflow-y-auto px-4 py-6 relative" 
           ref={scrollRef}
           onScroll={(e) => {
             const target = e.target as HTMLDivElement;
@@ -1134,7 +1158,6 @@ const MessageArea = ({
                       <Send className="w-5 h-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top">Enviar Mensagem (Enter)</TooltipContent>
                 </Tooltip>
               </div>
               {isInternalNote && (
@@ -1146,6 +1169,23 @@ const MessageArea = ({
             </>
           )}
         </form>
+
+        {/* Take Conversation Overlay - Global for the Chat Area Panel */}
+        {!conversation.assigned_to && conversation.status !== 'closed' && (
+          <TakeConversationBanner
+            onTake={() => {
+              if (currentUserId) {
+                // Efeito instantâneo: atualizar localmente
+                onConversationUpdated?.({
+                  assigned_to: currentUserId,
+                  status: 'active'
+                });
+                assignConversation.mutate(currentUserId);
+              }
+            }}
+            isLoading={assignConversation.isPending}
+          />
+        )}
 
         <ReopenConversationDialog
           open={showReopenDialog}

@@ -19,4 +19,5 @@ export type Conversation = {
   is_online?: boolean;
   channel_type?: 'whatsapp' | 'instagram' | 'messenger' | 'telegram' | 'widget' | 'email';
   ai_enabled?: boolean;
+  snoozed_until?: string | null;
 };

@@ -133,6 +133,8 @@ export const useSnooze = () => {
           snoozed_by: user.user.id,
           snooze_reason: reason || null,
           snoozed_at: new Date().toISOString(),
+          status: 'waiting',
+          assigned_to: null,
         })
         .eq('id', conversationId)
         .select()

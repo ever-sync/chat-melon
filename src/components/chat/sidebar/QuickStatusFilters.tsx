@@ -8,7 +8,8 @@ interface QuickStatusFiltersProps {
   selectedMode: FilterMode;
   onModeChange: (mode: FilterMode) => void;
   counts: {
-    all: number;
+    inbox: number;
+    total: number;
     atendimento: number;
     aguardando: number;
     bot: number;
@@ -20,7 +21,7 @@ interface QuickStatusFiltersProps {
 export function QuickStatusFilters({ selectedMode, onModeChange, counts }: QuickStatusFiltersProps) {
   const filters = [
     {
-      mode: 'all' as FilterMode,
+      mode: 'inbox' as FilterMode,
       label: 'Inbox',
       icon: MessageCircle,
       color: 'text-blue-600',

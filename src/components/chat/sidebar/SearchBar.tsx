@@ -1,20 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, X, Calendar, Sliders, Loader2 } from 'lucide-react';
+import { Search, X, Sliders, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { AdvancedFiltersDialog } from '@/components/chat/dialogs/AdvancedFiltersDialog';
 import { ChatFilters } from '@/types/chatFilters';
 
 type SearchBarProps = {
   onSearch: (query: string) => void;
-  onDateFilter: (startDate: Date | null, endDate: Date | null) => void;
   searchQuery: string;
-  startDate: Date | null;
-  endDate: Date | null;
   isSearching?: boolean;
   filters: ChatFilters;
   onFilterChange: (filters: Partial<ChatFilters>) => void;
@@ -33,10 +26,7 @@ type SearchBarProps = {
 
 const SearchBar = ({
   onSearch,
-  onDateFilter,
   searchQuery,
-  startDate,
-  endDate,
   isSearching,
   filters,
   onFilterChange,
@@ -44,10 +34,6 @@ const SearchBar = ({
   conversationCounts,
   onSelectConversation,
 }: SearchBarProps) => {
-  const [localStartDate, setLocalStartDate] = useState<Date | undefined>(startDate || undefined);
-  const [localEndDate, setLocalEndDate] = useState<Date | undefined>(endDate || undefined);
-  const [showStartCalendar, setShowStartCalendar] = useState(false);
-  const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [showFiltersDialog, setShowFiltersDialog] = useState(false);
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
@@ -101,24 +87,6 @@ const SearchBar = ({
   const handleClearHistory = () => {
     setSearchHistory([]);
     localStorage.removeItem('search-history');
-  };
-
-  const handleClearDates = () => {
-    setLocalStartDate(undefined);
-    setLocalEndDate(undefined);
-    onDateFilter(null, null);
-  };
-
-  const handleStartDateSelect = (date: Date | undefined) => {
-    setLocalStartDate(date);
-    onDateFilter(date || null, localEndDate || null);
-    setShowStartCalendar(false);
-  };
-
-  const handleEndDateSelect = (date: Date | undefined) => {
-    setLocalEndDate(date);
-    onDateFilter(localStartDate || null, date || null);
-    setShowEndCalendar(false);
   };
 
   return (
@@ -175,60 +143,6 @@ const SearchBar = ({
               </button>
             ))}
           </div>
-        )}
-      </div>
-
-      <div className="flex gap-2">
-        <Popover open={showStartCalendar} onOpenChange={setShowStartCalendar}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 justify-start text-left font-normal"
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              {localStartDate
-                ? format(localStartDate, 'dd/MM/yyyy', { locale: ptBR })
-                : 'Data início'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <CalendarComponent
-              mode="single"
-              selected={localStartDate}
-              onSelect={handleStartDateSelect}
-              initialFocus
-              locale={ptBR}
-            />
-          </PopoverContent>
-        </Popover>
-
-        <Popover open={showEndCalendar} onOpenChange={setShowEndCalendar}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 justify-start text-left font-normal"
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              {localEndDate ? format(localEndDate, 'dd/MM/yyyy', { locale: ptBR }) : 'Data fim'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <CalendarComponent
-              mode="single"
-              selected={localEndDate}
-              onSelect={handleEndDateSelect}
-              initialFocus
-              locale={ptBR}
-            />
-          </PopoverContent>
-        </Popover>
-
-        {(localStartDate || localEndDate) && (
-          <Button variant="ghost" size="sm" onClick={handleClearDates} className="px-2">
-            <X className="w-4 h-4" />
-          </Button>
         )}
       </div>
 

@@ -231,3 +231,31 @@ export const useQueueMembers = (queueId?: string) => {
     removeMember: removeMember.mutateAsync,
   };
 };
+
+export const useMyQueues = (userId?: string | null) => {
+  const { companyId } = useCompanyQuery();
+  
+  const { data: myQueueIds = [], isLoading } = useQuery({
+    queryKey: ['my-queues', companyId, userId],
+    queryFn: async () => {
+      if (!companyId || !userId) return [];
+      
+      const { data, error } = await supabase
+        .from('queue_members')
+        .select('queue_id')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+        
+      if (error) {
+        console.error('Error fetching my queues:', error);
+        return [];
+      }
+      
+      return data.map(record => record.queue_id);
+    },
+    enabled: !!companyId && !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+  });
+
+  return { myQueueIds, isLoading };
+};
