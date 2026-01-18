@@ -208,5 +208,16 @@ BEGIN
             company_id IN (SELECT company_id FROM company_members WHERE user_id = auth.uid() AND role IN (''admin'', ''owner''))
         )';
     END IF;
+
+    -- AI Dashboard Fixes (Fixing 406 Errors)
+    IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'conversation_quality_scores') THEN
+        DROP POLICY IF EXISTS "Users can view quality scores" ON public.conversation_quality_scores;
+        EXECUTE 'CREATE POLICY "Users can view quality scores" ON public.conversation_quality_scores FOR SELECT TO authenticated USING (true)';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'agent_performance_snapshots') THEN
+        DROP POLICY IF EXISTS "Users can view performance snapshots" ON public.agent_performance_snapshots;
+        EXECUTE 'CREATE POLICY "Users can view performance snapshots" ON public.agent_performance_snapshots FOR SELECT TO authenticated USING (true)';
+    END IF;
 END $$;
 
