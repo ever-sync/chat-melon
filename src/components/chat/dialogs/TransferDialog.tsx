@@ -98,25 +98,27 @@ const TransferDialog = ({
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar empresa do usuário
-      const { data: companyUser } = await supabase
-        .from('company_users')
+      // Buscar empresa do usuário via company_members
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user.id)
-        .eq('is_default', true)
-        .single();
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
 
-      if (!companyUser) return;
+      if (!companyMember) return;
 
-      // Buscar todos os usuários da empresa
-      const { data: companyUsers, error: usersError } = await supabase
-        .from('company_users')
+      // Buscar todos os usuários da empresa via company_members
+      const { data: companyMembers, error: usersError } = await supabase
+        .from('company_members')
         .select('user_id')
-        .eq('company_id', companyUser.company_id);
+        .eq('company_id', companyMember.company_id)
+        .eq('is_active', true);
 
       if (usersError) throw usersError;
 
-      const userIds = companyUsers.map((cu) => cu.user_id);
+      const userIds = companyMembers.map((cm) => cm.user_id);
 
       // Buscar perfis dos usuários
       const { data: profiles, error: profilesError } = await supabase
@@ -136,7 +138,7 @@ const TransferDialog = ({
       const { data: conversations } = await supabase
         .from('conversations')
         .select('assigned_to')
-        .eq('company_id', companyUser.company_id)
+        .eq('company_id', companyMember.company_id)
         .in('status', ['active', 'waiting']);
 
       const conversationCounts =
@@ -224,17 +226,18 @@ const TransferDialog = ({
       if (noteError) throw noteError;
 
       // Notificar novo atendente
-      const { data: companyUser } = await supabase
-        .from('company_users')
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user?.id)
-        .eq('is_default', true)
-        .single();
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
 
-      if (companyUser) {
+      if (companyMember) {
         await supabase.from('notifications').insert({
           user_id: selectedAgent,
-          company_id: companyUser.company_id,
+          company_id: companyMember.company_id,
           title: 'Nova conversa transferida',
           message: `${currentUserName} transferiu uma conversa para você${transferNote ? `: ${transferNote}` : ''}`,
           type: 'info',

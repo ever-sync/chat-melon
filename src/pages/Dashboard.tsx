@@ -384,9 +384,9 @@ export default function Dashboard() {
 
     try {
       // Buscar todos os usuários da empresa
-      // Buscar todos os usuários da empresa via company_users
-      const { data: companyUsers, error: usersError } = await supabase
-        .from('company_users')
+      // Buscar todos os usuários da empresa via company_members
+      const { data: companyMembers, error: usersError } = await supabase
+        .from('company_members')
         .select(`
           user_id,
           profiles (
@@ -396,12 +396,13 @@ export default function Dashboard() {
             avatar_url
           )
         `)
-        .eq('company_id', companyId);
+        .eq('company_id', companyId)
+        .eq('is_active', true);
 
       if (usersError) throw usersError;
 
       // Transformar para o formato esperado
-      const users = companyUsers?.map(cu => cu.profiles).filter(Boolean) || [];
+      const users = companyMembers?.map(cm => cm.profiles).filter(Boolean) || [];
 
 
       if (usersError) throw usersError;

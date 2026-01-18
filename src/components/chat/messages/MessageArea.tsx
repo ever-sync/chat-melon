@@ -648,18 +648,19 @@ const MessageArea = ({
 
       // Se for nota interna, salvar direto no banco
       if (isInternalNote) {
-        // Buscar company_id do usuário
-        const { data: companyUser } = await supabase
-          .from('company_users')
+        // Buscar company_id do usuário via company_members
+        const { data: companyMember } = await supabase
+          .from('company_members')
           .select('company_id')
           .eq('user_id', user.id)
-          .eq('is_default', true)
+          .eq('is_active', true)
+          .limit(1)
           .maybeSingle();
 
         const { error } = await supabase.from('messages').insert({
           conversation_id: conversation.id,
           user_id: user.id,
-          company_id: companyUser?.company_id || null,
+          company_id: companyMember?.company_id || null,
           content: messageToSend,
           is_from_me: true,
           message_type: 'internal_note',
@@ -720,17 +721,18 @@ const MessageArea = ({
       }
 
       // Salvar no banco de dados
-      const { data: companyUser } = await supabase
-        .from('company_users')
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user.id)
-        .eq('is_default', true)
+        .eq('is_active', true)
+        .limit(1)
         .maybeSingle();
 
       await supabase.from('messages').insert({
         conversation_id: conversation.id,
         user_id: user.id,
-        company_id: companyUser?.company_id || null,
+        company_id: companyMember?.company_id || null,
         content: messageToSend,
         is_from_me: true,
         message_type: 'text',

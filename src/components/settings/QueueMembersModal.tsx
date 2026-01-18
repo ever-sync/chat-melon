@@ -39,17 +39,18 @@ export const QueueMembersModal = ({ open, onClose, queueId }: QueueMembersModalP
   const [maxConversations, setMaxConversations] = useState<number | null>(null);
 
   const { data: availableUsers } = useQuery({
-    queryKey: ['company-users', getCompanyId()],
+    queryKey: ['company-members', getCompanyId()],
     queryFn: async () => {
-      // Get all user_ids from company_users
-      const { data: companyUsers, error: companyError } = await supabase
-        .from('company_users')
+      // Get all active user_ids from company_members
+      const { data: companyMembers, error: companyError } = await supabase
+        .from('company_members')
         .select('user_id')
-        .eq('company_id', getCompanyId());
+        .eq('company_id', getCompanyId())
+        .eq('is_active', true);
 
       if (companyError) throw companyError;
 
-      if (!companyUsers || companyUsers.length === 0) return [];
+      if (!companyMembers || companyMembers.length === 0) return [];
 
       // Get profiles for those users
       const { data: profiles, error: profilesError } = await supabase
@@ -57,7 +58,7 @@ export const QueueMembersModal = ({ open, onClose, queueId }: QueueMembersModalP
         .select('id, full_name, avatar_url')
         .in(
           'id',
-          companyUsers.map((cu) => cu.user_id)
+          companyMembers.map((cm) => cm.user_id)
         );
 
       if (profilesError) throw profilesError;

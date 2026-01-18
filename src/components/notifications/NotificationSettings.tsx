@@ -101,20 +101,21 @@ export const NotificationSettings = () => {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: companyData } = await supabase
-        .from('company_users')
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user.id)
-        .eq('is_default', true)
+        .eq('is_active', true)
+        .limit(1)
         .maybeSingle();
 
-      if (!companyData) return;
+      if (!companyMember) return;
 
       const { data, error } = await supabase
         .from('notification_settings')
         .select('*')
         .eq('user_id', user.id)
-        .eq('company_id', companyData.company_id)
+        .eq('company_id', companyMember.company_id)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
@@ -144,20 +145,21 @@ export const NotificationSettings = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Buscar empresa padrão ou atual
-      const { data: companyData } = await supabase
-        .from('company_users')
+      // Buscar empresa padrão ou atual via company_members
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user.id)
-        .eq('is_default', true)
+        .eq('is_active', true)
+        .limit(1)
         .maybeSingle();
 
-      if (!companyData) throw new Error('Empresa não encontrada');
+      if (!companyMember) throw new Error('Empresa não encontrada');
 
       const { error } = await supabase.from('notification_settings').upsert(
         {
           user_id: user.id,
-          company_id: companyData.company_id,
+          company_id: companyMember.company_id,
           volume: settings.volume,
           enabled: settings.enabled,
           sound_enabled: settings.sound_enabled,

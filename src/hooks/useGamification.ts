@@ -103,13 +103,15 @@ export const useGamification = () => {
       if (!user) throw new Error('Não autenticado');
 
       // Buscar empresa do usuário
-      const { data: companyUser } = await supabase
-        .from('company_users')
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user.id)
-        .single();
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
 
-      if (!companyUser) return [];
+      if (!companyMember) return [];
 
       // Buscar deals ganhos no mês atual
       const startOfMonth = new Date();
@@ -119,7 +121,7 @@ export const useGamification = () => {
       const { data: deals } = await supabase
         .from('deals')
         .select('assigned_to, value, profiles!deals_assigned_to_fkey(*)')
-        .eq('company_id', companyUser.company_id)
+        .eq('company_id', companyMember.company_id)
         .eq('status', 'won')
         .gte('won_at', startOfMonth.toISOString());
 
@@ -156,16 +158,18 @@ export const useGamification = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Não autenticado');
 
-      const { data: companyUser } = await supabase
-        .from('company_users')
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user.id)
-        .single();
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
 
       const { error } = await supabase.from('goals').insert([
         {
           user_id: user.id,
-          company_id: companyUser?.company_id,
+          company_id: companyMember?.company_id,
           goal_type: goalData.goal_type,
           target_value: goalData.target_value,
           period: goalData.period,

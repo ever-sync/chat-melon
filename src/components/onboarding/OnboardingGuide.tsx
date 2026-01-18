@@ -69,12 +69,13 @@ export function OnboardingGuide({ isOpen, onComplete }: OnboardingGuideProps) {
         if (existingCompanies && existingCompanies.length > 0) {
           const existingCompany = existingCompanies[0];
 
-          // Verificar se a empresa pertence ao usuário atual
+          // Verificar se a empresa pertence ao usuário atual via company_members
           const { data: userCompany } = await supabase
-            .from('company_users')
+            .from('company_members')
             .select('company_id')
             .eq('user_id', user.id)
             .eq('company_id', existingCompany.id)
+            .eq('is_active', true)
             .maybeSingle();
 
           if (userCompany) {

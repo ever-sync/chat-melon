@@ -184,19 +184,20 @@ export const AdvancedFiltersDialog = ({
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: companyData } = await supabase
-        .from('company_users')
+      const { data: companyMember } = await supabase
+        .from('company_members')
         .select('company_id')
         .eq('user_id', user.id)
-        .eq('is_default', true)
+        .eq('is_active', true)
+        .limit(1)
         .maybeSingle();
 
-      if (!companyData) return;
+      if (!companyMember) return;
 
       const { error } = await supabase.from('agent_status').upsert(
         {
           user_id: user.id,
-          company_id: companyData.company_id,
+          company_id: companyMember.company_id,
           status: newStatus,
           updated_at: new Date().toISOString(),
         },

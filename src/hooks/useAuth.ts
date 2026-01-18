@@ -31,10 +31,10 @@ export function useAuth() {
 
     // 2. Fetch company_id (default or first one)
     const { data: companyData, error: companyError } = await supabase
-      .from('company_users')
+      .from('company_members')
       .select('company_id')
       .eq('user_id', userId)
-      .order('is_default', { ascending: false }) // Prioritize default company
+      .eq('is_active', true)
       .limit(1)
       .maybeSingle();
 
