@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  chat-melon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Build-time args for Vite (prefix VITE_)
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+        - VITE_SUPABASE_PROJECT_ID=${VITE_SUPABASE_PROJECT_ID}
+        - VITE_EVOLUTION_API_URL=${VITE_EVOLUTION_API_URL}
+        - VITE_EVOLUTION_API_KEY=${VITE_EVOLUTION_API_KEY}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_REDIS_URL=${VITE_REDIS_URL}
+        - VITE_REDIS_TOKEN=${VITE_REDIS_TOKEN}
+        - VITE_CACHE_ENABLED=${VITE_CACHE_ENABLED}
+    ports:
+      - "3000:80"
+    environment:
+      # Runtime environment (for reference / future SSR)
+      - NODE_ENV=production
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
