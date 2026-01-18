@@ -5,6 +5,16 @@ services:
     image: ghcr.io/ever-sync/chat-melon:latest
     ports:
       - "3000:80"
+    environment:
+      - VITE_SUPABASE_URL=https://nmbiuebxhovmwxrbaxsz.supabase.co
+      - VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tYml1ZWJ4aG92bXd4cmJheHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDUyOTYsImV4cCI6MjA3OTc4MTI5Nn0._plGgsBhPeuk2T3GR4XNKzkygdN-wwkD9Gk7TP0e4LM
+      - VITE_SUPABASE_PROJECT_ID=nmbiuebxhovmwxrbaxsz
+      - VITE_EVOLUTION_API_URL=https://api.eversync.com.br
+      - VITE_EVOLUTION_API_KEY=d2a0995484bd8fd1039d9a119c7c39e4
+      - VITE_GOOGLE_CLIENT_ID=529578854724-9eqgn5ck65pq9e8d8okdr5lnl6rr3ls4.apps.googleusercontent.com
+      - VITE_REDIS_URL=https://electric-grubworm-54945.upstash.io
+      - VITE_REDIS_TOKEN=AdahAAIncDE4MzdmMTljNWU1YTQ0MWY5YjQ4ZmM1ZWI1M2Q0OGIxN3AxNTQ5NDU
+      - VITE_CACHE_ENABLED=true
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"

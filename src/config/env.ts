@@ -1,6 +1,32 @@
 import { z } from 'zod';
 
 /**
+ * Interface para variáveis de ambiente injetadas em runtime (Docker)
+ */
+declare global {
+  interface Window {
+    __ENV__?: Record<string, string>;
+  }
+}
+
+/**
+ * Helper para obter variável de ambiente
+ * Prioridade: window.__ENV__ (runtime) > import.meta.env (build-time)
+ */
+function getEnvVar(key: string): string | undefined {
+  // Runtime injection (Docker)
+  if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__[key]) {
+    const value = window.__ENV__[key];
+    // Ignora placeholders
+    if (value && !value.startsWith('RUNTIME_REPLACE')) {
+      return value;
+    }
+  }
+  // Build-time (Vite)
+  return (import.meta.env as Record<string, string>)[key];
+}
+
+/**
  * Schema de validação das variáveis de ambiente
  * Garante que todas as env vars necessárias estão presentes e são válidas
  */
@@ -45,13 +71,13 @@ export type Env = z.infer<typeof envSchema>;
 function validateEnv(): Env {
   try {
     return envSchema.parse({
-      VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-      VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      VITE_SUPABASE_PROJECT_ID: import.meta.env.VITE_SUPABASE_PROJECT_ID,
-      VITE_SUPABASE_POOLER_URL: import.meta.env.VITE_SUPABASE_POOLER_URL,
-      VITE_REDIS_URL: import.meta.env.VITE_REDIS_URL,
-      VITE_REDIS_TOKEN: import.meta.env.VITE_REDIS_TOKEN,
-      VITE_CACHE_ENABLED: import.meta.env.VITE_CACHE_ENABLED,
+      VITE_SUPABASE_URL: getEnvVar('VITE_SUPABASE_URL'),
+      VITE_SUPABASE_PUBLISHABLE_KEY: getEnvVar('VITE_SUPABASE_PUBLISHABLE_KEY'),
+      VITE_SUPABASE_PROJECT_ID: getEnvVar('VITE_SUPABASE_PROJECT_ID'),
+      VITE_SUPABASE_POOLER_URL: getEnvVar('VITE_SUPABASE_POOLER_URL'),
+      VITE_REDIS_URL: getEnvVar('VITE_REDIS_URL'),
+      VITE_REDIS_TOKEN: getEnvVar('VITE_REDIS_TOKEN'),
+      VITE_CACHE_ENABLED: getEnvVar('VITE_CACHE_ENABLED'),
       MODE: import.meta.env.MODE,
       DEV: import.meta.env.DEV,
       PROD: import.meta.env.PROD,
@@ -86,3 +112,4 @@ export const env = validateEnv();
 export const isDevelopment = env.MODE === 'development';
 export const isProduction = env.MODE === 'production';
 export const isTest = env.MODE === 'test';
+
