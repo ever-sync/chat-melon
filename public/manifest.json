@@ -1,7 +1,7 @@
 {
-  "name": "Nucleus - IA + CRM",
-  "short_name": "Nucleus",
-  "description": "O Nucleus une Chat + CRM + Automação + IA em um único fluxo. Cada conversa vira contato, negócio e histórico automaticamente.",
+  "name": "PerinIA - IA + CRM",
+  "short_name": "PerinIA",
+  "description": "O PerinIA une Chat + CRM + Automação + IA em um único fluxo. Cada conversa vira contato, negócio e histórico automaticamente.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

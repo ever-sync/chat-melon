@@ -222,7 +222,7 @@ export function AppSidebar() {
             <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">
               <div className="w-4 h-4 rounded-full border-2 border-white"></div>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">Nucleus</span>
+            <span className="text-xl font-bold text-white tracking-tight">PerinIA</span>
           </div>
         ) : (
           <div className="w-9 h-9 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">

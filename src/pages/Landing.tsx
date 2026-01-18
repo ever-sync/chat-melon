@@ -67,7 +67,7 @@ const Landing = () => {
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 rounded-full border-2 border-white"></div>
             </div>
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
           </div>
 
           {/* Navigation */}
@@ -140,7 +140,7 @@ const Landing = () => {
           </h1>
 
           <p className="text-xl text-slate-500 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
-            O Nucleus une Chat + CRM + Automação + IA em um único fluxo.
+            O PerinIA une Chat + CRM + Automação + IA em um único fluxo.
             <br />
             
           </p>
@@ -346,7 +346,7 @@ const Landing = () => {
               Tudo que você precisa em um só lugar
             </h2>
             <p className="text-lg text-slate-500">
-              O Nucleus unifica suas ferramentas de comunicação, vendas e gestão para que você possa
+              O PerinIA unifica suas ferramentas de comunicação, vendas e gestão para que você possa
               focar no que importa: crescer.
             </p>
           </div>
@@ -403,7 +403,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Integrações</h3>
               <p className="text-slate-500 leading-relaxed">
-                Conecte com suas ferramentas via Webhooks e API. O Nucleus não te prende — ele vira o hub da sua operação.
+                Conecte com suas ferramentas via Webhooks e API. O PerinIA não te prende — ele vira o hub da sua operação.
               </p>
             </div>
           </div>
@@ -418,7 +418,7 @@ const Landing = () => {
               Soluções para cada time.
             </h2>
             <p className="text-lg text-slate-500">
-              O Nucleus se adapta ao fluxo real da sua empresa — sem você ter que mudar o jeito de trabalhar.
+              O PerinIA se adapta ao fluxo real da sua empresa — sem você ter que mudar o jeito de trabalhar.
             </p>
           </div>
 
@@ -527,7 +527,7 @@ const Landing = () => {
                 to="#"
                 className="text-lg font-semibold flex items-center gap-2 hover:gap-4 transition-all group"
               >
-                Mais sobre o Nucleus →
+                Mais sobre o PerinIA →
               </Link>
             </div>
             {/* Right Visual */}
@@ -557,7 +557,7 @@ const Landing = () => {
             </h2>
             <p className="text-xl text-slate-300 leading-relaxed mb-12">
               A maioria das ferramentas te entrega recursos soltos. <br className="hidden md:block" />
-              O Nucleus te entrega fluxo: atendimento organizado + CRM conectado + automação + IA aplicada. <br className="hidden md:block" />
+              O PerinIA te entrega fluxo: atendimento organizado + CRM conectado + automação + IA aplicada. <br className="hidden md:block" />
               <strong>Resultado:</strong> menos retrabalho, mais velocidade e um time inteiro operando no mesmo padrão.
             </p>
           </div>
@@ -793,7 +793,7 @@ const Landing = () => {
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <Layout className="w-6 h-6" />
               </div>
-              <h3 className="font-bold text-lg mb-2">Blog do Nucleus</h3>
+              <h3 className="font-bold text-lg mb-2">Blog da PerinIA</h3>
               <p className="text-indigo-200 text-sm">
                 Dicas de vendas, atendimento e novidades do produto.
               </p>
@@ -807,7 +807,7 @@ const Landing = () => {
               </div>
               <h3 className="font-bold text-lg mb-2">Documentação API</h3>
               <p className="text-indigo-200 text-sm">
-                Guia completo para desenvolvedores integrarem com o Nucleus.
+                Guia completo para desenvolvedores integrarem com o PerinIA.
               </p>
             </a>
             <a
@@ -845,27 +845,27 @@ const Landing = () => {
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1">
                 <AccordionTrigger className="text-lg font-semibold text-slate-800">
-                  Como o Nucleus é diferente de outros CRMs?
+                  Como o PerinIA é diferente de outros CRMs?
                 </AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  O Nucleus não apenas armazena dados — ele os entende. Desde resumir interações com
-                  clientes até sugerir próximos passos, o Nucleus é como um copiloto que ajuda você
+                  O PerinIA não apenas armazena dados — ele os entende. Desde resumir interações com
+                  clientes até sugerir próximos passos, o PerinIA é como um copiloto que ajuda você
                   a agir mais rápido e com mais confiança.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2">
                 <AccordionTrigger className="text-lg font-semibold text-slate-800">
-                  O Nucleus ajuda minha equipe a economizar tempo?
+                  O PerinIA ajuda minha equipe a economizar tempo?
                 </AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
-                  Com certeza. O Nucleus automatiza tarefas rotineiras, agenda acompanhamentos e
+                  Com certeza. O PerinIA automatiza tarefas rotineiras, agenda acompanhamentos e
                   fornece resumos instantâneos de reuniões, permitindo que sua equipe foque em
                   interações de alto valor.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3">
                 <AccordionTrigger className="text-lg font-semibold text-slate-800">
-                  É difícil configurar o Nucleus?
+                  É difícil configurar o PerinIA?
                 </AccordionTrigger>
                 <AccordionContent className="text-slate-600 text-base leading-relaxed">
                   De jeito nenhum. Oferecemos um processo de integração simples, e nossa equipe de
@@ -917,7 +917,7 @@ const Landing = () => {
                   <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                     <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                   </div>
-                  <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                 </div>
                 <h3 className="text-3xl font-bold text-slate-400 leading-tight">
                   Insights de Clientes,{' '}
@@ -931,7 +931,7 @@ const Landing = () => {
                 <ul className="space-y-4 text-slate-500">
                   <li>
                     <a href="#" className="hover:text-indigo-600">
-                      Feed Nucleus
+                      Feed PerinIA
                     </a>
                   </li>
                   <li>
@@ -1001,7 +1001,7 @@ const Landing = () => {
             </div>
 
             <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
-              <p>Copyright 2025, Todos os direitos reservados por Nucleus</p>
+              <p>Copyright 2025, Todos os direitos reservados por PerinIA</p>
               <div className="flex gap-6">
                 <a href="#" className="hover:text-indigo-600">
                   Política de Privacidade

@@ -54,7 +54,7 @@ const Educacao = () => {
                         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                             <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                         </div>
-                        <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                        <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                     </Link>
 
                     {/* Navigation */}
@@ -128,7 +128,7 @@ const Educacao = () => {
 
                     {/* Subheadline */}
                     <p className="text-xl text-slate-500 mb-10 max-w-3xl mx-auto leading-relaxed font-medium text-center">
-                        O Nucleus centraliza atendimentos de faculdades, escolas, cursos livres e EAD em um só fluxo.
+                        O PerinIA centraliza atendimentos de faculdades, escolas, cursos livres e EAD em um só fluxo.
                         <br />
                         Cada conversa vira lead, oportunidade, matrícula, renovação ou reativação, sem perder aluno no meio do caminho.
                     </p>
@@ -197,14 +197,14 @@ const Educacao = () => {
                             </div>
 
                             <p className="text-xl font-bold text-indigo-600 text-center">
-                                Com o Nucleus, cada contato vira um registro vivo no CRM, não um chat perdido.
+                                Com o PerinIA, cada contato vira um registro vivo no CRM, não um chat perdido.
                             </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Seção 2 – Como o Nucleus ajuda instituições de ensino */}
+            {/* Seção 2 – Como o PerinIA ajuda instituições de ensino */}
             <section className="py-24 bg-white">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
@@ -286,7 +286,7 @@ const Educacao = () => {
                                 <div>
                                     <h3 className="text-2xl font-bold text-slate-900 mb-3">Captação de leads de campanhas</h3>
                                     <p className="text-slate-600 leading-relaxed">
-                                        O lead entra por formulário ou landing page, o Nucleus cria o contato e dispara uma mensagem de boas-vindas com informações do curso, série ou turma, mais um CTA para falar com um atendente.
+                                        O lead entra por formulário ou landing page, o PerinIA cria o contato e dispara uma mensagem de boas-vindas com informações do curso, série ou turma, mais um CTA para falar com um atendente.
                                     </p>
                                 </div>
                             </div>
@@ -470,7 +470,7 @@ const Educacao = () => {
 
                         <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/20">
                             <p className="text-xl text-indigo-100 leading-relaxed mb-8 italic">
-                                "A IA do Nucleus aprende com seus regulamentos, manuais, políticas, FAQs, PDFs de cursos, propostas comerciais e histórico de atendimento, seja em faculdade, escola, curso técnico ou EAD."
+                                "A IA do PerinIA aprende com seus regulamentos, manuais, políticas, FAQs, PDFs de cursos, propostas comerciais e histórico de atendimento, seja em faculdade, escola, curso técnico ou EAD."
                             </p>
 
                             <div className="space-y-4 mb-8">
@@ -502,7 +502,7 @@ const Educacao = () => {
                                     href="#"
                                     className="inline-flex items-center gap-2 text-lg font-semibold text-white hover:text-indigo-200 transition-all"
                                 >
-                                    Ver Nucleus em ação para educação →
+                                    Ver PerinIA em ação para educação →
                                 </a>
                             </div>
                         </div>
@@ -548,7 +548,7 @@ const Educacao = () => {
                                     <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                                         <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                                     </div>
-                                    <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                                    <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                                 </Link>
                                 <p className="text-slate-500">
                                     IA + CRM para instituições de ensino que não perdem alunos
@@ -584,7 +584,7 @@ const Educacao = () => {
                         </div>
 
                         <div className="border-t border-slate-200 pt-8 text-center text-slate-500 text-sm">
-                            © 2024 Nucleus. Todos os direitos reservados.
+                            © 2024 PerinIA. Todos os direitos reservados.
                         </div>
                     </div>
                 </div>

@@ -54,7 +54,7 @@ const Concessionarias = () => {
                         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                             <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                         </div>
-                        <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                        <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                     </Link>
 
                     {/* Navigation */}
@@ -128,7 +128,7 @@ const Concessionarias = () => {
 
                     {/* Subheadline */}
                     <p className="text-xl text-slate-500 mb-10 max-w-3xl mx-auto leading-relaxed font-medium text-center">
-                        O Nucleus organiza WhatsApp, portais, Instagram e atendimento de loja em um único fluxo.
+                        O PerinIA organiza WhatsApp, portais, Instagram e atendimento de loja em um único fluxo.
                         <br />
                         Cada conversa vira lead, proposta, test drive, negociação e venda automaticamente, sem planilha e sem perder oportunidade no meio do caminho.
                     </p>
@@ -193,14 +193,14 @@ const Concessionarias = () => {
                             </div>
 
                             <p className="text-xl font-bold text-indigo-600 text-center">
-                                O Nucleus entra para organizar esse cenário.
+                                O PerinIA entra para organizar esse cenário.
                             </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Seção 2 – Como o Nucleus ajuda concessionárias */}
+            {/* Seção 2 – Como o PerinIA ajuda concessionárias */}
             <section className="py-24 bg-white">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
@@ -216,7 +216,7 @@ const Concessionarias = () => {
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 mb-3">WhatsApp e portais integrados</h3>
                             <p className="text-slate-600 leading-relaxed">
-                                Conversas de WhatsApp e leads de portais entram direto no Nucleus e viram contatos no CRM.
+                                Conversas de WhatsApp e leads de portais entram direto no PerinIA e viram contatos no CRM.
                             </p>
                         </div>
 
@@ -285,7 +285,7 @@ const Concessionarias = () => {
                                 <div>
                                     <h3 className="text-2xl font-bold text-slate-900 mb-3">Lead de portal com resposta rápida</h3>
                                     <p className="text-slate-600 leading-relaxed">
-                                        O lead entra pelo portal, vira contato no Nucleus e recebe uma mensagem de boas-vindas no WhatsApp enquanto o vendedor é notificado.
+                                        O lead entra pelo portal, vira contato no PerinIA e recebe uma mensagem de boas-vindas no WhatsApp enquanto o vendedor é notificado.
                                     </p>
                                 </div>
                             </div>
@@ -469,7 +469,7 @@ const Concessionarias = () => {
 
                         <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/20">
                             <p className="text-xl text-indigo-100 leading-relaxed mb-8 italic">
-                                "A IA do Nucleus aprende com suas fichas técnicas, tabela de preços, políticas de financiamento, scripts de abordagem e histórico de conversas."
+                                "A IA do PerinIA aprende com suas fichas técnicas, tabela de preços, políticas de financiamento, scripts de abordagem e histórico de conversas."
                             </p>
 
                             <div className="space-y-4 mb-8">
@@ -501,7 +501,7 @@ const Concessionarias = () => {
                                     href="#"
                                     className="inline-flex items-center gap-2 text-lg font-semibold text-white hover:text-indigo-200 transition-all"
                                 >
-                                    Ver Nucleus em ação para concessionárias →
+                                    Ver PerinIA em ação para concessionárias →
                                 </a>
                             </div>
                         </div>
@@ -518,7 +518,7 @@ const Concessionarias = () => {
                         </h2>
 
                         <p className="text-xl text-slate-600 leading-relaxed mb-8">
-                            Use o Nucleus para disparar mensagens em escala com critério:
+                            Use o PerinIA para disparar mensagens em escala com critério:
                         </p>
 
                         <ul className="space-y-4 mb-8">
@@ -593,7 +593,7 @@ const Concessionarias = () => {
                                     <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                                         <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                                     </div>
-                                    <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                                    <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                                 </Link>
                                 <p className="text-slate-500">
                                     IA + CRM para concessionárias que não perdem lead
@@ -629,7 +629,7 @@ const Concessionarias = () => {
                         </div>
 
                         <div className="border-t border-slate-200 pt-8 text-center text-slate-500 text-sm">
-                            © 2024 Nucleus. Todos os direitos reservados.
+                            © 2024 PerinIA. Todos os direitos reservados.
                         </div>
                     </div>
                 </div>

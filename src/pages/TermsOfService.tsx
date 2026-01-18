@@ -12,10 +12,10 @@ const TermsOfService = () => {
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
-              <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-4 h-4 rounded-full border-2 border-white"></div>
             </div>
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
           </Link>
 
           <nav className="hidden md:flex items-center bg-gray-50/80 px-2 py-1.5 rounded-full border border-gray-100 shadow-sm">
@@ -65,7 +65,7 @@ const TermsOfService = () => {
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">1. Termos</h3>
           <p>
-            Ao acessar ao site Clara, concorda em cumprir estes termos de serviço, todas as leis e
+            Ao acessar ao site PerinIA, concorda em cumprir estes termos de serviço, todas as leis e
             regulamentos aplicáveis e concorda que é responsável pelo cumprimento de todas as leis
             locais aplicáveis. Se você não concordar com algum desses termos, está proibido de usar
             ou acessar este site. Os materiais contidos neste site são protegidos pelas leis de
@@ -75,7 +75,7 @@ const TermsOfService = () => {
           <h3 className="text-2xl font-bold text-slate-800 mt-8">2. Uso de Licença</h3>
           <p>
             É concedida permissão para baixar temporariamente uma cópia dos materiais (informações
-            ou software) no site Clara , apenas para visualização transitória pessoal e não
+            ou software) no site PerinIA , apenas para visualização transitória pessoal e não
             comercial. Esta é a concessão de uma licença, não uma transferência de título e, sob
             esta licença, você não pode:
           </p>
@@ -87,7 +87,7 @@ const TermsOfService = () => {
             </li>
             <li>
               tentar descompilar ou fazer engenharia reversa de qualquer software contido no site
-              Clara;
+              PerinIA;
             </li>
             <li>
               remover quaisquer direitos autorais ou outras notações de propriedade dos materiais;
@@ -100,31 +100,31 @@ const TermsOfService = () => {
           </ul>
           <p>
             Esta licença será automaticamente rescindida se você violar alguma dessas restrições e
-            poderá ser rescindida por Clara a qualquer momento. Ao encerrar a visualização desses
+            poderá ser rescindida por PerinIA a qualquer momento. Ao encerrar a visualização desses
             materiais ou após o término desta licença, você deve apagar todos os materiais baixados
             em sua posse, seja em formato eletrónico ou impresso.
           </p>
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">3. Isenção de responsabilidade</h3>
           <p>
-            Os materiais no site da Clara são fornecidos 'como estão'. Clara não oferece garantias,
+            Os materiais no site da PerinIA são fornecidos 'como estão'. PerinIA não oferece garantias,
             expressas ou implícitas, e, por este meio, isenta e nega todas as outras garantias,
             incluindo, sem limitação, garantias implícitas ou condições de comercialização,
             adequação a um fim específico ou não violação de propriedade intelectual ou outra
             violação de direitos.
           </p>
           <p>
-            Além disso, o Clara não garante ou faz qualquer representação relativa à precisão, aos
+            Além disso, o PerinIA não garante ou faz any representação relativa à precisão, aos
             resultados prováveis ou à confiabilidade do uso dos materiais em seu site ou de outra
             forma relacionado a esses materiais ou em sites vinculados a este site.
           </p>
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">4. Limitações</h3>
           <p>
-            Em nenhum caso o Clara ou seus fornecedores serão responsáveis por quaisquer danos
+            Em nenhum caso o PerinIA ou seus fornecedores serão responsáveis por quaisquer danos
             (incluindo, sem limitação, danos por perda de dados ou lucro ou devido a interrupção dos
-            negócios) decorrentes do uso ou da incapacidade de usar os materiais em Clara, mesmo que
-            Clara ou um representante autorizado da Clara tenha sido notificado oralmente ou por
+            negócios) decorrentes do uso ou da incapacidade de usar os materiais em PerinIA, mesmo que
+            PerinIA ou um representante autorizado da PerinIA tenha sido notificado oralmente ou por
             escrito da possibilidade de tais danos. Como algumas jurisdições não permitem limitações
             em garantias implícitas, ou limitações de responsabilidade por danos conseqüentes ou
             incidentais, essas limitações podem não se aplicar a você.
@@ -132,29 +132,29 @@ const TermsOfService = () => {
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">5. Precisão dos materiais</h3>
           <p>
-            Os materiais exibidos no site da Clara podem incluir erros técnicos, tipográficos ou
-            fotográficos. Clara não garante que qualquer material em seu site seja preciso, completo
-            ou atual. Clara pode fazer alterações nos materiais contidos em seu site a qualquer
-            momento, sem aviso prévio. No entanto, Clara não se compromete a atualizar os materiais.
+            Os materiais exibidos no site da PerinIA podem incluir erros técnicos, tipográficos ou
+            fotográficos. PerinIA não garante que qualquer material em seu site seja preciso, completo
+            ou atual. PerinIA pode fazer alterações nos materiais contidos em seu site a qualquer
+            momento, sem aviso prévio. No entanto, PerinIA não se compromete a atualizar os materiais.
           </p>
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">6. Links</h3>
           <p>
-            O Clara não analisou todos os sites vinculados ao seu site e não é responsável pelo
+            O PerinIA não analisou todos os sites vinculados ao seu site e não é responsável pelo
             conteúdo de nenhum site vinculado. A inclusão de qualquer link não implica endosso por
-            Clara do site. O uso de qualquer site vinculado é por conta e risco do usuário.
+            PerinIA do site. O uso de qualquer site vinculado é por conta e risco do usuário.
           </p>
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">Modificações</h3>
           <p>
-            O Clara pode revisar estes termos de serviço do site a qualquer momento, sem aviso
+            O PerinIA pode revisar estes termos de serviço do site a qualquer momento, sem aviso
             prévio. Ao usar este site, você concorda em ficar vinculado à versão atual desses termos
             de serviço.
           </p>
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">Lei aplicável</h3>
           <p>
-            Estes termos e condições são regidos e interpretados de acordo com as leis do Clara e
+            Estes termos e condições são regidos e interpretados de acordo com as leis do PerinIA e
             você se submete irrevogavelmente à jurisdição exclusiva dos tribunais naquele estado ou
             localidade.
           </p>
@@ -170,12 +170,10 @@ const TermsOfService = () => {
             <div className="grid md:grid-cols-4 gap-12 mb-16">
               <div className="col-span-1 md:col-span-1">
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
-                    <span className="text-white font-bold text-xl tracking-tighter leading-none">
-                      UD
-                    </span>
+                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                   </div>
-                  <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                 </div>
                 <h3 className="text-3xl font-bold text-slate-400 leading-tight">
                   Every Customer Insights,{' '}
@@ -206,7 +204,7 @@ const TermsOfService = () => {
             </div>
 
             <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
-              <p>Copyright {new Date().getFullYear()}, All right reserved by Clara</p>
+              <p>Copyright {new Date().getFullYear()}, All right reserved by PerinIA</p>
               <div className="flex gap-6">
                 <Link to="/privacy-policy" className="hover:text-indigo-600">
                   Privacy policy

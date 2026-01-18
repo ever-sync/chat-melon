@@ -282,7 +282,7 @@ export default function SignUp() {
                 <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                   <div className="w-5 h-5 rounded-full border-2 border-white"></div>
                 </div>
-                <span className="text-white font-bold text-2xl tracking-tight">Nucleus</span>
+                <span className="text-white font-bold text-2xl tracking-tight">PerinIA</span>
               </Link>
             </div>
 
@@ -292,7 +292,7 @@ export default function SignUp() {
 
               <blockquote className="space-y-6">
                 <p className="text-2xl md:text-3xl font-bold text-white leading-tight">
-                  "O Nucleus organizou nosso WhatsApp, CRM e automações. Hoje cada conversa vira uma oportunidade real."
+                  "O PerinIA organizou nosso WhatsApp, CRM e automações. Hoje cada conversa vira uma oportunidade real."
                 </p>
 
                 <footer className="flex items-center gap-4">
@@ -330,7 +330,7 @@ export default function SignUp() {
                 Criar Conta
               </h1>
               <p className="text-lg text-slate-500">
-                Preencha seus dados para começar com o Nucleus.
+                Preencha seus dados para começar com o PerinIA.
               </p>
             </div>
 

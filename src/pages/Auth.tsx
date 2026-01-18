@@ -92,7 +92,7 @@ const Auth = () => {
                 <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                   <div className="w-5 h-5 rounded-full border-2 border-white"></div>
                 </div>
-                <span className="text-white font-bold text-2xl tracking-tight">Nucleus</span>
+                <span className="text-white font-bold text-2xl tracking-tight">PerinIA</span>
               </Link>
             </div>
 
@@ -102,7 +102,7 @@ const Auth = () => {
 
               <blockquote className="space-y-6">
                 <p className="text-2xl md:text-3xl font-bold text-white leading-tight">
-                  "O Nucleus organizou nosso WhatsApp, CRM e automações. Hoje cada conversa vira uma oportunidade real."
+                  "O PerinIA organizou nosso WhatsApp, CRM e automações. Hoje cada conversa vira uma oportunidade real."
                 </p>
 
                 <footer className="flex items-center gap-4">
@@ -128,7 +128,7 @@ const Auth = () => {
             {/* Header */}
             <div className="mb-10">
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
-                Entrar no Nucleus
+                Entrar no PerinIA
               </h1>
               <p className="text-lg text-slate-500">
                 Acesse seu painel com chat, CRM, automação e IA em um só lugar.

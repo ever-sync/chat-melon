@@ -53,7 +53,7 @@ const Imobiliarias = () => {
                         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                             <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                         </div>
-                        <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                        <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                     </Link>
 
                     {/* Navigation */}
@@ -127,7 +127,7 @@ const Imobiliarias = () => {
 
                     {/* Subheadline */}
                     <p className="text-xl text-slate-500 mb-10 max-w-3xl mx-auto leading-relaxed font-medium text-center">
-                        O Nucleus organiza WhatsApp, leads de portais e visitas em um único fluxo.
+                        O PerinIA organiza WhatsApp, leads de portais e visitas em um único fluxo.
                         <br />
                         Cada conversa vira contato, oportunidade, follow-up e histórico automaticamente, sem planilha e sem corretor no escuro.
                     </p>
@@ -192,14 +192,14 @@ const Imobiliarias = () => {
                             </div>
 
                             <p className="text-xl font-bold text-indigo-600 text-center">
-                                O Nucleus entra para organizar esse fluxo.
+                                O PerinIA entra para organizar esse fluxo.
                             </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Seção 2 – Como o Nucleus ajuda sua imobiliária */}
+            {/* Seção 2 – Como o PerinIA ajuda sua imobiliária */}
             <section className="py-24 bg-white">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
@@ -284,7 +284,7 @@ const Imobiliarias = () => {
                                 <div>
                                     <h3 className="text-2xl font-bold text-slate-900 mb-3">Captação de leads dos portais</h3>
                                     <p className="text-slate-600 leading-relaxed">
-                                        O lead chega pelo portal, vira contato no Nucleus e recebe uma primeira mensagem personalizada em poucos segundos.
+                                        O lead chega pelo portal, vira contato no PerinIA e recebe uma primeira mensagem personalizada em poucos segundos.
                                     </p>
                                 </div>
                             </div>
@@ -434,7 +434,7 @@ const Imobiliarias = () => {
 
                         <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/20">
                             <p className="text-xl text-indigo-100 leading-relaxed mb-8 italic">
-                                "Nada de IA genérica. O Nucleus aprende com seus materiais: fichas de imóveis, contratos, regulamentos, scripts de atendimento e histórico de conversas."
+                                "Nada de IA genérica. O PerinIA aprende com seus materiais: fichas de imóveis, contratos, regulamentos, scripts de atendimento e histórico de conversas."
                             </p>
 
                             <div className="space-y-4 mb-8">
@@ -466,7 +466,7 @@ const Imobiliarias = () => {
                                     href="#"
                                     className="inline-flex items-center gap-2 text-lg font-semibold text-white hover:text-indigo-200 transition-all"
                                 >
-                                    Ver Nucleus em ação para imobiliárias →
+                                    Ver PerinIA em ação para imobiliárias →
                                 </a>
                             </div>
                         </div>
@@ -512,7 +512,7 @@ const Imobiliarias = () => {
                                     <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                                         <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                                     </div>
-                                    <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                                    <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                                 </Link>
                                 <p className="text-slate-500">
                                     IA + CRM para imobiliárias que não perdem lead
@@ -548,7 +548,7 @@ const Imobiliarias = () => {
                         </div>
 
                         <div className="border-t border-slate-200 pt-8 text-center text-slate-500 text-sm">
-                            © 2024 Nucleus. Todos os direitos reservados.
+                            © 2024 PerinIA. Todos os direitos reservados.
                         </div>
                     </div>
                 </div>

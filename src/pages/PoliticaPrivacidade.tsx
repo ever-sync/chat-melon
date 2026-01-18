@@ -15,7 +15,7 @@ const PoliticaPrivacidade = () => {
                         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                             <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                         </div>
-                        <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                        <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                     </Link>
 
                     <Link to="/">
@@ -55,10 +55,10 @@ const PoliticaPrivacidade = () => {
                             </div>
                             <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
                                 <p className="text-slate-700 leading-relaxed mb-4">
-                                    A Nucleus ("nós", "nosso" ou "nossa") está comprometida em proteger a privacidade e segurança dos dados pessoais de nossos usuários. Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos suas informações ao utilizar nossa plataforma de CRM integrado com IA.
+                                    A PerinIA ("nós", "nosso" ou "nossa") está comprometida em proteger a privacidade e segurança dos dados pessoais de nossos usuários. Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos suas informações ao utilizar nossa plataforma de CRM integrado com IA.
                                 </p>
                                 <p className="text-slate-700 leading-relaxed m-0">
-                                    Ao utilizar o Nucleus, você concorda com as práticas descritas nesta política.
+                                    Ao utilizar o PerinIA, você concorda com as práticas descritas nesta política.
                                 </p>
                             </div>
                         </section>
@@ -237,10 +237,10 @@ const PoliticaPrivacidade = () => {
                                 </p>
                                 <div className="space-y-2">
                                     <p className="text-white">
-                                        <strong>E-mail:</strong> privacidade@nucleus.com.br
+                                        <strong>E-mail:</strong> privacidade@perinia.com.br
                                     </p>
                                     <p className="text-white">
-                                        <strong>Encarregado de Dados (DPO):</strong> dpo@nucleus.com.br
+                                        <strong>Encarregado de Dados (DPO):</strong> dpo@perinia.com.br
                                     </p>
                                 </div>
                             </div>
@@ -261,7 +261,7 @@ const PoliticaPrivacidade = () => {
             {/* Footer */}
             <footer className="border-t border-slate-200 py-8">
                 <div className="container mx-auto px-6 text-center text-slate-500 text-sm">
-                    <p>© 2024 Nucleus. Todos os direitos reservados.</p>
+                    <p>© 2024 PerinIA. Todos os direitos reservados.</p>
                 </div>
             </footer>
         </div>

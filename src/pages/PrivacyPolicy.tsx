@@ -12,10 +12,10 @@ const PrivacyPolicy = () => {
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
-              <span className="text-white font-bold text-xl tracking-tighter leading-none">UD</span>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-4 h-4 rounded-full border-2 border-white"></div>
             </div>
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
           </Link>
 
           <nav className="hidden md:flex items-center bg-gray-50/80 px-2 py-1.5 rounded-full border border-gray-100 shadow-sm">
@@ -66,8 +66,8 @@ const PrivacyPolicy = () => {
           <p>Última atualização: {new Date().getFullYear()}</p>
 
           <p>
-            A sua privacidade é importante para nós. É política do Clara respeitar a sua privacidade
-            em relação a qualquer informação sua que possamos coletar no site Clara, e outros sites
+            A sua privacidade é importante para nós. É política do PerinIA respeitar a sua privacidade
+            em relação a qualquer informação sua que possamos coletar no site PerinIA, e outros sites
             que possuímos e operamos.
           </p>
 
@@ -103,7 +103,7 @@ const PrivacyPolicy = () => {
 
           <h3 className="text-2xl font-bold text-slate-800 mt-8">5. Compromisso do Usuário</h3>
           <p>
-            O usuário se compromete a fazer uso adequado dos conteúdos e da informação que o Clara
+            O usuário se compromete a fazer uso adequado dos conteúdos e da informação que o PerinIA
             oferece no site e com caráter enunciativo, mas não limitativo:
           </p>
           <ul className="list-disc pl-6 space-y-2">
@@ -117,7 +117,7 @@ const PrivacyPolicy = () => {
               humanos;
             </li>
             <li>
-              C) Não causar danos aos sistemas físicos (hardwares) e lógicos (softwares) do Clara,
+              C) Não causar danos aos sistemas físicos (hardwares) e lógicos (softwares) do PerinIA,
               de seus fornecedores ou terceiros, para introduzir ou disseminar vírus informáticos ou
               quaisquer outros sistemas de hardware ou software que sejam capazes de causar danos
               anteriormente mencionados.
@@ -142,12 +142,10 @@ const PrivacyPolicy = () => {
             <div className="grid md:grid-cols-4 gap-12 mb-16">
               <div className="col-span-1 md:col-span-1">
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="bg-indigo-600 rounded-lg p-1.5 flex items-center justify-center">
-                    <span className="text-white font-bold text-xl tracking-tighter leading-none">
-                      UD
-                    </span>
+                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                   </div>
-                  <span className="text-2xl font-bold text-slate-900 tracking-tight">CLARA</span>
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                 </div>
                 <h3 className="text-3xl font-bold text-slate-400 leading-tight">
                   Every Customer Insights,{' '}
@@ -178,7 +176,7 @@ const PrivacyPolicy = () => {
             </div>
 
             <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
-              <p>Copyright {new Date().getFullYear()}, All right reserved by Clara</p>
+              <p>Copyright {new Date().getFullYear()}, All right reserved by PerinIA</p>
               <div className="flex gap-6">
                 <Link
                   to="/privacy-policy"

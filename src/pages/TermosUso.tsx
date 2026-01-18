@@ -15,7 +15,7 @@ const TermosUso = () => {
                         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                             <div className="w-4 h-4 rounded-full border-2 border-white"></div>
                         </div>
-                        <span className="text-2xl font-bold text-slate-900 tracking-tight">Nucleus</span>
+                        <span className="text-2xl font-bold text-slate-900 tracking-tight">PerinIA</span>
                     </Link>
 
                     <Link to="/">
@@ -55,7 +55,7 @@ const TermosUso = () => {
                             </div>
                             <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
                                 <p className="text-slate-700 leading-relaxed mb-4">
-                                    Ao acessar e usar a plataforma Nucleus, você concorda em cumprir e estar vinculado a estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não deve usar nossos serviços.
+                                    Ao acessar e usar a plataforma PerinIA, você concorda em cumprir e estar vinculado a estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não deve usar nossos serviços.
                                 </p>
                                 <p className="text-slate-700 leading-relaxed m-0">
                                     Reservamo-nos o direito de modificar estes termos a qualquer momento. Mudanças significativas serão comunicadas com antecedência.
@@ -73,7 +73,7 @@ const TermosUso = () => {
                             </div>
                             <div className="bg-white rounded-xl p-6 border border-slate-200">
                                 <p className="text-slate-700 leading-relaxed mb-4">
-                                    O Nucleus é uma plataforma SaaS (Software as a Service) que oferece:
+                                    O PerinIA é uma plataforma SaaS (Software as a Service) que oferece:
                                 </p>
                                 <ul className="space-y-2 text-slate-700">
                                     <li className="flex items-start gap-2">
@@ -109,7 +109,7 @@ const TermosUso = () => {
                                 <h2 className="text-2xl font-bold text-slate-900 m-0">3. Uso Permitido</h2>
                             </div>
                             <div className="bg-gradient-to-br from-emerald-50 to-white rounded-xl p-6 border border-emerald-100">
-                                <p className="text-slate-700 leading-relaxed mb-4 font-semibold">Você PODE usar o Nucleus para:</p>
+                                <p className="text-slate-700 leading-relaxed mb-4 font-semibold">Você PODE usar o PerinIA para:</p>
                                 <ul className="space-y-2 text-slate-700">
                                     <li className="flex items-start gap-2">
                                         <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
@@ -144,7 +144,7 @@ const TermosUso = () => {
                                 <h2 className="text-2xl font-bold text-slate-900 m-0">4. Uso Proibido</h2>
                             </div>
                             <div className="bg-gradient-to-br from-rose-50 to-white rounded-xl p-6 border border-rose-100">
-                                <p className="text-slate-700 leading-relaxed mb-4 font-semibold">Você NÃO PODE usar o Nucleus para:</p>
+                                <p className="text-slate-700 leading-relaxed mb-4 font-semibold">Você NÃO PODE usar o PerinIA para:</p>
                                 <ul className="space-y-2 text-slate-700">
                                     <li className="flex items-start gap-2">
                                         <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
@@ -222,7 +222,7 @@ const TermosUso = () => {
                             </div>
                             <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
                                 <p className="text-slate-700 leading-relaxed mb-4">
-                                    Todo o conteúdo, design, código-fonte, marcas e outros elementos da plataforma Nucleus são propriedade exclusiva da empresa e estão protegidos por leis de direitos autorais e propriedade intelectual.
+                                    Todo o conteúdo, design, código-fonte, marcas e outros elementos da plataforma PerinIA são propriedade exclusiva da empresa e estão protegidos por leis de direitos autorais e propriedade intelectual.
                                 </p>
                                 <p className="text-slate-700 leading-relaxed">
                                     Seus dados e conteúdos inseridos na plataforma permanecem sua propriedade. Concedemos a nós uma licença limitada para processar esses dados apenas para fornecer o serviço.
@@ -240,7 +240,7 @@ const TermosUso = () => {
                             </div>
                             <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
                                 <p className="text-slate-700 leading-relaxed mb-4">
-                                    O Nucleus é fornecido "como está". Não garantimos que o serviço será ininterrupto ou livre de erros, embora nos esforcemos para manter alta disponibilidade.
+                                    O PerinIA é fornecido "como está". Não garantimos que o serviço será ininterrupto ou livre de erros, embora nos esforcemos para manter alta disponibilidade.
                                 </p>
                                 <p className="text-slate-700 leading-relaxed mb-4">
                                     Não nos responsabilizamos por:
@@ -293,7 +293,7 @@ const TermosUso = () => {
                                     <div>
                                         <h3 className="font-bold text-slate-900 mb-2">Contato</h3>
                                         <p className="text-slate-700">
-                                            Para dúvidas sobre estes termos, entre em contato: <strong>juridico@nucleus.com.br</strong>
+                                            Para dúvidas sobre estes termos, entre em contato: <strong>juridico@perinia.com.br</strong>
                                         </p>
                                     </div>
                                 </div>
@@ -315,7 +315,7 @@ const TermosUso = () => {
             {/* Footer */}
             <footer className="border-t border-slate-200 py-8">
                 <div className="container mx-auto px-6 text-center text-slate-500 text-sm">
-                    <p>© 2024 Nucleus. Todos os direitos reservados.</p>
+                    <p>© 2024 PerinIA. Todos os direitos reservados.</p>
                 </div>
             </footer>
         </div>
