@@ -7838,6 +7838,7 @@ export type Database = {
           phone: string | null
           piloto_pro_activated_at: string | null
           piloto_pro_subscriber: boolean | null
+          current_session_id: string | null
           updated_at: string
         }
         Insert: {
@@ -7858,6 +7859,7 @@ export type Database = {
           phone?: string | null
           piloto_pro_activated_at?: string | null
           piloto_pro_subscriber?: boolean | null
+          current_session_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -7878,6 +7880,7 @@ export type Database = {
           phone?: string | null
           piloto_pro_activated_at?: string | null
           piloto_pro_subscriber?: boolean | null
+          current_session_id?: string | null
           updated_at?: string
         }
         Relationships: [
