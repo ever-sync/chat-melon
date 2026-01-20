@@ -44,6 +44,8 @@ interface Plan {
   is_free_plan: boolean;
   is_active: boolean;
   features: Record<string, any>;
+  asaas_product_id: string | null;
+  asaas_sync_status: string | null;
   created_at: string;
 }
 
@@ -59,6 +61,7 @@ interface PlanFormData {
   trial_days: string;
   is_free_plan: boolean;
   is_active: boolean;
+  asaas_product_id: string;
 }
 
 export function PlanManager() {
@@ -77,6 +80,7 @@ export function PlanManager() {
     trial_days: '3',
     is_free_plan: false,
     is_active: true,
+    asaas_product_id: '',
   });
 
   const queryClient = useQueryClient();
@@ -101,11 +105,16 @@ export function PlanManager() {
       const { error } = await supabase.from('subscription_plans').insert({
         slug: data.slug,
         name: data.name,
-        price_monthly: parseFloat(data.price_monthly),
-        price_yearly: parseFloat(data.price_yearly),
+        description: data.description,
+        price_monthly: parseFloat(data.price_monthly) || 0,
+        price_yearly: parseFloat(data.price_yearly) || 0,
         max_companies: data.max_companies ? parseInt(data.max_companies) : null,
         max_users: data.max_users ? parseInt(data.max_users) : null,
         max_conversations: data.max_conversations ? parseInt(data.max_conversations) : null,
+        trial_days: parseInt(data.trial_days) || 0,
+        is_free_plan: data.is_free_plan,
+        is_active: data.is_active,
+        asaas_product_id: data.asaas_product_id || null,
         features: {},
       });
 
@@ -130,11 +139,16 @@ export function PlanManager() {
         .update({
           slug: data.slug,
           name: data.name,
-          price_monthly: parseFloat(data.price_monthly),
-          price_yearly: parseFloat(data.price_yearly),
+          description: data.description,
+          price_monthly: parseFloat(data.price_monthly) || 0,
+          price_yearly: parseFloat(data.price_yearly) || 0,
           max_companies: data.max_companies ? parseInt(data.max_companies) : null,
           max_users: data.max_users ? parseInt(data.max_users) : null,
           max_conversations: data.max_conversations ? parseInt(data.max_conversations) : null,
+          trial_days: parseInt(data.trial_days) || 0,
+          is_free_plan: data.is_free_plan,
+          is_active: data.is_active,
+          asaas_product_id: data.asaas_product_id || null,
         })
         .eq('id', id);
 
@@ -172,11 +186,16 @@ export function PlanManager() {
     setFormData({
       slug: '',
       name: '',
+      description: '',
       price_monthly: '',
       price_yearly: '',
       max_companies: '',
       max_users: '',
       max_conversations: '',
+      trial_days: '3',
+      is_free_plan: false,
+      is_active: true,
+      asaas_product_id: '',
     });
   };
 
@@ -189,11 +208,16 @@ export function PlanManager() {
     setFormData({
       slug: plan.slug,
       name: plan.name,
+      description: plan.description || '',
       price_monthly: plan.price_monthly.toString(),
       price_yearly: plan.price_yearly.toString(),
       max_companies: plan.max_companies?.toString() || '',
       max_users: plan.max_users?.toString() || '',
       max_conversations: plan.max_conversations?.toString() || '',
+      trial_days: plan.trial_days?.toString() || '3',
+      is_free_plan: plan.is_free_plan || false,
+      is_active: plan.is_active !== false,
+      asaas_product_id: plan.asaas_product_id || '',
     });
     setEditingPlan(plan);
   };
@@ -362,6 +386,18 @@ export function PlanManager() {
                 </div>
               </div>
 
+              {/* Descrição */}
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição do Plano</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Descreva as principais vantagens deste plano..."
+                  rows={3}
+                />
+              </div>
+
               {/* Preços */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -432,8 +468,59 @@ export function PlanManager() {
                     />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="trial_days">Dias de Trial</Label>
+                    <Input
+                      id="trial_days"
+                      type="number"
+                      min="0"
+                      value={formData.trial_days}
+                      onChange={(e) => setFormData({ ...formData, trial_days: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex gap-4 items-end pb-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is_free_plan"
+                        checked={formData.is_free_plan}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, is_free_plan: checked as boolean })
+                        }
+                      />
+                      <Label htmlFor="is_free_plan">Plano Free</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is_active"
+                        checked={formData.is_active}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, is_active: checked as boolean })
+                        }
+                      />
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+
+              {/* Integração Asaas */}
+              <div className="space-y-4 pt-4 border-t">
+                <Label className="text-base">Integração Asaas (Pagamentos)</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="asaas_product_id">ID do Produto Asaas</Label>
+                  <Input
+                    id="asaas_product_id"
+                    value={formData.asaas_product_id}
+                    onChange={(e) => setFormData({ ...formData, asaas_product_id: e.target.value })}
+                    placeholder="Opcional - vincule a um produto no Asaas"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Cole aqui o ID do produto criado no painel do Asaas para vincular pagamentos automáticos.
+                  </p>
+                </div>
+              </div>
 
             <DialogFooter>
               <Button

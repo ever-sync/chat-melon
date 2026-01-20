@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { OnboardingGuide } from './onboarding/OnboardingGuide';
 import { PageLoadingSkeleton } from './LoadingFallback';
+import { SubscriptionBarrier } from './subscription/SubscriptionBarrier';
 
 interface RequireCompanyProps {
   children: React.ReactNode;
@@ -182,5 +183,10 @@ export function RequireCompany({ children }: RequireCompanyProps) {
     return <OnboardingGuide isOpen={showOnboarding} onComplete={handleOnboardingComplete} />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <SubscriptionBarrier />
+    </>
+  );
 }

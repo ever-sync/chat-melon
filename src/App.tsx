@@ -82,6 +82,7 @@ const Educacao = lazy(() => import('./pages/Educacao'));
 const PoliticaPrivacidade = lazy(() => import('./pages/PoliticaPrivacidade'));
 const TermosUso = lazy(() => import('./pages/TermosUso'));
 const TestEmailConfig = lazy(() => import('./pages/TestEmailConfig'));
+const Checkout = lazy(() => import('./pages/Checkout'));
 const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
 const GmailCallback = lazy(() => import('./pages/oauth/GmailCallback'));
 
@@ -122,6 +123,7 @@ const App = () => {
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/oauth/gmail-callback" element={<GmailCallback />} />
                     <Route path="/signup" element={<SignUp />} />
+                    <Route path="/checkout" element={<Checkout />} />
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/set-password" element={<SetPassword />} />
                     <Route path="/test-email-config" element={<TestEmailConfig />} />

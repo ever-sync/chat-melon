@@ -67,6 +67,33 @@ export type Database = {
           },
         ]
       }
+      asaas_config: {
+        Row: {
+          created_at: string | null
+          default_payment_methods: string[] | null
+          id: string
+          sandbox_mode: boolean | null
+          updated_at: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_payment_methods?: string[] | null
+          id?: string
+          sandbox_mode?: boolean | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_payment_methods?: string[] | null
+          id?: string
+          sandbox_mode?: boolean | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           badge_url: string | null
@@ -2087,6 +2114,9 @@ export type Database = {
       }
       companies: {
         Row: {
+          asaas_customer_id: string | null
+          asaas_payment_method: string | null
+          asaas_subscription_id: string | null
           address: string | null
           business_hours: Json | null
           business_status: string | null
@@ -2129,6 +2159,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          asaas_customer_id?: string | null
+          asaas_payment_method?: string | null
+          asaas_subscription_id?: string | null
           address?: string | null
           business_hours?: Json | null
           business_status?: string | null
@@ -2171,6 +2204,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          asaas_customer_id?: string | null
+          asaas_payment_method?: string | null
+          asaas_subscription_id?: string | null
           address?: string | null
           business_hours?: Json | null
           business_status?: string | null
@@ -7819,6 +7855,62 @@ export type Database = {
           },
         ]
       }
+      payment_history: {
+        Row: {
+          amount: number
+          asaas_payment_id: string | null
+          boleto_url: string | null
+          company_id: string
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_url: string | null
+          payment_date: string | null
+          payment_method: string | null
+          pix_copy_paste: string | null
+          pix_qr_code: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          asaas_payment_id?: string | null
+          boleto_url?: string | null
+          company_id: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_url?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
+          status: string
+        }
+        Update: {
+          amount?: number
+          asaas_payment_id?: string | null
+          boleto_url?: string | null
+          company_id?: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_url?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          pix_copy_paste?: string | null
+          pix_qr_code?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -8985,6 +9077,8 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          asaas_product_id: string | null
+          asaas_sync_status: string | null
           created_at: string | null
           description: string | null
           features: Json | null
@@ -9005,6 +9099,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          asaas_product_id?: string | null
+          asaas_sync_status?: string | null
           created_at?: string | null
           description?: string | null
           features?: Json | null
@@ -9025,6 +9121,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          asaas_product_id?: string | null
+          asaas_sync_status?: string | null
           created_at?: string | null
           description?: string | null
           features?: Json | null

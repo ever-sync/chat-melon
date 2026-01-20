@@ -12,8 +12,10 @@ export interface SubscriptionStatusData {
   canAccessPlatform: boolean;
   trialEndsAt: Date | null;
   subscriptionStartedAt: Date | null;
+  planId: string | null;
   planName: string;
   planSlug: string;
+  isFreePlan: boolean;
   isFreeForever: boolean;
   maxCompanies: number;
   currentCompaniesCount: number;
@@ -33,12 +35,12 @@ export interface SubscriptionStatusData {
  * }
  */
 export function useSubscriptionStatus() {
-  const { company } = useCompany();
+  const { currentCompany } = useCompany();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['subscription-status', company?.id],
+    queryKey: ['subscription-status', currentCompany?.id],
     queryFn: async () => {
-      if (!company?.id) return null;
+      if (!currentCompany?.id) return null;
 
       // Busca dados da empresa com o plano
       const { data: companyData, error: companyError } = await supabase
@@ -50,7 +52,9 @@ export function useSubscriptionStatus() {
           subscription_started_at,
           parent_company_id,
           is_primary_company,
+          plan_id,
           subscription_plans (
+            id,
             name,
             slug,
             is_free_plan,
@@ -58,7 +62,7 @@ export function useSubscriptionStatus() {
           )
         `
         )
-        .eq('id', company.id)
+        .eq('id', currentCompany.id)
         .single();
 
       if (companyError) throw companyError;
@@ -69,7 +73,7 @@ export function useSubscriptionStatus() {
         const { count } = await supabase
           .from('companies')
           .select('*', { count: 'exact', head: true })
-          .or(`id.eq.${company.id},parent_company_id.eq.${company.id}`);
+          .or(`id.eq.${currentCompany.id},parent_company_id.eq.${currentCompany.id}`);
 
         companiesCount = count || 1;
       }
@@ -79,7 +83,7 @@ export function useSubscriptionStatus() {
         companiesCount,
       };
     },
-    enabled: !!company?.id,
+    enabled: !!currentCompany?.id,
     staleTime: 1 * 60 * 1000, // 1 minuto
   });
 
@@ -93,8 +97,10 @@ export function useSubscriptionStatus() {
         canAccessPlatform: false,
         trialEndsAt: null,
         subscriptionStartedAt: null,
+        planId: null,
         planName: 'Free',
         planSlug: 'free',
+        isFreePlan: true,
         isFreeForever: false,
         maxCompanies: 1,
         currentCompaniesCount: 0,
@@ -124,9 +130,11 @@ export function useSubscriptionStatus() {
 
     // Informações do plano
     const plan = data.subscription_plans as any;
+    const planId = plan?.id || null;
     const planName = plan?.name || 'Free';
     const planSlug = plan?.slug || 'free';
-    const isFreeForever = plan?.is_free_plan || false;
+    const isFreePlan = plan?.is_free_plan || false;
+    const isFreeForever = isFreePlan;
     const maxCompanies = plan?.max_companies || 1;
     const currentCompaniesCount = data.companiesCount || 1;
     const canCreateMoreCompanies = currentCompaniesCount < maxCompanies;
@@ -138,8 +146,10 @@ export function useSubscriptionStatus() {
       canAccessPlatform,
       trialEndsAt,
       subscriptionStartedAt,
+      planId,
       planName,
       planSlug,
+      isFreePlan,
       isFreeForever,
       maxCompanies,
       currentCompaniesCount,

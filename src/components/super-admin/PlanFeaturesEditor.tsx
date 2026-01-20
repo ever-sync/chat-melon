@@ -19,7 +19,7 @@ export function PlanFeaturesEditor() {
   const { data: plans = [] } = useQuery({
     queryKey: ['subscription-plans'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('subscription_plans').select('*').order('price');
+      const { data, error } = await supabase.from('subscription_plans').select('*').order('price_monthly');
 
       if (error) throw error;
       return data;
@@ -106,7 +106,7 @@ export function PlanFeaturesEditor() {
             <SelectContent>
               {plans.map((plan) => (
                 <SelectItem key={plan.id} value={plan.id}>
-                  {plan.name} - R$ {plan.price_monthly.toFixed(2)}/mês
+                  {plan.name} - R$ {plan.price_monthly?.toFixed(2) || '0.00'}/mês
                 </SelectItem>
               ))}
             </SelectContent>

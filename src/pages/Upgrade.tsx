@@ -47,11 +47,7 @@ export default function Upgrade() {
   });
 
   const handleSelectPlan = (planId: string, planSlug: string) => {
-    // Aqui você integraria com o gateway de pagamento (Stripe, PagSeguro, etc)
-    console.log('Plano selecionado:', { planId, planSlug, billingPeriod });
-
-    // Por enquanto, apenas mostrar mensagem
-    alert(`Plano ${planSlug} selecionado! Integração com pagamento será implementada.`);
+    navigate(`/checkout?planId=${planId}&billing=${billingPeriod}`);
   };
 
   const getPlanIcon = (index: number) => {
